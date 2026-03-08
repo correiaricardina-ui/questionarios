@@ -453,16 +453,66 @@ function updP() {
   document.getElementById('pbar').style.width = p + '%';
   document.getElementById('pbtn').disabled = n < 20;
 }
+
+function calcScores() {
+  // Calcular scores a partir de ANS (respostas atuais)
+  const inv = [4,5,10]; // itens invertidos
+  const scored = {};
+  for (let n = 1; n <= 20; n++) {
+    const v = ANS[n] || 3;
+    scored[n] = inv.includes(n) ? (6 - v) : v;
+  }
+  const dif = [1,3,6,7,9,13,14].reduce((s,n) => s + scored[n], 0);
+  const ddf = [2,4,11,12,17].reduce((s,n) => s + scored[n], 0);
+  const eot = [5,8,10,15,16,18,19,20].reduce((s,n) => s + scored[n], 0);
+  const total = dif + ddf + eot;
+  let classification = 'Sem alexitimia';
+  if (total >= 61) classification = 'Alexitimia clinicamente relevante';
+  else if (total >= 52) classification = 'Zona de indefinição';
+  return { dif, ddf, eot, total, classification };
+}
+
 async function submitP() {
   spin(true);
   const code = document.getElementById('ptCode').value.trim().toUpperCase() || null;
   const name = document.getElementById('ptName').value.trim() || 'Paciente';
   const sessionCode = code || ('P' + Date.now().toString(36).slice(-4).toUpperCase());
+  
+  // Calcular scores
+  const scores = calcScores();
+  
   const sess = { code: sessionCode, patientCode: code || null, name, dob: '', createdAt: new Date().toISOString(), submittedAt: new Date().toISOString(), status: 'complete', answers: {...ANS} };
-  await SS('cns_tas20_sess:' + sessionCode, sess);
-  // Registar na lista de sessões TAS-20 para o sistema de gestão de pacientes
-  const tasList = (await SG('cns_tas20_all')) || [];
-  if(!tasList.includes(sessionCode)) { tasList.push(sessionCode); await SS('cns_tas20_all', tasList); }
+  
+  // Tentar guardar localmente
+  try { await SS('cns_tas20_sess:' + sessionCode, sess); } catch(e) {}
+  try {
+    const tasList = (await SG('cns_tas20_all')) || [];
+    if(!tasList.includes(sessionCode)) { tasList.push(sessionCode); await SS('cns_tas20_all', tasList); }
+  } catch(e) {}
+  
+  // Enviar para Google Sheets
+  const payload = {
+    patientCode: code || '',
+    name: name,
+    total: scores.total,
+    dif: scores.dif,
+    ddf: scores.ddf,
+    eot: scores.eot,
+    classification: scores.classification,
+    answers: Object.values(ANS)
+  };
+  
+  try {
+    await fetch('https://script.google.com/macros/s/AKfycbw5-Yk2xVNIUxud7_l2reZC8_1LEY7ZjROgCosOa49W1BHZ5adM0JQ29EMk4eUaDqTO/exec', {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+  } catch(e) {
+    console.warn('Envio para Google Sheets falhou:', e);
+  }
+  
   spin(false);
   document.getElementById('pform').style.display = 'none';
   document.getElementById('pcf').classList.add('on');
@@ -768,4 +818,11 @@ document.addEventListener('DOMContentLoaded', function() {
   // Password
   document.getElementById('btnPwdEnter').addEventListener('click', chkP);
   document.getElementById('pinp').addEventListener('keydown', e => { if(e.key==='Enter') chkP(); });
-  document.get
+  document.getElementById('btnCreateSess').addEventListener('click', createS);
+  document.getElementById('btnChgPwd').addEventListener('click', chgPwd);
+  document.getElementById('btnClearAll').addEventListener('click', clearAll);
+  document.getElementById('btn-tas-eye').addEventListener('click', toggleTasPw);
+});
+</script>
+</body>
+</html>
