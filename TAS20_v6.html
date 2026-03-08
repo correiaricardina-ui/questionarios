@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TAS-20 · Ricardina Correia</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=DM+Serif+Display&display=swap');
+:root{
+  --B:#3B5A7A;--BM:#5B7FA6;--BL:#D6E4F0;--BLP:#EBF3FA;
+  --GR:#F4F6F9;--GRM:#8B9CB0;--TX:#2C3E50;
+  --RD:#C0392B;--AM:#D4870A;--GN:#1E7E5A;
+  --sh:0 2px 16px rgba(59,90,122,.10);--sh2:0 8px 40px rgba(59,90,122,.18);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:var(--GR);color:var(--TX);min-height:100vh}
+.scr{display:none}
+.scr.on{display:block}
+#land{display:none;min-height:100vh;flex-direction:column;align-items:center;justify-content:center;padding:40px 20px;background:linear-gradient(150deg,#1e3448 0%,#2d4d6a 40%,var(--B) 100%);position:relative;overflow:hidden}
+#land::before{content:'';position:absolute;inset:0;opacity:.04;background-image:radial-gradient(circle,#fff 1px,transparent 1px);background-size:32px 32px}
+#land.on{display:flex}
+.ey{font-size:11px;letter-spacing:3px;color:rgba(255,255,255,.4);text-transform:uppercase;margin-bottom:10px;position:relative}
+.lt{font-family:'DM Serif Display',serif;font-size:68px;color:#fff;line-height:1;margin-bottom:6px;position:relative}
+.ls{font-size:13px;color:rgba(255,255,255,.45);margin-bottom:56px;letter-spacing:.3px;position:relative}
+.mgrid{display:grid;grid-template-columns:1fr 1fr;gap:16px;max-width:540px;width:100%;position:relative}
+.mc{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:18px;padding:30px 26px;cursor:pointer;transition:all .25s cubic-bezier(.34,1.56,.64,1);text-align:left}
+.mc:hover{background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.28);transform:translateY(-4px);box-shadow:0 20px 48px rgba(0,0,0,.25)}
+.mi{font-size:36px;display:block;margin-bottom:14px}
+.mt2{font-size:17px;font-weight:700;color:#fff;margin-bottom:5px}
+.md{font-size:11px;color:rgba(255,255,255,.42);line-height:1.55}
+.lft{position:relative;margin-top:48px;font-size:11px;color:rgba(255,255,255,.22);text-align:center}
+.hdr{background:var(--B)}
+.hdt{display:flex;align-items:center;justify-content:space-between;padding:14px 28px;border-bottom:1px solid rgba(255,255,255,.1)}
+.hb{font-family:'DM Serif Display',serif;font-size:16px;color:#fff}
+.hs{font-size:10px;color:rgba(255,255,255,.38);letter-spacing:.8px;text-transform:uppercase;margin-top:1px}
+.bgh{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);border-radius:7px;padding:6px 14px;font-size:12px;color:rgba(255,255,255,.65);cursor:pointer;font-family:inherit;transition:all .2s}
+.bgh:hover{background:rgba(255,255,255,.16);color:#fff}
+.tbar{display:none;padding:0 28px}
+.tbar.on{display:flex}
+.tab{padding:11px 22px;font-size:12px;font-weight:600;color:rgba(255,255,255,.45);cursor:pointer;border-bottom:3px solid transparent;transition:all .2s;font-family:inherit;letter-spacing:.2px;background:none;border-top:none;border-left:none;border-right:none}
+.tab:hover{color:rgba(255,255,255,.75)}
+.tab.on{color:#fff;border-bottom-color:var(--BL)}
+.pbody{max-width:720px;margin:0 auto;padding:28px 16px 80px}
+.card{background:#fff;border-radius:14px;padding:26px 28px;box-shadow:var(--sh);margin-bottom:20px}
+.card-a{border-top:4px solid var(--BM)}.card-b{border-top:4px solid var(--BL)}
+.card h3{font-size:11px;color:var(--B);font-weight:700;text-transform:uppercase;letter-spacing:.8px;margin-bottom:14px}
+.card p{font-size:13px;line-height:1.75;color:var(--TX)}
+.pills{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.pill{font-size:11px;background:var(--GR);padding:5px 12px;border-radius:20px;color:var(--GRM)}
+.pill strong{color:var(--TX)}
+.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
+.fld{display:flex;flex-direction:column;gap:4px}
+.fld label{font-size:11px;color:var(--BM);font-weight:600;letter-spacing:.3px}
+.fld input,.fld select{border:1.5px solid var(--BL);border-radius:8px;padding:9px 13px;font-size:13px;font-family:inherit;color:var(--TX);background:var(--GR);transition:all .2s}
+.fld input:focus{outline:none;border-color:var(--BM);background:#fff}
+.pw{margin-bottom:4px}
+.pi{display:flex;justify-content:space-between;font-size:11px;color:var(--GRM);margin-bottom:5px}
+.pbg{background:var(--BL);border-radius:6px;height:5px;overflow:hidden}
+.pbar{background:linear-gradient(90deg,var(--BM),var(--B));height:100%;border-radius:6px;transition:width .4s cubic-bezier(.34,1.56,.64,1);width:0%}
+.qwrap{margin-top:18px;display:flex;flex-direction:column;gap:12px}
+.qcard{background:#fff;border-radius:14px;padding:24px 24px 20px;box-shadow:var(--sh);border:2px solid transparent;transition:all .2s}
+.qcard.done{border-color:var(--BL)}
+.qn{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;background:var(--BLP);color:var(--BM);border-radius:50%;font-size:11px;font-weight:700;margin-bottom:12px}
+.qt{font-size:14px;line-height:1.65;margin-bottom:18px}
+.lk{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.lo{display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer}
+.lo input{display:none}
+.lb{width:100%;padding:9px 2px;border:2px solid var(--BL);border-radius:10px;text-align:center;font-size:16px;font-weight:700;color:var(--GRM);transition:all .15s;background:var(--GR);cursor:pointer;font-family:inherit;line-height:1;user-select:none}
+.lb:hover{border-color:var(--BM);color:var(--BM);background:var(--BLP)}
+.lo input:checked~.lb{background:var(--B);border-color:var(--B);color:#fff;box-shadow:0 4px 14px rgba(59,90,122,.3);transform:scale(1.06)}
+.ll{font-size:9px;color:var(--GRM);text-align:center;line-height:1.2}
+.szone{text-align:center;padding:32px 0 20px}
+.bsub{background:var(--B);color:#fff;border:none;border-radius:10px;padding:15px 44px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;transition:all .2s;box-shadow:0 6px 20px rgba(59,90,122,.28)}
+.bsub:hover:not(:disabled){background:var(--BM);transform:translateY(-2px)}
+.bsub:disabled{background:var(--GRM);cursor:not-allowed;box-shadow:none}
+.snote{font-size:11px;color:var(--GRM);margin-top:10px}
+.cfw{display:none;text-align:center;padding:60px 20px}
+.cfw.on{display:block}
+.cficon{font-size:72px;animation:pop .5s cubic-bezier(.34,1.56,.64,1)}
+@keyframes pop{from{transform:scale(0);opacity:0}to{transform:scale(1);opacity:1}}
+.cftitle{font-family:'DM Serif Display',serif;font-size:30px;color:var(--B);margin:20px 0 10px}
+.cfp{font-size:13px;color:var(--GRM);line-height:1.7;max-width:380px;margin:0 auto}
+.cbody{max-width:940px;margin:0 auto;padding:28px 16px 60px}
+.pgate{min-height:75vh;display:flex;align-items:center;justify-content:center}
+.pcard{background:#fff;border-radius:18px;padding:48px 44px;box-shadow:var(--sh2);text-align:center;width:100%;max-width:380px}
+.pico{font-size:48px;margin-bottom:18px}
+.ptitle{font-family:'DM Serif Display',serif;font-size:26px;color:var(--B);margin-bottom:8px}
+.phint{font-size:12px;color:var(--GRM);margin-bottom:28px;line-height:1.6}
+.phint code{display:block;background:var(--GR);border-radius:6px;padding:5px 12px;margin-top:6px;font-size:13px;color:var(--B);letter-spacing:1px;font-family:monospace}
+.pinp{width:100%;border:2px solid var(--BL);border-radius:10px;padding:14px;font-size:18px;font-family:inherit;color:var(--B);text-align:center;letter-spacing:4px;margin-bottom:14px;transition:border-color .2s}
+.pinp:focus{outline:none;border-color:var(--B)}
+.pbtn{width:100%;background:var(--B);color:#fff;border:none;border-radius:10px;padding:13px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;transition:background .2s}
+.pbtn:hover{background:var(--BM)}
+.perr{font-size:12px;color:var(--RD);margin-top:10px;display:none}
+.tc{display:none}.tc.on{display:block}
+.shdr{margin-bottom:22px}
+.stitle{font-family:'DM Serif Display',serif;font-size:22px;color:var(--B)}
+.ssub{font-size:12px;color:var(--GRM);margin-top:2px}
+.nscard{background:#fff;border-radius:14px;padding:26px 28px;box-shadow:var(--sh);margin-bottom:22px;border-top:4px solid var(--BM)}
+.nscard h3{font-size:11px;color:var(--B);font-weight:700;text-transform:uppercase;letter-spacing:.8px;margin-bottom:16px}
+.frow{display:grid;grid-template-columns:2fr 1fr 1fr;gap:12px;align-items:end}
+.cdisp{display:none;margin-top:18px;text-align:center}
+.cdisp.on{display:block}
+.cbig{font-size:40px;font-weight:800;letter-spacing:8px;color:var(--B);background:var(--BLP);border:2px solid var(--BL);border-radius:12px;padding:14px 28px;font-family:'DM Sans',sans-serif;display:inline-block}
+.ctip{font-size:11px;color:var(--GRM);margin-top:8px;line-height:1.6}
+.slist{display:flex;flex-direction:column;gap:10px}
+.sitem{background:#fff;border-radius:12px;padding:18px 22px;box-shadow:0 2px 10px rgba(59,90,122,.07);display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:18px;cursor:pointer;transition:all .2s;border:2px solid transparent}
+.sitem:hover{border-color:var(--BL);box-shadow:var(--sh)}
+.scode{background:var(--BLP);color:var(--B);font-size:15px;font-weight:800;padding:8px 14px;border-radius:8px;letter-spacing:3px;font-family:'DM Sans',sans-serif}
+.sname{font-size:13px;font-weight:600;color:var(--TX)}
+.sdate{font-size:11px;color:var(--GRM);margin-top:2px}
+.badge{font-size:10px;font-weight:700;padding:4px 10px;border-radius:20px}
+.b-ok{background:#E8F5EE;color:var(--GN)}.b-pend{background:#FFF8E6;color:var(--AM)}
+.nosess{text-align:center;padding:48px;color:var(--GRM);font-size:13px;background:#fff;border-radius:14px;box-shadow:var(--sh)}
+.btn{border:none;border-radius:8px;padding:9px 20px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .2s}
+.bp{background:var(--B);color:#fff}.bp:hover{background:var(--BM)}
+.bs{background:var(--BLP);color:var(--B)}.bs:hover{background:var(--BL)}
+.bd{background:#FDECEA;color:var(--RD)}.bd:hover{background:#fcd6d3}
+.bprint{display:flex;align-items:center;gap:6px;background:#fff;color:var(--B);border:2px solid var(--BL);border-radius:8px;padding:7px 16px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .2s}
+.bprint:hover{border-color:var(--B);background:var(--BLP)}
+.rtop{background:#fff;border-radius:14px;padding:26px 28px;box-shadow:var(--sh);margin-bottom:18px}
+.rname{font-family:'DM Serif Display',serif;font-size:28px;color:var(--B);margin-bottom:4px}
+.rmeta{font-size:12px;color:var(--GRM)}
+.sgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:18px}
+.scrd{background:#fff;border-radius:12px;padding:18px;box-shadow:0 2px 10px rgba(59,90,122,.07);text-align:center;border-bottom:4px solid var(--BL)}
+.scrd.tot{border-bottom-color:var(--B);background:var(--BLP)}
+.sv{font-size:42px;font-weight:800;color:var(--B);line-height:1;font-family:'DM Serif Display',serif}
+.scrd.tot .sv{font-size:50px}
+.sl{font-size:10px;text-transform:uppercase;letter-spacing:.7px;color:var(--BM);font-weight:700;margin-top:6px}
+.sm{font-size:11px;color:var(--GRM)}
+.gsec{background:#fff;border-radius:14px;padding:26px 28px;box-shadow:var(--sh);margin-bottom:18px;display:flex;align-items:center;gap:28px;flex-wrap:wrap}
+.gi{flex:1;min-width:240px}
+.gi h3{font-size:15px;font-weight:700;color:var(--B);margin-bottom:8px}
+.gi p{font-size:13px;line-height:1.7;color:var(--TX)}
+.clb{display:inline-block;padding:5px 14px;border-radius:20px;font-size:11px;font-weight:700;margin-bottom:10px}
+.c-ok{background:#E8F5EE;color:var(--GN)}.c-bord{background:#FFF8E6;color:var(--AM)}.c-alex{background:#FDECEA;color:var(--RD)}
+.subi{margin-top:14px;font-size:12px;color:var(--GRM);line-height:1.9}
+.subi strong{color:var(--TX)}
+.psec{background:#fff;border-radius:14px;padding:26px 28px;box-shadow:var(--sh);margin-bottom:18px}
+.psec h3,.dsec h3{font-size:11px;color:var(--B);font-weight:700;text-transform:uppercase;letter-spacing:.8px;margin-bottom:18px;padding-bottom:8px;border-bottom:2px solid var(--BL)}
+.br{display:grid;grid-template-columns:150px 1fr 46px;align-items:center;gap:12px;margin-bottom:14px}
+.brl{font-size:12px;font-weight:600;text-align:right}
+.brt{background:var(--GR);border-radius:8px;height:28px;overflow:hidden}
+.brf{height:100%;border-radius:8px;transition:width .9s cubic-bezier(.34,1.56,.64,1)}
+.f-dif{background:linear-gradient(90deg,var(--BM),var(--B))}.f-ddf{background:linear-gradient(90deg,#7A9BB8,var(--BM))}.f-eot{background:linear-gradient(90deg,var(--BL),#7A9BB8)}.f-tot{background:linear-gradient(90deg,var(--B),#1a2d3d)}
+.brs{font-size:15px;font-weight:800;color:var(--B);text-align:center}
+.dsec{background:#fff;border-radius:14px;padding:26px 28px;box-shadow:var(--sh);margin-bottom:18px}
+.dtbl{width:100%;border-collapse:collapse;font-size:12px}
+.dtbl th{background:var(--B);color:#fff;padding:8px 11px;text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:.4px}
+.dtbl td{padding:8px 11px;border-bottom:1px solid var(--BL);vertical-align:middle}
+.ftag{display:inline-block;padding:2px 7px;border-radius:8px;font-weight:700;font-size:10px}
+.ft-dif{background:var(--BL);color:var(--B)}.ft-ddf{background:#C8DFED;color:#3B6A8A}.ft-eot{background:#D8EAF4;color:var(--BM)}
+.invc{color:var(--AM);font-weight:700}
+.refbox{background:var(--GR);border-radius:10px;padding:14px 18px;font-size:11px;color:var(--GRM);line-height:1.7}
+.ccrd{background:#fff;border-radius:14px;padding:26px 28px;box-shadow:var(--sh);margin-bottom:16px}
+.ccrd h3{font-size:11px;color:var(--B);font-weight:700;text-transform:uppercase;letter-spacing:.8px;margin-bottom:14px}
+.ccrd p{font-size:13px;color:var(--TX);line-height:1.7;margin-bottom:12px}
+.steps{list-style:none;counter-reset:s}
+.steps li{counter-increment:s;padding:10px 0 10px 40px;position:relative;font-size:13px;color:var(--TX);line-height:1.6;border-bottom:1px solid var(--BL)}
+.steps li:last-child{border-bottom:none}
+.steps li::before{content:counter(s);position:absolute;left:0;top:10px;width:26px;height:26px;background:var(--B);color:#fff;border-radius:50%;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.steps li code{background:var(--GR);padding:2px 7px;border-radius:4px;font-size:11px;color:var(--B);font-family:monospace}
+.tip{margin-top:14px;padding:12px 16px;background:var(--BLP);border-radius:8px;font-size:12px;color:var(--BM);line-height:1.6}
+.loading{display:none;position:fixed;inset:0;background:rgba(59,90,122,.15);z-index:100;align-items:center;justify-content:center}
+.loading.on{display:flex}
+.lspin{width:44px;height:44px;border:4px solid var(--BL);border-top-color:var(--B);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media print{
+  #land,#scr-pat{display:none!important}
+  #scr-clin{display:block!important}
+  .hdr,.tbar,.pgate,.bprint,.btn,.bgh{display:none!important}
+  .tc{display:none!important}
+  #tc-results{display:block!important}
+  #rpanel{display:block!important}
+  #rph{display:none!important}
+  body,#scr-clin,.cbody{background:#fff!important}
+  .rtop,.scrd,.gsec,.psec,.dsec,.refbox{box-shadow:none!important;border:1px solid #D6E4F0!important}
+  .sgrid,.gsec,.psec,.dsec,.refbox{break-inside:avoid;page-break-inside:avoid}
+  *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
+}
+@media(max-width:600px){
+  .mgrid,.frow{grid-template-columns:1fr}
+  .lt{font-size:44px}
+  .sgrid{grid-template-columns:repeat(2,1fr)}
+  .gsec{flex-direction:column}
+  .br{grid-template-columns:90px 1fr 40px}
+  .fgrid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<div class="loading" id="loading"><div class="lspin"></div></div>
+
+<!-- LANDING -->
+<div id="land" class="scr on">
+  <div class="ey">Ricardina Correia · Psicóloga</div>
+  <div class="lt">TAS-20</div>
+  <div class="ls">Escala de Alexitimia de Toronto · TAS-20</div>
+  <div class="mgrid">
+    <div class="mc" id="btnGoPatient">
+      <span class="mi">📋</span>
+      <div class="mt2">Modo Paciente</div>
+      <div class="md">Preencher o questionário · Inserir código do paciente</div>
+    </div>
+    <div class="mc" id="btnGoClinical">
+      <span class="mi">🔬</span>
+      <div class="mt2">Modo Clínico</div>
+      <div class="md">Acesso reservado · Gerir sessões · Ver resultados · Exportar PDF</div>
+    </div>
+  </div>
+  <div class="lft">Ricardina Correia · Cédula n.º 8233 · ricardinacorreia@cnscampus.com</div>
+</div>
+
+<!-- PACIENTE -->
+<div id="scr-pat" class="scr">
+  <div class="hdr">
+    <div class="hdt">
+      <div><div class="hb">TAS-20</div><div class="hs">Questionário de Preenchimento</div></div>
+      <button class="bgh" id="btnPatBack">← Início</button>
+    </div>
+  </div>
+  <div class="pbody">
+    <div id="pform">
+      <div class="card card-a">
+        <h3>Identificação</h3>
+        <p style="margin-bottom:14px">Preencha os seus dados. Introduza o código do paciente fornecido pela psicóloga. Se não tiver código, as respostas são igualmente guardadas.</p>
+        <div class="fgrid">
+          <div class="fld"><label>O seu nome ou iniciais</label><input id="ptName" placeholder="ex: Maria S."></div>
+          <div class="fld"><label>Código do paciente</label><input id="ptCode" placeholder="ex: MV07032015" maxlength="20" style="text-transform:uppercase;letter-spacing:2px;font-weight:700;font-size:15px"></div>
+        </div>
+      </div>
+      <div class="card card-b">
+        <h3>Instruções</h3>
+        <p>Para cada afirmação, selecione o número que melhor descreve a sua experiência habitual.<br><strong>Não há respostas certas ou erradas</strong> — responda com honestidade, baseando-se em como se sente <em>geralmente</em>.</p>
+        <div class="pills">
+          <div class="pill"><strong>1</strong> Discordo totalmente</div>
+          <div class="pill"><strong>2</strong> Discordo</div>
+          <div class="pill"><strong>3</strong> Neutro</div>
+          <div class="pill"><strong>4</strong> Concordo</div>
+          <div class="pill"><strong>5</strong> Concordo totalmente</div>
+        </div>
+      </div>
+      <div class="pw">
+        <div class="pi"><span id="pptxt">0 de 20 respondidas</span><span id="pppct">0%</span></div>
+        <div class="pbg"><div class="pbar" id="pbar"></div></div>
+      </div>
+      <div class="qwrap" id="qwrap"></div>
+      <div class="szone">
+        <button class="bsub" id="pbtn" disabled>Concluir e guardar respostas</button>
+        <div class="snote">As suas respostas serão guardadas para consulta pela psicóloga.</div>
+      </div>
+    </div>
+    <div class="cfw" id="pcf">
+      <div class="cficon">✅</div>
+      <div class="cftitle">Obrigado!</div>
+      <p class="cfp">As suas respostas foram guardadas com sucesso.<br>Pode devolver o dispositivo à psicóloga ou fechar esta janela.</p>
+      <div style="margin-top:8px;font-size:12px;color:var(--GRM)" id="pcfCode"></div>
+      <button class="btn bs" id="btnCfBack" style="margin-top:20px">Voltar ao início</button>
+    </div>
+  </div>
+</div>
+
+<!-- CLÍNICO -->
+<div id="scr-clin" class="scr">
+  <div class="hdr">
+    <div class="hdt">
+      <div><div class="hb">Painel Clínico</div><div class="hs">TAS-20 · Acesso Restrito</div></div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button class="bprint" id="btnPrint" style="display:none">🖨️ Imprimir / PDF</button>
+        <button class="bgh" id="btnClinBack">← Sair</button>
+      </div>
+    </div>
+    <div class="tbar" id="tbar">
+      <button class="tab on" data-t="sessions" id="tabSessions">Sessões</button>
+      <button class="tab" data-t="results" id="tabResults">Resultados</button>
+      <button class="tab" data-t="config" id="tabConfig">Configuração</button>
+    </div>
+  </div>
+  <div class="cbody">
+    <div class="pgate" id="pgate">
+      <div class="pcard">
+        <div class="pico">🔐</div>
+        <div class="ptitle">Painel Clínico</div>
+        <div class="phint">Acesso reservado a Ricardina Correia.</div>
+        <div style="position:relative;">
+          <input type="password" class="pinp" id="pinp" placeholder="••••••••" style="padding-right:44px;">
+          <button type="button" onclick="toggleTasPw()" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:1.1rem;color:#8B9CB0;padding:0;" id="btn-tas-eye">👁</button>
+        </div>
+        <button class="pbtn" id="btnPwdEnter">Entrar</button>
+        <div class="perr" id="perr">Password incorreta. Tente novamente.</div>
+      </div>
+    </div>
+    <div class="tc" id="tc-sessions">
+      <div class="shdr"><div class="stitle">Sessões</div><div class="ssub">Crie um código por paciente e consulte as respostas submetidas</div></div>
+      <div class="nscard">
+        <h3>➕ Registar paciente</h3>
+        <p style="font-size:12px;color:var(--GRM);margin-bottom:12px;">O código é gerado automaticamente no sistema de gestão de pacientes (CNS_Pacientes.html). Insira-o aqui para associar as respostas.</p>
+        <div class="frow">
+          <div class="fld"><label>Nome do paciente</label><input id="nsName" placeholder="Nome completo"></div>
+          <div class="fld"><label>Código do paciente</label><input id="nsCode" placeholder="ex: MV07032015" style="text-transform:uppercase;letter-spacing:2px;font-weight:700;"></div>
+          <button class="btn bp" id="btnCreateSess" style="padding:11px">Registar</button>
+        </div>
+        <div class="cdisp" id="cdisp">
+          <div class="cbig" id="cbig"></div>
+          <div class="ctip">Código registado. Envie este ficheiro ao paciente indicando que deve inserir este código ao preencher.</div>
+        </div>
+      </div>
+      <div style="font-size:12px;font-weight:700;color:var(--B);margin-bottom:10px">Respostas guardadas (<span id="scnt">0</span>)</div>
+      <div class="slist" id="slist"></div>
+    </div>
+    <div class="tc" id="tc-results">
+      <div id="rph" style="text-align:center;padding:60px;color:var(--GRM);font-size:13px;background:#fff;border-radius:14px;box-shadow:var(--sh)">Selecione uma sessão completa para ver os resultados.</div>
+      <div id="rpanel"></div>
+    </div>
+    <div class="tc" id="tc-config">
+      <div class="ccrd">
+        <h3>🔑 Alterar password</h3>
+        <div class="frow">
+          <div class="fld"><label>Nova password</label><input type="password" id="np1" placeholder="Nova password"></div>
+          <div class="fld"><label>Confirmar</label><input type="password" id="np2" placeholder="Repetir"></div>
+          <button class="btn bp" id="btnChgPwd" style="padding:11px">Guardar</button>
+        </div>
+        <div id="pwdmsg" style="font-size:12px;margin-top:10px;display:none"></div>
+      </div>
+      <div class="ccrd">
+        <h3>📱 Como partilhar remotamente</h3>
+        <p>Para que o paciente preencha em casa:</p>
+        <ol class="steps">
+          <li>Guarde este ficheiro HTML (botão direito → "Guardar como")</li>
+          <li>Aceda a <code>netlify.com/drop</code> e arraste o ficheiro — fica online em segundos, grátis</li>
+          <li>Copie o link gerado (ex: <code>https://abc123.netlify.app</code>)</li>
+          <li>Crie uma sessão → obtenha o código (ex: <code>AB3K</code>)</li>
+          <li>Envie ao paciente: link + código</li>
+        </ol>
+        <div class="tip">💡 <strong>Na consulta:</strong> basta abrir o ficheiro no computador/tablet e entregar ao paciente. Sem código necessário.</div>
+      </div>
+      <div class="ccrd">
+        <h3>🗑️ Apagar todos os dados</h3>
+        <p>Remove todas as sessões e respostas. Irreversível.</p>
+        <button class="btn bd" id="btnClearAll">Apagar tudo</button>
+      </div>
+      <div class="ccrd" style="border-top:4px solid var(--GRM)">
+        <h3>ℹ️ Sobre</h3>
+        <p>TAS-20 · Versão 6.0<br>
+        Psicóloga: Ricardina Correia · Cédula n.º 8233 · ricardinacorreia@cnscampus.com<br><br>
+        <strong>Referências:</strong> Bagby, Parker &amp; Taylor (1994) · Taylor, Bagby &amp; Parker (2003) · González-Arias et al. (2018, Front. Psychol.)</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── DADOS ───────────────────────────────────────────────────
+const ITEMS = [
+  {n:1,  t:'Costumo sentir-me confuso em relação às emoções que estou a experienciar.',                            f:'DIF', inv:false},
+  {n:2,  t:'É-me difícil encontrar as palavras certas para descrever os meus sentimentos.',                        f:'DDF', inv:false},
+  {n:3,  t:'Tenho sensações físicas que nem mesmo os médicos conseguem compreender.',                              f:'DIF', inv:false},
+  {n:4,  t:'Sou capaz de expressar os meus sentimentos com facilidade.',                                           f:'DDF', inv:true },
+  {n:5,  t:'Prefiro analisar os problemas do que apenas descrever o que sinto sobre eles.',                        f:'EOT', inv:true },
+  {n:6,  t:'Quando me sinto em baixo, não sei se estou triste, assustado ou irritado.',                            f:'DIF', inv:false},
+  {n:7,  t:'Frequentemente sinto-me confuso em relação às sensações do meu corpo.',                                f:'DIF', inv:false},
+  {n:8,  t:'Prefiro deixar que as coisas simplesmente aconteçam, em vez de questionar porque ocorrem dessa forma.',f:'EOT', inv:false},
+  {n:9,  t:'Tenho sentimentos que mal consigo identificar.',                                                       f:'DIF', inv:false},
+  {n:10, t:'Estar em contacto com as emoções é essencial.',                                                        f:'EOT', inv:true },
+  {n:11, t:'Tenho dificuldade em expressar o que sinto em relação às outras pessoas.',                             f:'DDF', inv:false},
+  {n:12, t:'As pessoas dizem-me que deveria expressar mais os meus sentimentos.',                                  f:'DDF', inv:false},
+  {n:13, t:'Não sei o que se passa dentro de mim.',                                                               f:'DIF', inv:false},
+  {n:14, t:'Frequentemente não sei porque estou irritado.',                                                       f:'DIF', inv:false},
+  {n:15, t:'Prefiro falar com as pessoas sobre as suas atividades do dia a dia do que sobre os seus sentimentos.', f:'EOT', inv:false},
+  {n:16, t:'Prefiro ver programas simples e divertidos do que dramas psicológicos.',                               f:'EOT', inv:false},
+  {n:17, t:'É-me difícil revelar os meus sentimentos mais profundos, mesmo aos amigos mais próximos.',             f:'DDF', inv:false},
+  {n:18, t:'Consigo sentir-me próximo de alguém, mesmo em momentos de silêncio.',                                  f:'EOT', inv:true },
+  {n:19, t:'Considero útil examinar os meus sentimentos para resolver problemas pessoais.',                        f:'EOT', inv:true },
+  {n:20, t:'Procurar significados ocultos em filmes ou jogos reduz o prazer de os apreciar.',                     f:'EOT', inv:false}
+];
+const LBLS = ['Discordo\ntotalmente','Discordo','Neutro','Concordo','Concordo\ntotalmente'];
+const DPWD = 'CNS2024'; // password fixa
+
+// ─── STORAGE ─────────────────────────────────────────────────
+const MEM = {};
+async function SS(k, v) {
+  const s = JSON.stringify(v);
+  if (typeof window.storage !== 'undefined') { try { await window.storage.set(k, s); return; } catch(e) {} }
+  try { localStorage.setItem(k, s); return; } catch(e) {}
+  MEM[k] = s;
+}
+async function SG(k) {
+  if (typeof window.storage !== 'undefined') { try { const r = await window.storage.get(k); if (r) return JSON.parse(r.value); } catch(e) {} }
+  try { const r = localStorage.getItem(k); if (r) return JSON.parse(r); } catch(e) {}
+  return MEM[k] ? JSON.parse(MEM[k]) : null;
+}
+async function SD(k) {
+  if (typeof window.storage !== 'undefined') { try { await window.storage.delete(k); } catch(e) {} }
+  try { localStorage.removeItem(k); } catch(e) {}
+  delete MEM[k];
+}
+async function SK(pre) {
+  const ks = new Set();
+  if (typeof window.storage !== 'undefined') { try { const r = await window.storage.list(pre); if (r) r.keys.forEach(k => ks.add(k)); } catch(e) {} }
+  try { for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k && k.startsWith(pre)) ks.add(k); } } catch(e) {}
+  Object.keys(MEM).filter(k => k.startsWith(pre)).forEach(k => ks.add(k));
+  return [...ks];
+}
+
+// ─── NAV ─────────────────────────────────────────────────────
+function toggleTasPw() {
+  const inp = document.getElementById('pinp');
+  const btn = document.getElementById('btn-tas-eye');
+  inp.type = inp.type === 'password' ? 'text' : 'password';
+  btn.textContent = inp.type === 'password' ? '👁' : '🙈';
+}
+function show(id) { document.querySelectorAll('.scr').forEach(s => s.classList.remove('on')); document.getElementById(id).classList.add('on'); }
+function goL() { show('land'); }
+function goP() { buildQ(); show('scr-pat'); }
+function goC() { show('scr-clin'); }
+function spin(on) { document.getElementById('loading').classList.toggle('on', on); }
+
+// ─── MODO PACIENTE ───────────────────────────────────────────
+const ANS = {};
+function buildQ() {
+  Object.keys(ANS).forEach(k => delete ANS[k]);
+  document.getElementById('pform').style.display = 'block';
+  document.getElementById('pcf').className = 'cfw';
+  document.getElementById('ptName').value = '';
+  document.getElementById('ptCode').value = '';
+  const w = document.getElementById('qwrap');
+  w.innerHTML = '';
+  ITEMS.forEach(item => {
+    const d = document.createElement('div');
+    d.className = 'qcard';
+    d.id = 'qc' + item.n;
+    const opts = LBLS.map((l, i) => {
+      const lbl = l.replace('\n', '<br>');
+      return '<label class="lo"><input type="radio" name="q' + item.n + '" value="' + (i+1) + '"><div class="lb">' + (i+1) + '</div><div class="ll">' + lbl + '</div></label>';
+    }).join('');
+    d.innerHTML = '<div class="qn">' + item.n + '</div><div class="qt">' + item.t + '</div><div class="lk">' + opts + '</div>';
+    d.querySelectorAll('input[type=radio]').forEach(inp => {
+      inp.addEventListener('change', function() {
+        ANS[item.n] = parseInt(this.value);
+        document.getElementById('qc' + item.n).classList.add('done');
+        updP();
+      });
+    });
+    w.appendChild(d);
+  });
+  updP();
+}
+function updP() {
+  const n = Object.keys(ANS).length, p = Math.round(n / 20 * 100);
+  document.getElementById('pptxt').textContent = n + ' de 20 respondidas';
+  document.getElementById('pppct').textContent = p + '%';
+  document.getElementById('pbar').style.width = p + '%';
+  document.getElementById('pbtn').disabled = n < 20;
+}
+async function submitP() {
+  spin(true);
+  const code = document.getElementById('ptCode').value.trim().toUpperCase() || null;
+  const name = document.getElementById('ptName').value.trim() || 'Paciente';
+  const sessionCode = code || ('P' + Date.now().toString(36).slice(-4).toUpperCase());
+  const sess = { code: sessionCode, patientCode: code || null, name, dob: '', createdAt: new Date().toISOString(), submittedAt: new Date().toISOString(), status: 'complete', answers: {...ANS} };
+  await SS('cns_tas20_sess:' + sessionCode, sess);
+  // Registar na lista de sessões TAS-20 para o sistema de gestão de pacientes
+  const tasList = (await SG('cns_tas20_all')) || [];
+  if(!tasList.includes(sessionCode)) { tasList.push(sessionCode); await SS('cns_tas20_all', tasList); }
+  spin(false);
+  document.getElementById('pform').style.display = 'none';
+  document.getElementById('pcf').classList.add('on');
+  document.getElementById('pcfCode').textContent = 'Código de referência: ' + sessionCode;
+}
+
+// ─── MODO CLÍNICO — PASSWORD ─────────────────────────────────
+function chkP() {
+  const v = document.getElementById('pinp').value.trim();
+  if (v === 'CNS2024') {
+    document.getElementById('pgate').style.display = 'none';
+    document.getElementById('tbar').classList.add('on');
+    showT('sessions'); loadS();
+  } else {
+    document.getElementById('perr').style.display = 'block';
+    document.getElementById('pinp').value = '';
+  }
+}
+async function chgPwd() {
+  const a = document.getElementById('np1').value, b = document.getElementById('np2').value;
+  const m = document.getElementById('pwdmsg');
+  if (a.length < 4) { m.style.display='block'; m.style.color='var(--RD)'; m.textContent='Mínimo 4 caracteres.'; return; }
+  if (a !== b) { m.style.display='block'; m.style.color='var(--RD)'; m.textContent='As passwords não coincidem.'; return; }
+  await SS('cns_tas20_pwd', a);
+  m.style.display='block'; m.style.color='var(--GN)'; m.textContent='Password alterada.';
+}
+
+// ─── TABS ─────────────────────────────────────────────────────
+function showT(t) {
+  document.querySelectorAll('.tc').forEach(x => x.classList.remove('on'));
+  document.querySelectorAll('.tab').forEach(x => x.classList.remove('on'));
+  document.getElementById('tc-' + t).classList.add('on');
+  document.getElementById('tab' + t.charAt(0).toUpperCase() + t.slice(1)).classList.add('on');
+  document.getElementById('btnPrint').style.display = t === 'results' ? 'flex' : 'none';
+}
+
+// ─── SESSÕES ─────────────────────────────────────────────────
+function genC() { const c='ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; let s=''; for(let i=0;i<4;i++) s+=c[Math.floor(Math.random()*c.length)]; return s; }
+async function createS() {
+  const name = document.getElementById('nsName').value.trim();
+  const code = document.getElementById('nsCode').value.trim().toUpperCase();
+  if (!name) { alert('Introduza o nome do paciente.'); return; }
+  if (!code) { alert('Introduza o código do paciente (gerado no sistema de gestão de pacientes).'); return; }
+  spin(true);
+  const existing = await SG('cns_tas20_sess:' + code);
+  if(existing) {
+    if(!confirm('Já existe um registo para o código ' + code + '. Pretende substituir?')) { spin(false); return; }
+  }
+  const sess = { code, name, createdAt: new Date().toISOString(), status: 'pending', answers: null };
+  await SS('cns_tas20_sess:' + code, sess);
+  // Registar na lista geral
+  const tasList = (await SG('cns_tas20_all')) || [];
+  if(!tasList.includes(code)) { tasList.push(code); await SS('cns_tas20_all', tasList); }
+  document.getElementById('cbig').textContent = code;
+  document.getElementById('cdisp').classList.add('on');
+  document.getElementById('nsName').value = '';
+  document.getElementById('nsCode').value = '';
+  spin(false); loadS();
+}
+async function loadS() {
+  spin(true);
+  // Usar lista registada + fallback para scan
+  let keys = (await SG('cns_tas20_all')) || [];
+  const scanned = await SK('cns_tas20_sess:');
+  scanned.forEach(k => { const code = k.replace('cns_tas20_sess:',''); if(!keys.includes(code)) keys.push(code); });
+  keys = keys.map(code => 'cns_tas20_sess:' + code);
+  document.getElementById('scnt').textContent = keys.length;
+  const list = document.getElementById('slist');
+  if (!keys.length) { list.innerHTML = '<div class="nosess">Ainda não há sessões. Crie uma acima, ou peça ao paciente para preencher sem código.</div>'; spin(false); return; }
+  const sessions = (await Promise.all(keys.map(k => SG(k)))).filter(Boolean).sort((a,b) => new Date(b.createdAt||0) - new Date(a.createdAt||0));
+  list.innerHTML = sessions.map(s => {
+    const dt = new Date(s.createdAt||Date.now()).toLocaleDateString('pt-PT',{day:'2-digit',month:'2-digit',year:'numeric'});
+    const dob = s.dob ? ' · DN: ' + s.dob : '';
+    const bc = s.status==='complete' ? 'b-ok' : 'b-pend';
+    const bl = s.status==='complete' ? '✓ Completo' : '⏳ Pendente';
+    return '<div class="sitem" data-code="' + s.code + '">'
+      + '<div class="scode">' + s.code + '</div>'
+      + '<div><div class="sname">' + s.name + '</div><div class="sdate">' + dt + dob + '</div></div>'
+      + '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">'
+        + '<span class="badge ' + bc + '">' + bl + '</span>'
+        + '<button class="btn bd del-btn" data-code="' + s.code + '" style="font-size:10px;padding:3px 10px">Eliminar</button>'
+      + '</div></div>';
+  }).join('');
+  list.querySelectorAll('.sitem').forEach(el => {
+    el.addEventListener('click', function(e) { if (!e.target.classList.contains('del-btn')) openS(this.dataset.code); });
+  });
+  list.querySelectorAll('.del-btn').forEach(el => {
+    el.addEventListener('click', function(e) { e.stopPropagation(); delS(this.dataset.code); });
+  });
+  spin(false);
+}
+async function openS(code) {
+  const s = await SG('cns_tas20_sess:' + code); if (!s) return;
+  if (s.status !== 'complete') { alert('Sessão ' + code + ' ainda não foi submetida.\nEnvie o código "' + code + '" ao paciente.'); return; }
+  renderR(s); showT('results');
+}
+async function delS(code) { if (!confirm('Eliminar sessão ' + code + '?')) return; await SD('cns_tas20_sess:' + code); loadS(); }
+async function clearAll() {
+  if (!confirm('Apagar TODOS os dados?')) return;
+  spin(true);
+  const ks = await SK('cns_tas20_sess:'); for (const k of ks) await SD(k);
+  loadS(); document.getElementById('rpanel').innerHTML = ''; document.getElementById('rph').style.display = 'block';
+  spin(false);
+}
+
+// ─── CÁLCULO ─────────────────────────────────────────────────
+function calc(a) {
+  const c = {};
+  ITEMS.forEach(i => c[i.n] = i.inv ? 6 - a[i.n] : a[i.n]);
+  const dif = [1,3,6,7,9,13,14].reduce((s,n) => s + c[n], 0);
+  const ddf = [2,4,11,12,17].reduce((s,n) => s + c[n], 0);
+  const eot = [5,8,10,15,16,18,19,20].reduce((s,n) => s + c[n], 0);
+  return { dif, ddf, eot, tot: dif+ddf+eot, c };
+}
+
+// ─── INTERPRETAÇÃO ───────────────────────────────────────────
+// Limiares por subescala (Bagby et al., 1994):
+// DIF: ≤13 normal | 14–19 moderado | ≥20 elevado  (máx 35)
+// DDF: ≤9  normal | 10–13 moderado | ≥14 elevado  (máx 25)
+// EOT: ≤18 normal | 19–23 moderado | ≥24 elevado  (máx 40)
+function interpSub(val, limNorm, limMod) {
+  if (val <= limNorm) return { lbl:'Sem dificuldade relevante', zona:'Normal',  acao:'Sem necessidade de intervenção específica nesta dimensão.',                                        cor:'#E8F5EE', tcor:'#1E7E5A' };
+  if (val <= limMod)  return { lbl:'Dificuldade moderada',      zona:'Atenção', acao:'Monitorizar. Explorar clinicamente em contexto de avaliação mais ampla.',                          cor:'#FFF8E6', tcor:'#D4870A' };
+                      return { lbl:'Dificuldade significativa', zona:'Clínica', acao:'Intervenção recomendada. Integrar no plano terapêutico.',                                          cor:'#FDECEA', tcor:'#C0392B' };
+}
+function classifRow(nome, val, max, limNorm, limMod, alt) {
+  const r = interpSub(val, limNorm, limMod);
+  const bg = alt ? 'background:var(--GR)' : '';
+  return '<tr style="' + bg + '">'
+    + '<td style="font-weight:700;color:var(--B)">' + nome + '</td>'
+    + '<td style="text-align:center;font-weight:800;color:var(--B)">' + val + ' / ' + max + '</td>'
+    + '<td style="text-align:center"><span style="font-size:11px;font-weight:700;color:' + r.tcor + '">' + r.lbl + '</span></td>'
+    + '<td style="text-align:center"><span style="background:' + r.cor + ';color:' + r.tcor + ';padding:3px 9px;border-radius:8px;font-size:11px;font-weight:700">' + r.zona + '</span></td>'
+    + '<td style="font-size:11px">' + r.acao + '</td>'
+    + '</tr>';
+}
+
+// ─── RENDER RESULTADOS ───────────────────────────────────────
+function renderR(s) {
+  const { dif, ddf, eot, tot, c } = calc(s.answers);
+
+  // Interpretação total
+  let cls, lbl, txt, tCor, tTcor, tZona, tAcao;
+  if (tot <= 51) {
+    cls='c-ok'; lbl='Sem alexitimia (≤ 51)'; tCor='#E8F5EE'; tTcor='#1E7E5A'; tZona='Normal';
+    tAcao='Capacidade adequada de processamento emocional. Reavaliar se contexto clínico indicar.';
+    txt='A pontuação situa-se abaixo do limiar clinicamente significativo. Capacidade adequada de identificar, diferenciar e expressar estados emocionais. Não se justifica preocupação clínica isolada com base neste instrumento.';
+  } else if (tot <= 60) {
+    cls='c-bord'; lbl='Zona limítrofe (52–60)'; tCor='#FFF8E6'; tTcor='#D4870A'; tZona='Atenção';
+    tAcao='Avaliação clínica complementar recomendada. Considerar intervenção focada na expressão emocional.';
+    txt='Pontuação na zona limítrofe, sugerindo dificuldades moderadas no processamento emocional.';
+  } else {
+    cls='c-alex'; lbl='Alexitimia clinicamente relevante (≥ 61)'; tCor='#FDECEA'; tTcor='#C0392B'; tZona='Clínica';
+    tAcao='Intervenção psicoterapêutica recomendada, com foco em consciência e expressão emocional. Integrar no plano terapêutico global.';
+    txt='Pontuação acima do ponto de corte para alexitimia clinicamente relevante.';
+  }
+
+  // Narrativa dinâmica — perfil dominante
+  const difPct = dif/35, ddfPct = ddf/25, eotPct = eot/40;
+  const dom = difPct >= ddfPct && difPct >= eotPct ? 'DIF' : ddfPct >= eotPct ? 'DDF' : 'EOT';
+  const narr = {
+    DIF: ' O perfil é dominado por dificuldade na identificação e diferenciação dos próprios estados emocionais (DIF elevado), com frequente confusão entre emoções e sensações físicas.',
+    DDF: ' O perfil é dominado por dificuldade em verbalizar e descrever estados emocionais a outros (DDF elevado), mesmo quando as emoções são reconhecidas internamente.',
+    EOT: ' O perfil é dominado por um estilo cognitivo orientado para o exterior (EOT elevado), com pensamento concreto e menor atenção ao mundo interno emocional.'
+  };
+  if (tot > 51) txt += narr[dom];
+  if (tot > 51) txt += ' Integrar no contexto clínico global.';
+
+  // Subescalas — interpretação textual
+  const rDif = interpSub(dif, 13, 19);
+  const rDdf = interpSub(ddf, 9, 13);
+  const rEot = interpSub(eot, 18, 23);
+
+  const ang = ((tot - 20) / 80) * 180 - 90;
+  const dt = new Date(s.submittedAt||s.createdAt||Date.now()).toLocaleDateString('pt-PT',{day:'2-digit',month:'long',year:'numeric'});
+  const dob = s.dob ? ' · DN: ' + s.dob : '';
+
+  // Detalhe por item
+  const rows = ITEMS.map((item, i) => {
+    const bg = i % 2 ? 'background:var(--GR)' : '';
+    const ft = '<span class="ftag ft-' + item.f.toLowerCase() + '">' + item.f + '</span>';
+    const corrVal = item.inv ? c[item.n] : s.answers[item.n];
+    const corrDisp = item.inv ? '<span class="invc">↺ ' + c[item.n] + '</span>' : '' + s.answers[item.n];
+    return '<tr style="' + bg + '">'
+      + '<td style="text-align:center;font-weight:700;color:var(--BM)">' + item.n + '</td>'
+      + '<td style="font-size:11px">' + item.t + '</td>'
+      + '<td>' + ft + '</td>'
+      + '<td style="text-align:center">' + s.answers[item.n] + '</td>'
+      + '<td style="text-align:center">' + corrDisp + '</td>'
+      + '<td style="text-align:center;font-weight:800;color:var(--B)">' + c[item.n] + '</td>'
+      + '</tr>';
+  }).join('');
+
+  // Linha total da tabela classificação
+  const totalRow = '<tr style="background:var(--BLP)">'
+    + '<td style="font-weight:800;color:var(--B)">TOTAL TAS-20</td>'
+    + '<td style="text-align:center;font-weight:800;color:var(--B);font-size:14px">' + tot + ' / 100</td>'
+    + '<td style="text-align:center"><span style="font-size:11px;font-weight:700;color:' + tTcor + '">' + lbl.split(' (')[0] + '</span></td>'
+    + '<td style="text-align:center"><span style="background:' + tCor + ';color:' + tTcor + ';padding:3px 9px;border-radius:8px;font-size:11px;font-weight:700">' + tZona + '</span></td>'
+    + '<td style="font-size:11px">' + tAcao + '</td>'
+    + '</tr>';
+
+  document.getElementById('rpanel').innerHTML =
+    // Cabeçalho
+    '<div class="rtop" style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px">'
+      + '<div><div class="rname">' + s.name + '</div><div class="rmeta">Código: <strong>' + s.code + '</strong>' + dob + ' · Submetido: ' + dt + '</div></div>'
+      + '<button class="btn bs" id="btnBackSess">← Sessões</button>'
+    + '</div>'
+    // Cards sumário
+    + '<div class="sgrid">'
+      + '<div class="scrd"><div class="sl">DIF</div><div class="sv">' + dif + '</div><div class="sm">/ 35</div></div>'
+      + '<div class="scrd"><div class="sl">DDF</div><div class="sv">' + ddf + '</div><div class="sm">/ 25</div></div>'
+      + '<div class="scrd"><div class="sl">EOT</div><div class="sv">' + eot + '</div><div class="sm">/ 40</div></div>'
+      + '<div class="scrd tot"><div class="sl">Total TAS-20</div><div class="sv">' + tot + '</div><div class="sm">/ 100</div></div>'
+    + '</div>'
+    // Gauge + interpretação
+    + '<div class="gsec">'
+      + '<svg viewBox="0 0 280 155" width="250" style="flex-shrink:0">'
+        + '<path d="M18,140 A122,122 0 0,1 100,24" fill="none" stroke="#1E7E5A" stroke-width="20" stroke-linecap="butt"/>'
+        + '<path d="M100,24 A122,122 0 0,1 168,19" fill="none" stroke="#D4870A" stroke-width="20" stroke-linecap="butt"/>'
+        + '<path d="M168,19 A122,122 0 0,1 262,140" fill="none" stroke="#C0392B" stroke-width="20" stroke-linecap="butt"/>'
+        + '<line x1="140" y1="140" x2="140" y2="28" stroke="#2C3E50" stroke-width="3" stroke-linecap="round" transform="rotate(' + ang + ',140,140)"/>'
+        + '<circle cx="140" cy="140" r="7" fill="#2C3E50"/><circle cx="140" cy="140" r="3.5" fill="white"/>'
+        + '<text x="10" y="154" font-size="9" fill="#1E7E5A" font-weight="700" font-family="DM Sans,sans-serif">20</text>'
+        + '<text x="87" y="12" font-size="9" fill="#D4870A" font-weight="700" font-family="DM Sans,sans-serif">51</text>'
+        + '<text x="154" y="8" font-size="9" fill="#D4870A" font-weight="700" font-family="DM Sans,sans-serif">60</text>'
+        + '<text x="254" y="154" font-size="9" fill="#C0392B" font-weight="700" font-family="DM Sans,sans-serif">100</text>'
+        + '<text x="140" y="108" text-anchor="middle" font-size="34" font-weight="800" fill="#3B5A7A" font-family="DM Serif Display,serif">' + tot + '</text>'
+        + '<text x="140" y="126" text-anchor="middle" font-size="10" fill="#5B7FA6" font-family="DM Sans,sans-serif">pontos</text>'
+      + '</svg>'
+      + '<div class="gi">'
+        + '<span class="clb ' + cls + '">' + lbl + '</span>'
+        + '<h3>Interpretação clínica</h3>'
+        + '<p>' + txt + '</p>'
+        + '<div class="subi">'
+          + '<strong>DIF (' + dif + '/35):</strong> <span style="color:' + rDif.tcor + '">' + rDif.lbl + '</span><br>'
+          + '<strong>DDF (' + ddf + '/25):</strong> <span style="color:' + rDdf.tcor + '">' + rDdf.lbl + '</span><br>'
+          + '<strong>EOT (' + eot + '/40):</strong> <span style="color:' + rEot.tcor + '">' + rEot.lbl + '</span>'
+        + '</div>'
+      + '</div>'
+    + '</div>'
+    // Perfil barras
+    + '<div class="psec"><h3>Perfil por Subescala</h3>'
+      + '<div class="br"><div class="brl">DIF — Identificar</div><div class="brt"><div class="brf f-dif" style="width:' + Math.round(dif/35*100) + '%"></div></div><div class="brs">' + dif + '</div></div>'
+      + '<div class="br"><div class="brl">DDF — Descrever</div><div class="brt"><div class="brf f-ddf" style="width:' + Math.round(ddf/25*100) + '%"></div></div><div class="brs">' + ddf + '</div></div>'
+      + '<div class="br"><div class="brl">EOT — Exterior</div><div class="brt"><div class="brf f-eot" style="width:' + Math.round(eot/40*100) + '%"></div></div><div class="brs">' + eot + '</div></div>'
+      + '<div class="br" style="margin-top:10px;padding-top:10px;border-top:1px solid var(--BL)"><div class="brl" style="font-weight:700;color:var(--B)">TOTAL</div><div class="brt"><div class="brf f-tot" style="width:' + tot + '%"></div></div><div class="brs" style="font-size:18px">' + tot + '</div></div>'
+    + '</div>'
+    // Tabela classificação
+    + '<div class="dsec"><h3>Classificação e Interpretação</h3>'
+      + '<table class="dtbl"><thead><tr>'
+        + '<th>Escala</th>'
+        + '<th style="width:80px;text-align:center">Resultado</th>'
+        + '<th style="width:130px">Classificação</th>'
+        + '<th style="width:72px;text-align:center">Zona</th>'
+        + '<th>Ação recomendada</th>'
+      + '</tr></thead><tbody>'
+        + classifRow('DIF — Dificuldade em Identificar Sentimentos', dif, 35, 13, 19, false)
+        + classifRow('DDF — Dificuldade em Descrever Sentimentos',   ddf, 25,  9, 13, true)
+        + classifRow('EOT — Pensamento Orientado para o Exterior',   eot, 40, 18, 23, false)
+        + totalRow
+      + '</tbody></table>'
+      + '<div style="font-size:11px;color:var(--GRM);margin-top:10px;line-height:1.6">'
+        + 'Limiares (Bagby, Parker &amp; Taylor, 1994): DIF ≤13 normal / 14–19 moderado / ≥20 elevado · DDF ≤9 normal / 10–13 moderado / ≥14 elevado · EOT ≤18 normal / 19–23 moderado / ≥24 elevado · Total ≤51 sem alexitimia / 52–60 limítrofe / ≥61 clinicamente relevante'
+      + '</div>'
+    + '</div>'
+    // Detalhe por item
+    + '<div class="dsec"><h3>Detalhe por Item</h3>'
+      + '<table class="dtbl"><thead><tr>'
+        + '<th style="width:36px">#</th><th>Enunciado</th><th style="width:52px">Fator</th>'
+        + '<th style="width:60px;text-align:center">Resposta</th><th style="width:70px;text-align:center">Corrigido</th><th style="width:50px;text-align:center">Valor</th>'
+      + '</tr></thead><tbody>' + rows + '</tbody></table>'
+      + '<div style="font-size:11px;color:var(--GRM);margin-top:10px;line-height:1.6">↺ = item invertido (valor = 6 – resposta) · Itens invertidos: 4, 5, 10, 18, 19</div>'
+    + '</div>'
+    // Rodapé confidencialidade
+    + '<div class="refbox">'
+      + '<strong>Confidencial — uso clínico exclusivo · Ricardina Correia</strong><br>'
+      + 'Psicóloga: Ricardina Correia · Cédula n.º 8233 · ricardinacorreia@cnscampus.com<br>'
+      + 'Referências: Bagby, Parker &amp; Taylor (1994) · Taylor, Bagby &amp; Parker (2003) · González-Arias et al. (2018, Front. Psychol.)'
+    + '</div>';
+
+  document.getElementById('rph').style.display = 'none';
+  // Ligar botão "← Sessões" criado dinamicamente
+  document.getElementById('btnBackSess').addEventListener('click', () => showT('sessions'));
+}
+
+// ─── EVENT LISTENERS ─────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', function() {
+  // Landing
+  document.getElementById('btnGoPatient').addEventListener('click', goP);
+  document.getElementById('btnGoClinical').addEventListener('click', goC);
+  // Paciente
+  document.getElementById('btnPatBack').addEventListener('click', goL);
+  document.getElementById('pbtn').addEventListener('click', submitP);
+  document.getElementById('btnCfBack').addEventListener('click', goL);
+  // Clínico header
+  document.getElementById('btnPrint').addEventListener('click', () => window.print());
+  document.getElementById('btnClinBack').addEventListener('click', goL);
+  // Tabs
+  document.getElementById('tabSessions').addEventListener('click', () => showT('sessions'));
+  document.getElementById('tabResults').addEventListener('click', () => showT('results'));
+  document.getElementById('tabConfig').addEventListener('click', () => showT('config'));
+  // Password
+  document.getElementById('btnPwdEnter').addEventListener('click', chkP);
+  document.getElementById('pinp').addEventListener('keydown', e => { if(e.key==='Enter') chkP(); });
+  document.get
