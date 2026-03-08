@@ -574,6 +574,40 @@ async function createS() {
 }
 async function loadS() {
   spin(true);
+  
+  // Tentar carregar do Google Sheets
+  let sheetsData = [];
+  try {
+    const resp = await fetch('https://script.google.com/macros/s/AKfycbw5-Yk2xVNIUxud7_l2reZC8_1LEY7ZjROgCosOa49W1BHZ5adM0JQ29EMk4eUaDqTO/exec');
+    if (resp.ok) {
+      sheetsData = await resp.json();
+    }
+  } catch(e) { console.warn('Google Sheets indisponível:', e); }
+  
+  // Guardar respostas do Sheets no localStorage para acesso offline
+  for (const row of sheetsData) {
+    const code = row['Código Paciente'] || ('GS' + Date.now());
+    const key = 'cns_tas20_sess:' + code;
+    const existing = await SG(key);
+    if (!existing) {
+      const answers = {};
+      if (row['Respostas (1-20)']) {
+        row['Respostas (1-20)'].split('|').forEach((v, i) => { answers[i+1] = parseInt(v)||3; });
+      }
+      await SS(key, {
+        code, patientCode: row['Código Paciente'] || '',
+        name: row['Nome'] || '',
+        dob: '', createdAt: row['Data'] || new Date().toISOString(),
+        submittedAt: row['Data'] || new Date().toISOString(),
+        status: 'complete', answers,
+        total: row['Total'], dif: row['DIF'], ddf: row['DDF'], eot: row['EOT'],
+        classification: row['Classificação']
+      });
+      const tasList = (await SG('cns_tas20_all')) || [];
+      if (!tasList.includes(code)) { tasList.push(code); await SS('cns_tas20_all', tasList); }
+    }
+  }
+  
   // Usar lista registada + fallback para scan
   let keys = (await SG('cns_tas20_all')) || [];
   const scanned = await SK('cns_tas20_sess:');
