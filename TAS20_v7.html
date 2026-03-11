@@ -501,6 +501,23 @@ async function submeterQuestionario(){
   // Guardar localmente
   store.set('tas20_'+sessao.id, sessao);
 
+  // ── Formato padrão RC ──
+  try {
+    const rcKey = 'rc_sess:' + code + ':tas20';
+    localStorage.setItem(rcKey, JSON.stringify({
+      type: 'tas20',
+      code: code,
+      date: sessao.date,
+      status: 'complete',
+      scores: {
+        'Total': scores.total,
+        'F1': scores.f1,
+        'F2': scores.f2,
+        'F3': scores.f3
+      }
+    }));
+  } catch(e) {}
+
   // Payload compatível com Apps Script existente
   const payload = {
     patientCode: sessao.patientCode,
