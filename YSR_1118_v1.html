@@ -1045,17 +1045,16 @@ function buildPage(cid,from,to){
   const sub=ITEMS.filter(i=>{const n=typeof i.n==='string'?parseFloat(i.n):i.n;return n>=from&&n<=to;});
   el.innerHTML=sub.map(item=>{
     const k=item.n, isSub=String(k).startsWith('56')&&k!=='56a';
-    return `<div class="item-row" id="row-${k}">
-      <div style="display:flex;gap:8px;align-items:baseline;">
-        <span class="item-num" style="${isSub?'opacity:0.4;':''}">
-          ${isSub?'↳':k+'.'}
-        </span>
-        <span class="item-text">${item.t}
-          ${item.d?`<small><input type="text" placeholder="Se sim, descreva..." oninput="extras['${k}']=this.value" style="margin-top:4px;width:100%;max-width:320px;padding:4px 9px;border:1px solid var(--gray-bdr);border-radius:6px;font-family:'DM Sans';font-size:0.8rem;"></small>`:''}
-        </span>
-      </div>
-      ${[0,1,2].map(v=>`<div class="item-score"><input type="radio" name="i${k}" value="${v}" onchange="setAns('${k}',${v})"></div>`).join('')}
-    </div>`;
+    var descField = item.d ? '<small><input type="text" placeholder="Se sim, descreva..." oninput="extras[\''+k+'\']=this.value" style="margin-top:4px;width:100%;max-width:320px;padding:4px 9px;border:1px solid var(--gray-bdr);border-radius:6px;font-family:DM Sans,sans-serif;font-size:0.8rem;"></small>' : '';
+    return '<div class="item-row" id="row-'+k+'">' +
+      '<div style="display:flex;gap:8px;align-items:baseline;">' +
+        '<span class="item-num" style="'+(isSub?'opacity:0.4;':'')+'">' +
+          (isSub?'↳':k+'.') +
+        '</span>' +
+        '<span class="item-text">'+item.t+' '+descField+'</span>' +
+      '</div>' +
+      [0,1,2].map(function(v){ return '<div class="item-score"><input type="radio" name="i'+k+'" value="'+v+'" onchange="setAns(\''+k+'\','+v+')"></div>'; }).join('') +
+    '</div>';
   }).join('');
 }
 
@@ -1110,7 +1109,7 @@ function doSubmit(){
   } catch(e) {}
 
   // Enviar para Google Sheets
-  const YSR_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx-HG_W6gJc1nf8pYT-Gtehn0DnYYK_reBEX6goDg1cnAT5zG7i5tNH2PmaeCtD2aDa/exec';
+  const YSR_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx5rn4u4wISYdO5AR1Ajo8cVh4JBWTn14FMZba1yh2k90T9PmofW8k5-RKKF95uymk_wg/exec';
   fetch(YSR_SCRIPT_URL, {
     method: 'POST', mode: 'no-cors',
     headers: {'Content-Type':'application/json'},
@@ -1168,7 +1167,7 @@ function showPanelTab(t){
 }
 
 async function syncToSheets() {
-  const YSR_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx-HG_W6gJc1nf8pYT-Gtehn0DnYYK_reBEX6goDg1cnAT5zG7i5tNH2PmaeCtD2aDa/exec';
+  const YSR_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx5rn4u4wISYdO5AR1Ajo8cVh4JBWTn14FMZba1yh2k90T9PmofW8k5-RKKF95uymk_wg/exec';
   const sessions = load(SK) || {};
   const entries = Object.values(sessions);
   if (!entries.length) { alert('Sem dados locais para enviar.'); return; }
@@ -1208,22 +1207,25 @@ function renderPanel(){
     el.innerHTML='<div class="empty-state"><div style="font-size:2.5rem;margin-bottom:12px;">📋</div><div>Sem sessões registadas.</div><div style="margin-top:8px;font-size:0.85rem;">Cria uma nova sessão para gerar um código para o(a) jovem.</div></div>';
     return;
   }
-  el.innerHTML=entries.map(([code,sess])=>{
-    const done=sess.completed;
-    const statusCls=done?'status-done':'';
-    const statusLabel=done?'✅ Concluído':'⏳ Pendente';
-    return `<div class="session-card" onclick="${done?`viewSession('${code}')`:''}" style="${done?'':'cursor:default'}">
-      <div class="session-info">
-        <h3>${sess.name} <span style="font-size:0.8rem;color:var(--text-light);">${sess.sex==='F'?'♀':'♂'} · ${sess.moment||'T1'} · ${sess.date||''}</span></h3>
-        <p>${sess.grade?sess.grade+' · ':''}${sess.notes||''}</p>
-      </div>
-      <div class="session-badges">
-        <span class="badge-code">${code}</span>
-        <span class="badge-status ${statusCls}">${statusLabel}</span>
-        <button class="btn-del" onclick="event.stopPropagation();copyLink('${code}')" title="Copiar link">📋</button>
-        <button class="btn-del" onclick="event.stopPropagation();delSession('${code}')" title="Apagar">🗑</button>
-      </div>
-    </div>`;
+  el.innerHTML=entries.map(function(entry){
+    var code=entry[0], sess=entry[1];
+    var done=sess.completed;
+    var statusCls=done?'status-done':'';
+    var statusLabel=done?'\u2705 Concluído':'\u23F3 Pendente';
+    var onclickAttr=done?'onclick="viewSession(\'' +code+ '\')"':'';
+    var cursorStyle=done?'':'cursor:default';
+    return '<div class="session-card" '+onclickAttr+' style="'+cursorStyle+'">' +
+      '<div class="session-info">' +
+        '<h3>'+sess.name+' <span style="font-size:0.8rem;color:var(--text-light);">'+(sess.sex==='F'?'\u2640':'\u2642')+' \u00b7 '+(sess.moment||'T1')+' \u00b7 '+(sess.date||'')+'</span></h3>' +
+        '<p>'+(sess.grade?sess.grade+' \u00b7 ':'')+(sess.notes||'')+'</p>' +
+      '</div>' +
+      '<div class="session-badges">' +
+        '<span class="badge-code">'+code+'</span>' +
+        '<span class="badge-status '+statusCls+'">'+statusLabel+'</span>' +
+        '<button class="btn-del" onclick="event.stopPropagation();copyLink(\'' +code+ '\')" title="Copiar link">\u{1F4CB}</button>' +
+        '<button class="btn-del" onclick="event.stopPropagation();delSession(\'' +code+ '\')" title="Apagar">\u{1F5D1}</button>' +
+      '</div>' +
+    '</div>';
   }).join('');
 }
 
@@ -1423,7 +1425,7 @@ function computeCompetenceScores(c){
 }
 
 function saveCompetencesAndContinue(){
-  competences = collectCompetences();
+  try { competences = collectCompetences(); } catch(e){ competences = {}; }
   goTo('screen-s3');
 }
 

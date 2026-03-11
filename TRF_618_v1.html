@@ -745,7 +745,7 @@ function submitTRF() {
   } catch(e) {}
 
   // Enviar para Google Sheets
-  const TRF_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx-HG_W6gJc1nf8pYT-Gtehn0DnYYK_reBEX6goDg1cnAT5zG7i5tNH2PmaeCtD2aDa/exec';
+  const TRF_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx5rn4u4wISYdO5AR1Ajo8cVh4JBWTn14FMZba1yh2k90T9PmofW8k5-RKKF95uymk_wg/exec';
   fetch(TRF_SCRIPT_URL, {
     method: 'POST', mode: 'no-cors',
     headers: {'Content-Type':'application/json'},
@@ -804,7 +804,7 @@ function doLogin() {
 
 // ══════════════ PANEL ══════════════
 async function syncToSheets() {
-  const TRF_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx-HG_W6gJc1nf8pYT-Gtehn0DnYYK_reBEX6goDg1cnAT5zG7i5tNH2PmaeCtD2aDa/exec';
+  const TRF_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx5rn4u4wISYdO5AR1Ajo8cVh4JBWTn14FMZba1yh2k90T9PmofW8k5-RKKF95uymk_wg/exec';
   const sessions = load(SK) || {};
   const entries = Object.values(sessions);
   if (!entries.length) { alert('Sem dados locais para enviar.'); return; }
