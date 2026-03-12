@@ -1553,6 +1553,13 @@ function printModal(){window.print();}
 
 // ═══════════ INIT ═══════════
 window.addEventListener('load',()=>{
+  // Auto-login se vier do painel RC com ?clinico=CNS2024
+  const clinico=new URLSearchParams(window.location.search).get('clinico');
+  if(clinico===PASS){
+    goTo('screen-panel');
+    renderPanel();
+    return;
+  }
   const p=new URLSearchParams(window.location.search).get('code');
   if(p){
     document.getElementById('session-code').value=p.toUpperCase();

@@ -260,7 +260,7 @@ input,select,textarea,button{font-family:'DM Sans',sans-serif;}
             <option value="Professor(a)">Professor(a)</option>
             <option value="Diretor(a) de turma">Diretor(a) de turma</option>
             <option value="Prof. Ed. Especial">Prof. Ed. Especial</option>
-            <option value="Diretor(a)">Diretor(a)</option>
+            <option value="Explicador/a">Explicador/a</option>
             <option value="Outro">Outro</option>
           </select>
         </div>
@@ -282,6 +282,59 @@ input,select,textarea,button{font-family:'DM Sans',sans-serif;}
     <div class="progress-bar"><div class="progress-fill" style="width:10%"></div></div>
   </div>
   <div class="section-wrap">
+
+    <!-- I–VI. Questões sobre o aluno -->
+    <div class="section-card">
+      <div class="section-title">Informação sobre o(a) aluno(a)</div>
+
+      <div class="field-group" style="margin-bottom:14px;">
+        <label>I. Há quanto tempo conhece este(a) aluno(a)?</label>
+        <input type="text" id="q1-time-known" placeholder="ex: 2 anos" style="width:100%;padding:8px 10px;border:1.5px solid var(--gray-bdr);border-radius:8px;font-size:0.84rem;">
+      </div>
+
+      <div class="field-group" style="margin-bottom:14px;">
+        <label>II. Acha que o(a) conhece:</label>
+        <div style="display:flex;gap:20px;margin-top:6px;flex-wrap:wrap;">
+          <label style="display:flex;align-items:center;gap:6px;font-size:0.85rem;cursor:pointer;"><input type="radio" name="q2-knows" value="não muito bem" style="accent-color:var(--blue);"> não muito bem</label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:0.85rem;cursor:pointer;"><input type="radio" name="q2-knows" value="razoavelmente" style="accent-color:var(--blue);"> razoavelmente</label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:0.85rem;cursor:pointer;"><input type="radio" name="q2-knows" value="muito bem" style="accent-color:var(--blue);"> muito bem</label>
+        </div>
+      </div>
+
+      <div class="field-group" style="margin-bottom:14px;">
+        <label>III. Quanto tempo por semana é que ele(a) passa na sua aula?</label>
+        <input type="text" id="q3-time-class" placeholder="ex: 5 horas por semana" style="width:100%;padding:8px 10px;border:1.5px solid var(--gray-bdr);border-radius:8px;font-size:0.84rem;">
+      </div>
+
+      <div class="field-group" style="margin-bottom:14px;">
+        <label>IV. De que tipo de aula se trata? (p.f. concretize o ano, disciplina, etc.)</label>
+        <input type="text" id="q4-class-type" placeholder="ex: 5.º ano, Matemática" style="width:100%;padding:8px 10px;border:1.5px solid var(--gray-bdr);border-radius:8px;font-size:0.84rem;">
+      </div>
+
+      <div class="field-group" style="margin-bottom:14px;">
+        <label>V. Já alguma vez o(a) aluno(a) mereceu tratamento especial, por exemplo, em termos de escolha de turma, aulas de apoio ou ensino especial?</label>
+        <textarea id="q5-special" rows="2" placeholder="..." style="width:100%;padding:8px 10px;border:1.5px solid var(--gray-bdr);border-radius:8px;font-size:0.84rem;resize:vertical;"></textarea>
+      </div>
+
+      <div class="field-group" style="margin-bottom:0;">
+        <label>VI. Já repetiu algum ano?</label>
+        <div style="display:flex;gap:16px;margin-top:6px;flex-wrap:wrap;align-items:center;">
+          <label style="display:flex;align-items:center;gap:6px;font-size:0.85rem;cursor:pointer;"><input type="radio" name="q6-repeated" value="Não sei" style="accent-color:var(--blue);"> Não sei</label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:0.85rem;cursor:pointer;"><input type="radio" name="q6-repeated" value="Não" style="accent-color:var(--blue);"> Não</label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:0.85rem;cursor:pointer;"><input type="radio" name="q6-repeated" value="Sim" style="accent-color:var(--blue);" onchange="document.getElementById('q6-repeated-detail').style.display='flex'"> Sim</label>
+        </div>
+        <div id="q6-repeated-detail" style="display:none;gap:12px;margin-top:8px;flex-wrap:wrap;">
+          <div style="flex:1;min-width:140px;">
+            <label style="font-size:0.8rem;color:var(--text-light);">Em que ano(s)?</label>
+            <input type="text" id="q6-year" placeholder="ex: 3.º ano" style="width:100%;padding:6px 10px;border:1.5px solid var(--gray-bdr);border-radius:8px;font-size:0.83rem;">
+          </div>
+          <div style="flex:1;min-width:140px;">
+            <label style="font-size:0.8rem;color:var(--text-light);">Qual/Quais os motivos?</label>
+            <input type="text" id="q6-reason" placeholder="ex: dificuldades de aprendizagem" style="width:100%;padding:6px 10px;border:1.5px solid var(--gray-bdr);border-radius:8px;font-size:0.83rem;">
+          </div>
+        </div>
+      </div>
+    </div>
 
     <!-- VII. Rendimento escolar -->
     <div class="section-card">
@@ -715,6 +768,15 @@ function submitTRF() {
     answers: {...answers},
     adaptData: {...adaptData},
     disciplines: [...disciplines],
+    // Questões I–VI
+    q1TimeKnown: document.getElementById('q1-time-known')?.value || '',
+    q2Knows: document.querySelector('input[name="q2-knows"]:checked')?.value || '',
+    q3TimeClass: document.getElementById('q3-time-class')?.value || '',
+    q4ClassType: document.getElementById('q4-class-type')?.value || '',
+    q5Special: document.getElementById('q5-special')?.value || '',
+    q6Repeated: document.querySelector('input[name="q6-repeated"]:checked')?.value || '',
+    q6Year: document.getElementById('q6-year')?.value || '',
+    q6Reason: document.getElementById('q6-reason')?.value || '',
     healthProblem: document.querySelector('input[name="health-prob"]:checked')?.value || null,
     healthDesc: document.getElementById('health-desc')?.value || '',
     mainConcern: document.getElementById('main-concern')?.value || '',
@@ -1127,7 +1189,21 @@ ${discHTML?`<div class="grid2">
   ${adpHTML?`<div class="card"><div class="clabel">Funcionamento Adaptativo (1–7)</div><table><thead><tr><th style="text-align:left;font-size:8px;color:#5B7FA6;padding:3px 0;">Dimensão</th><th style="font-size:8px;color:#5B7FA6;text-align:center;">Score</th></tr></thead><tbody>${adpHTML}</tbody></table></div>`:''}
 </div>`:''}
 
-${s.mainConcern||s.strengths?`<div class="card" style="margin-bottom:14px;">
+
+
+${(s.q1TimeKnown||s.q2Knows||s.q3TimeClass||s.q4ClassType||s.q5Special||s.q6Repeated)?`<div class="card" style="margin-bottom:14px;">
+  <div class="clabel">Informação Prévia (I–VI)</div>
+  <table style="width:100%;"><tbody>
+    ${s.q1TimeKnown?`<tr><td style="font-size:10px;padding:2px 0;color:#5B7FA6;font-weight:600;width:220px;">I. Há quanto tempo conhece o(a) aluno(a)?</td><td style="font-size:10px;padding:2px 0;">${s.q1TimeKnown}</td></tr>`:''}
+    ${s.q2Knows?`<tr><td style="font-size:10px;padding:2px 0;color:#5B7FA6;font-weight:600;">II. Conhece-o(a):</td><td style="font-size:10px;padding:2px 0;">${s.q2Knows}</td></tr>`:''}
+    ${s.q3TimeClass?`<tr><td style="font-size:10px;padding:2px 0;color:#5B7FA6;font-weight:600;">III. Tempo na aula por semana:</td><td style="font-size:10px;padding:2px 0;">${s.q3TimeClass}</td></tr>`:''}
+    ${s.q4ClassType?`<tr><td style="font-size:10px;padding:2px 0;color:#5B7FA6;font-weight:600;">IV. Tipo de aula:</td><td style="font-size:10px;padding:2px 0;">${s.q4ClassType}</td></tr>`:''}
+    ${s.q5Special?`<tr><td style="font-size:10px;padding:2px 0;color:#5B7FA6;font-weight:600;">V. Tratamento especial:</td><td style="font-size:10px;padding:2px 0;">${s.q5Special}</td></tr>`:''}
+    ${s.q6Repeated?`<tr><td style="font-size:10px;padding:2px 0;color:#5B7FA6;font-weight:600;">VI. Repetiu algum ano?</td><td style="font-size:10px;padding:2px 0;">${s.q6Repeated}${s.q6Year?' · Ano(s): '+s.q6Year:''}${s.q6Reason?' · Motivo: '+s.q6Reason:''}</td></tr>`:''}
+  </tbody></table>
+</div>`:''}
+
+${s.mainConcern||s.strengths||s.healthDesc?`<div class="card" style="margin-bottom:14px;">
   <div class="clabel">Informação qualitativa</div>
   ${s.mainConcern?`<p style="font-size:10px;margin-bottom:6px;"><strong style="color:#5B7FA6;">Preocupação principal:</strong> ${s.mainConcern}</p>`:''}
   ${s.strengths?`<p style="font-size:10px;margin-bottom:6px;"><strong style="color:#5B7FA6;">Pontos fortes:</strong> ${s.strengths}</p>`:''}
