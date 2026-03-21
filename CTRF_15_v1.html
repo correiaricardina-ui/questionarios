@@ -60,14 +60,14 @@ body{font-family:'DM Sans',sans-serif;background:var(--gray);color:var(--text);m
 .scale-legend-item{display:flex;align-items:center;gap:8px;}
 .scale-num{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.82rem;}
 .s0{background:#eafaf1;color:#27AE60;}.s1{background:#fef3e2;color:#E67E22;}.s2{background:#fdecea;color:#C0392B;}
-.item-row{padding:12px 0;border-bottom:1px solid var(--gray-bdr);display:grid;grid-template-columns:36px 1fr auto;gap:10px;align-items:start;}
+.item-row{padding:10px 0;border-bottom:1px solid var(--gray-bdr);display:grid;grid-template-columns:36px 1fr 280px;gap:10px;align-items:center;}
 .item-row:last-child{border-bottom:none;}
 .item-num{font-weight:700;color:var(--blue-mid);font-size:0.9rem;padding-top:2px;}
 .item-text{font-size:0.88rem;line-height:1.45;padding-top:2px;}
-.item-scale{display:flex;gap:6px;}
-.scale-opt{display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;}
-.scale-opt input{accent-color:var(--blue);}
-.scale-opt span{font-size:0.72rem;font-weight:600;color:var(--text-light);}
+.item-scale{display:flex;gap:0;justify-content:space-around;width:100%;}
+.scale-opt{display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;min-width:85px;}
+.scale-opt input{accent-color:var(--blue);width:18px;height:18px;cursor:pointer;}
+.scale-opt span{font-size:0.78rem;font-weight:600;color:var(--text-light);}
 .clinico-wrap{max-width:920px;margin:0 auto;padding:24px;}
 .sessions-table{width:100%;border-collapse:collapse;font-size:0.85rem;}
 .sessions-table th{background:var(--blue-pale);color:var(--blue);padding:10px 12px;text-align:left;font-weight:600;}
@@ -377,7 +377,7 @@ function submeter(){
 }
 
 function mostrarObrigado(code,nome,total){
-  document.getElementById('obrigado-info').innerHTML='C\u00f3digo: <strong>'+esc(code)+'</strong><br>Nome: '+esc(nome)+'<br>Score total: <strong>'+total+'</strong><br>Data: '+new Date().toLocaleDateString('pt-PT');
+  document.getElementById('obrigado-info').innerHTML='C\u00f3digo: <strong>'+esc(code)+'</strong><br>Nome: '+esc(nome)+'<br>Data: '+new Date().toLocaleDateString('pt-PT');
   showPage('page-obrigado');
 }
 
