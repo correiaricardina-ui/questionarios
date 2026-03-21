@@ -766,6 +766,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--gray-bg);color:var(--text
         <button class="btn-nav btn-back" onclick="showPanelTab('sessions')" id="ptab-sessions" style="font-size:0.82rem;padding:8px 16px;">📋 Sessões</button>
         <button class="btn-nav btn-back" onclick="showPanelTab('new')" id="ptab-new" style="font-size:0.82rem;padding:8px 16px;">➕ Nova sessão</button>
         <button class="btn-nav btn-back" onclick="syncToSheets()" style="font-size:0.82rem;padding:8px 16px;background:#1E7E5A;color:white;border:none;">⬆ Enviar para Sheet</button>
+        <button onclick="carregarDoSheet()" style="padding:8px 16px;background:#3B5A7A;color:white;border:none;border-radius:8px;font-size:0.82rem;font-weight:600;cursor:pointer;">↺ Sincronizar Sheet</button>
         <button class="btn-nav btn-back" onclick="exportarDados()" style="font-size:0.82rem;padding:8px 16px;background:#5B7FA6;color:white;border:none;">📤 Exportar</button>
         <button class="btn-nav btn-back" onclick="importarDados()" style="font-size:0.82rem;padding:8px 16px;background:#5B7FA6;color:white;border:none;">📥 Importar</button>
         <button class="btn-nav btn-back" onclick="goTo('screen-home')" style="font-size:0.82rem;padding:8px 16px;">← Sair</button>
@@ -1125,15 +1126,15 @@ function doSubmit(){
   } catch(e) {}
 
   // Enviar para Google Sheets
-  const YSR_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwcbRkrhcMgAdUgP3-8U2HgRVWyNSp46F4nWOlrkl8eKXXMQ4d9bJKAO9ExGNieRWCp/exec';
+  const YSR_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx5rn4u4wISYdO5AR1Ajo8cVh4JBWTn14FMZba1yh2k90T9PmofW8k5-RKKF95uymk_wg/exec';
   fetch(YSR_SCRIPT_URL, {
     method: 'POST', mode: 'no-cors',
     headers: {'Content-Type':'application/json'},
     body: JSON.stringify({
-      tipo: 'YSR',
+      instrumento: 'YSR_1118',
       data: new Date().toLocaleDateString('pt-PT'),
-      codigo: sessionMeta.code,
-      nome: sessionMeta.name,
+      patientCode: sessionMeta.code,
+      nomeCrianca: sessionMeta.name,
       idade: sessionMeta.age,
       sexo: sessionMeta.sex,
       grupoIdade: sessionMeta.ageGroup,
@@ -1208,8 +1209,51 @@ function showPanelTab(t){
   document.getElementById('panel-new-tab').style.display=t==='new'?'block':'none';
 }
 
+// ══════════════ CARREGAR DO SHEET (doGet) ══════════════
+async function carregarDoSheet() {
+  const btn = event.target;
+  btn.disabled = true; btn.textContent = '⏳ A carregar...';
+  try {
+    const url = 'https://script.google.com/macros/s/AKfycbx5rn4u4wISYdO5AR1Ajo8cVh4JBWTn14FMZba1yh2k90T9PmofW8k5-RKKF95uymk_wg/exec'
+      + '?instrumento=YSR_1118&t=' + Date.now();
+    const res = await fetch(url);
+    const data = await res.json();
+    if (!data || !data.rows || !data.rows.length) {
+      alert('Sem dados no Sheet para este instrumento (YSR_1118).'); return;
+    }
+    const sessions = load(SK) || {};
+    let importados = 0;
+    for (const row of data.rows) {
+      const code = row.patientCode || row.codigo || '';
+      if (!code) continue;
+      if (!sessions[code]) {
+        sessions[code] = {
+          code,
+          name: row.nomeCrianca || row.nome || '',
+          date: row.data || '',
+          age: row.idade || '',
+          sex: row.sexo || '',
+          ageGroup: row.grupoIdade || '',
+          submittedAt: row.timestamp || row.data || '',
+          scores: row.scores || {},
+          fromSheet: true
+        };
+        importados++;
+      }
+    }
+    store(SK, sessions);
+    loadPanel();
+    alert(importados + ' registo(s) novo(s) importado(s) do Sheet.\nTotal na sessão: ' + Object.keys(sessions).length);
+  } catch(e) {
+    alert('Erro ao carregar do Sheet: ' + e.message);
+    console.error(e);
+  } finally {
+    btn.disabled = false; btn.textContent = '↺ Sincronizar Sheet';
+  }
+}
+
 async function syncToSheets() {
-  const YSR_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwcbRkrhcMgAdUgP3-8U2HgRVWyNSp46F4nWOlrkl8eKXXMQ4d9bJKAO9ExGNieRWCp/exec';
+  const YSR_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx5rn4u4wISYdO5AR1Ajo8cVh4JBWTn14FMZba1yh2k90T9PmofW8k5-RKKF95uymk_wg/exec';
   const sessions = load(SK) || {};
   const entries = Object.values(sessions);
   if (!entries.length) { alert('Sem dados locais para enviar.'); return; }
@@ -1222,10 +1266,10 @@ async function syncToSheets() {
         method: 'POST', mode: 'no-cors',
         headers: {'Content-Type':'application/json'},
         body: JSON.stringify({
-          tipo: 'YSR',
+          instrumento: 'YSR_1118',
           data: s.fillDate || new Date().toLocaleDateString('pt-PT'),
-          codigo: s.code || '',
-          nome: s.name || '',
+          patientCode: s.code || '',
+          nomeCrianca: s.name || '',
           idade: s.age || '',
           sexo: s.sex || '',
           grupoIdade: s.ageGroup || '',
