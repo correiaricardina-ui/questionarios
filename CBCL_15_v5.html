@@ -192,6 +192,7 @@ tr:hover td{background:var(--blue-xpale)}
         </div>
         <div class="form-group">
           <label>Quem preenche</label>
+          <div class="form-group" style="margin-bottom:12px;"><label>Nome do respondente</label><input type="text" id="nome_informante" placeholder="Nome completo do pai/mãe/EE"></div>
           <select id="informante">
             <option value="">Selecionar...</option>
             <option value="Mae">M&#227;e</option>
@@ -679,7 +680,7 @@ function submeterForm() {
     fetch(RC_SHEET_URL, {
       method: 'POST', mode: 'no-cors',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ tipo: 'CBCL_15', data: datapreench, codigo: codigo, nome: nome, sexo: sexo, informante: informante, scores: scores, respostas: respostas })
+      body: JSON.stringify({ tipo: 'CBCL_15', data: datapreench, codigo: codigo, nome: nome, sexo: sexo, informante: informante, nome_informante: (document.getElementById('nome_informante')||{value:''}).value.trim(), scores: scores, respostas: respostas })
     });
   } catch(e) {}
 

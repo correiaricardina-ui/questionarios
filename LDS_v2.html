@@ -300,6 +300,7 @@ table.normas tr.destaque td { background: #fffbe6; font-weight: 700; }
           <label><input type="radio" name="informante" value="Mae"> Mãe</label>
           <label><input type="radio" name="informante" value="Pai"> Pai</label>
           <label><input type="radio" name="informante" value="Outro"> Outro</label>
+          <div style="margin-top:10px;"><label style="display:block;font-size:0.85rem;font-weight:600;margin-bottom:4px;">Nome do respondente</label><input type="text" id="nome_informante" style="width:100%;padding:8px 12px;border:1.5px solid #DDE3EA;border-radius:8px;font-family:DM Sans,sans-serif;font-size:0.9rem;" placeholder="Nome completo"></div>
         </div>
       </div>
 
@@ -699,6 +700,7 @@ function submeterQuestionario(){
 
   var payload = {
     instrumento: 'LDS',
+    nome_informante: (document.getElementById('nome_informante')||{value:''}).value.trim(),
     data: new Date().toISOString(),
     patientCode: code,
     sexo: sexo,
