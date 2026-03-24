@@ -825,14 +825,36 @@ function renderTabela(rows){
   html += '</tr></thead><tbody>';
   rows.forEach(function(row, idx){
     var d = Array.isArray(row) ? {
-      data:row[0],patientCode:row[1],sexo:row[3],idadeMeses:row[4],
-      vocabScore:row[row.length-1],mlu:row[row.length-2]
-    } : row;
+      data:row[0],patientCode:row[1],idadeMeses:row[2],sexo:row[3],
+      prem:row[4],premSemanas:row[5],pesoNasc:row[6],otite:row[7],
+      bilingue:row[8],linguas:row[9],histFam:row[10],histFamRelacao:row[11],
+      preocup:row[12],preocupMotivo:row[13],dizPalavras:row[14],
+      combinaFrases:row[15],frases:row[16],mlu:row[17],vocabScore:row[18]
+    } : {
+      data: row['Data']||row.data||'',
+      patientCode: row['C\u00f3digo']||row.patientCode||row.codigo||'',
+      idadeMeses: row['Idade (meses)']||row.idadeMeses||'',
+      sexo: row['Sexo']||row.sexo||'',
+      prem: row['Prematuro']||row.prem||'',
+      otite: row['Otite']||row.otite||'',
+      bilingue: row['Bilingue']||row.bilingue||'',
+      linguas: row['L\u00ednguas']||row.linguas||'',
+      histFam: row['Hist Familiar']||row.histFam||'',
+      preocup: row['Preocupa\u00e7\u00e3o']||row.preocup||'',
+      frases: row['Frases Exemplo']||row.frases||'',
+      mlu: row['MLU']||row.mlu||'',
+      vocabScore: row['Vocab Score']||row.vocabScore||'',
+      dizPalavras: row['Diz Palavras']||row.dizPalavras||'',
+      combinaFrases: row['Combina Frases']||row.combinaFrases||''
+    };
     var dataStr = d.data ? new Date(d.data).toLocaleDateString('pt-PT') : '\u2014';
-    var vocab = parseInt(d.vocabScore||d['Vocab Score']||0);
-    var mlu = parseFloat(d.mlu||d['MLU']||0);
-    var idade = parseInt(d.idadeMeses||d['Idade (meses)']||0);
-    var sexo = d.sexo||'';
+    var vocab = parseInt(d.vocabScore||0);
+    var mlu = parseFloat(d.mlu||0);
+    var idade = parseInt(d.idadeMeses||0);
+    var sexo = (d.sexo||'').toLowerCase();
+    // normalizar sexo para M/F
+    if(sexo==='masculino'||sexo==='m'||sexo==='rapaz'||sexo==='male') sexo='M';
+    else if(sexo==='feminino'||sexo==='f'||sexo==='rapariga'||sexo==='female') sexo='F';
     var zV = classificarVocab(vocab,idade,sexo);
     var zM = classificarMLU(mlu,idade);
     var badgeV = vocab?'<span class="zone-badge '+zV.cls+'" style="font-size:0.72rem;padding:2px 8px">'+zV.txt+'</span>':'\u2014';
@@ -1059,18 +1081,41 @@ function verDetalhe(idx){
   if(!rows) return;
   var row = rows[idx];
   var d = Array.isArray(row) ? {
-    data:row[0],patientCode:row[1],nome:row[2],sexo:row[3],idadeMeses:row[4],
-    prem:row[5],premSemanas:row[6],pesoNasc:row[7],otite:row[8],
-    bilingue:row[9],linguas:row[10],histFam:row[11],histFamRelacao:row[12],
-    preocup:row[13],preocupMotivo:row[14],dizPalavras:row[15],
-    combinaFrases:row[16],frases:row[17],mlu:row[18],vocabScore:row[19],
-    vocabItems:row[20]||''
-  } : row;
+    data:row[0],patientCode:row[1],idadeMeses:row[2],sexo:row[3],
+    prem:row[4],premSemanas:row[5],pesoNasc:row[6],otite:row[7],
+    bilingue:row[8],linguas:row[9],histFam:row[10],histFamRelacao:row[11],
+    preocup:row[12],preocupMotivo:row[13],dizPalavras:row[14],
+    combinaFrases:row[15],frases:row[16],mlu:row[17],vocabScore:row[18],
+    vocabItems:''
+  } : {
+    data: row['Data']||row.data||'',
+    patientCode: row['C\u00f3digo']||row.patientCode||row.codigo||'',
+    idadeMeses: row['Idade (meses)']||row.idadeMeses||'',
+    sexo: row['Sexo']||row.sexo||'',
+    prem: row['Prematuro']||row.prem||'',
+    premSemanas: row['Semanas Prem']||row.premSemanas||'',
+    pesoNasc: row['Peso Nasc']||row.pesoNasc||'',
+    otite: row['Otite']||row.otite||'',
+    bilingue: row['Bilingue']||row.bilingue||'',
+    linguas: row['L\u00ednguas']||row.linguas||'',
+    histFam: row['Hist Familiar']||row.histFam||'',
+    histFamRelacao: row['Rela\u00e7\u00e3o Hist Fam']||row.histFamRelacao||'',
+    preocup: row['Preocupa\u00e7\u00e3o']||row.preocup||'',
+    preocupMotivo: row['Motivo Preocupa\u00e7\u00e3o']||row.preocupMotivo||'',
+    dizPalavras: row['Diz Palavras']||row.dizPalavras||'',
+    combinaFrases: row['Combina Frases']||row.combinaFrases||'',
+    frases: row['Frases Exemplo']||row.frases||'',
+    mlu: row['MLU']||row.mlu||'',
+    vocabScore: row['Vocab Score']||row.vocabScore||'',
+    vocabItems: row['Palavras']||row.vocabItems||''
+  };
 
-  var mlu = parseFloat(d.mlu||d['MLU']||0);
-  var vocab = parseInt(d.vocabScore||d['Vocab Score']||0);
-  var idade = parseInt(d.idadeMeses||d['Idade (meses)']||0);
-  var sexo = d.sexo||'';
+  var mlu = parseFloat(d.mlu||0);
+  var vocab = parseInt(d.vocabScore||0);
+  var idade = parseInt(d.idadeMeses||0);
+  var sexo = (d.sexo||'').toLowerCase();
+  if(sexo==='masculino'||sexo==='m'||sexo==='rapaz') sexo='M';
+  else if(sexo==='feminino'||sexo==='f'||sexo==='rapariga') sexo='F';
   var g = getGrupoIdade(idade);
 
   var zV = classificarVocab(vocab,idade,sexo);
@@ -1133,19 +1178,28 @@ function verDetalhe(idx){
     if(!vocab&&!mlu) return '';
     var linhas = [];
     if(vocab){
-      var pct_txt = zV.cls==='zone-atraso'?'<strong style="color:#C0392B">abaixo do percentil 15</strong>':
-                    zV.cls==='zone-borderline'?'<strong style="color:#E67E22">entre o percentil 15 e 25</strong>':
-                    '<strong style="color:#27AE60">acima do percentil 25</strong>';
-      linhas.push('O vocabul\u00e1rio reportado (<strong>'+vocab+' palavras</strong>) situa-se '+pct_txt+
-        ' para '+idade+' meses ('+( sexo==='F'?'rapariga':'rapaz')+')'+
-        (zV.cls==='zone-atraso'?' \u2014 <strong>sugere atraso no desenvolvimento lex\u00edcal</strong>.':
-         zV.cls==='zone-borderline'?' \u2014 zona de aten\u00e7\u00e3o.':'.'));
+      // calcular percentil exacto do vocabulário
+      var pctExact = 0;
+      if(g && sexo && NORMAS_VOCAB[g] && NORMAS_VOCAB[g][sexo==='F'?'F':'M']){
+        var tabV = NORMAS_VOCAB[g][sexo==='F'?'F':'M'];
+        tabV.forEach(function(r){ if(vocab >= r.v) pctExact = parseInt(r.pct.replace('<=','')); });
+      }
+      var pctStr = pctExact>0 ? 'p\u2248'+pctExact : (zV.cls==='zone-atraso'?'<p15':'<p25');
+      var pct_cor = zV.cls==='zone-atraso'?'#C0392B':zV.cls==='zone-borderline'?'#E67E22':'#27AE60';
+      var pct_txt = '<strong style="color:'+pct_cor+'">percentil \u2248'+pctExact+'</strong>';
+      var zona_txt = zV.cls==='zone-atraso'?' \u2014 <strong style="color:#C0392B">zona de atraso (p<15)</strong>':
+                     zV.cls==='zone-borderline'?' \u2014 <strong style="color:#E67E22">zona de aten\u00e7\u00e3o (p15\u201325)</strong>':
+                     ' \u2014 <strong style="color:#27AE60">dentro do esperado (p>25)</strong>';
+      linhas.push('Vocabul\u00e1rio: <strong>'+vocab+' palavras</strong> · '+pct_txt+zona_txt+
+        ' ('+idade+' meses, '+( sexo==='F'?'rapariga':'rapaz')+').');
     }
     if(mlu&&g&&g!=='18-23'){
-      var mlu_txt = zM.cls==='zone-atraso'?'<strong style="color:#C0392B">abaixo do percentil 20</strong>':
-                    '<strong style="color:#27AE60">acima do percentil 20</strong>';
-      linhas.push('O comprimento m\u00e9dio das frases (<strong>MLU='+mlu+'</strong>) situa-se '+mlu_txt+
-        (zM.cls==='zone-atraso'?' \u2014 <strong>sugere atraso no desenvolvimento fr\u00e1sico</strong>.':'.'));
+      var tabM = NORMAS_MLU[g];
+      var mluP20 = tabM['<=20'], mluP50 = tabM['50'], mluP80 = tabM['80'];
+      var mlu_zona = zM.cls==='zone-atraso'?
+        '<strong style="color:#C0392B">abaixo do percentil 20 (p20='+mluP20+')</strong> \u2014 <strong style="color:#C0392B">atraso no desenvolvimento fr\u00e1sico</strong>':
+        '<strong style="color:#27AE60">acima do percentil 20</strong> (p50='+mluP50+'; p80='+mluP80+')';
+      linhas.push('MLU (comprimento m\u00e9dio frases): <strong>'+mlu+'</strong> · '+mlu_zona+'.');
     }
     if(!mlu&&g&&g!=='18-23') linhas.push('MLU n\u00e3o calculado (n\u00e3o foram fornecidas frases).');
     if(g==='18-23'&&mlu) linhas.push('C\u00e1lculo de MLU n\u00e3o aplic\u00e1vel para idades 18-23 meses.');
