@@ -415,10 +415,11 @@ function mostrarObrigado(code,nome,total){
 function carregarDados(){
   var pc=document.getElementById('painel-content');
   pc.innerHTML='<div style="text-align:center;padding:32px;color:#6B7A8D;">A sincronizar...</div>';
-  fetch(SCRIPT_URL+'?t='+Date.now())
+  fetch(SCRIPT_URL+'?instrumento=CTRF_15&t='+Date.now())
     .then(function(r){return r.json();})
     .then(function(data){
       var rows=[];
+      if(data && data.rows){ data=data.rows; }
       if(Array.isArray(data)){
         rows=data.map(function(row){
           if(Array.isArray(row)){
