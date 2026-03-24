@@ -645,7 +645,7 @@ async function checkSheetForResponse(qid, patientCode) {
     const data = await getSheetData(false);
     const aba = QID_TO_ABA[qid];
     if (!aba || !data[aba]) return false;
-    return data[aba].some(row => String(row['Código'] || row['codigo'] || '') === String(patientCode));
+    return data[aba].some(row => String(row['Código'] || row['codigo'] || row['Código Paciente'] || row['patientCode'] || '') === String(patientCode));
   } catch(e) { return false; }
 }
 
