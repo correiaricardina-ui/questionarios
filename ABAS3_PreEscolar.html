@@ -141,7 +141,7 @@ input[type=text]:focus,select:focus{border-color:var(--blue-mid)}
     <input type="text" id="patient-code" placeholder="ex: DDL25072014 ou MV14062013" style="text-transform:uppercase" oninput="this.value=this.value.toUpperCase()">
     <div class="field-hint">Iniciais + data de nascimento (DDMMAAAA). Ex: <strong>MV14062013</strong></div>
   </div>
-  <div style="margin-bottom:16px"><label class="field-label">Parentesco / Rela&ccedil;&atilde;o</label><select id="parentesco"><option value="">-- Seleccione --</option><option>M&atilde;e</option><option>Pai</option><option>Av&oacute;</option><option>Av&ocirc;</option><option>Educadora</option><option>Outro</option></select></div><div style="margin-bottom:16px"><label class="field-label">Idade da crian&ccedil;a (em meses)</label><input type="text" id="idade_meses" placeholder="ex: 24"></div>
+  <div style="margin-bottom:16px"><label class="field-label">Nome do Respondente</label><input type="text" id="nome_informante" placeholder="ex: Maria Silva"></div><div style="margin-bottom:16px"><label class="field-label">Parentesco / Rela&ccedil;&atilde;o</label><select id="parentesco"><option value="">-- Seleccione --</option><option>M&atilde;e</option><option>Pai</option><option>Av&oacute;</option><option>Av&ocirc;</option><option>Educadora</option><option>Outro</option></select></div><div style="margin-bottom:16px"><label class="field-label">Idade da crian&ccedil;a (em meses)</label><input type="text" id="idade_meses" placeholder="ex: 24"></div>
   <div style="background:var(--blue-xpale);border-radius:10px;padding:16px;margin-bottom:24px;font-size:.85rem;line-height:1.75">
     <strong style="color:var(--blue)">Instru&ccedil;&otilde;es</strong><br>
     Responda em rela&ccedil;&atilde;o ao que a crian&ccedil;a faz <strong>habitualmente</strong>, sem ajuda, na sua rotina di&aacute;ria.<br>Se a crian&ccedil;a nunca teve oportunidade de realizar a actividade mas <em>poderia</em> faz&ecirc;-lo, use o c&oacute;digo mais alto que se aplique.<br><br>
@@ -424,7 +424,8 @@ function iniciarQuestionario(){
   var parentesco = document.getElementById('parentesco').value.trim();
   var idade_meses = document.getElementById('idade_meses').value.trim();
   
-  patientInfo = {code:code, parentesco: parentesco, idade_meses: idade_meses};
+  var nome_informante = document.getElementById('nome_informante').value.trim();
+  patientInfo = {code:code, parentesco: parentesco, idade_meses: idade_meses, informante: nome_informante};
   totalItems=0; DOMAINS.forEach(function(d){totalItems+=d.items.length;});
   answers=new Array(totalItems).fill(""); currentDomain=0;
   buildSteps(); renderDomain(0); showPage("page-questionario");
