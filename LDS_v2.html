@@ -698,7 +698,7 @@ function submeterQuestionario(){
   }
 
   var payload = {
-    sheet: 'LDS',
+    instrumento: 'LDS',
     data: new Date().toISOString(),
     patientCode: code,
     sexo: sexo,
@@ -746,6 +746,7 @@ function submeterQuestionario(){
 
   fetch(SCRIPT_URL, {
     method: 'POST',
+    mode: 'no-cors',
     headers: {'Content-Type':'application/json'},
     body: JSON.stringify(payload)
   }).then(function(){
