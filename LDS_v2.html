@@ -719,7 +719,10 @@ function submeterQuestionario(){
     combinaFrases: (document.querySelector('input[name="combina"]:checked') || {value:''}).value,
     frases: frases.join(' | '),
     mlu: mlu || '',
-    vocabScore: vocabScore
+    vocabScore: vocabScore,
+    vocabItems: Array.from(document.querySelectorAll('#vocab-grid input[type=checkbox]:checked'))
+      .map(function(cb){ return cb.nextElementSibling ? cb.nextElementSibling.textContent.trim() : cb.id.replace('w-',''); })
+      .join('|')
   };
 
   var SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxX2_Ry7VRH6jr7eGBMmtmyZFXZc69blwdO5bqJK0j69HRSexpXXPuEfDC5OHQRMLLL/exec';
@@ -745,6 +748,10 @@ function submeterQuestionario(){
       document.body.removeChild(a); URL.revokeObjectURL(dlUrl);
     } catch(e) {}
   }
+
+  // Protecção anti-dupla-submissão
+  var btnSubmit = document.querySelector('button[onclick="submeterQuestionario()"]');
+  if(btnSubmit){ btnSubmit.disabled = true; btnSubmit.textContent = 'A enviar...'; }
 
   fetch(SCRIPT_URL, {
     method: 'POST',
@@ -829,7 +836,7 @@ function renderTabela(rows){
       prem:row[4],premSemanas:row[5],pesoNasc:row[6],otite:row[7],
       bilingue:row[8],linguas:row[9],histFam:row[10],histFamRelacao:row[11],
       preocup:row[12],preocupMotivo:row[13],dizPalavras:row[14],
-      combinaFrases:row[15],frases:row[16],mlu:row[17],vocabScore:row[18]
+      combinaFrases:row[15],frases:row[16],mlu:row[17],vocabScore:row[18],vocabItems:row[19]||''
     } : {
       data: row['Data']||row.data||'',
       patientCode: row['C\u00f3digo']||row.patientCode||row.codigo||'',
@@ -845,7 +852,8 @@ function renderTabela(rows){
       mlu: row['MLU']||row.mlu||'',
       vocabScore: row['Vocab Score']||row.vocabScore||'',
       dizPalavras: row['Diz Palavras']||row.dizPalavras||'',
-      combinaFrases: row['Combina Frases']||row.combinaFrases||''
+      combinaFrases: row['Combina Frases']||row.combinaFrases||'',
+      vocabItems: row['Palavras']||row.vocabItems||''
     };
     var dataStr = d.data ? new Date(d.data).toLocaleDateString('pt-PT') : '\u2014';
     var vocab = parseInt(d.vocabScore||0);
