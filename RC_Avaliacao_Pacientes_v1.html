@@ -620,7 +620,25 @@ const QID_TO_ABA = {
   'cns_q_q_custom_1773321135290': 'LDS',
   'cns_q_q_custom_1774358416679': 'ABAS3_05',
   'cns_q_q_custom_1773333230615': 'SWAN',
-  'cns_q_q_custom_1774358768853': 'SRS2_IE_Pais'
+  'cns_q_q_custom_1774358768853': 'SRS2_IE_Pais',
+  'q_custom_17744371527307': 'CTRF_15',
+  'q_custom_177443725011​7': 'SRS2_IE_Pais'
+};
+
+
+const SYNC_KEY_TO_ABA = {
+  'cbcl15':   'CBCL_15',
+  'ctrf15':   'CTRF_15',
+  'lds':      'LDS',
+  'srs2_pais':'SRS2_IE_Pais',
+  'srs2_prof':'SRS2_IE_Prof',
+  'abas3_05': 'ABAS3_05',
+  'abas3_05p':'ABAS3_05P',
+  'cbcl':     'CBCL_618',
+  'trf':      'TRF_618',
+  'ysr':      'YSR_1118',
+  'tas20':    'TAS20',
+  'swan':     'SWAN'
 };
 
 // Cache em memória das respostas do Sheet (evita fetch repetidos na mesma sessão)
@@ -643,7 +661,13 @@ async function getSheetData(forceRefresh) {
 async function checkSheetForResponse(qid, patientCode) {
   try {
     const data = await getSheetData(false);
-    const aba = QID_TO_ABA[qid];
+    // Tentar pelo QID_TO_ABA primeiro
+    let aba = QID_TO_ABA[qid];
+    // Se não encontrar, tentar pelo syncKey do questionário
+    if (!aba) {
+      const q = store.get('q_' + qid);
+      if (q && q.syncKey) aba = SYNC_KEY_TO_ABA[q.syncKey];
+    }
     if (!aba || !data[aba]) return false;
     return data[aba].some(row => String(row['Código'] || row['codigo'] || row['Código Paciente'] || row['patientCode'] || '') === String(patientCode));
   } catch(e) { return false; }
@@ -1000,7 +1024,11 @@ function renderAssignments(patientId) {
         let changed = false;
         assignments.forEach((a, idx) => {
           if(a.status === 'received') return;
-          const aba = QID_TO_ABA[a.qid];
+          let aba = QID_TO_ABA[a.qid];
+          if(!aba) {
+            const q = store.get('q_' + a.qid);
+            if(q && q.syncKey) aba = SYNC_KEY_TO_ABA[q.syncKey];
+          }
           if(aba && sheetData[aba]) {
             const found = sheetData[aba].some(row =>
               String(row['Código'] || row['codigo'] || row['Código Paciente'] || row['patientCode'] || '') === String(patient.code)
@@ -1154,7 +1182,11 @@ async function syncAndMark(patientId, idx) {
   // Verificar no Sheet primeiro
   try {
     const sheetData = await getSheetData(true);
-    const aba = QID_TO_ABA[a.qid];
+    let aba = QID_TO_ABA[a.qid];
+    if(!aba) {
+      const q = store.get('q_' + a.qid);
+      if(q && q.syncKey) aba = SYNC_KEY_TO_ABA[q.syncKey];
+    }
     if(aba && sheetData[aba]) {
       const found = sheetData[aba].some(row =>
         String(row['Código'] || row['codigo'] || row['Código Paciente'] || row['patientCode'] || '') === String(patient.code)
@@ -1490,7 +1522,11 @@ async function checkReceivedQuestionnaires() {
       let found = false;
 
       // ── 1. Sheet central (fonte de verdade) ──
-      const aba = QID_TO_ABA[a.qid];
+      let aba = QID_TO_ABA[a.qid];
+      if(!aba) {
+        const q = store.get('q_' + a.qid);
+        if(q && q.syncKey) aba = SYNC_KEY_TO_ABA[q.syncKey];
+      }
       if(aba && sheetData[aba]) {
         found = sheetData[aba].some(row =>
           String(row['Código'] || row['codigo'] || row['Código Paciente'] || row['patientCode'] || '') === String(p.code)
