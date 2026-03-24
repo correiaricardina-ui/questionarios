@@ -1030,8 +1030,9 @@ function renderAssignments(patientId) {
     const isReceived = a.status === 'received';
 
     // botões de estado (só visíveis quando não recebido)
-    const btnSent     = a.status === 'pending'  ? `<button class="btn btn-xs btn-secondary" onclick="setStatus('${patientId}',${idx},'sent')">Marcar enviado</button>` : '';
-    const btnReceived = a.status === 'sent'      ? `<button class="btn btn-xs btn-primary" onclick="setStatus('${patientId}',${idx},'received')">Marcar recebido</button>` : '';
+    const btnSent     = a.status === 'pending'  ? `<button class="btn btn-xs btn-secondary" onclick="syncAndMark('${patientId}',${idx})">Marcar enviado</button>` : '';
+    const btnReceived = a.status === 'sent'      ? `<button class="btn btn-xs btn-primary" onclick="syncAndMark('${patientId}',${idx})">Marcar recebido</button>` : '';
+    const btnSync     = (a.status === 'sent' || a.status === 'pending') ? `<button class="btn btn-xs btn-ghost" onclick="syncAndMark('${patientId}',${idx})" title="Verificar no Sheet">↺</button>` : '';
     const btnUndo     = a.status !== 'pending'   ? `<button class="btn btn-xs btn-ghost" onclick="setStatus('${patientId}',${idx},'pending')">↩</button>` : '';
     const btnDel      = `<button class="btn btn-xs btn-danger" onclick="removeAssignment('${patientId}',${idx})">✕</button>`;
 
@@ -1058,7 +1059,7 @@ function renderAssignments(patientId) {
       </div>
       <div>${statusBadge(a.status)}</div>
       <div style="display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end;">
-        ${btnSent}${btnReceived}${btnUndo}${btnDel}
+        ${btnSent}${btnReceived}${btnSync}${btnUndo}${btnDel}
       </div>
       ${resultZone}
     </div>`;
@@ -1142,6 +1143,37 @@ async function confirmAssign() {
   renderAssignments(currentPatientId);
   renderAddAssignment(currentPatientId);
   renderPatients(document.getElementById('search-input').value);
+}
+
+async function syncAndMark(patientId, idx) {
+  const patient = store.get('patient_' + patientId);
+  const assignments = store.get('assignments_' + patientId) || [];
+  const a = assignments[idx];
+  if(!a || !patient) return;
+
+  // Verificar no Sheet primeiro
+  try {
+    const sheetData = await getSheetData(true);
+    const aba = QID_TO_ABA[a.qid];
+    if(aba && sheetData[aba]) {
+      const found = sheetData[aba].some(row =>
+        String(row['Código'] || row['codigo'] || row['Código Paciente'] || row['patientCode'] || '') === String(patient.code)
+      );
+      if(found) {
+        assignments[idx].status = 'received';
+        if(!assignments[idx].sentAt) assignments[idx].sentAt = new Date().toISOString();
+        assignments[idx].receivedAt = new Date().toISOString();
+        store.set('assignments_' + patientId, assignments);
+        renderAssignments(patientId);
+        renderPatients(document.getElementById('search-input')?.value || '');
+        return;
+      }
+    }
+  } catch(e) {}
+
+  // Se não encontrou no Sheet, avançar estado manualmente
+  const next = a.status === 'pending' ? 'sent' : 'received';
+  setStatus(patientId, idx, next);
 }
 
 function setStatus(patientId, idx, status) {
