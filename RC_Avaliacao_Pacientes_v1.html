@@ -991,6 +991,37 @@ function renderAssignments(patientId) {
     return;
   }
 
+  // Auto-verificar no Sheet para todos os não-recebidos
+  const patient = store.get('patient_' + patientId);
+  if(patient && patient.code) {
+    const notReceived = assignments.filter(a => a.status !== 'received');
+    if(notReceived.length > 0) {
+      getSheetData(false).then(sheetData => {
+        let changed = false;
+        assignments.forEach((a, idx) => {
+          if(a.status === 'received') return;
+          const aba = QID_TO_ABA[a.qid];
+          if(aba && sheetData[aba]) {
+            const found = sheetData[aba].some(row =>
+              String(row['Código'] || row['codigo'] || row['Código Paciente'] || row['patientCode'] || '') === String(patient.code)
+            );
+            if(found) {
+              assignments[idx].status = 'received';
+              if(!assignments[idx].sentAt) assignments[idx].sentAt = new Date().toISOString();
+              assignments[idx].receivedAt = new Date().toISOString();
+              changed = true;
+            }
+          }
+        });
+        if(changed) {
+          store.set('assignments_' + patientId, assignments);
+          renderAssignments(patientId);
+          renderPatients(document.getElementById('search-input')?.value || '');
+        }
+      }).catch(() => {});
+    }
+  }
+
   el.innerHTML = assignments.map((a, idx) => {
     const q = store.get('q_' + a.qid);
     const name = q?.name || a.qid;
@@ -1093,7 +1124,7 @@ async function confirmAssign() {
   const patientCode = patient ? patient.code : null;
   let status = 'pending';
   try {
-    if (patientCode && QID_TO_ABA[pendingAssignQid]) {
+    if (patientCode) {
       const alreadyDone = await Promise.race([
         checkSheetForResponse(pendingAssignQid, patientCode),
         new Promise(resolve => setTimeout(() => resolve(false), 3000))
@@ -1430,7 +1461,7 @@ async function checkReceivedQuestionnaires() {
       const aba = QID_TO_ABA[a.qid];
       if(aba && sheetData[aba]) {
         found = sheetData[aba].some(row =>
-          String(row['Código'] || row['codigo'] || '') === String(p.code)
+          String(row['Código'] || row['codigo'] || row['Código Paciente'] || row['patientCode'] || '') === String(p.code)
         );
       }
 
