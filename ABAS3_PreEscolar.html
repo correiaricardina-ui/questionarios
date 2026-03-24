@@ -595,11 +595,16 @@ function parseSessao(row){
     var r=calcularResultados(s.answers.split("|"));
     s.sb=r.sb;s.ss=r.ss;s.cc=r.cc;s.sc=r.sc;s.pc=r.pc;s.cag=r.cag;
   }
-  DOMAINS.forEach(function(d){ if(row[d.code+"_SS"]) s.ss[d.code]=parseInt(row[d.code+"_SS"])||0; });
-  if(row.CAG) s.cag=parseInt(row.CAG)||0;
-  if(row.CC)  s.cc=parseInt(row.CC)||0;
-  if(row.SC)  s.sc=parseInt(row.SC)||0;
-  if(row.PC)  s.pc=parseInt(row.PC)||0;
+  DOMAINS.forEach(function(d){
+    var v=row[d.code+"_SS"]||row[d.code+"_ss"]||0;
+    if(v) s.ss[d.code]=parseInt(v)||0;
+    var sb=row[d.code+"_SB"]||row[d.code+"_sb"]||0;
+    if(sb) s.sb[d.code]=parseInt(sb)||0;
+  });
+  if(row.CAG||row.cag) s.cag=parseInt(row.CAG||row.cag)||0;
+  if(row.CC||row.cc) s.cc=parseInt(row.CC||row.cc)||0;
+  if(row.SC||row.sc) s.sc=parseInt(row.SC||row.sc)||0;
+  if(row.PC||row.pc) s.pc=parseInt(row.PC||row.pc)||0;
   // copiar campos extras
   Object.assign(s, row);
   return s;
