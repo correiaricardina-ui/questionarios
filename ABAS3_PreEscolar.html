@@ -596,18 +596,22 @@ function parseSessao(row){
     var r=calcularResultados(s.answers.split("|"));
     s.sb=r.sb;s.ss=r.ss;s.cc=r.cc;s.sc=r.sc;s.pc=r.pc;s.cag=r.cag;
   }
-  DOMAINS.forEach(function(d){
-    var v=row[d.code+"_SS"]||row[d.code+"_ss"]||0;
-    if(v) s.ss[d.code]=parseInt(v)||0;
-    var sb=row[d.code+"_SB"]||row[d.code+"_sb"]||0;
-    if(sb) s.sb[d.code]=parseInt(sb)||0;
-  });
-  if(row.CAG||row.cag) s.cag=parseInt(row.CAG||row.cag)||0;
-  if(row.CC||row.cc) s.cc=parseInt(row.CC||row.cc)||0;
-  if(row.SC||row.sc) s.sc=parseInt(row.SC||row.sc)||0;
-  if(row.PC||row.pc) s.pc=parseInt(row.PC||row.pc)||0;
-  // copiar campos extras
+  // copiar campos extras (não sobrescrever ss/sb que são objectos)
+  var _ss=s.ss,_sb=s.sb,_cc=s.cc,_sc=s.sc,_pc=s.pc,_cag=s.cag;
   Object.assign(s, row);
+  s.ss=_ss; s.sb=_sb;
+  // ler SS/SB por domínio do Sheet (precedência)
+  DOMAINS.forEach(function(d){
+    var v=row[d.code+"_SS"]||row[d.code+"_ss"];
+    if(v!==undefined&&v!==''){var _pv=parseInt(v);if(!isNaN(_pv))s.ss[d.code]=_pv;}
+    var b=row[d.code+"_SB"]||row[d.code+"_sb"];
+    if(b!==undefined&&b!==''){var _pb=parseInt(b);if(!isNaN(_pb))s.sb[d.code]=_pb;}
+  });
+  // ler CC/SC/PC/CAG do Sheet se disponíveis (precedência)
+  if(row.CAG!==undefined&&row.CAG!==''){var _v=parseInt(row.CAG);s.cag=isNaN(_v)?_cag:_v;}else s.cag=_cag;
+  if(row.CC!==undefined&&row.CC!==''){var _v=parseInt(row.CC);s.cc=isNaN(_v)?_cc:_v;}else s.cc=_cc;
+  if(row.SC!==undefined&&row.SC!==''){var _v=parseInt(row.SC);s.sc=isNaN(_v)?_sc:_v;}else s.sc=_sc;
+  if(row.PC!==undefined&&row.PC!==''){var _v=parseInt(row.PC);s.pc=isNaN(_v)?_pc:_v;}else s.pc=_pc;
   return s;
 }
 

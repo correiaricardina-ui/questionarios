@@ -367,8 +367,24 @@ function carregarDados(){
 function parseSessao(row){
   var s={patientCode:row.patientCode||row["C\u00f3digo"]||row.codigo||"\u2014",date:row.date||row["Data"]||"",answers:row.answers||"",sb:{},ss:{},cc:0,sc:0,pc:0,cag:0};
   if(s.answers){var r=calcularResultados(s.answers.split("|"));s.sb=r.sb;s.ss=r.ss;s.cc=r.cc;s.sc=r.sc;s.pc=r.pc;s.cag=r.cag;}
-  if(row.CAG)s.cag=parseInt(row.CAG)||0;
-  Object.assign(s,row);return s;
+  // ler scores directos do Sheet (têm precedência sobre os calculados)
+  Object.assign(s,row);
+  // restaurar ss/sb como objectos (Object.assign pode ter sobrescrito com string)
+  if(typeof s.ss !== 'object' || Array.isArray(s.ss)) s.ss={};
+  if(typeof s.sb !== 'object' || Array.isArray(s.sb)) s.sb={};
+  // ler SS/SB por domínio do Sheet
+  DOMAINS.forEach(function(d){
+    var v=row[d.code+"_SS"]||row[d.code+"_ss"];
+    if(v!==undefined&&v!==''){var _pv=parseInt(v);if(!isNaN(_pv))s.ss[d.code]=_pv;}
+    var b=row[d.code+"_SB"]||row[d.code+"_sb"];
+    if(b!==undefined&&b!==''){var _pb=parseInt(b);if(!isNaN(_pb))s.sb[d.code]=_pb;}
+  });
+  // ler CC/SC/PC/CAG do Sheet se disponíveis
+  if(row.CAG!==undefined&&row.CAG!==''){var _v=parseInt(row.CAG);if(!isNaN(_v))s.cag=_v;}
+  if(row.CC!==undefined&&row.CC!==''){var _v=parseInt(row.CC);if(!isNaN(_v))s.cc=_v;}
+  if(row.SC!==undefined&&row.SC!==''){var _v=parseInt(row.SC);if(!isNaN(_v))s.sc=_v;}
+  if(row.PC!==undefined&&row.PC!==''){var _v=parseInt(row.PC);if(!isNaN(_v))s.pc=_v;}
+  return s;
 }
 
 function cagBadge(sc){var z=cagZona(sc);var l={norm:"Normativo &#10003;",border:"Borderline &#9888;",clin:"Cl&iacute;nico &#9747;"};return"<span class=\"badge badge-"+z+"\">"+l[z]+"<\/span>";}
@@ -382,8 +398,8 @@ function renderTabela(){
     var info="";
     Object.keys(s).forEach(function(k){if(["patientCode","date","answers","sb","ss","cc","sc","pc","cag","code"].indexOf(k)<0&&typeof s[k]==="string"&&s[k])info+=s[k]+" ";});
     return"<tr><td><strong>"+s.patientCode+"<\/strong><\/td><td>"+dt+"<\/td><td style=\"font-size:.8rem\">"+info.trim()+"<\/td>"+
-      "<td><strong>"+(s.cag||"\u2014")+"<\/strong><\/td><td>"+(s.cag?cagBadge(s.cag):"\u2014")+"<\/td>"+
-      "<td>"+(s.cc||"\u2014")+"<\/td><td>"+(s.sc||"\u2014")+"<\/td><td>"+(s.pc||"\u2014")+"<\/td>"+
+      "<td><strong>"+(s.cag!=null&&s.cag!==''?s.cag:"\u2014")+"<\/strong><\/td><td>"+(s.cag!=null&&s.cag!==''?cagBadge(s.cag):"\u2014")+"<\/td>"+
+      "<td>"+(s.cc!=null&&s.cc!==''?s.cc:"\u2014")+"<\/td><td>"+(s.sc!=null&&s.sc!==''?s.sc:"\u2014")+"<\/td><td>"+(s.pc!=null&&s.pc!==''?s.pc:"\u2014")+"<\/td>"+
       "<td class=\"no-print\"><button class=\"btn btn-secondary\" style=\"padding:4px 12px;font-size:.78rem\" onclick=\"verDetalhe("+i+")\""+">Ver &rarr;<\/button><\/td><\/tr>";
   }).join("");
 }
@@ -396,7 +412,7 @@ function verDetalhe(idx){
   html+="<h4 style=\"color:var(--blue);font-size:.9rem;margin-bottom:8px\">Scores por Dom&iacute;nio<\/h4>";
   html+="<div style=\"overflow-x:auto\"><table class=\"interp-table\"><thead><tr><th>Dom&iacute;nio<\/th><th>SB<\/th><th>SS<\/th><th>Pct.<\/th><th>Classif.<\/th><th>Zona<\/th><th>Perfil<\/th><\/tr><\/thead><tbody>";
   DOMAINS.forEach(function(d){
-    var sb=s.sb[d.code]||0,ss=s.ss[d.code]||0;if(!ss)return;
+    var sb=s.sb[d.code]||0,ss=s.ss[d.code];if(ss===undefined||ss===null||ss==="")return;ss=parseInt(ss)||0;
     var zona=ssParaZona(ss),cor=zona==="norm"?"var(--green)":zona==="border"?"var(--orange)":"var(--red)";
     var pct=Math.min(100,Math.round(((ss-1)/18)*100));
     var badge=zona==="norm"?"badge-norm":zona==="border"?"badge-border":"badge-clin";
@@ -425,7 +441,7 @@ function verDetalhe(idx){
   html+="<div style=\"margin-top:18px\"><h4 style=\"color:var(--blue);font-size:.9rem;margin-bottom:10px\">Interpreta&ccedil;&atilde;o Autom&aacute;tica<\/h4>";
   html+="<div style=\"background:var(--blue-xpale);border-radius:8px;padding:14px 16px;font-size:.85rem;line-height:1.75\">";
   var parts=[];
-  if(s.cag){var cz=cagZona(s.cag);parts.push("CAG = <strong>"+s.cag+"<\/strong> &mdash; zona "+(cz==="norm"?"<strong style=\"color:var(--green)\">normativa<\/strong>":cz==="border"?"<strong style=\"color:var(--orange)\">borderline<\/strong>":"<strong style=\"color:var(--red)\">cl&iacute;nica<\/strong>")+", percentil "+scParaPercentil(s.cag)+" ("+scParaClassif(s.cag)+").");}
+  if(s.cag!=null&&s.cag!==""){var cz=cagZona(s.cag);parts.push("CAG = <strong>"+s.cag+"<\/strong> &mdash; zona "+(cz==="norm"?"<strong style=\"color:var(--green)\">normativa<\/strong>":cz==="border"?"<strong style=\"color:var(--orange)\">borderline<\/strong>":"<strong style=\"color:var(--red)\">cl&iacute;nica<\/strong>")+", percentil "+scParaPercentil(s.cag)+" ("+scParaClassif(s.cag)+").");}
   if(clinico.length)parts.push("Zona cl&iacute;nica: <strong>"+clinico.join(", ")+"<\/strong>.");
   if(border.length)parts.push("Zona borderline: <strong>"+border.join(", ")+"<\/strong>.");
   if(!clinico.length&&!border.length)parts.push("Todos os dom&iacute;nios dentro dos limites normativos.");
