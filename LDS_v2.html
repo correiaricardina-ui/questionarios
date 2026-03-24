@@ -1234,9 +1234,13 @@ function verDetalhe(idx){
 
   // Cabe\u00e7alho
   inner += '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px">';
+  var dataFmt = d.data ? new Date(d.data).toLocaleDateString('pt-PT') : '\u2014';
   inner += '<div><div style="font-family:DM Serif Display,serif;font-size:1.15rem;color:var(--blue)">LDS 1\u00bd\u20135 \u2014 '+(d.patientCode||'\u2014')+'</div>';
-  inner += '<div style="font-size:0.8rem;color:var(--text-light);margin-top:3px">Data: '+(d.data||'\u2014')+' &middot; '+idade+' meses &middot; '+(sexo==='F'?'Rapariga':'Rapaz')+'</div></div>';
+  inner += '<div style="font-size:0.8rem;color:var(--text-light);margin-top:3px">Data: '+dataFmt+' &middot; '+idade+' meses &middot; '+(sexo==='F'?'Rapariga':'Rapaz')+'</div></div>';
+  inner += '<div style="display:flex;gap:8px;align-items:center">'
+  inner += '<button onclick="exportarRespostasPDF_LDS('+idx+')" style="background:var(--blue-pale);color:var(--blue);border:none;border-radius:8px;padding:6px 14px;cursor:pointer;font-weight:600;font-size:0.82rem">📋 Respostas PDF</button>';
   inner += '<button onclick="this.closest(\'.modal-overlay\').remove()" style="background:var(--blue);color:white;border:none;border-radius:8px;padding:6px 14px;cursor:pointer;font-weight:600">\u2715 Fechar</button>';
+  inner += '</div>';
   inner += '</div>';
 
   // S\u00edntese
@@ -1299,10 +1303,199 @@ function verDetalhe(idx){
   inner += listaVocab();
   inner += '</details>';
 
+  // ── Secção Interpretação Clínica ──
+  inner += '<div style="margin-top:18px;border-top:1px solid var(--blue-pale);padding-top:16px">';
+  inner += '<h4 style="color:var(--blue);font-size:0.9rem;margin-bottom:10px">Interpretação Clínica</h4>';
+  inner += (function(){
+    var linhas = [];
+    // Tabela de perfil
+    var rows_tbl = [];
+    if(vocab){
+      var pctExactI = 0;
+      if(g && sexo && NORMAS_VOCAB[g] && NORMAS_VOCAB[g][sexo==='F'?'F':'M']){
+        var tabVI = NORMAS_VOCAB[g][sexo==='F'?'F':'M'];
+        tabVI.forEach(function(r){ if(vocab >= r.v) pctExactI = parseInt(r.pct.replace('<=','')); });
+      }
+      var zonaVlbl = zV.cls==='zone-atraso'?'Atraso':zV.cls==='zone-borderline'?'Atenção':'Normativo';
+      var clsV = zV.cls==='zone-atraso'?'badge-clinical':zV.cls==='zone-borderline'?'badge-borderline':'badge-normative';
+      var fillV = zV.cls==='zone-atraso'?'var(--red)':zV.cls==='zone-borderline'?'var(--orange)':'var(--green)';
+      var pctV = Math.min(100,Math.max(0,Math.round(pctExactI)));
+      rows_tbl.push({label:'Vocabulário', score:vocab+' palavras', zona:zonaVlbl, cls:clsV, fill:fillV, pct:pctV, pctStr:'p≈'+pctExactI});
+    }
+    if(mlu && g && g!=='18-23'){
+      var zonaMLbl = zM.cls==='zone-atraso'?'Atraso':'Normativo';
+      var clsM = zM.cls==='zone-atraso'?'badge-clinical':'badge-normative';
+      var fillM = zM.cls==='zone-atraso'?'var(--red)':'var(--green)';
+      var tabMI = NORMAS_MLU[g];
+      var p50M = parseFloat(tabMI['50']);
+      var pctM = Math.min(100,Math.max(0,Math.round(((mlu-1.0)/(5.5-1.0))*100)));
+      rows_tbl.push({label:'MLU (compr. médio frases)', score:mlu, zona:zonaMLbl, cls:clsM, fill:fillM, pct:pctM, pctStr:mlu+'w'});
+    }
+    if(!rows_tbl.length) return '<p style="font-size:0.84rem;color:var(--text-light)">Sem dados suficientes para interpretação.</p>';
+
+    var tbl = '<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:0.82rem;margin-bottom:14px">';
+    tbl += '<thead><tr style="background:var(--blue-xpale)">';
+    tbl += '<th style="padding:7px 10px;text-align:left;color:var(--blue)">Medida</th>';
+    tbl += '<th style="padding:7px 10px;text-align:center;color:var(--blue)">Score</th>';
+    tbl += '<th style="padding:7px 10px;text-align:left;color:var(--blue)">Perfil</th>';
+    tbl += '<th style="padding:7px 10px;text-align:center;color:var(--blue)">Zona</th>';
+    tbl += '</tr></thead><tbody>';
+    rows_tbl.forEach(function(s){
+      tbl += '<tr style="border-bottom:1px solid var(--blue-xpale)">';
+      tbl += '<td style="padding:7px 10px;font-weight:600">'+s.label+'</td>';
+      tbl += '<td style="padding:7px 10px;text-align:center;font-weight:700;color:var(--blue)">'+s.score+'</td>';
+      tbl += '<td style="padding:7px 10px">';
+      tbl += '<div style="position:relative;height:18px;background:#EBF2F8;border-radius:4px;overflow:hidden">';
+      tbl += '<div style="position:absolute;left:0;top:0;width:'+s.pct+'%;height:100%;background:'+s.fill+';opacity:0.85"></div>';
+      tbl += '<span style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:0.7rem;font-weight:700;color:#2C3E50">'+s.pctStr+'</span>';
+      tbl += '</div></td>';
+      tbl += '<td style="padding:7px 10px;text-align:center"><span class="zone-badge '+s.cls+'" style="font-size:0.75rem;padding:2px 10px">'+s.zona+'</span></td>';
+      tbl += '</tr>';
+    });
+    tbl += '</tbody></table></div>';
+
+    // Parágrafo sumário
+    var partes = [];
+    if(vocab){
+      var pctExactJ=0;
+      if(g&&sexo&&NORMAS_VOCAB[g]&&NORMAS_VOCAB[g][sexo==='F'?'F':'M']){
+        NORMAS_VOCAB[g][sexo==='F'?'F':'M'].forEach(function(r){if(vocab>=r.v)pctExactJ=parseInt(r.pct.replace('<=',''));});
+      }
+      var cor_v = zV.cls==='zone-atraso'?'#C0392B':zV.cls==='zone-borderline'?'#E67E22':'#27AE60';
+      var zon_v = zV.cls==='zone-atraso'?'zona de atraso (p<15)':zV.cls==='zone-borderline'?'zona de atenção (p15–25)':'dentro do esperado para a idade';
+      partes.push('O vocabulário de <strong>'+vocab+' palavras</strong> situa-se no <strong style="color:'+cor_v+'">percentil ≈'+pctExactJ+' — '+zon_v+'</strong> ('+idade+' meses, '+(sexo==='F'?'rapariga':'rapaz')+').');
+    }
+    if(mlu&&g&&g!=='18-23'){
+      var cor_m = zM.cls==='zone-atraso'?'#C0392B':'#27AE60';
+      var zon_m = zM.cls==='zone-atraso'?'abaixo do percentil 20 — possível atraso no desenvolvimento frásico':'acima do percentil 20 — dentro do esperado';
+      partes.push('O MLU de <strong>'+mlu+'</strong> encontra-se <strong style="color:'+cor_m+'">'+zon_m+'</strong>.');
+    }
+    if(!mlu&&g&&g!=='18-23') partes.push('MLU não calculado — o respondente não forneceu frases.');
+    if(g==='18-23') partes.push('O cálculo de MLU não é aplicável para idades 18–23 meses.');
+    if(!g) partes.push('Idade fora do intervalo normativo (18–35 meses) — comparação com normas não disponível.');
+
+    partes.push('<span style="font-size:0.78rem;color:var(--text-light);font-style:italic">Esta interpretação é automática e deve ser integrada no contexto clínico completo da avaliação.</span>');
+
+    return tbl +
+      '<div style="background:var(--blue-xpale);border-radius:8px;padding:12px 16px;font-size:0.85rem;line-height:1.65;color:var(--text)">' +
+      partes.join(' ') + '</div>';
+  })();
+  inner += '</div>';
+
   inner += '</div>';
   overlay.innerHTML = inner;
   document.body.appendChild(overlay);
   overlay.addEventListener('click', function(e){ if(e.target===overlay) overlay.remove(); });
+}
+
+function exportarRespostasPDF_LDS(idx){
+  var rows = document.getElementById('painel-content')._rows;
+  if(!rows) return;
+  var row = rows[idx];
+  var d = Array.isArray(row) ? {
+    data:row[0], patientCode:row[1], idadeMeses:row[2], sexo:row[3],
+    prem:row[4], premSemanas:row[5], pesoNasc:row[6], otite:row[7],
+    bilingue:row[8], linguas:row[9], histFam:row[10], histFamRelacao:row[11],
+    preocup:row[12], preocupMotivo:row[13], dizPalavras:row[14],
+    combinaFrases:row[15], frases:row[16], mlu:row[17], vocabScore:row[18],
+    vocabItems:''
+  } : {
+    data: row['Data']||row.data||'',
+    patientCode: row['Código']||row.patientCode||row.codigo||'',
+    idadeMeses: row['Idade (meses)']||row.idadeMeses||'',
+    sexo: row['Sexo']||row.sexo||'',
+    prem: row['Prematuro']||row.prem||'',
+    premSemanas: row['Semanas Prem']||row.premSemanas||'',
+    pesoNasc: row['Peso Nasc']||row.pesoNasc||'',
+    otite: row['Otite']||row.otite||'',
+    bilingue: row['Bilingue']||row.bilingue||'',
+    linguas: row['Línguas']||row.linguas||'',
+    histFam: row['Hist Familiar']||row.histFam||'',
+    histFamRelacao: row['Relação Hist Fam']||row.histFamRelacao||'',
+    preocup: row['Preocupação']||row.preocup||'',
+    preocupMotivo: row['Motivo Preocupação']||row.preocupMotivo||'',
+    dizPalavras: row['Diz Palavras']||row.dizPalavras||'',
+    combinaFrases: row['Combina Frases']||row.combinaFrases||'',
+    frases: row['Frases Exemplo']||row.frases||'',
+    mlu: row['MLU']||row.mlu||'',
+    vocabScore: row['Vocab Score']||row.vocabScore||'',
+    vocabItems: row['Palavras']||row.vocabItems||''
+  };
+
+  var dataFmt = d.data ? new Date(d.data).toLocaleDateString('pt-PT') : '—';
+  var vocab = parseInt(d.vocabScore||0);
+  var mlu = parseFloat(d.mlu||0)||null;
+  var frases = (d.frases||'').split('|').filter(function(x){return x.trim();});
+  var vocabItems = (d.vocabItems||'').split('|').filter(function(x){return x.trim();});
+
+  // Secções de antecedentes
+  function ant(label, val, extra){
+    var txt = val||'—';
+    if(extra) txt += ' ('+extra+')';
+    return '<tr><td style="padding:4px 10px;color:#6B7A8D;border-bottom:1px solid #f0f0f0">'+label+'</td><td style="padding:4px 10px;font-weight:600;border-bottom:1px solid #f0f0f0">'+txt+'</td></tr>';
+  }
+
+  // Frases
+  var frasesHTML = frases.length
+    ? '<ol style="margin:0 0 0 18px;padding:0">'+frases.map(function(f){
+        var np=f.trim().split(/\s+/).filter(Boolean).length;
+        return '<li style="margin-bottom:4px"><em>'+f.trim()+'</em> <span style="color:#6B7A8D">('+np+' palavra'+(np!==1?'s':'')+')</span></li>';
+      }).join('')+'</ol>'
+    : '<em style="color:#6B7A8D">Nenhuma frase registada.</em>';
+
+  // Palavras
+  var vocabHTML = vocabItems.length
+    ? '<div style="display:flex;flex-wrap:wrap;gap:4px">'+vocabItems.map(function(w){
+        return '<span style="background:#D6E4F0;color:#3B5A7A;border-radius:4px;padding:2px 8px;font-size:11px">'+w+'</span>';
+      }).join('')+'</div>'
+    : '<em style="color:#6B7A8D">Palavras não guardadas (formato antigo).</em>';
+
+  // Scores
+  var scoresHTML = '<table style="width:100%;border-collapse:collapse;font-size:12px">';
+  scoresHTML += '<tr style="background:#D6E4F0"><th style="padding:6px 10px;text-align:left;color:#3B5A7A">Medida</th><th style="padding:6px 10px;text-align:center;color:#3B5A7A">Valor</th></tr>';
+  scoresHTML += '<tr><td style="padding:5px 10px;border-bottom:1px solid #eee">Vocabulário (n.º palavras)</td><td style="padding:5px 10px;text-align:center;font-weight:700">'+vocab+'</td></tr>';
+  if(mlu) scoresHTML += '<tr><td style="padding:5px 10px;border-bottom:1px solid #eee">MLU (Comprimento Médio Frases)</td><td style="padding:5px 10px;text-align:center;font-weight:700">'+mlu+'</td></tr>';
+  scoresHTML += '</table>';
+
+  var html = '<!DOCTYPE html><html><head><meta charset="UTF-8">' +
+    '<title>LDS 1½–5 — Respostas — '+d.patientCode+'</title>' +
+    '<style>body{font-family:Arial,sans-serif;font-size:12px;color:#2C3E50;padding:24px;max-width:800px;margin:0 auto}' +
+    'h1{color:#3B5A7A;font-size:18px;margin-bottom:2px} h2{color:#3B5A7A;font-size:14px;margin:18px 0 8px}' +
+    'p.sub{color:#6B7A8D;font-size:11px;margin-bottom:20px}' +
+    'table{width:100%;border-collapse:collapse} th{background:#D6E4F0;padding:6px 10px;text-align:left;color:#3B5A7A}' +
+    'hr{border:none;border-top:1px solid #D6E4F0;margin:16px 0}' +
+    '.no-print{margin-bottom:20px} @media print{.no-print{display:none}}</style></head><body>' +
+    '<div class="no-print"><button onclick="window.print()" style="padding:8px 16px;background:#3B5A7A;color:white;border:none;border-radius:6px;cursor:pointer;font-size:13px">🖨 Imprimir / Guardar PDF</button></div>' +
+    '<h1>LDS 1½–5 — Respostas por Secção</h1>' +
+    '<p class="sub">Código: <strong>'+d.patientCode+'</strong> · Data: <strong>'+dataFmt+'</strong> · Idade: <strong>'+d.idadeMeses+' meses</strong> · Sexo: <strong>'+d.sexo+'</strong></p>' +
+    '<p class="sub">Ricardina Correia · Cédula 8233 · Psicologia Pediátrica</p>' +
+    '<hr>' +
+    '<h2>1. Antecedentes e Histórico</h2>' +
+    '<table>'+
+    ant('Prematuro', d.prem, d.premSemanas?d.premSemanas+' sem. mais cedo':'')+
+    ant('Peso ao nascer', d.pesoNasc?d.pesoNasc+' g':'—')+
+    ant('Otites', d.otite||'—')+
+    ant('Bilíngue', d.bilingue, d.linguas)+
+    ant('Hist. familiar', d.histFam, d.histFamRelacao)+
+    ant('Preocupação parental', d.preocup, d.preocupMotivo)+
+    ant('Diz palavras espontaneamente', d.dizPalavras)+
+    ant('Combina frases', d.combinaFrases)+
+    '</table>' +
+    '<hr>' +
+    '<h2>2. Scores Calculados</h2>' +
+    scoresHTML +
+    '<hr>' +
+    '<h2>3. Frases Registadas pelo Respondente</h2>' +
+    frasesHTML +
+    '<hr>' +
+    '<h2>4. Palavras Assinaladas ('+vocab+')</h2>' +
+    vocabHTML +
+    '</body></html>';
+
+  var w = window.open('', '_blank');
+  if(!w){ alert('Pop-up bloqueado. Permite pop-ups para este site.'); return; }
+  w.document.write(html);
+  w.document.close();
 }
 
 function detalheItem(label, val, extra){
