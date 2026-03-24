@@ -575,7 +575,8 @@ function carregarDados(){
   fetch(SCRIPT_URL+"?instrumento="+INSTR+"&t="+Date.now())
     .then(function(r){return r.json();})
     .then(function(data){
-      sessoes=Array.isArray(data)?data.map(parseSessao):[];
+      var rows=(data&&data.rows&&Array.isArray(data.rows))?data.rows:(Array.isArray(data)?data:[]);
+      sessoes=rows.map(parseSessao);
       if(window._clinico_sessions) window._clinico_sessions.forEach(function(s){
         if(!sessoes.some(function(x){return x.patientCode===s.patientCode&&x.date===s.date;}))
           sessoes.unshift(s);
@@ -588,7 +589,7 @@ function carregarDados(){
 }
 
 function parseSessao(row){
-  var s={patientCode:row.patientCode||"\u2014",date:row.date||"",
+  var s={patientCode:row.patientCode||row["C\u00f3digo"]||row.codigo||"\u2014",date:row.date||row["Data"]||"",
     answers:row.answers||"",sb:{},ss:{},cc:0,sc:0,pc:0,cag:0};
   if(s.answers){
     var r=calcularResultados(s.answers.split("|"));
