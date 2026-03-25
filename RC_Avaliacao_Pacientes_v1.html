@@ -469,6 +469,7 @@ body { font-family: 'DM Sans', sans-serif; background: var(--gray-bg); color: va
     <div class="form-group">
       <label>Para quem se destina</label>
       <div class="chip-group" id="nq-dest-chips">
+        <label class="chip-label"><input type="checkbox" value="Pais"> Pais</label>
         <label class="chip-label"><input type="checkbox" value="Mãe"> Mãe</label>
         <label class="chip-label"><input type="checkbox" value="Pai"> Pai</label>
         <label class="chip-label"><input type="checkbox" value="Enc. Educação"> Enc. Educação</label>
@@ -554,6 +555,7 @@ body { font-family: 'DM Sans', sans-serif; background: var(--gray-bg); color: va
       <label>Destinatário</label>
       <select id="assign-recipient">
         <option value="">— seleccione —</option>
+        <option>Pais</option>
         <option>Mãe</option>
         <option>Pai</option>
         <option>Enc. Educação</option>
@@ -679,12 +681,12 @@ async function checkSheetForResponse(qid, patientCode) {
 function initCatalog() {
   const existing = store.get('catalog') || [];
   const defaults = [
-    { id:'q_aseba_cbcl', name:'ASEBA — CBCL 6-18',   dest:['Mãe','Pai','Enc. Educação'], link:'https://correiaricardina-ui.github.io/questionarios/CBCL_618_v1.html',  syncKey:'cbcl',  area:'Comportamento', ageRange:'6–18 anos', objective:'Avaliar problemas emocionais e comportamentais', domains:['Internalizante','Externalizante','Total','Ansiedade/Depressão','Queixas Somáticas','Isolamento','Problemas Sociais','Problemas de Atenção','Comportamento Agressivo','Comportamento de Quebra de Regras'] },
+    { id:'q_aseba_cbcl', name:'ASEBA — CBCL 6-18',   dest:['Pais','Mãe','Pai','Enc. Educação'], link:'https://correiaricardina-ui.github.io/questionarios/CBCL_618_v1.html',  syncKey:'cbcl',  area:'Comportamento', ageRange:'6–18 anos', objective:'Avaliar problemas emocionais e comportamentais', domains:['Internalizante','Externalizante','Total','Ansiedade/Depressão','Queixas Somáticas','Isolamento','Problemas Sociais','Problemas de Atenção','Comportamento Agressivo','Comportamento de Quebra de Regras'] },
     { id:'q_aseba_trf',  name:'ASEBA — TRF 6-18',    dest:['Professor(a)'],              link:'https://correiaricardina-ui.github.io/questionarios/TRF_618_v1.html',   syncKey:'trf',   area:'Comportamento', ageRange:'6–18 anos', objective:'Avaliar comportamento em contexto escolar (versão professor)', domains:['Internalizante','Externalizante','Total','Problemas de Atenção','Comportamento Agressivo'] },
     { id:'q_aseba_ysr',  name:'ASEBA — YSR 11-18',   dest:['Paciente'],                  link:'https://correiaricardina-ui.github.io/questionarios/YSR_1118_v1.html',  syncKey:'ysr',   area:'Comportamento', ageRange:'11–18 anos', objective:'Auto-avaliação de problemas emocionais e comportamentais', domains:['Internalizante','Externalizante','Total','Ansiedade/Depressão','Isolamento','Queixas Somáticas','Problemas Sociais','Problemas de Atenção','Comportamento Agressivo'] },
-    { id:'q_cbcl_15',    name:'ASEBA — CBCL 1½-5',   dest:['Mãe','Pai','Enc. Educação'], link:'https://correiaricardina-ui.github.io/questionarios/CBCL_15_v3.html',   syncKey:'cbcl15', area:'Comportamento', ageRange:'1½–5 anos', objective:'Avaliar problemas emocionais e comportamentais em idade pré-escolar', domains:['Internalizante','Externalizante','Total','Reatividade Emocional','Ansiedade','Queixas Somáticas','Retraimento','Problemas de Sono','Problemas de Atenção','Comportamento Agressivo'] },
+    { id:'q_cbcl_15',    name:'ASEBA — CBCL 1½-5',   dest:['Pais','Mãe','Pai','Enc. Educação'], link:'https://correiaricardina-ui.github.io/questionarios/CBCL_15_v3.html',   syncKey:'cbcl15', area:'Comportamento', ageRange:'1½–5 anos', objective:'Avaliar problemas emocionais e comportamentais em idade pré-escolar', domains:['Internalizante','Externalizante','Total','Reatividade Emocional','Ansiedade','Queixas Somáticas','Retraimento','Problemas de Sono','Problemas de Atenção','Comportamento Agressivo'] },
     { id:'q_tas20',      name:'TAS-20',               dest:['Paciente'],                  link:'https://correiaricardina-ui.github.io/questionarios/TAS20_v7.html',      syncKey:'tas20',  area:'Emocional / Alexitimia', ageRange:'Adultos', objective:'Avaliar alexitimia (dificuldade em identificar e descrever emoções)', domains:['Dificuldade em Identificar Sentimentos (F1)','Dificuldade em Descrever Sentimentos (F2)','Pensamento Orientado para o Exterior (F3)','Total'] },
-    { id:'q_swan',       name:'SWAN',                  dest:['Mãe','Pai','Enc. Educação','Professor(a)'], link:'https://correiaricardina-ui.github.io/questionarios/SWAN_v1.html', syncKey:'swan', area:'Atenção e Comportamento', ageRange:'6–18 anos', objective:'Avaliar sintomas de PHDA em contexto dimensional', domains:['Desatenção','Hiperatividade-Impulsividade'] },
+    { id:'q_swan',       name:'SWAN',                  dest:['Pais','Mãe','Pai','Enc. Educação','Professor(a)'], link:'https://correiaricardina-ui.github.io/questionarios/SWAN_v1.html', syncKey:'swan', area:'Atenção e Comportamento', ageRange:'6–18 anos', objective:'Avaliar sintomas de PHDA em contexto dimensional', domains:['Desatenção','Hiperatividade-Impulsividade'] },
   ];
   if(existing.length === 0) {
     defaults.forEach(q => store.set('q_' + q.id, q));
