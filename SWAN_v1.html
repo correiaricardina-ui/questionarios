@@ -536,8 +536,10 @@ function calcularScores() {
 }
 
 function classificar(score) {
-  if (score >= 1.65) return 'Clínico';
-  if (score >= 1.0)  return 'Borderline';
+  // No SWAN valores NEGATIVOS = dificuldade (abaixo da média)
+  // Corte clínico: ≤ -1.65 (percentil 5) | Borderline: -1.65 a -1.0
+  if (score <= -1.65) return 'Clínico';
+  if (score <= -1.0)  return 'Borderline';
   return 'Normativo';
 }
 
@@ -702,7 +704,8 @@ function renderTabela(dados) {
 
 // ── Modal de detalhe ───────────────────────────────────────
 function corScore(s) {
-  return s >= 1.65 ? 'var(--red)' : s >= 1 ? 'var(--orange)' : 'var(--green)';
+  // Valores negativos = dificuldade; positivos/zero = normativo
+  return s <= -1.65 ? 'var(--red)' : s <= -1.0 ? 'var(--orange)' : 'var(--green)';
 }
 
 function gerarInterpretacao(scoreD, scoreH, scoreT, cl) {
@@ -712,23 +715,23 @@ function gerarInterpretacao(scoreD, scoreH, scoreT, cl) {
     ? 'O perfil global situa-se na zona borderline, sugerindo dificuldades ligeiras que merecem monitorização clínica.'
     : 'O perfil global situa-se na zona clínica, indicando dificuldades com significância clínica que justificam avaliação aprofundada.';
 
-  var txtD = scoreD >= 1.65
+  var txtD = scoreD <= -1.65
     ? 'A subescala de <strong>Desatenção</strong> encontra-se na zona clínica (' + scoreD.toFixed(2) + '), sugerindo dificuldades marcadas na sustentação da atenção e organização.'
-    : scoreD >= 1.0
+    : scoreD <= -1.0
     ? 'A subescala de <strong>Desatenção</strong> situa-se na zona borderline (' + scoreD.toFixed(2) + '), com algumas dificuldades atencionais que merecem monitorização.'
     : 'A subescala de <strong>Desatenção</strong> encontra-se dentro dos limites normativos (' + scoreD.toFixed(2) + ').';
 
-  var txtH = scoreH >= 1.65
+  var txtH = scoreH <= -1.65
     ? 'A subescala de <strong>Hiperatividade-Impulsividade</strong> encontra-se na zona clínica (' + scoreH.toFixed(2) + '), sugerindo dificuldades no controlo motor e regulação comportamental.'
-    : scoreH >= 1.0
+    : scoreH <= -1.0
     ? 'A subescala de <strong>Hiperatividade-Impulsividade</strong> situa-se na zona borderline (' + scoreH.toFixed(2) + '), com alguma agitação acima do esperado.'
     : 'A subescala de <strong>Hiperatividade-Impulsividade</strong> encontra-se dentro dos limites normativos (' + scoreH.toFixed(2) + ').';
 
-  var perfil = scoreD >= 1.65 && scoreH < 1.0
+  var perfil = scoreD <= -1.65 && scoreH > -1.0
     ? 'O perfil é consistente com uma <strong>apresentação predominantemente desatenta</strong>.'
-    : scoreH >= 1.65 && scoreD < 1.0
+    : scoreH <= -1.65 && scoreD > -1.0
     ? 'O perfil é consistente com uma <strong>apresentação predominantemente hiperativa-impulsiva</strong>.'
-    : scoreD >= 1.65 && scoreH >= 1.65
+    : scoreD <= -1.65 && scoreH <= -1.65
     ? 'O perfil é consistente com uma <strong>apresentação combinada</strong>.'
     : '';
 
@@ -816,7 +819,7 @@ function verDetalhe(idx) {
     var answers = answersRaw.length > 0 ? answersRaw.split('|') : [];
     var pctD    = Math.max(2, ((f.scoreD + 3) / 6 * 100)).toFixed(1);
     var pctH    = Math.max(2, ((f.scoreH + 3) / 6 * 100)).toFixed(1);
-    var cutPct  = ((1.65 + 3) / 6 * 100).toFixed(1);
+    var cutPct  = ((-1.65 + 3) / 6 * 100).toFixed(1); // ~22.5% da barra (lado esquerdo)
 
     var overlay = document.createElement('div');
     overlay.id = 'modal-detalhe';
@@ -878,7 +881,7 @@ function verDetalhe(idx) {
             '<div style="position:absolute;left:' + cutPct + '%;top:-4px;bottom:-4px;width:2px;background:var(--red);border-radius:2px;"></div>' +
           '</div>' +
         '</div>' +
-        '<div style="margin-top:6px;font-size:0.72rem;color:var(--text-light);">│ linha vermelha = corte clínico (1.65 · ~percentil 95)</div>' +
+        '<div style="margin-top:6px;font-size:0.72rem;color:var(--text-light);">│ linha vermelha = corte clínico (−1.65 · percentil 5)</div>' +
       '</div>' +
       // Interpretação
       gerarInterpretacao(f.scoreD, f.scoreH, f.scoreT, f.cl) +
@@ -931,11 +934,12 @@ function desenharGauge(canvasId, score) {
   ctx.scale(dpr, dpr);
   var cx=W/2, cy=H*0.80, r=82;
   var startAngle=Math.PI, endAngle=2*Math.PI;
+  // Gauge: -3 (esquerda) = pior | +3 (direita) = melhor
+  // Vermelho: -3 a -1.65 (clínico) | Laranja: -1.65 a -1.0 (borderline) | Verde: -1 a +3 (normativo)
   var faixas=[
-    {from:-3, to:-1,   cor:'#27AE60'},
-    {from:-1, to:1,    cor:'#F0C040'},
-    {from:1,  to:1.65, cor:'#E67E22'},
-    {from:1.65,to:3,   cor:'#C0392B'}
+    {from:-3,   to:-1.65, cor:'#C0392B'},
+    {from:-1.65,to:-1.0,  cor:'#E67E22'},
+    {from:-1.0, to:3,     cor:'#27AE60'}
   ];
   function s2a(s){ return startAngle + ((s+3)/6)*Math.PI; }
   ctx.beginPath(); ctx.arc(cx,cy,r,startAngle,endAngle);
@@ -950,7 +954,7 @@ function desenharGauge(canvasId, score) {
     ctx.textAlign='center'; ctx.textBaseline='middle';
     ctx.fillText(m[1], cx+(r+13)*Math.cos(ang), cy+(r+13)*Math.sin(ang));
   });
-  var angCut=s2a(1.65);
+  var angCut=s2a(-1.65);
   ctx.beginPath();
   ctx.moveTo(cx+(r-10)*Math.cos(angCut), cy+(r-10)*Math.sin(angCut));
   ctx.lineTo(cx+(r+2)*Math.cos(angCut),  cy+(r+2)*Math.sin(angCut));
