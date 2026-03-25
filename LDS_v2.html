@@ -272,6 +272,11 @@ table.normas tr.destaque td { background: #fffbe6; font-weight: 700; }
         <div class="form-hint">Iniciais do nome + data de nascimento (DDMMAAAA). Ex: <em>Maria Valente</em>, 14/06/2013 → <strong>MV14062013</strong></div>
       </div>
 
+      <div class="form-group">
+        <label>Nome da criança</label>
+        <input type="text" id="nome-crianca" class="form-input" placeholder="Nome completo da criança">
+      </div>
+
       <div class="form-row">
         <div class="form-group">
           <label>Data de nascimento da criança</label>
@@ -701,6 +706,7 @@ function submeterQuestionario(){
   var payload = {
     instrumento: 'LDS',
     nome_informante: (document.getElementById('nome_informante')||{value:''}).value.trim(),
+    nomeCrianca: (document.getElementById('nome-crianca')||{value:''}).value.trim(),
     data: new Date().toISOString(),
     patientCode: code,
     sexo: sexo,
@@ -853,7 +859,8 @@ function renderTabela(rows){
       vocabScore: row['Vocab Score']||row.vocabScore||'',
       dizPalavras: row['Diz Palavras']||row.dizPalavras||'',
       combinaFrases: row['Combina Frases']||row.combinaFrases||'',
-      vocabItems: row['Palavras']||row.vocabItems||''
+      vocabItems: row['Palavras']||row.vocabItems||'',
+      nomeCrianca: row['Nome Criança']||row.nomeCrianca||''
     };
     var dataStr = d.data ? new Date(d.data).toLocaleDateString('pt-PT') : '\u2014';
     var vocab = parseInt(d.vocabScore||0);
@@ -1115,7 +1122,8 @@ function verDetalhe(idx){
     frases: row['Frases Exemplo']||row.frases||'',
     mlu: row['MLU']||row.mlu||'',
     vocabScore: row['Vocab Score']||row.vocabScore||'',
-    vocabItems: row['Palavras']||row.vocabItems||''
+    vocabItems: row['Palavras']||row.vocabItems||'',
+    nomeCrianca: row['Nome Criança']||row.nomeCrianca||''
   };
 
   var mlu = parseFloat(d.mlu||0);
@@ -1243,7 +1251,8 @@ function verDetalhe(idx){
   // Cabe\u00e7alho
   inner += '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px">';
   var dataFmt = d.data ? new Date(d.data).toLocaleDateString('pt-PT') : '\u2014';
-  inner += '<div><div style="font-family:DM Serif Display,serif;font-size:1.15rem;color:var(--blue)">LDS 1\u00bd\u20135 \u2014 '+(d.patientCode||'\u2014')+'</div>';
+  var nomeCriancaDisp = d.nomeCrianca||d['Nome Criança']||'';
+  inner += '<div><div style="font-family:DM Serif Display,serif;font-size:1.15rem;color:var(--blue)">LDS 1\u00bd\u20135 \u2014 '+(d.patientCode||'\u2014')+(nomeCriancaDisp?' \u00b7 '+nomeCriancaDisp:'')+'</div>';
   inner += '<div style="font-size:0.8rem;color:var(--text-light);margin-top:3px">Data: '+dataFmt+' &middot; '+idade+' meses &middot; '+(sexo==='F'?'Rapariga':'Rapaz')+'</div></div>';
   inner += '<div style="display:flex;gap:8px;align-items:center">'
   inner += '<button onclick="exportarRespostasPDF_LDS('+idx+')" style="background:var(--blue-pale);color:var(--blue);border:none;border-radius:8px;padding:6px 14px;cursor:pointer;font-weight:600;font-size:0.82rem">📋 Respostas PDF</button>';

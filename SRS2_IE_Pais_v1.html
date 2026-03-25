@@ -143,6 +143,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--gray);color:var(--text);m
             Iniciais do nome da criança + data de nascimento (DDMMAAAA). Ex: <em>Maria Valente</em> nascida a 14/06/2013 → <strong>MV14062013</strong>
           </div>
         </div>
+          <div class="form-field">
+            <label>Nome da criança</label>
+            <input type="text" id="nome-crianca" class="form-input" placeholder="Nome completo da criança">
+          </div>
 
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
           <div class="form-field">
@@ -1311,6 +1315,7 @@ function submeter(){
     instrumento: NOME_ABA,
     timestamp:   new Date().toISOString(),
     patientCode: code,
+      nomeCrianca: (document.getElementById('nome-crianca')||{value:''}).value.trim(),
     respondente: respondente,
     sexo:        sexo,
     idade:       idade,
@@ -1364,8 +1369,7 @@ function carregarDados(){
   fetch(SCRIPT_URL+'?instrumento='+NOME_ABA+'&t='+Date.now())
     .then(function(r){ return r.json(); })
     .then(function(data){
-      var rows=(data&&data.rows)||data.data||data||[];
-      if(!Array.isArray(rows)) rows=[];
+      var rows=data.data||data||[];
       // Fundir com sessões locais
       var local=(window._clinico_sessions&&window._clinico_sessions[SYNC_KEY])||[];
       local.forEach(function(l){

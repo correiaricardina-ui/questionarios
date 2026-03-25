@@ -139,9 +139,13 @@ input[type=text]:focus,select:focus{border-color:var(--blue-mid)}
   <div style="margin-bottom:16px">
     <label class="field-label">C&oacute;digo do paciente <span style="font-weight:400;color:var(--text-light);font-size:.82rem">(fornecido pela psic&oacute;loga)</span></label>
     <input type="text" id="patient-code" placeholder="ex: DDL25072014 ou MV14062013" style="text-transform:uppercase" oninput="this.value=this.value.toUpperCase()">
+id="patient-code" placeholder="ex: DDL25072014 ou MV14062013" style="text-transform:uppercase" oninput="this.value=this.value.toUpperCase()">
     <div class="field-hint">Iniciais + data de nascimento (DDMMAAAA). Ex: <strong>MV14062013</strong></div>
   </div>
-  <div style="margin-bottom:16px"><label class="field-label">Nome do Respondente</label><input type="text" id="nome_informante" placeholder="ex: Maria Silva"></div><div style="margin-bottom:16px"><label class="field-label">Parentesco / Rela&ccedil;&atilde;o</label><select id="parentesco"><option value="">-- Seleccione --</option><option>M&atilde;e</option><option>Pai</option><option>Av&oacute;</option><option>Av&ocirc;</option><option>Educadora</option><option>Outro</option></select></div><div style="margin-bottom:16px"><label class="field-label">Idade da crian&ccedil;a (em meses)</label><input type="text" id="idade_meses" placeholder="ex: 24"></div>
+      <div class="form-field">
+        <label>Nome da criança</label>
+        <input type="text" id="nome-crianca" class="form-field__input" placeholder="Nome completo da criança">
+      </div>"">-- Seleccione --</option><option>M&atilde;e</option><option>Pai</option><option>Av&oacute;</option><option>Av&ocirc;</option><option>Educadora</option><option>Outro</option></select></div><div style="margin-bottom:16px"><label class="field-label">Idade da crian&ccedil;a (em meses)</label><input type="text" id="idade_meses" placeholder="ex: 24"></div>
   <div style="background:var(--blue-xpale);border-radius:10px;padding:16px;margin-bottom:24px;font-size:.85rem;line-height:1.75">
     <strong style="color:var(--blue)">Instru&ccedil;&otilde;es</strong><br>
     Responda em rela&ccedil;&atilde;o ao que a crian&ccedil;a faz <strong>habitualmente</strong>, sem ajuda, na sua rotina di&aacute;ria.<br>Se a crian&ccedil;a nunca teve oportunidade de realizar a actividade mas <em>poderia</em> faz&ecirc;-lo, use o c&oacute;digo mais alto que se aplique.<br><br>
@@ -424,8 +428,7 @@ function iniciarQuestionario(){
   var parentesco = document.getElementById('parentesco').value.trim();
   var idade_meses = document.getElementById('idade_meses').value.trim();
   
-  var nome_informante = document.getElementById('nome_informante').value.trim();
-  patientInfo = {code:code, parentesco: parentesco, idade_meses: idade_meses, informante: nome_informante};
+  patientInfo = {code:code, parentesco: parentesco, idade_meses: idade_meses};
   totalItems=0; DOMAINS.forEach(function(d){totalItems+=d.items.length;});
   answers=new Array(totalItems).fill(""); currentDomain=0;
   buildSteps(); renderDomain(0); showPage("page-questionario");
@@ -528,6 +531,7 @@ function submeter(){
   var payload=Object.assign({
     instrumento:INSTR,
     patientCode:patientInfo.code,
+    nomeCrianca:(document.getElementById('nome-crianca')||{value:''}).value.trim(),
     date:now.toISOString(),
     answers:answers.join("|"),
     cag:res.cag, cc:res.cc, sc:res.sc, pc:res.pc
@@ -576,8 +580,7 @@ function carregarDados(){
   fetch(SCRIPT_URL+"?instrumento="+INSTR+"&t="+Date.now())
     .then(function(r){return r.json();})
     .then(function(data){
-      var rows=(data&&data.rows&&Array.isArray(data.rows))?data.rows:(Array.isArray(data)?data:[]);
-      sessoes=rows.map(parseSessao);
+      sessoes=Array.isArray(data)?data.map(parseSessao):[];
       if(window._clinico_sessions) window._clinico_sessions.forEach(function(s){
         if(!sessoes.some(function(x){return x.patientCode===s.patientCode&&x.date===s.date;}))
           sessoes.unshift(s);
@@ -590,28 +593,19 @@ function carregarDados(){
 }
 
 function parseSessao(row){
-  var s={patientCode:row.patientCode||row["C\u00f3digo"]||row.codigo||"\u2014",date:row.date||row["Data"]||"",
+  var s={patientCode:row.patientCode||"\u2014",date:row.date||"",
     answers:row.answers||"",sb:{},ss:{},cc:0,sc:0,pc:0,cag:0};
   if(s.answers){
     var r=calcularResultados(s.answers.split("|"));
     s.sb=r.sb;s.ss=r.ss;s.cc=r.cc;s.sc=r.sc;s.pc=r.pc;s.cag=r.cag;
   }
-  // copiar campos extras (não sobrescrever ss/sb que são objectos)
-  var _ss=s.ss,_sb=s.sb,_cc=s.cc,_sc=s.sc,_pc=s.pc,_cag=s.cag;
+  DOMAINS.forEach(function(d){ if(row[d.code+"_SS"]) s.ss[d.code]=parseInt(row[d.code+"_SS"])||0; });
+  if(row.CAG) s.cag=parseInt(row.CAG)||0;
+  if(row.CC)  s.cc=parseInt(row.CC)||0;
+  if(row.SC)  s.sc=parseInt(row.SC)||0;
+  if(row.PC)  s.pc=parseInt(row.PC)||0;
+  // copiar campos extras
   Object.assign(s, row);
-  s.ss=_ss; s.sb=_sb;
-  // ler SS/SB por domínio do Sheet (precedência)
-  DOMAINS.forEach(function(d){
-    var v=row[d.code+"_SS"]||row[d.code+"_ss"];
-    if(v!==undefined&&v!==''){var _pv=parseInt(v);if(!isNaN(_pv))s.ss[d.code]=_pv;}
-    var b=row[d.code+"_SB"]||row[d.code+"_sb"];
-    if(b!==undefined&&b!==''){var _pb=parseInt(b);if(!isNaN(_pb))s.sb[d.code]=_pb;}
-  });
-  // ler CC/SC/PC/CAG do Sheet se disponíveis (precedência)
-  if(row.CAG!==undefined&&row.CAG!==''){var _v=parseInt(row.CAG);s.cag=isNaN(_v)?_cag:_v;}else s.cag=_cag;
-  if(row.CC!==undefined&&row.CC!==''){var _v=parseInt(row.CC);s.cc=isNaN(_v)?_cc:_v;}else s.cc=_cc;
-  if(row.SC!==undefined&&row.SC!==''){var _v=parseInt(row.SC);s.sc=isNaN(_v)?_sc:_v;}else s.sc=_sc;
-  if(row.PC!==undefined&&row.PC!==''){var _v=parseInt(row.PC);s.pc=isNaN(_v)?_pc:_v;}else s.pc=_pc;
   return s;
 }
 
