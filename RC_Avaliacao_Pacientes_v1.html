@@ -641,7 +641,8 @@ const SYNC_KEY_TO_ABA = {
   'ysr':      'YSR_1118',
   'tas20':    'TAS20',
   'swan':     'SWAN',
-  'brief_professores': 'BRIEF_Professores'
+  'brief_professores': 'BRIEF_Professores',
+  'brief_pais':       'BRIEF_Pais'
 };
 
 // Cache em memória das respostas do Sheet (evita fetch repetidos na mesma sessão)
@@ -881,6 +882,15 @@ function formatScoreSummary(scores, syncKey) {
     if(tot != null) {
       const cls = tot >= 65 ? 'color:#C0392B;font-weight:700;' : tot >= 60 ? 'color:#E67E22;font-weight:600;' : 'color:var(--green);font-weight:600;';
       return `<span style="font-size:0.78rem;${cls}">T-Total = ${tot}${intv!=null?' · INT='+intv:''}${ext!=null?' EXT='+ext:''}</span>`;
+    }
+  }
+  if(syncKey === 'brief_pais') {
+    const gef = scores['GEF'] ?? scores['gef'];
+    const irc = scores['IRC'] ?? scores['irc'];
+    const im  = scores['IM']  ?? scores['im'];
+    if(gef != null) {
+      const cls = gef >= 65 ? 'color:#C0392B;font-weight:700;' : gef >= 60 ? 'color:#E67E22;font-weight:600;' : 'color:var(--green);font-weight:600;';
+      return `<span style="font-size:0.78rem;${cls}">GEF = ${gef}${irc!=null?' · IRC='+irc:''}${im!=null?' IM='+im:''}</span>`;
     }
   }
   if(syncKey === 'brief_professores') {
