@@ -1885,7 +1885,10 @@ function verDetalhe(idx) {
         '<div style="font-family:\'DM Serif Display\',serif;font-size:1.3rem;color:var(--blue);">Detalhe do Resultado</div>'+
         '<div style="font-size:0.82rem;color:var(--text-light);margin-top:4px;">BRIEF-2 Professores &middot; '+dateStr+'</div>'+
       '</div>'+
+      '<div style="display:flex;gap:8px;align-items:center">'+
+      '<button id="btn-dl-csv-prof" style="background:var(--blue-xpale);color:var(--blue);border:1px solid var(--blue-pale);border-radius:6px;padding:4px 12px;font-size:0.8rem;font-weight:600;cursor:pointer" onclick="downloadProfCSV(window._profRow)">&#8681; CSV</button>'+
       '<button onclick="this.closest(\'.modal-overlay\').remove()" style="background:none;border:none;font-size:1.4rem;cursor:pointer;color:var(--text-light);line-height:1;">&#10005;</button>'+
+      '</div>'+
     '</div>'+
     '<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;font-size:0.88rem;">'+
       '<div><strong>Criança:</strong> '+esc(row.childName||'—')+'</div>'+
@@ -1931,6 +1934,7 @@ function verDetalhe(idx) {
     itemsHtml+
   '</div>';
 
+  window._profRow = row;
   document.body.appendChild(overlay);
   overlay.addEventListener('click', function(e){ if(e.target===overlay) overlay.remove(); });
 }
@@ -1938,6 +1942,26 @@ function verDetalhe(idx) {
 // ═══════════════════════════════════════════════
 // EXPORTAR / IMPORTAR
 // ═══════════════════════════════════════════════
+function downloadProfCSV(row) {
+  if(!row) return;
+  var scores = calcularScores(row.answers ? row.answers.split(',').map(Number) : []);
+  var bom = '\uFEFF';
+  var headers = ['Código','Criança','DataNasc','Género','Ano','Professor/a','Disciplina','Data','INI','MUD','CE','INC','MT','PO','OM','MON','IRC','IM','GEF'];
+  var r = [
+    row.patientCode||'', row.childName||'', row.dob||'', row.gender||'', row.grade||'',
+    row.teacherName||'', row.subject||'', row.date||'',
+    scores.INI||'', scores.MUD||'', scores.CE||'', scores.INC||'', scores.MT||'',
+    scores.PO||'', scores.OM||'', scores.MON||'', scores.IRC||'', scores.IM||'', scores.GEF||''
+  ];
+  var csv = bom+headers.join(';')+'\r\n'+r.map(function(v){return '"'+(v+'').replace(/"/g,'""')+'"';}).join(';');
+  var blob = new Blob([csv],{type:'text/csv;charset=utf-8;'});
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = 'BRIEF_Prof_'+(row.patientCode||'export')+'_'+new Date().toISOString().slice(0,10)+'.csv';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+}
+
 function exportarCSV() {
   var rows = window._clinico_sessions || [];
   if (!rows.length) { alert('Sem dados para exportar.'); return; }
