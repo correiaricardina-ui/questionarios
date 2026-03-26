@@ -465,7 +465,10 @@ table.data-table tr:nth-child(even) td{background:var(--gray-50)}
   <div class="modal-box" id="modal-box">
     <div class="modal-header">
       <h2 id="modal-title">Detalhe da Resposta</h2>
-      <button class="modal-close" onclick="closeModal()">&#10005;</button>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button class="btn btn-secondary" style="padding:4px 12px;font-size:0.8rem" onclick="imprimirDetalhe()">&#128438; Imprimir / PDF</button>
+        <button class="modal-close" onclick="closeModal()">&#10005;</button>
+      </div>
     </div>
     <div id="modal-content"></div>
   </div>
@@ -1269,6 +1272,22 @@ function showDetail(i){
   document.getElementById("modal-title").textContent="Resposta — "+d.codigo+" · "+d.nome_crianca;
   document.getElementById("modal-content").innerHTML=html;
   document.getElementById("modal-overlay").classList.add("open");
+}
+
+function imprimirDetalhe(){
+  const conteudo = document.getElementById('modal-content').innerHTML;
+  const titulo = document.getElementById('modal-title').textContent;
+  const win = window.open('','_blank','width=900,height=700');
+  win.document.write('<html><head><title>'+titulo+'</title>');
+  win.document.write('<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;600;700&display=swap" rel="stylesheet">');
+  win.document.write('<style>body{font-family:DM Sans,sans-serif;padding:24px;max-width:860px;margin:0 auto}h2{color:#3B5A7A;margin-bottom:16px}.meta-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;background:#EBF2F8;border-radius:8px;padding:16px;margin-bottom:16px;font-size:.88rem}.mrow{display:flex;flex-direction:column;gap:2px}.mk{font-size:.72rem;font-weight:700;text-transform:uppercase;color:#94A3B8;letter-spacing:.04em}.scores-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}.sc-box{background:#fff;border:1.5px solid #E2E8F0;border-radius:10px;padding:12px 8px;text-align:center}.sv{font-size:1.5rem;font-weight:700;color:#1E293B}.sl{font-size:.72rem;color:#475569;margin-top:4px}.t-badge{display:inline-block;padding:2px 7px;border-radius:4px;font-size:.7rem;font-weight:700;margin-top:3px}.t-clinical{background:#FEE2E2;color:#DC2626}.t-elevated{background:#FEF3C7;color:#D97706}.t-borderline{background:#FFFBEB;color:#B45309}.t-normal{background:#F0FDF4;color:#16A34A}table{width:100%;border-collapse:collapse;font-size:.84rem}th{background:#EBF2F8;padding:7px 10px;text-align:left}td{padding:7px 10px;border-bottom:1px solid #E2E8F0}@media print{button{display:none}}</style>');
+  win.document.write('</head><body>');
+  win.document.write('<h2>'+titulo+'</h2>');
+  win.document.write(conteudo);
+  win.document.write('<br><button onclick="window.print()" style="padding:8px 20px;background:#3B5A7A;color:white;border:none;border-radius:6px;cursor:pointer;font-size:.9rem">&#128438; Imprimir / Guardar PDF</button>');
+  win.document.write('</body></html>');
+  win.document.close();
+  win.focus();
 }
 
 function closeModal(){
