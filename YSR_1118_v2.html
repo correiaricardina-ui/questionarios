@@ -1617,6 +1617,42 @@ function buildResultsHTML(sess){
         </div>`;}).join('')}
     </div>`).join('');
 
+  // Secção item a item
+  const ans = sess.answers || {};
+  const groupItems = (from, to, label) => {
+    const its = ITEMS.filter(i => { const n = parseFloat(i.n); return n >= from && n <= to; });
+    const rows = its.map(i => {
+      const v = ans[i.n];
+      const vStr = v !== undefined ? String(v) : '—';
+      const bg = v === 2 ? '#FDECEA' : v === 1 ? '#FFF8E1' : '#F0F7FF';
+      return `<div style="display:grid;grid-template-columns:32px 1fr 28px;gap:6px;align-items:center;padding:5px 8px;border-bottom:1px solid #F0F4F8;background:${bg};font-size:0.8rem;">
+        <span style="color:var(--text-light);text-align:right;">${i.n}</span>
+        <span>${i.t}</span>
+        <span style="text-align:center;font-weight:700;color:${v===2?'var(--red)':v===1?'#E67E22':'var(--text-light)'};">${vStr}</span>
+      </div>`;
+    }).join('');
+    return `<div style="margin-bottom:12px;">
+      <div style="font-weight:700;font-size:0.78rem;color:var(--blue);text-transform:uppercase;letter-spacing:.05em;padding:6px 8px;background:var(--blue-pale);border-radius:6px 6px 0 0;">${label}</div>
+      ${rows}
+    </div>`;
+  };
+
+  const itemSection = `
+    <details style="margin-top:16px;">
+      <summary style="cursor:pointer;font-weight:600;color:var(--blue);padding:8px 0;font-size:0.9rem;user-select:none;">
+        🔍 Respostas item a item <span style="font-size:0.78rem;font-weight:400;color:var(--text-light);">(clique para expandir)</span>
+      </summary>
+      <div style="margin-top:10px;border:1px solid var(--gray-bdr);border-radius:8px;overflow:hidden;">
+        <div style="display:grid;grid-template-columns:32px 1fr 28px;gap:6px;padding:5px 8px;background:#3B5A7A;color:white;font-size:0.75rem;font-weight:700;">
+          <span style="text-align:right;">#</span><span>Item</span><span style="text-align:center;">R</span>
+        </div>
+        ${groupItems(1, 38, '🎯 Desatenção / Ansiedade / Depressão — itens 1–38')}
+        ${groupItems(39, 66, '⚡ Comportamento — itens 39–66')}
+        ${groupItems(67, 112, '📋 Comportamento — itens 67–112')}
+      </div>
+      <div style="margin-top:6px;font-size:0.75rem;color:var(--text-light);">R = resposta &nbsp;|&nbsp; 0 = Não verdadeiro · 1 = Às vezes · 2 = Muitas vezes</div>
+    </details>`;
+
   return `
     <div style="margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid var(--blue-pale);">
       <div style="font-size:1.1rem;font-weight:700;color:var(--blue);">${sess.name}</div>
@@ -1638,7 +1674,8 @@ function buildResultsHTML(sess){
         </div>`;
       }).join('')}
     </div>
-    <div class="results-grid">${scaleCards}</div>`;
+    <div class="results-grid">${scaleCards}</div>
+    ${itemSection}`;
 }
 
 // patch buildResultsHTML to append competences
@@ -1721,6 +1758,47 @@ function verDetalheSheet(idx, arr) {
     '<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--gray-bdr);"><span>Externalização</span><span style="font-weight:700;color:' + (tEXT>=65?'var(--red)':tEXT>=60?'var(--amber)':'var(--green)') + '">T' + tEXT + '</span></div>' +
     '<div style="display:flex;justify-content:space-between;padding:8px 0;"><span><strong>Total de Problemas</strong></span><span style="font-weight:700;color:' + (tTOT>=65?'var(--red)':tTOT>=60?'var(--amber)':'var(--green)') + '">T' + tTOT + '</span></div>' +
     '</div>' + scaleRows;
+  // Secção item a item (dados do Sheet)
+  var answersRawSheet = '';
+  if (row['Respostas']) answersRawSheet = row['Respostas'];
+  else if (row.answers) answersRawSheet = row.answers;
+  var answersObjSheet = {};
+  try { answersObjSheet = JSON.parse(answersRawSheet); } catch(e) {}
+  var hasAnswers = Object.keys(answersObjSheet).length > 0;
+
+  if (hasAnswers) {
+    var groupHTML = function(from, to, label) {
+      var its = ITEMS.filter(function(i){ var n = parseFloat(i.n); return n >= from && n <= to; });
+      var rows = its.map(function(i) {
+        var v = answersObjSheet[i.n];
+        var vStr = (v !== undefined && v !== null) ? String(v) : '—';
+        var bg = v == 2 ? '#FDECEA' : v == 1 ? '#FFF8E1' : '#F0F7FF';
+        return '<div style="display:grid;grid-template-columns:32px 1fr 28px;gap:6px;align-items:center;padding:5px 8px;border-bottom:1px solid #F0F4F8;background:' + bg + ';font-size:0.8rem;">' +
+          '<span style="color:var(--text-light);text-align:right;">' + i.n + '</span>' +
+          '<span>' + i.t + '</span>' +
+          '<span style="text-align:center;font-weight:700;color:' + (v==2?'var(--red)':v==1?'#E67E22':'var(--text-light)') + ';">' + vStr + '</span>' +
+          '</div>';
+      }).join('');
+      return '<div style="margin-bottom:12px;">' +
+        '<div style="font-weight:700;font-size:0.78rem;color:var(--blue);text-transform:uppercase;letter-spacing:.05em;padding:6px 8px;background:var(--blue-pale);border-radius:6px 6px 0 0;">' + label + '</div>' +
+        rows + '</div>';
+    };
+    html += '<details style="margin-top:16px;">' +
+      '<summary style="cursor:pointer;font-weight:600;color:var(--blue);padding:8px 0;font-size:0.9rem;user-select:none;">' +
+      '🔍 Respostas item a item <span style="font-size:0.78rem;font-weight:400;color:var(--text-light);">(clique para expandir)</span></summary>' +
+      '<div style="margin-top:10px;border:1px solid var(--gray-bdr);border-radius:8px;overflow:hidden;">' +
+      '<div style="display:grid;grid-template-columns:32px 1fr 28px;gap:6px;padding:5px 8px;background:#3B5A7A;color:white;font-size:0.75rem;font-weight:700;">' +
+      '<span style="text-align:right;">#</span><span>Item</span><span style="text-align:center;">R</span></div>' +
+      groupHTML(1, 38, '🎯 Desatenção / Ansiedade / Depressão — itens 1–38') +
+      groupHTML(39, 66, '⚡ Comportamento — itens 39–66') +
+      groupHTML(67, 112, '📋 Comportamento — itens 67–112') +
+      '</div>' +
+      '<div style="margin-top:6px;font-size:0.75rem;color:var(--text-light);">R = resposta &nbsp;|&nbsp; 0 = Não verdadeiro · 1 = Às vezes · 2 = Muitas vezes</div>' +
+      '</details>';
+  } else {
+    html += '<div style="margin-top:16px;padding:12px;background:var(--gray-bdr);border-radius:8px;font-size:0.82rem;color:var(--text-light);text-align:center;">Respostas item a item não disponíveis para este registo.</div>';
+  }
+
   document.getElementById('modal-content').innerHTML = html;
   document.getElementById('modal-detail').classList.add('open');
 }
