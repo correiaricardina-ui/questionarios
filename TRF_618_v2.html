@@ -1168,7 +1168,35 @@ function buildResultsHTML(s) {
         <span class="scale-raw">raw=${s.scores.desatRaw??'—'}/6</span>
       </div>
     </div>
-    <div style="font-size:0.75rem;color:var(--text-light);margin-top:8px;">Nota: Subescalas de atenção não têm T-scores separados no manual PT — usar como referência qualitativa.</div>
+    <div style="font-size:0.75rem;color:var(--text-light);margin-top:8px;">Normas ASEBA PT por sexo/idade:</div>
+    <div style="margin-top:8px;font-size:0.78rem;">
+      ${(function(){
+        var sex = s.sex;
+        var ag = s.ageGroup;
+        var hi = s.scores.hiRaw || 0;
+        var de = s.scores.desatRaw || 0;
+        var lim = {
+          'M_6-11':  [17, 21, 14, 17],
+          'M_12-18': [13, 21, 11, 17],
+          'F_6-11':  [18, 22, 15, 17],
+          'F_12-18': [14, 22, 13, 17]
+        };
+        var key = (sex||'M') + '_' + (ag||'6-11');
+        var L = lim[key] || lim['M_6-11'];
+        function cls(v, nMax, bMax) {
+          if (v <= nMax) return {lbl:'Normativo',col:'#27AE60',bg:'#eafaf1'};
+          if (v <= bMax) return {lbl:'Borderline',col:'#E67E22',bg:'#fef3e2'};
+          return {lbl:'Clínico',col:'#C0392B',bg:'#fdecea'};
+        }
+        var cDe = cls(de, L[0], L[1]);
+        var cHi = cls(hi, L[2], L[3]);
+        function badge(c) { return '<span style="background:'+c.bg+';color:'+c.col+';border-radius:6px;padding:2px 8px;font-weight:700;font-size:0.75rem;">'+c.lbl+'</span>'; }
+        return '<div style="display:flex;gap:20px;flex-wrap:wrap;">' +
+          '<div>Desatenção (0–6): <strong>'+de+'</strong> &nbsp;'+badge(cDe)+'</div>' +
+          '<div>Hiperativ./Impulsiv. (0–12): <strong>'+hi+'</strong> &nbsp;'+badge(cHi)+'</div>' +
+          '</div><div style="margin-top:4px;font-size:0.73rem;color:var(--text-light);">Grupo: '+key.replace('_',' · ').replace('M','Rapazes').replace('F','Raparigas')+'</div>';
+      })()}
+    </div>
   </div>
 
   <!-- FUNCIONAMENTO ADAPTATIVO -->
@@ -1195,12 +1223,15 @@ function buildResultsHTML(s) {
   </div>` : ''}
 
   <!-- NOTAS QUALITATIVAS -->
-  ${s.mainConcern||s.strengths ? `
+  ${s.mainConcern||s.strengths||s.healthDesc ? `
   <div class="scale-card" style="margin-bottom:14px;">
     <div class="scale-card-title">Informação qualitativa do professor</div>
     ${s.mainConcern?`<div style="margin-bottom:8px;"><span style="font-size:0.75rem;font-weight:600;color:var(--blue-mid);">Principal preocupação:</span><p style="font-size:0.83rem;margin-top:3px;">${s.mainConcern}</p></div>`:''}
-    ${s.strengths?`<div><span style="font-size:0.75rem;font-weight:600;color:var(--blue-mid);">Pontos fortes:</span><p style="font-size:0.83rem;margin-top:3px;">${s.strengths}</p></div>`:''}
+    ${s.strengths?`<div style="margin-bottom:8px;"><span style="font-size:0.75rem;font-weight:600;color:var(--blue-mid);">Pontos fortes:</span><p style="font-size:0.83rem;margin-top:3px;">${s.strengths}</p></div>`:''}
+    ${s.healthDesc?`<div><span style="font-size:0.75rem;font-weight:600;color:var(--red);">Problema de saúde:</span><p style="font-size:0.83rem;margin-top:3px;">${s.healthDesc}</p></div>`:''}
+  </div>` : ''}
 
+  <!-- RESPOSTAS ITEM A ITEM -->
   ${(function(){
     var ans = s.answers || {};
     var hasAnswers = Object.keys(ans).length > 0;
@@ -1233,9 +1264,7 @@ function buildResultsHTML(s) {
       '</div>' +
       '<div style="margin-top:6px;font-size:0.75rem;color:var(--text-light);">R = resposta &nbsp;|&nbsp; 0 = Não verdadeiro · 1 = Às vezes · 2 = Muitas vezes</div>' +
       '</details>';
-  })()}
-    ${s.healthDesc?`<div style="margin-top:8px;"><span style="font-size:0.75rem;font-weight:600;color:var(--red);">Problema de saúde:</span><p style="font-size:0.83rem;margin-top:3px;">${s.healthDesc}</p></div>`:''}
-  </div>` : ''}`;
+  })()}`;
 }
 
 // ══════════════ PRINT ══════════════
