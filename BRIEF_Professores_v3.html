@@ -1740,7 +1740,7 @@ function carregarDados() {
   fetch(SCRIPT_URL+'?sheet='+SHEET_NAME+'&t='+Date.now())
     .then(function(r){ return r.json(); })
     .then(function(data) {
-      var rows = Array.isArray(data) ? data : (data.data || []);
+      var rows = Array.isArray(data) ? data : (data.rows || data.data || []);
       window._clinico_sessions = rows.map(function(row){
         if (Array.isArray(row)) {
           return {date:row[0],patientCode:row[1],childName:row[2],dob:row[3],gender:row[4],grade:row[5],teacherName:row[6],subject:row[7],INI:row[8],MUD:row[9],CE:row[10],INC:row[11],MT:row[12],PO:row[13],OM:row[14],MON:row[15],IRC:row[16],IM:row[17],GEF:row[18],answers:row[19],source:'sheets'};
