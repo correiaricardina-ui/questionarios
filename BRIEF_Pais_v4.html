@@ -1264,8 +1264,34 @@ function syncData(){
     if(data.rows || data.data){
       // merge server rows into localStorage
       (data.rows || data.data).forEach(row=>{
-        const k="brief_pais_synced_"+row.codigo+"_"+row.timestamp;
-        if(!localStorage.getItem(k)) localStorage.setItem(k,JSON.stringify(row));
+        // Normalizar nomes das colunas do Sheet para nomes do painel
+        const r = {
+          codigo:       row.Código       || row.codigo       || '',
+          nome_crianca: row.NomeCriança  || row.nome_crianca || '',
+          dob:          row.DataNasc     || row.dob          || '',
+          genero:       row.Género       || row.genero       || '',
+          ano_escolar:  row.Ano          || row.ano_escolar  || '',
+          nome_preenche:row.NomeRespondente || row.nome_preenche || '',
+          relacao:      row.Relação      || row.relacao      || '',
+          data_preenche:row.Data         || row.data_preenche|| '',
+          timestamp:    row.Data         || row.timestamp    || '',
+          scores: { indices: {
+            IRC: row.IRC || row['IRC'] || 0,
+            IM:  row.IM  || row['IM']  || 0,
+            GEF: row.GEF || row['GEF'] || 0
+          }, escalas: {
+            Inibicao:          row.INI || 0,
+            Mudanca:           row.MUD || 0,
+            ControloEmocional: row.CE  || 0,
+            Iniciacao:         row.INC || 0,
+            MemoriaTrab:       row.MT  || 0,
+            PlaneamentoOrg:    row.PO  || 0,
+            OrganizacaoMat:    row.OM  || 0,
+            Monitorizacao:     row.MON || 0
+          }}
+        };
+        const k="brief_pais_synced_"+r.codigo+"_"+r.timestamp;
+        if(!localStorage.getItem(k)) localStorage.setItem(k,JSON.stringify(r));
       });
     }
     loadLocalData();
