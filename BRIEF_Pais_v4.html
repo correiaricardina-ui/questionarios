@@ -928,6 +928,18 @@ function collectPayload(){
   ITENS.forEach(it=>{payload.respostas["q"+it.n]=answers["q"+it.n]||"";});
   const sc=calcScores(payload.respostas);
   payload.scores=sc;
+  // Aplanar escalas e índices para o Apps Script
+  payload.INI = sc.escalas.Inibicao       || '';
+  payload.MUD = sc.escalas.Mudanca        || '';
+  payload.CE  = sc.escalas.ControloEmocional || '';
+  payload.INC = sc.escalas.Iniciacao      || '';
+  payload.MT  = sc.escalas.MemoriaTrab    || '';
+  payload.PO  = sc.escalas.PlaneamentoOrg || '';
+  payload.OM  = sc.escalas.OrganizacaoMat || '';
+  payload.MON = sc.escalas.Monitorizacao  || '';
+  payload.IRC = sc.indices.IRC || '';
+  payload.IM  = sc.indices.IM  || '';
+  payload.GEF = sc.indices.GEF || '';
   return payload;
 }
 
