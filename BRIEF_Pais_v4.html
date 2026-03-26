@@ -812,10 +812,26 @@ function interpT(t) {
   return { label: "Dentro do Esperado", cls: "t-normal" };
 }
 
-function parseAge(idadeStr) {
-  if (!idadeStr) return null;
-  const m = String(idadeStr).match(/(\d+)/);
-  return m ? parseInt(m[1]) : null;
+function parseAge(idadeStr, dobStr) {
+  // Tentar a partir da string de idade
+  if (idadeStr) {
+    const m = String(idadeStr).match(/(\d+)/);
+    if (m) return parseInt(m[1]);
+  }
+  // Fallback: calcular a partir da data de nascimento
+  if (dobStr) {
+    try {
+      const dob = new Date(dobStr);
+      if (!isNaN(dob)) {
+        const today = new Date();
+        let age = today.getFullYear() - dob.getFullYear();
+        const m = today.getMonth() - dob.getMonth();
+        if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) age--;
+        return age > 0 && age < 20 ? age : null;
+      }
+    } catch(e) {}
+  }
+  return null;
 }
 
 function scoreVal(r){return r==="N"?1:r==="AV"?2:r==="F"?3:0}
@@ -1075,7 +1091,7 @@ function renderTable(){
     html+=`<tr>
       <td><strong>${d.codigo||"-"}</strong></td>
       <td>${d.nome_crianca||"-"}</td>
-      <td>${d.dob||"-"}</td>
+      <td>${fmtDate(d.dob)}</td>
       <td>${d.nome_preenche||"-"} (${d.relacao||"-"})</td>
       <td>${dp}</td>
       <td><span class="index-badge idx-imi">${sc.indices?.IRC??"-"}</span></td>
@@ -1091,17 +1107,26 @@ function renderTable(){
   document.getElementById("stat-incomplete").textContent=incompleteCnt;
 }
 
+function fmtDate(d){
+  if(!d) return '—';
+  try{
+    const dt=new Date(d);
+    if(isNaN(dt)) return String(d).slice(0,10)||'—';
+    return dt.toLocaleDateString('pt-PT',{day:'2-digit',month:'2-digit',year:'numeric'});
+  }catch(e){return String(d).slice(0,10)||'—';}
+}
+
 function showDetail(i){
   const d=clinicalData[i];
   const sc=d.scores||calcScores(d.respostas||{});
   let html=`<div class="meta-grid">
     <div class="mrow"><div class="mk">Código</div>${d.codigo}</div>
     <div class="mrow"><div class="mk">Nome da criança</div>${d.nome_crianca}</div>
-    <div class="mrow"><div class="mk">Data de nascimento</div>${d.dob} (${d.idade})</div>
+    <div class="mrow"><div class="mk">Data de nascimento</div>${fmtDate(d.dob)}</div>
     <div class="mrow"><div class="mk">Género</div>${d.genero}</div>
     <div class="mrow"><div class="mk">Ano escolar</div>${d.ano_escolar||"-"}</div>
     <div class="mrow"><div class="mk">Quem preencheu</div>${d.nome_preenche} (${d.relacao})</div>
-    <div class="mrow"><div class="mk">Data preenchimento</div>${d.data_preenche}</div>
+    <div class="mrow"><div class="mk">Data preenchimento</div>${fmtDate(d.data_preenche)}</div>
   </div>`;
 
   // ── Validade ──
@@ -1116,7 +1141,7 @@ function showDetail(i){
   </div>`;
 
   // ── Índices compostos ──
-  const age = parseAge(d.idade);
+  const age = parseAge(d.idade, d.dob);
   const gender = d.genero;
   const hasNorms = age !== null && gender;
 
