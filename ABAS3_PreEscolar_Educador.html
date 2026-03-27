@@ -111,7 +111,7 @@ input[type=text]:focus,select:focus{border-color:var(--blue-mid)}
       <div class="form-field">
         <label>Nome da criança</label>
         <input type="text" id="nome-crianca" class="form-field__input" placeholder="Nome completo da criança">
-      </div>nhos"></div><div style="margin-bottom:16px"><label class="field-label">H&aacute; quanto tempo conhece a crian&ccedil;a?</label><select id="tempo_conhece"><option value="">-- Seleccione --</option><option>Menos de 3 meses</option><option>3 a 6 meses</option><option>6 a 12 meses</option><option>Mais de 1 ano</option></select></div>
+      </div></div><div style="margin-bottom:16px"><label class="field-label">H&aacute; quanto tempo conhece a crian&ccedil;a?</label><select id="tempo_conhece"><option value="">-- Seleccione --</option><option>Menos de 3 meses</option><option>3 a 6 meses</option><option>6 a 12 meses</option><option>Mais de 1 ano</option></select></div>
   <div style="background:var(--blue-xpale);border-radius:10px;padding:16px;margin-bottom:24px;font-size:.85rem;line-height:1.75">
     <strong style="color:var(--blue)">Instru&ccedil;&otilde;es</strong><br>
     Responda com base no que observa <strong>directamente em contexto de jardim-de-inf&acirc;ncia ou creche</strong>. N&atilde;o inclua informa&ccedil;&atilde;o de outros contextos que n&atilde;o observou pessoalmente.<br>Se a crian&ccedil;a nunca teve oportunidade de realizar a actividade mas <em>poderia</em> faz&ecirc;-lo, use o c&oacute;digo mais alto que se aplique.<br><br>
@@ -255,10 +255,9 @@ function iniciarQuestionario(){
   if(!/^[A-Z][A-Z][A-Z]?[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]$/.test(code)){
     alert("C\u00f3digo inv\u00e1lido.\n\nDevem ser 2 ou 3 iniciais + data de nascimento (DDMMAAAA).\nEx: MV14062013");return;
   }
-  var sala = document.getElementById('sala').value.trim();
   var tempo_conhece = document.getElementById('tempo_conhece').value.trim();
   
-  patientInfo={code:code,sala: sala, tempo_conhece: tempo_conhece};
+  patientInfo={code:code, tempo_conhece: tempo_conhece};
   totalItems=0;DOMAINS.forEach(function(d){totalItems+=d.items.length;});
   answers=new Array(totalItems).fill("");currentDomain=0;
   buildSteps();renderDomain(0);showPage("page-questionario");
