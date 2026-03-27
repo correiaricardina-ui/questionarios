@@ -1,0 +1,998 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SPAS — Escala de Ansiedade Pré-Escolar · Versão Educador/Professor</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --blue:       #3B5A7A;
+  --blue-mid:   #5B8DB8;
+  --blue-pale:  #D6E4F0;
+  --blue-xpale: #EAF2F8;
+  --blue-deep:  #2C4A66;
+  --teal:       #1A7A6E;
+  --teal-pale:  #D1F0EC;
+  --green:      #27AE60;
+  --green-pale: #D5F5E3;
+  --orange:     #E67E22;
+  --orange-pale:#FDEBD0;
+  --red:        #E74C3C;
+  --red-pale:   #FADBD8;
+  --text:       #2C3E50;
+  --text-light: #6B7A8D;
+  --border:     #C8D8E8;
+  --bg:         #F0F6F5;
+  --white:      #FFFFFF;
+  --radius:     12px;
+  --shadow:     0 4px 24px rgba(26,122,110,.12);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+.page{display:none;min-height:100vh;}
+.container{max-width:780px;margin:0 auto;padding:24px 16px;}
+
+.topbar{background:var(--teal);color:#fff;padding:10px 24px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(0,0,0,.18);}
+.topbar-logo{width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;overflow:hidden;}
+.topbar-logo img{width:34px;height:34px;object-fit:contain;}
+.topbar-info{flex:1;}
+.topbar-title{font-family:'DM Serif Display',serif;font-size:1rem;letter-spacing:.02em;}
+.topbar-sub{font-size:.72rem;opacity:.72;}
+
+.landing-wrap{min-height:calc(100vh - 56px);display:flex;align-items:center;justify-content:center;padding:32px 16px;background:linear-gradient(145deg,#D1F0EC 0%,#F0F6F5 60%,#EAF2F8 100%);}
+.landing-card{background:var(--white);border-radius:20px;padding:48px 40px;max-width:560px;width:100%;box-shadow:var(--shadow);text-align:center;position:relative;overflow:hidden;}
+.landing-card::before{content:'';position:absolute;top:0;left:0;right:0;height:5px;background:linear-gradient(90deg,var(--teal),var(--blue-mid));}
+.landing-badge{display:inline-flex;align-items:center;gap:6px;background:var(--teal-pale);color:var(--teal);font-size:.72rem;font-weight:600;padding:4px 12px;border-radius:20px;margin-bottom:20px;letter-spacing:.06em;text-transform:uppercase;}
+.landing-icon{font-size:3rem;margin-bottom:16px;}
+.landing-title{font-family:'DM Serif Display',serif;font-size:1.85rem;color:var(--teal);line-height:1.2;margin-bottom:8px;}
+.landing-sub{color:var(--text-light);font-size:.88rem;line-height:1.6;margin-bottom:32px;}
+.landing-btns{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.landing-btn{background:var(--teal-pale);border:2px solid #b2e0da;border-radius:14px;padding:22px 16px;cursor:pointer;transition:all .2s;text-align:center;}
+.landing-btn:hover{background:#b2e0da;border-color:var(--teal);transform:translateY(-2px);box-shadow:0 6px 20px rgba(26,122,110,.18);}
+.landing-btn:first-child{background:var(--teal);border-color:var(--teal);color:#fff;}
+.landing-btn:first-child:hover{background:#145f55;}
+.landing-btn:first-child .landing-btn-icon,.landing-btn:first-child .landing-btn-title,.landing-btn:first-child .landing-btn-sub{color:#fff;}
+.landing-btn-icon{font-size:1.8rem;margin-bottom:8px;}
+.landing-btn-title{font-weight:600;font-size:.95rem;margin-bottom:4px;}
+.landing-btn-sub{font-size:.75rem;color:var(--text-light);line-height:1.4;}
+.landing-footer{margin-top:28px;font-size:.72rem;color:var(--text-light);}
+
+.progress-bar{background:var(--white);border-bottom:1px solid var(--border);padding:14px 24px;position:sticky;top:56px;z-index:90;}
+.progress-inner{max-width:780px;margin:0 auto;display:flex;align-items:center;gap:8px;}
+.step-dot{width:28px;height:28px;border-radius:50%;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:600;color:var(--text-light);background:var(--white);flex-shrink:0;transition:all .3s;}
+.step-dot.active{border-color:var(--teal);background:var(--teal);color:#fff;}
+.step-dot.done{border-color:var(--green);background:var(--green);color:#fff;}
+.step-dot.done::after{content:'✓';}
+.step-dot.done span{display:none;}
+.step-line{flex:1;height:2px;background:var(--border);border-radius:2px;}
+.step-line.done{background:var(--green);}
+
+.card{background:var(--white);border-radius:var(--radius);box-shadow:var(--shadow);padding:28px;margin-bottom:20px;}
+.section-title{font-family:'DM Serif Display',serif;font-size:1.2rem;color:var(--teal);margin-bottom:6px;display:flex;align-items:center;gap:10px;}
+.section-desc{font-size:.85rem;color:var(--text-light);margin-bottom:20px;line-height:1.6;}
+.section-badge{font-size:.68rem;font-weight:600;padding:3px 8px;border-radius:10px;background:var(--teal-pale);color:var(--teal);letter-spacing:.05em;}
+
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;}
+.field-row.triple{grid-template-columns:1fr 1fr 1fr;}
+@media(max-width:540px){.field-row,.field-row.triple{grid-template-columns:1fr;}}
+.field{display:flex;flex-direction:column;gap:5px;}
+.field label{font-size:.8rem;font-weight:600;color:var(--text-light);text-transform:uppercase;letter-spacing:.06em;}
+.field input,.field select{border:1.5px solid var(--border);border-radius:8px;padding:10px 12px;font-size:.92rem;font-family:'DM Sans',sans-serif;color:var(--text);background:var(--white);transition:border .2s;}
+.field input:focus,.field select:focus{outline:none;border-color:var(--teal);}
+.field .hint{font-size:.72rem;color:var(--text-light);line-height:1.4;}
+
+.instrucoes-box{background:var(--teal-pale);border-left:4px solid var(--teal);border-radius:0 10px 10px 0;padding:16px 18px;margin-bottom:20px;font-size:.85rem;line-height:1.8;color:var(--text);}
+.instrucoes-box strong{color:var(--teal);}
+
+.scale-legend{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 20px;}
+.scale-pill{display:flex;align-items:center;gap:5px;background:var(--teal-pale);border:1.5px solid #b2e0da;border-radius:20px;padding:4px 10px;font-size:.72rem;font-weight:600;color:var(--teal);}
+.scale-num{background:var(--teal);color:#fff;border-radius:50%;width:18px;height:18px;display:flex;align-items:center;justify-content:center;font-size:.68rem;}
+
+.sub-header{background:var(--teal);color:#fff;border-radius:10px;padding:10px 16px;margin:24px 0 12px;font-weight:600;font-size:.88rem;display:flex;align-items:center;gap:8px;}
+.likert-header{display:grid;grid-template-columns:1fr 48px 48px 56px 56px 48px;gap:4px;margin-bottom:6px;padding:0 4px;}
+.likert-header span{font-size:.62rem;font-weight:600;color:var(--text-light);text-align:center;line-height:1.2;text-transform:uppercase;}
+.likert-header span:first-child{text-align:left;}
+.likert-item{display:grid;grid-template-columns:1fr 48px 48px 56px 56px 48px;gap:4px;align-items:center;padding:9px 4px;border-radius:8px;transition:background .15s;}
+.likert-item:nth-child(even){background:var(--teal-pale);}
+.likert-item:hover{background:#b2e0da;}
+.item-text{font-size:.87rem;line-height:1.45;color:var(--text);padding-right:8px;}
+.item-num{font-size:.72rem;font-weight:700;color:var(--teal);margin-right:4px;}
+.radio-cell{display:flex;align-items:center;justify-content:center;}
+.radio-cell input[type=radio]{width:18px;height:18px;accent-color:var(--teal);cursor:pointer;}
+@media(max-width:580px){
+  .likert-header{grid-template-columns:1fr 36px 36px 40px 40px 36px;}
+  .likert-item{grid-template-columns:1fr 36px 36px 40px 40px 36px;}
+  .radio-cell input[type=radio]{width:15px;height:15px;}
+}
+
+.btn{display:inline-flex;align-items:center;gap:7px;border:none;border-radius:9px;padding:11px 22px;font-family:'DM Sans',sans-serif;font-size:.9rem;font-weight:600;cursor:pointer;transition:all .2s;}
+.btn-primary{background:var(--teal);color:#fff;}
+.btn-primary:hover{background:#145f55;transform:translateY(-1px);}
+.btn-secondary{background:var(--teal-pale);color:var(--teal);border:1.5px solid #b2e0da;}
+.btn-secondary:hover{background:#b2e0da;}
+.btn-sm{padding:7px 14px;font-size:.8rem;}
+.nav-btns{display:flex;justify-content:space-between;align-items:center;margin-top:28px;gap:12px;flex-wrap:wrap;}
+
+.thanks-wrap{min-height:calc(100vh - 56px);display:flex;align-items:center;justify-content:center;padding:32px 16px;}
+.thanks-card{background:var(--white);border-radius:20px;padding:52px 40px;max-width:520px;width:100%;text-align:center;box-shadow:var(--shadow);}
+.thanks-icon{font-size:3.5rem;margin-bottom:20px;}
+.thanks-title{font-family:'DM Serif Display',serif;font-size:1.9rem;color:var(--teal);margin-bottom:14px;}
+.thanks-text{color:var(--text-light);line-height:1.7;font-size:.92rem;}
+
+.login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--teal);padding:24px;}
+.login-card{background:#fff;border-radius:20px;padding:44px 36px;max-width:400px;width:100%;box-shadow:0 12px 48px rgba(0,0,0,.25);text-align:center;}
+.login-icon{font-size:2.4rem;margin-bottom:14px;}
+.login-title{font-family:'DM Serif Display',serif;font-size:1.6rem;color:var(--teal);margin-bottom:6px;}
+.login-sub{color:var(--text-light);font-size:.82rem;margin-bottom:28px;}
+.login-field{text-align:left;margin-bottom:16px;}
+.login-field label{font-size:.78rem;font-weight:600;color:var(--text-light);text-transform:uppercase;letter-spacing:.06em;display:block;margin-bottom:6px;}
+.login-input{width:100%;border:1.5px solid var(--border);border-radius:9px;padding:11px 14px;font-size:.95rem;font-family:'DM Sans',sans-serif;text-align:center;letter-spacing:.12em;}
+.login-input:focus{outline:none;border-color:var(--teal);}
+.login-error{color:var(--red);font-size:.82rem;margin-top:10px;display:none;padding:8px;background:var(--red-pale);border-radius:7px;}
+.login-back{margin-top:18px;font-size:.8rem;color:var(--text-light);cursor:pointer;}
+.login-back:hover{color:var(--teal);}
+
+.clinico-header{background:var(--teal);color:#fff;padding:20px 24px;border-radius:var(--radius) var(--radius) 0 0;}
+.clinico-title{font-family:'DM Serif Display',serif;font-size:1.3rem;}
+.clinico-sub{font-size:.78rem;opacity:.75;margin-top:3px;}
+.clinico-body{background:var(--white);border-radius:0 0 var(--radius) var(--radius);padding:22px;}
+.action-bar{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:16px;}
+.tbl{width:100%;border-collapse:collapse;font-size:.83rem;}
+.tbl th{background:var(--teal-pale);color:var(--teal);font-weight:700;padding:9px 10px;text-align:left;border-bottom:2px solid #b2e0da;}
+.tbl td{padding:9px 10px;border-bottom:1px solid var(--teal-pale);vertical-align:middle;}
+.tbl tr:hover td{background:var(--teal-pale);}
+.badge{display:inline-block;padding:3px 9px;border-radius:12px;font-size:.72rem;font-weight:700;letter-spacing:.04em;}
+.badge-normal{background:var(--green-pale);color:#1a7a45;}
+.badge-medio{background:var(--orange-pale);color:#a05800;}
+.badge-elevado{background:var(--red-pale);color:#c0392b;}
+.empty-state{text-align:center;padding:48px 24px;color:var(--text-light);}
+.empty-icon{font-size:2.8rem;margin-bottom:12px;}
+
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:flex-start;justify-content:center;z-index:1000;padding:16px;overflow-y:auto;}
+.modal-box{background:#fff;border-radius:16px;padding:28px;max-width:860px;width:100%;box-shadow:0 12px 48px rgba(0,0,0,.25);margin:0 auto;}
+.modal-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;padding-bottom:14px;border-bottom:1px solid var(--border);}
+.modal-title{font-family:'DM Serif Display',serif;font-size:1.25rem;color:var(--teal);}
+.modal-close{background:none;border:none;font-size:1.5rem;cursor:pointer;color:var(--text-light);line-height:1;}
+.modal-close:hover{color:var(--text);}
+.interp-table{width:100%;border-collapse:collapse;font-size:.83rem;margin-bottom:14px;}
+.interp-table th{background:var(--teal-pale);color:var(--teal);padding:8px 10px;text-align:left;font-weight:700;}
+.interp-table td{padding:8px 10px;border-bottom:1px solid var(--teal-pale);}
+.bar-wrap{height:8px;background:var(--teal-pale);border-radius:4px;overflow:hidden;width:120px;}
+.bar-fill{height:100%;border-radius:4px;transition:width .5s;}
+.profile-text{background:var(--teal-pale);border-radius:10px;padding:14px 16px;font-size:.83rem;line-height:1.7;color:var(--text);margin-top:12px;}
+.modal-footer-note{font-size:.72rem;color:var(--text-light);font-style:italic;margin-top:10px;border-top:1px solid var(--border);padding-top:10px;}
+
+@media print{.no-print{display:none!important;}.page{display:block!important;}}
+</style>
+</head>
+<body>
+
+<div class="topbar no-print">
+  <div class="topbar-logo">
+    <img id="logo-img" src="" alt="RC">
+  </div>
+  <div class="topbar-info">
+    <div class="topbar-title">Ricardina Correia · Psicologia Pediátrica</div>
+    <div class="topbar-sub">Cédula n.º 8233 · Ordem dos Psicólogos Portugueses</div>
+  </div>
+</div>
+
+<!-- ════════ HOME ════════ -->
+<div id="page-home" class="page">
+  <div class="landing-wrap">
+    <div class="landing-card">
+      <div class="landing-badge">🏫 Avaliação · Contexto Escolar</div>
+      <div class="landing-icon">🧑‍🏫</div>
+      <div class="landing-title">Escala de Ansiedade<br>Pré-Escolar</div>
+      <div class="landing-sub">
+        Spence Preschool Anxiety Scale (SPAS) · <strong>3–7 anos</strong><br>
+        <span style="font-size:.75rem">S.H. Spence &amp; R. Rapee, 1999 · Adapt. PT: J.P. Almeida, 2013 · 22 itens · Versão Educador/Professor</span>
+      </div>
+      <div class="landing-btns">
+        <div class="landing-btn" onclick="iniciarQuestionario()">
+          <div class="landing-btn-icon">📝</div>
+          <div class="landing-btn-title">Preencher questionário</div>
+          <div class="landing-btn-sub">Para educador(a) / professor(a)</div>
+        </div>
+        <div class="landing-btn" onclick="showClinico()">
+          <div class="landing-btn-icon">🔒</div>
+          <div class="landing-btn-title">Painel Clínico</div>
+          <div class="landing-btn-sub">Acesso restrito · Ricardina Correia</div>
+        </div>
+      </div>
+      <div class="landing-footer">© 1999/2004 Susan H. Spence &amp; Ronald Rapee · Adaptação portuguesa: J. Paulo Almeida, PhD</div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════ QUESTIONÁRIO ════════ -->
+<div id="page-questionario" class="page">
+  <div class="progress-bar no-print">
+    <div class="progress-inner">
+      <div class="step-dot active" id="dot-1"><span>1</span></div>
+      <div class="step-line" id="line-1-2"></div>
+      <div class="step-dot" id="dot-2"><span>2</span></div>
+      <div class="step-line" id="line-2-3"></div>
+      <div class="step-dot" id="dot-3"><span>3</span></div>
+      <div class="step-line" id="line-3-4"></div>
+      <div class="step-dot" id="dot-4"><span>4</span></div>
+    </div>
+  </div>
+
+  <div class="container">
+
+    <!-- Secção 1 — Identificação -->
+    <div id="section-1">
+      <div class="card">
+        <div class="section-title">👤 Identificação <span class="section-badge">OBRIGATÓRIO</span></div>
+        <div class="section-desc">Dados da criança observada e do respondente (educador/professor).</div>
+
+        <div class="field" style="margin-bottom:16px;">
+          <label>Código do paciente <span style="font-weight:400;color:var(--text-light);font-size:.78rem;">(fornecido pela psicóloga)</span></label>
+          <input type="text" id="patient-code" placeholder="ex: MV14062013"
+                 style="text-transform:uppercase;max-width:240px;"
+                 oninput="this.value=this.value.toUpperCase()">
+          <div class="hint">Iniciais do nome + data de nascimento (DDMMAAAA). Ex: <em>Maria Valente</em> → <strong>MV14062013</strong></div>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label>Nome da criança</label>
+            <input type="text" id="nome-crianca" placeholder="Nome completo">
+          </div>
+          <div class="field">
+            <label>Data de nascimento</label>
+            <input type="date" id="data-nasc">
+          </div>
+        </div>
+        <div class="field-row triple">
+          <div class="field">
+            <label>Idade (anos)</label>
+            <input type="number" id="idade" min="2" max="8" placeholder="ex: 4">
+          </div>
+          <div class="field">
+            <label>Género</label>
+            <select id="genero">
+              <option value="">-- seleccionar --</option>
+              <option value="M">Masculino</option>
+              <option value="F">Feminino</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Função do respondente</label>
+            <select id="respondente">
+              <option value="">-- seleccionar --</option>
+              <option value="Educador">Educador(a) de Infância</option>
+              <option value="Professor">Professor(a) do 1.º Ciclo</option>
+              <option value="Auxiliar">Auxiliar de Acção Educativa</option>
+              <option value="Outro">Outro</option>
+            </select>
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>Instituição / Escola</label>
+            <input type="text" id="instituicao" placeholder="Nome da escola ou jardim de infância">
+          </div>
+          <div class="field">
+            <label>Grupo / Turma</label>
+            <input type="text" id="turma" placeholder="ex: Sala Amarela / 1.º A">
+          </div>
+        </div>
+
+        <div class="field" style="margin-top:4px;margin-bottom:16px;">
+          <label>Nome do respondente <span style="font-weight:400;color:var(--text-light);font-size:.78rem;">(nome próprio do educador/professor)</span></label>
+          <input type="text" id="nome_informante" placeholder="ex: Maria Santos" style="max-width:320px;">
+        </div>
+
+        <div class="nav-btns">
+          <button class="btn btn-secondary no-print" onclick="showPage('page-home')">← Voltar</button>
+          <button class="btn btn-primary no-print" onclick="avancarSecao(2)">Continuar →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Secção 2 — Instruções -->
+    <div id="section-2" style="display:none">
+      <div class="card">
+        <div class="section-title">📋 Instruções</div>
+        <div class="instrucoes-box">
+          Abaixo está uma lista de frases que descrevem crianças no seu percurso de desenvolvimento.<br>
+          <strong>Para cada frase, assinale a resposta que melhor descreve esta criança no momento presente</strong>, com base no que observa em contexto escolar/de jardim de infância.
+        </div>
+        <div class="scale-legend">
+          <div class="scale-pill"><div class="scale-num">0</div> Nunca</div>
+          <div class="scale-pill"><div class="scale-num">1</div> Quase nunca</div>
+          <div class="scale-pill"><div class="scale-num">2</div> Algumas vezes</div>
+          <div class="scale-pill"><div class="scale-num">3</div> Muitas vezes</div>
+          <div class="scale-pill"><div class="scale-num">4</div> Sempre</div>
+        </div>
+        <div style="font-size:.84rem;color:var(--text-light);line-height:1.6;">
+          Por favor responda a <strong>todos os itens</strong>, mesmo que alguns pareçam não se adequar totalmente à situação da criança.
+        </div>
+        <div class="nav-btns">
+          <button class="btn btn-secondary no-print" onclick="avancarSecao(1)">← Voltar</button>
+          <button class="btn btn-primary no-print" onclick="avancarSecao(3)">Começar →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Secção 3 — Itens 1-11 -->
+    <div id="section-3" style="display:none">
+      <div class="card">
+        <div class="section-title">😟 Ansiedade, Preocupações &amp; Separação <span style="font-size:.8rem;font-weight:400;color:var(--text-light);">itens 1–11</span></div>
+        <div class="scale-legend">
+          <div class="scale-pill"><div class="scale-num">0</div> Nunca</div>
+          <div class="scale-pill"><div class="scale-num">1</div> Quase nunca</div>
+          <div class="scale-pill"><div class="scale-num">2</div> Algumas vezes</div>
+          <div class="scale-pill"><div class="scale-num">3</div> Muitas vezes</div>
+          <div class="scale-pill"><div class="scale-num">4</div> Sempre</div>
+        </div>
+        <div class="likert-header">
+          <span>Comportamento observado</span><span>0</span><span>1</span><span>2</span><span>3</span><span>4</span>
+        </div>
+        <div id="items-sec3"></div>
+        <div class="nav-btns">
+          <button class="btn btn-secondary no-print" onclick="avancarSecao(2)">← Voltar</button>
+          <button class="btn btn-primary no-print" onclick="avancarSecao(4)">Continuar →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Secção 4 — Itens 12-22 -->
+    <div id="section-4" style="display:none">
+      <div class="card">
+        <div class="section-title">🔄 Medos, Social &amp; Comportamentos Repetitivos <span style="font-size:.8rem;font-weight:400;color:var(--text-light);">itens 12–22</span></div>
+        <div class="scale-legend">
+          <div class="scale-pill"><div class="scale-num">0</div> Nunca</div>
+          <div class="scale-pill"><div class="scale-num">1</div> Quase nunca</div>
+          <div class="scale-pill"><div class="scale-num">2</div> Algumas vezes</div>
+          <div class="scale-pill"><div class="scale-num">3</div> Muitas vezes</div>
+          <div class="scale-pill"><div class="scale-num">4</div> Sempre</div>
+        </div>
+        <div class="likert-header">
+          <span>Comportamento observado</span><span>0</span><span>1</span><span>2</span><span>3</span><span>4</span>
+        </div>
+        <div id="items-sec4"></div>
+        <div class="nav-btns">
+          <button class="btn btn-secondary no-print" onclick="avancarSecao(3)">← Voltar</button>
+          <button class="btn btn-primary no-print" id="btn-submeter" onclick="submeter()">✓ Submeter respostas</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ════════ OBRIGADO ════════ -->
+<div id="page-obrigado" class="page">
+  <div class="thanks-wrap">
+    <div class="thanks-card">
+      <div class="thanks-icon">✅</div>
+      <div class="thanks-title">Obrigado pelo preenchimento!</div>
+      <div class="thanks-text">
+        As suas respostas foram registadas com sucesso.<br>
+        A Dra. Ricardina Correia analisará os resultados e entrará em contacto brevemente.
+      </div>
+      <div style="margin-top:28px;">
+        <button class="btn btn-secondary" onclick="showPage('page-home')">← Página inicial</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════ LOGIN ════════ -->
+<div id="page-login" class="page">
+  <div class="login-wrap">
+    <div class="login-card">
+      <div class="login-icon">🔒</div>
+      <div class="login-title">Painel Clínico</div>
+      <div class="login-sub">Acesso restrito · Ricardina Correia<br>Psicologia Pediátrica</div>
+      <div class="login-field">
+        <label>Palavra-passe</label>
+        <input type="password" id="login-pw" class="login-input" placeholder="••••••••"
+               onkeydown="if(event.key==='Enter') tentarLogin()">
+      </div>
+      <button class="btn btn-primary" style="width:100%" onclick="tentarLogin()">Entrar</button>
+      <div id="login-error" class="login-error">Palavra-passe incorreta. Tente novamente.</div>
+      <div class="login-back" onclick="showPage('page-home')">← Voltar ao questionário</div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════ CLÍNICO ════════ -->
+<div id="page-clinico" class="page">
+  <div style="background:var(--bg);min-height:100vh;padding:24px 16px;">
+    <div style="max-width:960px;margin:0 auto;">
+      <div style="margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;" class="no-print">
+        <button class="btn btn-secondary btn-sm" onclick="showPage('page-home')">← Sair</button>
+        <span style="font-size:.8rem;color:var(--text-light);">SPAS — Versão Educador/Professor · Painel Clínico</span>
+      </div>
+      <div style="border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);">
+        <div class="clinico-header">
+          <div class="clinico-title">Escala de Ansiedade Pré-Escolar — Versão Educador/Professor</div>
+          <div class="clinico-sub">Sessões registadas · Ricardina Correia · Cédula 8233</div>
+        </div>
+        <div class="clinico-body">
+          <div class="action-bar no-print">
+            <button class="btn btn-secondary btn-sm" onclick="carregarDados()">↺ Sincronizar</button>
+            <button class="btn btn-secondary btn-sm" onclick="importarCSV()">⬆ Importar</button>
+            <button class="btn btn-secondary btn-sm" onclick="exportarCSV()">⬇ Exportar CSV</button>
+            <button class="btn btn-secondary btn-sm" onclick="exportarPDF()">📄 Exportar PDF</button>
+            <button class="btn btn-secondary btn-sm" onclick="window.print()">🖨 Imprimir</button>
+            <input type="file" id="import-file-input" accept=".csv" style="display:none" onchange="processarFicheiroImportado(this)">
+          </div>
+          <div id="import-feedback" style="margin-bottom:10px;display:none;font-size:.82rem;padding:8px 12px;border-radius:7px;"></div>
+          <div id="clinico-table-wrap">
+            <div class="empty-state">
+              <div class="empty-icon">📋</div>
+              <div style="font-weight:600;color:var(--text);margin-bottom:6px;">Nenhuma sessão registada</div>
+              <div>Clique em <strong>↺ Sincronizar</strong> para carregar dados do servidor.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div id="modal-overlay" class="modal-overlay" style="display:none" onclick="fecharModal(event)">
+  <div class="modal-box" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <div class="modal-title" id="modal-title">Detalhe da sessão</div>
+      <div style="display:flex;gap:8px;align-items:center" class="no-print">
+        <button class="btn btn-secondary btn-sm" onclick="imprimirDetalhe()" style="padding:5px 12px;font-size:.8rem;">🖨 Imprimir / PDF</button>
+        <button class="modal-close" onclick="document.getElementById('modal-overlay').style.display='none'">✕</button>
+      </div>
+    </div>
+    <div id="modal-body"></div>
+  </div>
+</div>
+
+<script>
+var SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxX2_Ry7VRH6jr7eGBMmtmyZFXZc69blwdO5bqJK0j69HRSexpXXPuEfDC5OHQRMLLL/exec';
+var ABA = 'SPAS_Prof';
+var PASSWORD = 'CNS2024';
+
+var LOGO_B64 = 'LOGO_PLACEHOLDER';
+document.getElementById('logo-img').src = LOGO_B64;
+
+// ─── ITENS (22 itens versão educador) ────────────────────────────
+var ITENS = [
+  // 1-11
+  'Pergunta repetidamente pelos pais durante o dia',
+  'Tem dificuldade em evitar as preocupações',
+  'Necessita confirmar ou verificar repetidamente que fez as coisas de forma correcta (ex: que fechou a porta, a torneira, …)',
+  'Queixa-se de dores de cabeça ou de barriga à hora de ficar no Infantário ou na escola',
+  'É uma criança tensa, inquieta ou irritável devido às preocupações',
+  'Tem receio de pedir ajuda aos adultos (nomeadamente à educadora ou professora)',
+  'Tem receio das alturas (lugares elevados)',
+  'Lava as mãos repetidamente ao longo do dia',
+  'Tem receio de falar ou de se encontrar com pessoas estranhas',
+  'Preocupa-se que aconteça alguma coisa má aos seus pais',
+  'Passa uma grande parte do dia preocupado(a) com coisas diversas',
+  // 12-22
+  'Tem receio de falar à frente da classe (ex: mostrar algo ou dizer qualquer coisa)',
+  'Preocupa-se que lhe possa acontecer alguma coisa má (ex: perder-se, ser raptado, …)',
+  'Precisa de ter as coisas exactamente na ordem correcta ou na posição certa com o argumento que alguma coisa má possa acontecer',
+  'Preocupa-se porque pode fazer alguma coisa inadequada ou que o possa embaraçar à frente de outras pessoas',
+  'Tem medo de insectos, aranhas, …',
+  'É invadido(a) por pensamentos ou imagens negativas que se repetem',
+  'Fica ansioso(a) à hora de ficar no Infantário ou na Escola',
+  'Tem receio de se aproximar de um grupo de crianças e juntar-se às suas actividades',
+  'Tem de pensar em coisas especiais (ex: número, palavras, …) para impedir que aconteçam coisas más',
+  'Pede ajuda (segurança) mesmo quando não parece ser necessário',
+  'Chora pelos pais enquanto está na escola/Jardim de Infância'
+];
+
+// Subescalas versão professor (Spence, versão educador original)
+// NORMAS: Spence, Rapee, McDonald & Ingram (2001) — Amostra australiana, N≈1559, idades 3-6 anos
+// NÃO existem normas portuguesas publicadas para a versão Educador/Professor.
+var SUBESCALAS = {
+  'Ansiedade Geral':         { itens:[1,2,5,11,21],   media:1.99, dp:2.53, max:20 },
+  'Ansiedade Social':        { itens:[6,9,12,15,19],  media:3.54, dp:3.37, max:20 },
+  'Ansiedade de Separação':  { itens:[4,10,13,18,22], media:2.15, dp:2.72, max:20 },
+  'Medo de Dano Físico':     { itens:[7,16],          media:1.31, dp:1.88, max:8  },
+  'Perturbação OC':          { itens:[3,8,14,17,20],  media:0.80, dp:1.48, max:20 }
+};
+var TOTAL_NORMA = { media:9.79, dp:9.08, max:88 };
+
+// ─── RENDER ──────────────────────────────────────────────────────
+function renderItens(containerId, de, ate) {
+  var c = document.getElementById(containerId);
+  var html = '';
+  for (var i = de; i <= ate; i++) {
+    html += '<div class="likert-item">' +
+      '<div class="item-text"><span class="item-num">' + i + '.</span>' + ITENS[i-1] + '</div>';
+    for (var v = 0; v <= 4; v++) {
+      html += '<div class="radio-cell"><input type="radio" name="item' + i + '" value="' + v + '"></div>';
+    }
+    html += '</div>';
+  }
+  c.innerHTML = html;
+}
+
+// ─── NAVEGAÇÃO ───────────────────────────────────────────────────
+var secaoAtual = 1;
+var totalSecoes = 4;
+
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(function(p){ p.style.display='none'; });
+  document.getElementById(id).style.display = 'block';
+  window.scrollTo(0,0);
+}
+
+function iniciarQuestionario() {
+  showPage('page-questionario');
+  showSection(1);
+}
+
+function showSection(n) {
+  for (var i = 1; i <= totalSecoes; i++) {
+    var s = document.getElementById('section-'+i);
+    if (s) s.style.display = (i === n) ? 'block' : 'none';
+  }
+  for (var i = 1; i <= totalSecoes; i++) {
+    var d = document.getElementById('dot-'+i);
+    if (!d) continue;
+    d.className = 'step-dot' + (i < n ? ' done' : i === n ? ' active' : '');
+    d.innerHTML = i < n ? '' : '<span>' + i + '</span>';
+  }
+  for (var i = 1; i < totalSecoes; i++) {
+    var l = document.getElementById('line-'+i+'-'+(i+1));
+    if (l) l.className = 'step-line' + (i < n ? ' done' : '');
+  }
+  secaoAtual = n;
+  window.scrollTo(0,0);
+}
+
+function avancarSecao(para) {
+  if (!validarSecao(secaoAtual)) return;
+  showSection(para);
+}
+
+function validarSecao(s) {
+  if (s === 1) {
+    var code = document.getElementById('patient-code').value.trim().toUpperCase();
+    if (!code) { alert('Por favor indique o código do paciente.'); return false; }
+    if (!/^[A-Z][A-Z][A-Z]?\d\d\d\d\d\d\d\d$/.test(code)) {
+      alert('Código inválido.\n2 ou 3 iniciais + data (DDMMAAAA).\nEx: MV14062013');
+      return false;
+    }
+  }
+  if (s === 3) { return validarItens(1, 11); }
+  return true;
+}
+
+function validarItens(de, ate) {
+  for (var i = de; i <= ate; i++) {
+    var resp = document.querySelector('input[name="item'+i+'"]:checked');
+    if (!resp) {
+      alert('Por favor responda ao item ' + i + ' antes de continuar.');
+      var el = document.querySelector('input[name="item'+i+'"]');
+      if (el) el.scrollIntoView({behavior:'smooth', block:'center'});
+      return false;
+    }
+  }
+  return true;
+}
+
+// ─── COTAÇÃO ─────────────────────────────────────────────────────
+function cotar() {
+  var resps = {};
+  for (var i = 1; i <= 22; i++) {
+    var r = document.querySelector('input[name="item'+i+'"]:checked');
+    resps[i] = r ? parseInt(r.value) : 0;
+  }
+  var scores = {};
+  var total = 0;
+  Object.keys(SUBESCALAS).forEach(function(sub) {
+    var s = 0;
+    SUBESCALAS[sub].itens.forEach(function(it){ s += resps[it]; });
+    scores[sub] = s;
+    total += s;
+  });
+  scores['Total'] = total;
+  return { resps: resps, scores: scores };
+}
+
+function classificar(score, media, dp) {
+  var lim_elev = Math.round(media + 1.5 * dp);
+  var lim_med  = Math.round(media + dp);
+  if (score >= lim_elev) return { label:'⚠ Elevado', cls:'badge-elevado', cor:'#E74C3C' };
+  if (score >= lim_med)  return { label:'Intermédio', cls:'badge-medio',   cor:'#E67E22' };
+  return { label:'Normal', cls:'badge-normal', cor:'#27AE60' };
+}
+
+// ─── SUBMISSÃO ───────────────────────────────────────────────────
+function submeter() {
+  if (!validarItens(12, 22)) return;
+
+  var code = document.getElementById('patient-code').value.trim().toUpperCase();
+  var cotacao = cotar();
+  var resps = cotacao.resps;
+  var scores = cotacao.scores;
+  var answers = [];
+  for (var i = 1; i <= 22; i++) answers.push(resps[i]);
+
+  var payload = {
+    instrumento: ABA,
+    patientCode: code,
+    nomeCrianca: document.getElementById('nome-crianca').value.trim(),
+    dataNasc: document.getElementById('data-nasc').value,
+    idade: document.getElementById('idade').value,
+    genero: document.getElementById('genero').value,
+    respondente: document.getElementById('respondente').value,
+    nome_informante: (document.getElementById('nome_informante')||{value:''}).value.trim(),
+    instituicao: document.getElementById('instituicao').value.trim(),
+    turma: document.getElementById('turma').value.trim(),
+    answers: answers.join('|'),
+    AG: scores['Ansiedade Geral'],
+    AS: scores['Ansiedade Social'],
+    SEP: scores['Ansiedade de Separação'],
+    MDF: scores['Medo de Dano Físico'],
+    POC: scores['Perturbação OC'],
+    Total: scores['Total'],
+    data: new Date().toISOString()
+  };
+
+  if (!window._clinico_sessions) window._clinico_sessions = [];
+  window._clinico_sessions.unshift({ patientCode: code, date: payload.data,
+    nomeCrianca: payload.nomeCrianca, scores: scores, answers: answers,
+    respondente: payload.respondente, instituicao: payload.instituicao });
+
+  try {
+    if (location.protocol === 'file:' || !navigator.onLine) {
+      var bom = '\uFEFF';
+      var cols = ['Data','Código','Nome','Respondente','Instituição','AG','AS','SEP','MDF','POC','Total'];
+      var vals = [new Date().toLocaleDateString('pt-PT'), code, payload.nomeCrianca,
+                  payload.respondente, payload.instituicao,
+                  scores['Ansiedade Geral'], scores['Ansiedade Social'],
+                  scores['Ansiedade de Separação'], scores['Medo de Dano Físico'],
+                  scores['Perturbação OC'], scores['Total']];
+      var csv = bom + cols.join(';') + '\r\n' + vals.map(function(v){ return '"'+(v+'').replace(/"/g,'""')+'"'; }).join(';');
+      var blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+      var a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+      a.download = 'SPAS_Prof_'+code+'_'+new Date().toISOString().slice(0,10)+'.csv';
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    }
+  } catch(e) {}
+
+  try {
+    fetch(SCRIPT_URL, { method:'POST', mode:'no-cors',
+      headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+  } catch(e) {}
+
+  showPage('page-obrigado');
+}
+
+// ─── LOGIN ───────────────────────────────────────────────────────
+function showClinico() {
+  showPage('page-login');
+  setTimeout(function(){ var el=document.getElementById('login-pw'); if(el) el.focus(); },100);
+}
+
+function tentarLogin() {
+  var pw = document.getElementById('login-pw').value;
+  if (pw === PASSWORD) {
+    document.getElementById('login-error').style.display='none';
+    document.getElementById('login-pw').value='';
+    showPage('page-clinico');
+    carregarDados();
+  } else {
+    document.getElementById('login-error').style.display='block';
+    document.getElementById('login-pw').value='';
+    document.getElementById('login-pw').focus();
+  }
+}
+
+// ─── PAINEL ──────────────────────────────────────────────────────
+function carregarDados() {
+  var wrap = document.getElementById('clinico-table-wrap');
+  wrap.innerHTML = '<div style="padding:32px;text-align:center;color:var(--text-light);">A carregar...</div>';
+  fetch(SCRIPT_URL + '?instrumento=' + ABA + '&t=' + Date.now())
+    .then(function(r){ return r.json(); })
+    .then(function(data) {
+      var rows = Array.isArray(data) ? data : (data.rows || data.data || []);
+      if (window._clinico_sessions)
+        window._clinico_sessions.forEach(function(s){ rows.unshift(s); });
+      renderTabela(rows);
+    })
+    .catch(function() { renderTabela(window._clinico_sessions || []); });
+}
+
+function renderTabela(rows) {
+  var wrap = document.getElementById('clinico-table-wrap');
+  if (!rows || !rows.length) {
+    wrap.innerHTML = '<div class="empty-state"><div class="empty-icon">📋</div><div style="font-weight:600;color:var(--text);margin-bottom:6px;">Nenhuma sessão registada</div><div>Preencha o questionário ou importe um CSV.</div></div>';
+    return;
+  }
+  window._sessoes_display = rows;
+  var html = '<div style="overflow-x:auto"><table class="tbl"><thead><tr>' +
+    '<th>Data</th><th>Código</th><th>Nome</th><th>Respondente</th><th>Instituição</th>' +
+    '<th>Total</th><th>Classificação</th><th class="no-print">Ações</th></tr></thead><tbody>';
+  rows.forEach(function(r, idx) {
+    var sc = r.scores ? r.scores['Total'] : (parseInt(r.Total)||0);
+    var cl = classificar(sc, TOTAL_NORMA.media, TOTAL_NORMA.dp);
+    var dt = r.date ? new Date(r.date).toLocaleDateString('pt-PT') : (r.Data||'—');
+    html += '<tr><td>' + dt + '</td><td><strong>' + (r.patientCode||r.Código||'—') + '</strong></td>' +
+      '<td>' + (r.nomeCrianca||r.Nome||'—') + '</td>' +
+      '<td>' + (r.respondente||r.Respondente||'—') + '</td>' +
+      '<td style="font-size:.8rem">' + (r.instituicao||r.Instituição||'—') + '</td>' +
+      '<td><strong>' + sc + '</strong>/88</td>' +
+      '<td><span class="badge ' + cl.cls + '">' + cl.label + '</span></td>' +
+      '<td class="no-print"><button class="btn btn-secondary btn-sm" onclick="verDetalhe(' + idx + ')">Ver →</button></td></tr>';
+  });
+  html += '</tbody></table></div>';
+  wrap.innerHTML = html;
+}
+
+// ─── MODAL ───────────────────────────────────────────────────────
+function verDetalhe(idx) {
+  var r = window._sessoes_display[idx];
+  if (!r) return;
+  var scores = r.scores || {};
+  if (!Object.keys(scores).length) {
+    scores = {
+      'Ansiedade Geral': parseInt(r.AG)||0,
+      'Ansiedade Social': parseInt(r.AS)||0,
+      'Ansiedade de Separação': parseInt(r.SEP)||0,
+      'Medo de Dano Físico': parseInt(r.MDF)||0,
+      'Perturbação OC': parseInt(r.POC)||0,
+      'Total': parseInt(r.Total)||0
+    };
+  }
+  document.getElementById('modal-title').textContent =
+    'SPAS Prof · ' + (r.patientCode||'—') + ' · ' +
+    (r.date ? new Date(r.date).toLocaleDateString('pt-PT') : '');
+
+  var tabRows = '';
+  var clinicos = [], intermedios = [];
+  Object.keys(SUBESCALAS).forEach(function(sub) {
+    var s = scores[sub]||0, nm = SUBESCALAS[sub];
+    var cl = classificar(s, nm.media, nm.dp);
+    var pct = Math.min(100, Math.round((s/nm.max)*100));
+    if (cl.label.indexOf('Elevado')>-1) clinicos.push(sub);
+    else if (cl.label==='Intermédio') intermedios.push(sub);
+    tabRows += '<tr><td><strong>' + sub + '</strong></td>' +
+      '<td style="text-align:center;font-weight:700;font-size:1rem;color:var(--teal)">' + s + '/' + nm.max + '</td>' +
+      '<td style="text-align:center;font-size:.8rem;color:var(--text-light)">' + nm.media.toFixed(1) + '</td>' +
+      '<td><div class="bar-wrap"><div class="bar-fill" style="width:' + pct + '%;background:' + cl.cor + '"></div></div></td>' +
+      '<td><span class="badge ' + cl.cls + '">' + cl.label + '</span></td></tr>';
+  });
+  var tot = scores['Total']||0;
+  var totCl = classificar(tot, TOTAL_NORMA.media, TOTAL_NORMA.dp);
+  var totPct = Math.min(100, Math.round((tot/TOTAL_NORMA.max)*100));
+  tabRows += '<tr style="background:var(--teal-pale)">' +
+    '<td><strong>TOTAL GERAL</strong></td>' +
+    '<td style="text-align:center;font-weight:700;font-size:1.05rem;color:var(--teal)">' + tot + '/88</td>' +
+    '<td style="text-align:center;font-size:.8rem;color:var(--text-light)">' + TOTAL_NORMA.media + '</td>' +
+    '<td><div class="bar-wrap"><div class="bar-fill" style="width:' + totPct + '%;background:' + totCl.cor + '"></div></div></td>' +
+    '<td><span class="badge ' + totCl.cls + '">' + totCl.label + '</span></td></tr>';
+
+  var parts = ['Pontuação total obtida: <strong>' + tot + ' pontos</strong> (máx. 88; média normativa australiana: 9,8 — Spence et al., 2001).'];
+  parts.push('<span style="color:#E67E22;font-size:.8rem">⚠ Nota: não existem normas portuguesas para esta versão. Os limiares de referência são da amostra australiana original.</span>');
+  if (totCl.label.indexOf('Elevado')>-1)
+    parts.push('O resultado global situa-se <strong>acima do limiar de preocupação clínica</strong> (≥ M + 1,5 DP).');
+  else if (totCl.label==='Intermédio')
+    parts.push('O resultado global situa-se numa <strong>zona de vigilância</strong> (M + 1 DP a M + 1,5 DP).');
+  else
+    parts.push('O resultado global encontra-se dentro dos <strong>limites normativos</strong>.');
+  if (clinicos.length) parts.push('Subescalas em zona clínica: <strong>' + clinicos.join(', ') + '</strong>.');
+  if (intermedios.length) parts.push('Subescalas em vigilância: <strong>' + intermedios.join(', ') + '</strong>.');
+
+  var answers = r.answers || [];
+  var answersArr = typeof answers==='string' ? answers.split('|') : answers;
+
+  // Gráfico
+  var chartId = 'spas-chart-' + idx + '-' + Date.now();
+  var chartLabels = ['AG','AS','SEP','MDF','POC'];
+  var chartData = ['Ansiedade Geral','Ansiedade Social','Ansiedade de Separação','Medo de Dano Físico','Perturbação OC'].map(function(s){return scores[s]||0;});
+  var chartMax   = ['Ansiedade Geral','Ansiedade Social','Ansiedade de Separação','Medo de Dano Físico','Perturbação OC'].map(function(s){return SUBESCALAS[s]?SUBESCALAS[s].max:20;});
+  var chartColors = ['Ansiedade Geral','Ansiedade Social','Ansiedade de Separação','Medo de Dano Físico','Perturbação OC'].map(function(s){
+    var sc=scores[s]||0, nm=SUBESCALAS[s]; if(!nm) return 'rgba(38,166,154,0.7)';
+    var cl=classificar(sc,nm.media,nm.dp);
+    return cl.label.indexOf('Elevado')>-1?'rgba(192,57,43,0.8)':cl.label==='Intermédio'?'rgba(230,126,34,0.8)':'rgba(39,174,96,0.75)';
+  });
+  var chartHtml = '<div style="position:relative;height:200px;margin-bottom:20px;"><canvas id="'+chartId+'"></canvas></div>';
+
+  document.getElementById('modal-body').innerHTML =
+    '<div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px;margin-bottom:18px;font-size:.83rem;">' +
+      '<div><span style="color:var(--text-light);font-size:.72rem;text-transform:uppercase;letter-spacing:.05em">Código</span><br><strong>' + (r.patientCode||'—') + '</strong></div>' +
+      '<div><span style="color:var(--text-light);font-size:.72rem;text-transform:uppercase;letter-spacing:.05em">Data</span><br><strong>' + (r.date?new Date(r.date).toLocaleDateString('pt-PT'):'—') + '</strong></div>' +
+      '<div><span style="color:var(--text-light);font-size:.72rem;text-transform:uppercase;letter-spacing:.05em">Respondente</span><br><strong>' + (r.respondente||'—') + '</strong></div>' +
+      '<div><span style="color:var(--text-light);font-size:.72rem;text-transform:uppercase;letter-spacing:.05em">Instituição</span><br><strong style="font-size:.82rem">' + (r.instituicao||'—') + '</strong></div>' +
+    '</div>' +
+    chartHtml +
+    '<h4 style="color:var(--teal);font-size:.9rem;margin-bottom:10px;">Resultados por Subescala</h4>' +
+    '<div style="overflow-x:auto"><table class="interp-table"><thead><tr>' +
+      '<th>Subescala</th><th style="text-align:center">Score</th><th style="text-align:center">Média PT</th>' +
+      '<th>Perfil</th><th>Classificação</th></tr></thead><tbody>' + tabRows + '</tbody></table></div>' +
+    '<div class="profile-text">' + parts.join(' ') +
+      '<br><em style="font-size:.78rem;color:var(--text-light)">Interpretação automática — integrar no contexto clínico completo.</em></div>' +
+    '<div style="margin-top:16px;display:flex;gap:8px;flex-wrap:wrap;" class="no-print">' +
+      '<button class="btn btn-secondary btn-sm" onclick="exportarRespostasPDF(' + idx + ')">📋 Respostas PDF</button>' +
+      '<button class="btn btn-secondary btn-sm" onclick="exportarInterpretacaoPDF(' + idx + ')">📄 Interpretação PDF</button>' +
+    '</div>' +
+    (answersArr && answersArr.length ? '<div style="margin-top:18px;"><h4 style=\"color:var(--teal);font-size:.9rem;margin-bottom:8px;\">Respostas Item a Item</h4><div style=\"overflow-x:auto\"><table style=\"width:100%;border-collapse:collapse;font-size:.78rem;\"><thead><tr style=\"background:rgba(38,166,154,0.1)\"><th style=\"padding:6px 8px;text-align:left\">Nº</th><th style=\"padding:6px 8px;text-align:left\">Item</th><th style=\"padding:6px 8px;text-align:center\">Resp.</th></tr></thead><tbody>' + ITENS.map(function(txt,i){var v=answersArr[i]||'—';var bg=parseInt(v)>=3?'rgba(192,57,43,0.08)':parseInt(v)>=2?'rgba(230,126,34,0.06)':'';return '<tr style=\"border-bottom:1px solid #DDE3EA;background:'+bg+'\"><td style=\"padding:5px 8px;color:#6B7A8D\">'+(i+1)+'</td><td style=\"padding:5px 8px\">'+txt+'</td><td style=\"padding:5px 8px;text-align:center;font-weight:600\">'+v+'</td></tr>';}).join('') + '</tbody></table></div></div>' : '') +
+    '<div class="modal-footer-note">SPAS Versão Educador/Professor · <strong>Referência normativa: Spence, Rapee, McDonald &amp; Ingram (2001), amostra australiana (N≈1559, idades 3–6 anos).</strong> Não existem normas portuguesas publicadas para esta versão. Os limiares devem ser interpretados com cautela. Limiares: M+1DP (Intermédio) · M+1,5DP (Elevado). Ricardina Correia · Cédula 8233.</div>';
+
+  document.getElementById('modal-overlay').style.display = 'flex';
+  window.scrollTo(0,0);
+  setTimeout(function(){
+    var canvas = document.getElementById(chartId);
+    if(!canvas || typeof Chart === 'undefined') return;
+    new Chart(canvas.getContext('2d'), {
+      type:'bar',
+      data:{
+        labels: chartLabels,
+        datasets:[{
+          label:'Score',
+          data: chartData,
+          backgroundColor: chartColors,
+          borderWidth:0, borderRadius:4
+        },{
+          label:'Máximo',
+          data: chartMax,
+          backgroundColor:'rgba(200,200,200,0.15)',
+          borderWidth:0, borderRadius:4
+        }]
+      },
+      options:{
+        responsive:true, maintainAspectRatio:false,
+        plugins:{legend:{display:false}},
+        scales:{x:{grid:{display:false}},y:{beginAtZero:true,grid:{color:'rgba(0,0,0,0.05)'}}}
+      }
+    });
+  }, 100);
+}
+
+function imprimirDetalhe(){
+  var conteudo = document.getElementById('modal-body').innerHTML;
+  var titulo = document.getElementById('modal-title').textContent;
+  var win = window.open('','_blank','width=900,height=700');
+  win.document.write('<html><head><title>'+titulo+'</title>');
+  win.document.write('<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;600;700&display=swap" rel="stylesheet">');
+  win.document.write('<style>body{font-family:DM Sans,sans-serif;padding:24px;max-width:860px;margin:0 auto;color:#2C3E50}h4{color:#26a69a}table{width:100%;border-collapse:collapse}th,td{padding:6px 8px;border-bottom:1px solid #DDE3EA}th{background:rgba(38,166,154,0.1);text-align:left}.badge{border-radius:6px;padding:2px 8px;font-size:.75rem;font-weight:600}.badge-elevado{background:#fdecea;color:#C0392B}.badge-medio{background:#fef3e2;color:#E67E22}.badge-normal{background:#eafaf1;color:#27AE60}.bar-wrap{background:#DDE3EA;border-radius:4px;height:8px}.bar-fill{height:100%;border-radius:4px}@media print{.no-print{display:none!important}}</style>');
+  win.document.write('</head><body><h3 style="color:#26a69a;margin-bottom:16px;">'+titulo+'</h3>');
+  win.document.write(conteudo);
+  win.document.write('<div class="no-print" style="margin-top:16px"><button onclick="window.print()" style="padding:8px 20px;background:#26a69a;color:white;border:none;border-radius:6px;cursor:pointer">&#128438; Imprimir / Guardar PDF</button></div>');
+  win.document.write('</body></html>');
+  win.document.close(); win.focus();
+}
+
+function fecharModal(e) {
+  if (e.target===document.getElementById('modal-overlay'))
+    document.getElementById('modal-overlay').style.display='none';
+}
+
+// ─── PDF RESPOSTAS ───────────────────────────────────────────────
+function exportarRespostasPDF(idx) {
+  var r = window._sessoes_display[idx]; if (!r) return;
+  var arr = r.answers||[]; if (typeof arr==='string') arr=arr.split('|');
+  var linhas = ITENS.map(function(txt,i){
+    return '<tr><td style="padding:4px 8px;border-bottom:1px solid #eee;color:#6B7A8D;width:36px">'+(i+1)+
+      '</td><td style="padding:4px 8px;border-bottom:1px solid #eee">'+txt+
+      '</td><td style="padding:4px 8px;border-bottom:1px solid #eee;text-align:center;font-weight:700;width:52px">'+(arr[i]!==undefined?arr[i]:'—')+'</td></tr>';
+  }).join('');
+  var html='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Respostas SPAS Prof</title>'+
+    '<style>body{font-family:Arial,sans-serif;font-size:11px;padding:24px;color:#2C3E50}'+
+    'h2{color:#1A7A6E;margin-bottom:4px}p{color:#6B7A8D;margin-bottom:16px}'+
+    'table{width:100%;border-collapse:collapse}th{background:#D1F0EC;padding:6px 8px;text-align:left;color:#1A7A6E}'+
+    '.np{margin-bottom:16px}@media print{.np{display:none}}</style></head><body>'+
+    '<div class="np"><button onclick="window.print()">🖨 Imprimir</button></div>'+
+    '<h2>SPAS — Versão Educador/Professor · Respostas por Item</h2>'+
+    '<p>Código: <strong>'+(r.patientCode||'—')+'</strong> · Data: '+(r.date?new Date(r.date).toLocaleDateString('pt-PT'):'—')+
+    ' · Ricardina Correia · Cédula 8233</p>'+
+    '<table><thead><tr><th>#</th><th>Item</th><th>Resposta (0–4)</th></tr></thead><tbody>'+linhas+'</tbody></table></body></html>';
+  var w=window.open('','_blank');
+  if (!w){alert('Pop-up bloqueado.');return;}
+  w.document.write(html);w.document.close();
+}
+
+function exportarInterpretacaoPDF(idx) {
+  var r=window._sessoes_display[idx];if(!r)return;
+  var scores=r.scores||{};
+  if(!Object.keys(scores).length){
+    scores={'Ansiedade Geral':parseInt(r.AG)||0,'Ansiedade Social':parseInt(r.AS)||0,
+            'Ansiedade de Separação':parseInt(r.SEP)||0,'Medo de Dano Físico':parseInt(r.MDF)||0,
+            'Perturbação OC':parseInt(r.POC)||0,'Total':parseInt(r.Total)||0};
+  }
+  var linhas=Object.keys(SUBESCALAS).map(function(sub){
+    var s=scores[sub]||0,nm=SUBESCALAS[sub],cl=classificar(s,nm.media,nm.dp);
+    return '<tr><td>'+sub+'</td><td style="text-align:center">'+s+'/'+nm.max+'</td>'+
+      '<td style="text-align:center">'+nm.media.toFixed(1)+'</td><td style="text-align:center">'+cl.label+'</td></tr>';
+  }).join('');
+  var tot=scores['Total']||0,totCl=classificar(tot,TOTAL_NORMA.media,TOTAL_NORMA.dp);
+  linhas+='<tr style="background:#D1F0EC"><td><strong>TOTAL</strong></td><td style="text-align:center"><strong>'+tot+'/88</strong></td><td style="text-align:center">'+TOTAL_NORMA.media+'</td><td style="text-align:center"><strong>'+totCl.label+'</strong></td></tr>';
+  var html='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Interpretação SPAS Prof</title>'+
+    '<style>body{font-family:Arial,sans-serif;font-size:11px;padding:24px;color:#2C3E50}'+
+    'h2{color:#1A7A6E}table{width:100%;border-collapse:collapse;margin-top:12px}'+
+    'th{background:#D1F0EC;padding:6px 8px;text-align:left;color:#1A7A6E}'+
+    'td{padding:6px 8px;border-bottom:1px solid #eee}.np{margin-bottom:16px}@media print{.np{display:none}}</style></head><body>'+
+    '<div class="np"><button onclick="window.print()">🖨 Imprimir</button></div>'+
+    '<h2>SPAS Educador/Professor · Interpretação Clínica</h2>'+
+    '<p>Código: <strong>'+(r.patientCode||'—')+'</strong> · Data: '+(r.date?new Date(r.date).toLocaleDateString('pt-PT'):'—')+
+    ' · Respondente: '+(r.respondente||'—')+' · Ricardina Correia · Cédula 8233</p>'+
+    '<table><thead><tr><th>Subescala</th><th>Score</th><th>Média PT</th><th>Classificação</th></tr></thead>'+
+    '<tbody>'+linhas+'</tbody></table>'+
+    '<p style="margin-top:14px;font-size:10px;color:#6B7A8D;font-style:italic">Referência normativa: Spence et al. (2001), amostra australiana (N≈1559, idades 3–6 anos). Sem aferição portuguesa — interpretar com cautela. Limiares: Intermédio ≥ M+1DP; Elevado ≥ M+1,5DP. Interpretação automática — integrar no contexto clínico.</p>'+
+    '</body></html>';
+  var w=window.open('','_blank');
+  if(!w){alert('Pop-up bloqueado.');return;}
+  w.document.write(html);w.document.close();
+}
+
+// ─── CSV ─────────────────────────────────────────────────────────
+function exportarCSV() {
+  var rows=window._sessoes_display||[];if(!rows.length){alert('Sem dados.');return;}
+  var bom='\uFEFF';
+  var header='Data;Código;Nome;Respondente;Instituição;AG;AS;SEP;MDF;POC;Total';
+  var lines=rows.map(function(r){
+    var sc=r.scores||{};
+    return [r.date?new Date(r.date).toLocaleDateString('pt-PT'):(r.Data||''),
+      r.patientCode||r.Código||'',r.nomeCrianca||r.Nome||'',
+      r.respondente||r.Respondente||'',r.instituicao||r.Instituição||'',
+      sc['Ansiedade Geral']||r.AG||0,sc['Ansiedade Social']||r.AS||0,
+      sc['Ansiedade de Separação']||r.SEP||0,sc['Medo de Dano Físico']||r.MDF||0,
+      sc['Perturbação OC']||r.POC||0,sc['Total']||r.Total||0
+    ].map(function(v){return '"'+(v+'').replace(/"/g,'""')+'"';}).join(';');
+  });
+  var blob=new Blob([bom+header+'\r\n'+lines.join('\r\n')],{type:'text/csv;charset=utf-8;'});
+  var a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download='SPAS_Prof_'+new Date().toISOString().slice(0,10)+'.csv';
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+}
+
+function exportarPDF(){window.print();}
+
+function importarCSV(){document.getElementById('import-file-input').click();}
+
+function processarFicheiroImportado(input){
+  var file=input.files[0];if(!file)return;
+  var reader=new FileReader();
+  reader.onload=function(e){
+    var text=e.target.result.replace(/^\uFEFF/,'');
+    var sep=text.indexOf(';')>-1?';':',';
+    var lines=text.split(/\r?\n/).filter(Boolean);
+    var headers=lines[0].split(sep).map(function(h){return h.replace(/"/g,'').trim();});
+    var imported=0;
+    for(var i=1;i<lines.length;i++){
+      var vals=lines[i].split(sep).map(function(v){return v.replace(/^"|"$/g,'').trim();});
+      var obj={};headers.forEach(function(h,j){obj[h]=vals[j]||'';});
+      var existing=(window._sessoes_display||[]).some(function(s){
+        return (s.patientCode||s.Código)===(obj.Código||obj.patientCode)&&
+               (s.date||s.Data)===(obj.Data||obj.date);
+      });
+      if(!existing){if(!window._sessoes_display)window._sessoes_display=[];window._sessoes_display.unshift(obj);imported++;}
+    }
+    var fb=document.getElementById('import-feedback');
+    fb.style.display='block';
+    fb.style.background=imported?'var(--green-pale)':'var(--orange-pale)';
+    fb.style.color=imported?'#1a7a45':'#a05800';
+    fb.textContent=imported?'✓ '+imported+' sessão(ões) importada(s).':'Nenhuma sessão nova (duplicados ignorados).';
+    renderTabela(window._sessoes_display||[]);
+    input.value='';
+  };
+  reader.readAsText(file,'utf-8');
+}
+
+// ─── AVISO LOCAL ─────────────────────────────────────────────────
+(function(){
+  if(location.protocol==='file:'){
+    var b=document.createElement('div');
+    b.style.cssText='background:#C0392B;color:#fff;text-align:center;padding:9px 20px;font-size:.82rem;font-family:DM Sans,sans-serif;font-weight:600;position:sticky;top:0;z-index:9999;';
+    b.innerHTML='⚠ Ficheiro aberto localmente — os dados NÃO serão enviados para o servidor. Será gerado um CSV automático.';
+    document.body.insertBefore(b,document.body.firstChild);
+  }
+})();
+
+// ─── INIT ────────────────────────────────────────────────────────
+renderItens('items-sec3',  1, 11);
+renderItens('items-sec4', 12, 22);
+showPage('page-home');
+</script>
+</body>
+</html>
