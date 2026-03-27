@@ -675,7 +675,12 @@ async function checkSheetForResponse(qid, patientCode) {
       if (q && q.syncKey) aba = SYNC_KEY_TO_ABA[q.syncKey];
     }
     if (!aba || !data[aba]) return false;
-    return data[aba].some(row => String(row['Código'] || row['codigo'] || row['Código Paciente'] || row['patientCode'] || '') === String(patientCode));
+    const pCode = String(patientCode || '').trim().toUpperCase();
+    if(pCode.length < 4) return false;
+    return data[aba].some(row => {
+      const rCode = String(row['Código'] || row['codigo'] || row['Código Paciente'] || row['patientCode'] || '').trim().toUpperCase();
+      return rCode.length >= 4 && rCode === pCode;
+    });
   } catch(e) { return false; }
 }
 
@@ -1076,9 +1081,11 @@ function renderAssignments(patientId) {
             if(q && q.syncKey) aba = SYNC_KEY_TO_ABA[q.syncKey];
           }
           if(aba && sheetData[aba]) {
-            const found = sheetData[aba].some(row =>
-              String(row['Código'] || row['codigo'] || row['Código Paciente'] || row['patientCode'] || '') === String(patient.code)
-            );
+            const patCode = String(patient.code || '').trim().toUpperCase();
+            const found = patCode.length >= 4 && sheetData[aba].some(row => {
+              const rowCod = String(row['Código'] || row['codigo'] || row['Código Paciente'] || row['patientCode'] || '').trim().toUpperCase();
+              return rowCod.length >= 4 && rowCod === patCode;
+            });
             if(found) {
               assignments[idx].status = 'received';
               if(!assignments[idx].sentAt) assignments[idx].sentAt = new Date().toISOString();
