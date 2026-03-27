@@ -731,7 +731,7 @@ function carregarDados(){
   fetch(SCRIPT_URL+'?instrumento=SCARED_R_CRIANCA&t='+Date.now())
     .then(function(r){return r.json();})
     .then(function(data){
-      sessoes=Array.isArray(data)?data:(data.data||[]);
+      sessoes=Array.isArray(data)?data:(data.rows||data.data||[]);
       renderTabela();
       if(status) status.textContent='Última sincronização: '+new Date().toLocaleTimeString('pt-PT');
     })
@@ -753,11 +753,15 @@ function renderTabela(){
     var total=parseInt(s.totalScore)||0;
     var cls=total>=TOTAL_CUTOFF?'badge-clinical':'badge-normative';
     var label=total>=TOTAL_CUTOFF?'Clinicamente significativo':'Sem indicação clínica';
-    var dateStr=s.date?new Date(s.date).toLocaleDateString('pt-PT'):'—';
+    var dateStr=(s.date||s['Data'])?new Date(s.date||s['Data']).toLocaleDateString('pt-PT'):'—';
+    var cod=s.patientCode||s['Código']||'—';
+    var nomeC=s.childName||s['NomeCriança']||'—';
+    var total=s.totalScore||s['Total']||'—';
+    var classif=s.classificacao||s['Classificação']||'—';
     html+='<tr>'+
       '<td>'+dateStr+'</td>'+
-      '<td><strong>'+s.patientCode+'</strong></td>'+
-      '<td>'+(s.childName||'—')+'</td>'+
+      '<td><strong>'+cod+'</strong></td>'+
+      '<td>'+(nomeC)+'</td>'+
       '<td><strong>'+total+'</strong> / 138</td>'+
       '<td><span class="badge '+cls+'">'+label+'</span></td>'+
       '<td class="no-print"><button class="btn btn-secondary" style="padding:4px 10px;font-size:.78rem" onclick="verDetalhe('+idx+')">Ver →</button> '+
@@ -771,9 +775,16 @@ function verDetalhe(idx){
   var s=sessoes[idx];
   if(!s) return;
   sessaoActual=s;
+  // Normalizar campos que podem vir do Sheet (nomes das colunas) ou do localStorage
+  if(!s.patientCode && s['Código']) s.patientCode=s['Código'];
+  if(!s.childName && s['NomeCriança']) s.childName=s['NomeCriança'];
+  if(!s.totalScore && s['Total']) s.totalScore=s['Total'];
+  if(!s.classificacao && s['Classificação']) s.classificacao=s['Classificação'];
+  if(!s.answers && s['Respostas']) s.answers=s['Respostas'];
+  if(!s.date && s['Data']) s.date=s['Data'];
   var answers=s.answers?s.answers.split('|').map(Number):[];
-  var total=parseInt(s.totalScore)||0;
-  var dateStr=s.date?new Date(s.date).toLocaleDateString('pt-PT'):'—';
+  var total=parseInt(s.totalScore||s['Total'])||0;
+  var dateStr=(s.date||s['Data'])?new Date(s.date||s['Data']).toLocaleDateString('pt-PT'):'—';
 
   var scores={};
   for(var sub in SUBSCALAS){
