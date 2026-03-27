@@ -367,10 +367,18 @@ function carregarDados(){
 }
 
 function parseSessao(row){
-  var s={patientCode:row.patientCode||"\u2014",date:row.date||"",answers:row.answers||"",sb:{},ss:{},cc:0,sc:0,pc:0,cag:0};
-  if(s.answers){var r=calcularResultados(s.answers.split("|"));s.sb=r.sb;s.ss=r.ss;s.cc=r.cc;s.sc=r.sc;s.pc=r.pc;s.cag=r.cag;}
-  if(row.CAG)s.cag=parseInt(row.CAG)||0;
-  Object.assign(s,row);return s;
+  // normalizar chaves — o Sheet devolve 'Código', 'Data', etc. (PT maiúsculas)
+  var code    = row.patientCode || row['Código'] || row.codigo || '—';
+  var date    = row.date        || row['Data']   || '';
+  var answers = row.answers     || row['Respostas'] || '';
+  var nome    = row.nome        || row['Nome']   || '';
+  var informante = row.informante || row['Informante'] || '';
+  var s={patientCode:code, date:date, answers:answers, nome:nome, informante:informante, sb:{},ss:{},cc:0,sc:0,pc:0,cag:0};
+  if(s.answers){var r=calcularResultados(s.answers.split('|'));s.sb=r.sb;s.ss=r.ss;s.cc=r.cc;s.sc=r.sc;s.pc=r.pc;s.cag=r.cag;}
+  // aceitar CAG tanto do cálculo como da coluna do Sheet
+  if(row.CAG) s.cag=parseInt(row.CAG)||0;
+  if(row['CAG']) s.cag=parseInt(row['CAG'])||0;
+  Object.assign(s,row); return s;
 }
 
 function cagBadge(sc){var z=cagZona(sc);var l={norm:"Normativo &#10003;",border:"Borderline &#9888;",clin:"Cl&iacute;nico &#9747;"};return"<span class=\"badge badge-"+z+"\">"+l[z]+"<\/span>";}
