@@ -967,17 +967,17 @@ async function carregarDoSheet() {
     const sessions = load(SK) || {};
     let importados = 0;
     for (const row of data.rows) {
-      const code = row.patientCode || row.codigo || '';
+      const code = row['Código'] || row['Codigo'] || row.patientCode || row.codigo || '';
       if (!code) continue;
       if (!sessions[code]) {
         sessions[code] = {
           code,
           childName: row.nomeCrianca || row.nome || '',
-          filledBy:  row.nomeInquirido || row.preenchidoPor || '',
-          fillDate:  row.data || '',
-          age:       row.idade || '',
-          sex:       row.sexo || '',
-          ageGroup:  row.grupoIdade || '',
+          filledBy:  row['PreenchidoPor'] || row.nomeInquirido || row.preenchidoPor || '',
+          fillDate:  row['Data'] || row.data || '',
+          age:       row['Idade'] || row.idade || '',
+          sex:       row['Sexo'] || row.sexo || '',
+          ageGroup:  row['GrupoIdade'] || row.grupoIdade || '',
           submittedAt: row.timestamp || row.data || '',
           scores:    row.scores || {},
           fromSheet: true
