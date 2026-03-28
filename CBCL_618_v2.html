@@ -257,6 +257,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--gray-bg);color:var(--text
           </select>
         </div>
         <div class="field-group">
+          <label>Nome de quem preenche <span style="font-weight:400;color:var(--text-light);font-size:0.82rem;">*</span></label>
+          <input type="text" id="nome_informante" placeholder="Nome completo do pai/mãe/EE">
+        </div>
+        <div class="field-group">
           <label>Data de preenchimento</label>
           <input type="date" id="fill-date">
         </div>
@@ -420,7 +424,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--gray-bg);color:var(--text
         <button class="btn-nav btn-back" onclick="syncToSheets()" style="font-size:0.82rem;padding:8px 16px;background:var(--green,#1E7E5A);color:white;border:none;">⬆ Enviar para Sheet</button>
         <button class="btn-nav btn-back" onclick="exportarDados()" style="font-size:0.82rem;padding:8px 16px;background:#5B7FA6;color:white;border:none;">📤 Exportar</button>
         <button class="btn-nav btn-back" onclick="importarDados()" style="font-size:0.82rem;padding:8px 16px;background:#5B7FA6;color:white;border:none;">📥 Importar</button>
-        <button class="btn-nav btn-back" onclick="exportarRespostasPDF()" style="font-size:0.82rem;padding:8px 16px;background:#5B7FA6;color:white;border:none;">📋 Respostas PDF</button>
+        <button class="btn-nav btn-back" onclick="exportarRespostasPDF(sessaoActual)" style="font-size:0.82rem;padding:8px 16px;background:#5B7FA6;color:white;border:none;">📋 Respostas PDF</button>
+        <button class="btn-nav btn-back" onclick="exportarInterpretacaoPDF(sessaoActual)" style="font-size:0.82rem;padding:8px 16px;background:#5B7FA6;color:white;border:none;">📊 Interpretação PDF</button>
         <button class="btn-nav btn-back" onclick="goTo('screen-home');return false;" style="font-size:0.82rem;padding:8px 16px;">← Sair</button>
       </div>
     </div>
@@ -894,6 +899,8 @@ function startQuestionnaire() {
   if (!/^[A-Z]{2,3}\d{8}$/.test(code)) { alert('Código inválido.\n\nDevem ser 2 ou 3 iniciais + data de nascimento (DDMMAAAA).\nExemplo: MV14062013 ou DDL25072014\n\nVerifique o código fornecido pela psicóloga.'); return; }
   if (!dob) { alert('Por favor indique a data de nascimento.'); return; }
   if (!sex) { alert('Por favor selecione o sexo.'); return; }
+  const nomeInf = document.getElementById('nome_informante').value.trim();
+  if (!nomeInf) { alert('Por favor indique o nome de quem preenche.'); return; }
 
   // Calculate age
   const dobDate = new Date(dob);
@@ -914,6 +921,7 @@ function startQuestionnaire() {
     ageYears,
     ageGroup,
     filledBy: document.getElementById('filled-by').value,
+    nome_preenche: document.getElementById('nome_informante').value.trim(),
     fillDate: document.getElementById('fill-date').value || new Date().toISOString().split('T')[0],
     startedAt: new Date().toISOString()
   };
@@ -1333,6 +1341,7 @@ async function syncToSheets() {
           tipo: 'CBCL',
           data: s.submittedAt ? new Date(s.submittedAt).toLocaleDateString('pt-PT') : new Date().toLocaleDateString('pt-PT'),
           codigo: s.patientCode || '',
+          nome_preenche: s.nome_preenche || '',
           nome: s.childName || '',
           idade: s.ageYears || '',
           sexo: s.sex || '',
@@ -1410,10 +1419,12 @@ function renderPanel() {
     </div>`).join('');
 }
 
+var sessaoActual = null;
 function showSessionDetail(idx) {
   const sessions = load(STORE_KEY) || [];
   const s = sessions[idx];
   if (!s || !s.scores) return;
+  sessaoActual = s;
 
   const { tScores, scaleRaws, intRaw, extRaw, totRaw } = s.scores;
   const barW = (t) => Math.min(100, Math.max(0, ((t-35)/(100-35))*100));
@@ -1696,22 +1707,26 @@ function closeModal() {
 }
 
 // ── Exportar respostas item a item em PDF ──
-function exportarRespostasPDF() {
+function exportarRespostasPDF(sessaoParam) {
   const sessions = load(STORE_KEY) || [];
   if (!sessions.length) { alert('Sem sessões para exportar.'); return; }
 
   var s;
-  const idx = document.getElementById('modal-box')?.dataset?.sessionIdx;
-  if (idx !== undefined && idx !== '' && sessions[parseInt(idx)]) {
-    s = sessions[parseInt(idx)];
-  } else if (sessions.length === 1) {
-    s = sessions[0];
+  if (sessaoParam) {
+    s = sessaoParam;
   } else {
+    const idx = document.getElementById('modal-box')?.dataset?.sessionIdx;
+    if (idx !== undefined && idx !== '' && sessions[parseInt(idx)]) {
+      s = sessions[parseInt(idx)];
+    } else if (sessions.length === 1) {
+      s = sessions[0];
+    } else {
     const lista = sessions.map(function(e,i){ return i+': '+e.childName+' ('+e.patientCode+')'; }).join('\n');
     const escolha = prompt('Escolha o número da sessão:\n' + lista);
     s = sessions[parseInt(escolha)];
     if (!s) { alert('Sessão não encontrada.'); return; }
   }
+  }  // end else block
 
   const ans = s.answers || {};
   if (!Object.keys(ans).length) { alert('Sem respostas registadas para esta sessão.'); return; }
@@ -1761,10 +1776,93 @@ function deleteSession(idx) {
 document.getElementById('header-badge').style.cursor = 'pointer';
 document.getElementById('header-badge').addEventListener('click', () => goTo('screen-login'));
 
+function exportarInterpretacaoPDF(sessaoParam) {
+  const sessions = load(STORE_KEY) || [];
+  var s = sessaoParam || (sessions.length === 1 ? sessions[0] : null);
+  if (!s) {
+    if (!sessions.length) { alert('Sem sess\u00f5es para exportar.'); return; }
+    alert('Seleccione primeiro uma sess\u00e3o (clique em "Ver detalhes").');
+    return;
+  }
+  if (!s.scores) { alert('Esta sess\u00e3o n\u00e3o tem scores calculados.'); return; }
+
+  const { tScores, scaleRaws, intRaw, extRaw, totRaw } = s.scores;
+  const dt = s.submittedAt ? new Date(s.submittedAt).toLocaleDateString('pt-PT') : (s.fillDate||'\u2014');
+
+  function row(label, raw, t, bold) {
+    const zona = !t ? '\u2014' : t>=65?'Cl\u00ednica':t>=60?'Aten\u00e7\u00e3o':'Normal';
+    const cor  = !t ? '#6B7A8D' : t>=65?'#C0392B':t>=60?'#E67E22':'#27AE60';
+    const pct  = t ? Math.min(100,Math.round(((t-35)/65)*100)) : 0;
+    return '<tr'+(bold?' style="background:#EBF2F8;"':'')+'>'+
+      '<td style="padding:5px 8px;border-bottom:1px solid #eee;">'+(bold?'<strong>'+label+'</strong>':label)+'</td>'+
+      '<td style="padding:5px 8px;border-bottom:1px solid #eee;text-align:center;">'+(raw!==undefined?raw:'\u2014')+'</td>'+
+      '<td style="padding:5px 8px;border-bottom:1px solid #eee;text-align:center;font-weight:700;color:'+cor+';">'+(t||'\u2014')+'</td>'+
+      '<td style="padding:5px 8px;border-bottom:1px solid #eee;"><div style="background:#eee;border-radius:3px;height:8px;width:80px;display:inline-block;overflow:hidden;"><div style="background:'+cor+';height:8px;width:'+pct+'%;"></div></div></td>'+
+      '<td style="padding:5px 8px;border-bottom:1px solid #eee;color:'+cor+';font-weight:600;">'+zona+'</td></tr>';
+  }
+
+  const syndromeLabels = {
+    ANX_DEP:'Ansiedade/Depress\u00e3o',WD_DEP:'Isolamento/Depress\u00e3o',SOM:'Queixas Som\u00e1ticas',
+    SOC_PROB:'Problemas Sociais',THOUGHT:'Problemas de Pensamento',ATTN:'Problemas de Aten\u00e7\u00e3o',
+    RB:'Comportamento de Quebra de Regras',AGG:'Comportamento Agressivo'
+  };
+
+  let synRows = '';
+  if (tScores) {
+    Object.entries(syndromeLabels).forEach(([key,label]) => {
+      const t = tScores[key];
+      const raw = scaleRaws ? scaleRaws[key] : null;
+      synRows += row(label, raw, t, false);
+    });
+  }
+
+  const compRows = [
+    row('Internaliza\u00e7\u00e3o', intRaw, tScores?.INT, false),
+    row('Externaliza\u00e7\u00e3o', extRaw, tScores?.EXT, false),
+    row('Total de Problemas', totRaw, tScores?.TOT, true),
+  ].join('');
+
+  // Respostas item-a-item
+  const answers = s.answers || {};
+  const totalItems = 113;
+  let respRows = '';
+  for (let i=1; i<=totalItems; i++) {
+    const r = answers[i] !== undefined ? answers[i] : '\u2014';
+    respRows += '<tr><td style="padding:3px 6px;border-bottom:1px solid #f0f0f0;color:#999;text-align:center;width:30px;">'+i+'</td>'+
+      '<td style="padding:3px 6px;border-bottom:1px solid #f0f0f0;text-align:center;font-weight:700;width:40px;">'+r+'</td></tr>';
+  }
+
+  const html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>CBCL 6-18 Interpreta\u00e7\u00e3o</title>'+
+    '<style>body{font-family:Arial,sans-serif;font-size:12px;padding:24px;max-width:900px;margin:0 auto;}'+
+    'h1{color:#3B5A7A;font-size:15px;}h2{color:#3B5A7A;font-size:12px;margin:14px 0 5px;border-bottom:2px solid #D6E4F0;padding-bottom:3px;}'+
+    'p{color:#6B7A8D;font-size:11px;margin-bottom:12px;}table{width:100%;border-collapse:collapse;margin-bottom:12px;}'+
+    'th{background:#D6E4F0;padding:5px 8px;text-align:left;color:#3B5A7A;font-size:11px;}'+
+    '.np{margin-bottom:14px;}@media print{.np{display:none;}}</style></head><body>'+
+    '<div class="np"><button onclick="window.print()" style="padding:5px 12px;cursor:pointer;">&#128424; Imprimir</button></div>'+
+    '<h1>CBCL 6-18 \u2014 Relat\u00f3rio de Avalia\u00e7\u00e3o</h1>'+
+    '<p>C\u00f3digo: <strong>'+(s.patientCode||'')+'</strong>'+
+    (s.childName?' &nbsp;|&nbsp; Crian\u00e7a: <strong>'+s.childName+'</strong>':'')+
+    (s.nome_preenche?' &nbsp;|&nbsp; Respondente: <strong>'+s.nome_preenche+'</strong>':'')+
+    ' &nbsp;|&nbsp; Data: '+dt+' &nbsp;|&nbsp; Ricardina Correia \u00b7 C\u00e9dula 8233</p>'+
+    '<h2>S\u00edndromes Cl\u00ednicas</h2>'+
+    '<table><thead><tr><th>S\u00edndrome</th><th style="text-align:center">Bruto</th><th style="text-align:center">T</th><th>Perfil</th><th>Zona</th></tr></thead><tbody>'+synRows+'</tbody></table>'+
+    '<h2>Escalas Compostas</h2>'+
+    '<table><thead><tr><th>Escala</th><th style="text-align:center">Bruto</th><th style="text-align:center">T</th><th>Perfil</th><th>Zona</th></tr></thead><tbody>'+compRows+'</tbody></table>'+
+    '<h2>Respostas por Item (113 itens)</h2>'+
+    '<table style="width:auto"><thead><tr><th style="text-align:center">#</th><th style="text-align:center">Resp.</th></tr></thead><tbody>'+respRows+'</tbody></table>'+
+    '<p style="margin-top:18px;font-style:italic;color:#999;font-size:10px;">Interpreta\u00e7\u00e3o autom\u00e1tica \u2014 integrar no contexto cl\u00ednico completo.</p>'+
+    '</body></html>';
+
+  const w = window.open('','_blank');
+  if (!w) { alert('Pop-up bloqueado.'); return; }
+  w.document.write(html); w.document.close();
+}
+
 // ═══════════════════════════════════════════════════════
 // INIT
 // ═══════════════════════════════════════════════════════
 document.addEventListener('DOMContentLoaded', () => {
+  goTo('screen-home');
   // Set today's date
   document.getElementById('fill-date').value = new Date().toISOString().split('T')[0];
   // Build item lists
