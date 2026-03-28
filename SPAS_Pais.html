@@ -478,6 +478,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
             <button class="btn btn-secondary btn-sm" onclick="exportarCSV()">⬇ Exportar CSV</button>
             <button class="btn btn-secondary btn-sm" onclick="exportarPDF()">📄 Exportar PDF</button>
             <button class="btn btn-secondary btn-sm" onclick="window.print()">🖨 Imprimir</button>
+            <button class="btn btn-secondary btn-sm" onclick="exportarInterpretacaoPDF(sessaoActual)">📊 Exportar Interpretação PDF</button>
             <input type="file" id="import-file-input" accept=".csv" style="display:none" onchange="processarFicheiroImportado(this)">
           </div>
           <div id="import-feedback" style="margin-bottom:10px;display:none;font-size:.82rem;padding:8px 12px;border-radius:7px;"></div>
@@ -635,6 +636,8 @@ function validarSecao(s) {
       alert('Código inválido.\n2 ou 3 iniciais + data (DDMMAAAA).\nEx: MV14062013');
       return false;
     }
+    var ni = document.getElementById('nome_informante').value.trim();
+    if (!ni) { alert('Por favor indique o nome de quem preenche.'); return false; }
   }
   if (s === 3) { return validarItens(1, 10); }
   if (s === 4) { return validarItens(11, 20); }
@@ -706,6 +709,7 @@ function submeter() {
     genero: document.getElementById('genero').value,
     respondente: document.getElementById('respondente').value,
     nome_informante: (document.getElementById('nome_informante')||{value:''}).value.trim(),
+    nome_preenche: (document.getElementById('nome_informante')||{value:''}).value.trim(),
     answers: answers.join('|'),
     AG: scores['Ansiedade Geral'],
     AS: scores['Ansiedade Social'],
@@ -823,9 +827,11 @@ function renderTabela(rows) {
 // ═══════════════════════════════════════════════════════════════
 // MODAL DE DETALHE
 // ═══════════════════════════════════════════════════════════════
+var sessaoActual = null;
 function verDetalhe(idx) {
   var r = window._sessoes_display[idx];
   if (!r) return;
+  sessaoActual = r;
   var scores = r.scores || {};
   if (!Object.keys(scores).length) {
     // reconstruir a partir de campos planos
@@ -1133,6 +1139,12 @@ function processarFicheiroImportado(input) {
 renderItens('items-sec3',  1, 10);
 renderItens('items-sec4', 11, 20);
 renderItens('items-sec5', 21, 28);
+function voltarParaIdentificacao() {
+  showSection(1);
+  secaoAtual = 1;
+  window.scrollTo(0, 0);
+}
+
 showPage('page-home');
 </script>
 </body>
