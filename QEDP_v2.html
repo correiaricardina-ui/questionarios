@@ -275,6 +275,7 @@ tr:hover td{background:var(--blue-xpale)}
         <button class="btn btn-secondary" style="padding:6px 14px;font-size:.82rem" onclick="exportarPDF()">📄 Exportar PDF</button>
         <button class="btn btn-secondary" style="padding:6px 14px;font-size:.82rem" onclick="window.print()">🖨 Imprimir</button>
         <button class="btn btn-secondary" style="padding:6px 14px;font-size:.82rem" onclick="exportarRespostasPDF(sessaoActual)">📋 Respostas PDF</button>
+        <button class="btn btn-secondary" style="padding:6px 14px;font-size:.82rem" onclick="exportarInterpretacaoPDF(sessaoActual)">📊 Exportar Interpretação PDF</button>
         <input type="file" id="import-file-input" accept=".csv" style="display:none" onchange="processarFicheiroImportado(this)">
         <div style="margin-left:auto;display:flex;gap:8px;align-items:center">
           <input type="text" id="filtro-codigo" class="login-input" placeholder="Filtrar por código..." style="padding:6px 12px;font-size:.82rem;width:180px" oninput="filtrarTabela()">
@@ -599,6 +600,7 @@ function submeter() {
     data: new Date().toLocaleDateString('pt-PT'),
     timestamp: new Date().toISOString(),
     nome_informante: (document.getElementById('nome_informante')||{value:''}).value.trim(),
+    nome_preenche: (document.getElementById('nome_informante')||{value:''}).value.trim(),
     respostas: respostasActuais.join('|'),
     // Resultados
     dem_media: res.democratico.media,
