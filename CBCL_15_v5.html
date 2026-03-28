@@ -355,6 +355,7 @@ tr:hover td{background:var(--blue-xpale)}
         <div style="font-size:0.82rem;color:var(--text-light)">Sess&#245;es registadas localmente</div>
       </div>
       <div style="display:flex;gap:10px">
+        <button class="btn btn-secondary btn-xs" onclick="carregarDados()">&#8635; Sincronizar</button>
         <button class="btn btn-secondary btn-xs" onclick="exportarCSV()">&#11015; CSV</button>
         <button class="btn btn-secondary btn-xs" onclick="syncToSheets()" style="background:#1E7E5A;color:white;border:none;">&#11014; Enviar para Sheet</button>
         <button class="btn btn-secondary btn-xs" onclick="exportarDados()" style="background:#5B7FA6;color:white;border:none;">&#128228; Exportar</button>
@@ -858,6 +859,47 @@ function limparDados() {
   if (!confirm('Apagar TODOS os dados? Esta a\u00e7\u00e3o n\u00e3o pode ser desfeita.')) return;
   localStorage.removeItem(SESSIONS_KEY);
   renderTabela();
+}
+
+async function carregarDados() {
+  if (!RC_SHEET_URL) return;
+  try {
+    var res = await fetch(RC_SHEET_URL + '?instrumento=CBCL_15&t=' + Date.now());
+    var data = await res.json();
+    var rows = Array.isArray(data) ? data : (data && data.rows ? data.rows : []);
+    if (!rows.length) { alert('Sem dados no Sheet.'); return; }
+    var all = getSessions() || [];
+    var added = 0;
+    rows.forEach(function(row) {
+      var code = row['Código'] || row['codigo'] || row['patientCode'] || '';
+      var date = row['Data'] || row['data'] || '';
+      if (!code) return;
+      if (!all.find(function(s){ return s.codigo === code && s.data === date; })) {
+        all.push({
+          codigo: code,
+          data: date,
+          nome: row['Nome'] || row['nome'] || '',
+          sexo: row['Sexo'] || row['sexo'] || '',
+          informante: row['Informante'] || row['informante'] || '',
+          scores: {
+            'Reatividade Emocional': { tscore: row['T_Reatividade'] || '' },
+            'Ansiedade/Depressão':   { tscore: row['T_Ansiedade']  || '' },
+            'Queixas Somáticas':     { tscore: row['T_Somaticas']  || '' },
+            'Retraimento':           { tscore: row['T_Retraimento']|| '' },
+            'Problemas de Sono':     { tscore: row['T_Sono']       || '' },
+            'Problemas de Atenção':  { tscore: row['T_Atencao']    || '' },
+            'Comportamento Agressivo':{ tscore: row['T_Agressivo'] || '' },
+            'Internalizante':        { tscore: row['T_Internalizante'] || '' },
+            'Externalizante':        { tscore: row['T_Externalizante'] || '' },
+            'Total':                 { tscore: row['T_Total']      || '' }
+          }
+        });
+        added++;
+      }
+    });
+    if (added > 0) { saveSessions(all); renderTabela(); }
+    alert('Sincronizado! ' + added + ' novo(s) registo(s) adicionado(s).');
+  } catch(e) { alert('Erro ao sincronizar: ' + e.message); }
 }
 
 async function syncToSheets() {
