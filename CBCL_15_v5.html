@@ -360,6 +360,8 @@ tr:hover td{background:var(--blue-xpale)}
         <button class="btn btn-secondary btn-xs" onclick="syncToSheets()" style="background:#1E7E5A;color:white;border:none;">&#11014; Enviar para Sheet</button>
         <button class="btn btn-secondary btn-xs" onclick="exportarDados()" style="background:#5B7FA6;color:white;border:none;">&#128228; Exportar</button>
         <button class="btn btn-secondary btn-xs" onclick="importarDados()" style="background:#5B7FA6;color:white;border:none;">&#128229; Importar</button>
+        <button class="btn btn-secondary btn-xs" onclick="exportarRespostasPDF(sessaoActual)">&#128203; Respostas PDF</button>
+        <button class="btn btn-secondary btn-xs" onclick="exportarInterpretacaoPDF(sessaoActual)">&#128202; Interpreta&#231;&#227;o PDF</button>
         <button class="btn btn-secondary btn-xs" onclick="limparDados()" style="color:var(--red)">&#128465; Limpar</button>
         <button class="btn btn-secondary btn-xs" onclick="showPage('page-home')">&#8592; Sair</button>
       </div>
@@ -566,7 +568,21 @@ function iniciarQuestionario() {
 
 // ====== NAVEGAÇÃO ENTRE SECÇÕES ======
 function avancarParaItens() {
+  var codigo = document.getElementById('codigo').value.trim().toUpperCase();
+  if (!codigo) { alert('Por favor indique o c\u00f3digo do paciente.'); return; }
+  if (!/^[A-Z]{2,3}\d{8}$/.test(codigo)) {
+    alert('C\u00f3digo inv\u00e1lido.\n\nDevem ser 2 ou 3 iniciais + data de nascimento (DDMMAAAA).\nEx: MV14062013');
+    return;
+  }
+  var nome = document.getElementById('nome').value.trim();
+  if (!nome) { alert('Por favor indique o nome da crian\u00e7a.'); return; }
+  var nomeInf = document.getElementById('nome_informante').value.trim();
+  if (!nomeInf) { alert('Por favor indique o nome de quem preenche.'); return; }
   showPage('page-s2');
+}
+
+function voltarParaIdentificacao() {
+  showPage('page-s1');
 }
 
 function avancarParaDescritivas() {
@@ -747,11 +763,13 @@ function apagarSessao(id) {
 }
 
 // ====== MODAL ======
+var sessaoActual = null;
 function verDetalhe(id) {
   var sessao = null;
   var sessions = getSessions();
   for (var i = 0; i < sessions.length; i++) { if (sessions[i].id === id) { sessao = sessions[i]; break; } }
   if (!sessao) return;
+  sessaoActual = sessao;
 
   function barra(label, sc, limiar) {
     if (!sc) return '';
@@ -962,6 +980,97 @@ function importarDados() {
     reader.readAsText(file);
   };
   input.click();
+}
+
+
+function exportarRespostasPDF(sessao) {
+  if (!sessao) { alert('Seleccione primeiro uma sess\u00e3o (clique em "Ver detalhes").'); return; }
+  var resps = sessao.respostas || [];
+  var linhas = resps.map(function(r, i) {
+    var n = i+1;
+    var txt = (ITEMS && ITEMS[i]) ? ITEMS[i].replace(/&[^;]+;/g,'') : 'Item '+n;
+    return '<tr><td style="padding:3px 8px;border-bottom:1px solid #eee;color:#999;text-align:center;width:30px;">'+n+'</td>' +
+      '<td style="padding:3px 8px;border-bottom:1px solid #eee;font-size:11px;">'+txt+'</td>' +
+      '<td style="padding:3px 8px;border-bottom:1px solid #eee;text-align:center;font-weight:700;width:40px;">'+r+'</td></tr>';
+  }).join('');
+  var dt = sessao.data || '\u2014';
+  var html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Respostas</title>' +
+    '<style>body{font-family:Arial,sans-serif;font-size:12px;padding:24px;max-width:900px;margin:0 auto;}' +
+    'h1{color:#3B5A7A;font-size:15px;}p{color:#6B7A8D;font-size:11px;margin-bottom:12px;}' +
+    'table{width:100%;border-collapse:collapse;}th{background:#D6E4F0;padding:5px 8px;text-align:left;color:#3B5A7A;font-size:11px;}' +
+    '.np{margin-bottom:14px;}@media print{.np{display:none;}}</style></head><body>' +
+    '<div class="np"><button onclick="window.print()" style="padding:5px 12px;cursor:pointer;">&#128424; Imprimir</button></div>' +
+    '<h1>CBCL 1\u00bd\u20135 \u2014 Respostas por Item</h1>' +
+    '<p>C\u00f3digo: <strong>'+(sessao.codigo||'')+'</strong>' +
+    (sessao.nome?' &nbsp;|&nbsp; Crian\u00e7a: <strong>'+sessao.nome+'</strong>':'') +
+    ' &nbsp;|&nbsp; Data: '+dt+' &nbsp;|&nbsp; Ricardina Correia \u00b7 C\u00e9dula 8233</p>' +
+    '<table><thead><tr><th style="text-align:center">#</th><th>Item</th><th style="text-align:center">Resp.</th></tr></thead>' +
+    '<tbody>'+linhas+'</tbody></table>' +
+    '<p style="margin-top:14px;font-size:10px;color:#999;">0=N\u00e3o se aplica &nbsp;|&nbsp; 1=\u00c0s vezes &nbsp;|&nbsp; 2=Muitas vezes</p>' +
+    '</body></html>';
+  var w=window.open('','_blank');
+  if(!w){alert('Pop-up bloqueado.');return;}
+  w.document.write(html);w.document.close();
+}
+
+function exportarInterpretacaoPDF(sessao) {
+  if (!sessao) { alert('Seleccione primeiro uma sess\u00e3o (clique em "Ver detalhes").'); return; }
+  var scores = sessao.scores || (sessao.respostas ? calcScores(sessao.respostas) : {});
+  var syndromeNames = ['Reatividade Emocional','Ansiedade/Depress\u00e3o','Queixas Som\u00e1ticas','Isolamento','Problemas de Sono','Problemas de Aten\u00e7\u00e3o','Comportamento Agressivo'];
+  var syndromeKeys = ['RE','AD','QS','ISO','PS','PA','CA'];
+  var compositeNames = ['Internalizante','Externalizante','Total'];
+  var compositeKeys  = ['INT','EXT','TOT'];
+
+  function row(label, sc, bold) {
+    if (!sc) return '';
+    var t = sc.tscore || sc.T || sc.t || null;
+    var raw = sc.sum !== undefined ? sc.sum : (sc.raw !== undefined ? sc.raw : null);
+    var zona = sc.zona || (t ? (t>=65?'Cl\u00ednica':t>=60?'Aten\u00e7\u00e3o':'Normal') : '\u2014');
+    var cor = zona==='Cl\u00ednica'?'#C0392B':zona==='Aten\u00e7\u00e3o'?'#E67E22':'#27AE60';
+    var pct = t ? Math.min(100,Math.round(((t-30)/70)*100)) : 0;
+    return '<tr'+(bold?' style="background:#EBF2F8;"':'')+'>' +
+      '<td style="padding:5px 8px;border-bottom:1px solid #eee;">'+(bold?'<strong>'+label+'</strong>':label)+'</td>' +
+      '<td style="padding:5px 8px;border-bottom:1px solid #eee;text-align:center;">'+(raw!==null?raw:'\u2014')+'</td>' +
+      '<td style="padding:5px 8px;border-bottom:1px solid #eee;text-align:center;font-weight:700;color:'+cor+';">'+(t||'\u2014')+'</td>' +
+      '<td style="padding:5px 8px;border-bottom:1px solid #eee;">' +
+        (t?'<div style="background:#eee;border-radius:3px;height:8px;width:80px;display:inline-block;overflow:hidden;"><div style="background:'+cor+';height:8px;width:'+pct+'%;"></div></div>':'') +
+      '</td><td style="padding:5px 8px;border-bottom:1px solid #eee;color:'+cor+';font-weight:600;">'+zona+'</td></tr>';
+  }
+
+  var synRows = syndromeKeys.map(function(k,i){return row(syndromeNames[i], scores[k]||scores['S'+(i+1)], false);}).join('');
+  var compRows = compositeKeys.map(function(k,i){return row(compositeNames[i], scores[k], k==='TOT');}).join('');
+
+  var resps = sessao.respostas || [];
+  var respRows = resps.map(function(r,i){
+    var txt = (ITEMS && ITEMS[i]) ? ITEMS[i].replace(/&[^;]+;/g,'') : 'Item '+(i+1);
+    return '<tr><td style="padding:3px 6px;border-bottom:1px solid #f0f0f0;color:#999;text-align:center;width:30px;">'+(i+1)+'</td>' +
+      '<td style="padding:3px 6px;border-bottom:1px solid #f0f0f0;font-size:10px;">'+txt+'</td>' +
+      '<td style="padding:3px 6px;border-bottom:1px solid #f0f0f0;text-align:center;font-weight:700;width:40px;">'+r+'</td></tr>';
+  }).join('');
+
+  var dt = sessao.data || '\u2014';
+  var html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Interpreta\u00e7\u00e3o CBCL 1\u00bd-5</title>' +
+    '<style>body{font-family:Arial,sans-serif;font-size:12px;padding:24px;max-width:900px;margin:0 auto;}' +
+    'h1{color:#3B5A7A;font-size:15px;}h2{color:#3B5A7A;font-size:12px;margin:14px 0 5px;border-bottom:2px solid #D6E4F0;padding-bottom:3px;}' +
+    'p{color:#6B7A8D;font-size:11px;margin-bottom:12px;}table{width:100%;border-collapse:collapse;margin-bottom:12px;}' +
+    'th{background:#D6E4F0;padding:5px 8px;text-align:left;color:#3B5A7A;font-size:11px;}' +
+    '.np{margin-bottom:14px;}@media print{.np{display:none;}}</style></head><body>' +
+    '<div class="np"><button onclick="window.print()" style="padding:5px 12px;cursor:pointer;">&#128424; Imprimir</button></div>' +
+    '<h1>CBCL 1\u00bd\u20135 \u2014 Relat\u00f3rio de Avalia\u00e7\u00e3o</h1>' +
+    '<p>C\u00f3digo: <strong>'+(sessao.codigo||'')+'</strong>' +
+    (sessao.nome?' &nbsp;|&nbsp; Crian\u00e7a: <strong>'+sessao.nome+'</strong>':'') +
+    ' &nbsp;|&nbsp; Data: '+dt+' &nbsp;|&nbsp; Ricardina Correia \u00b7 C\u00e9dula 8233</p>' +
+    '<h2>S\u00edndromes Cl\u00ednicas</h2>' +
+    '<table><thead><tr><th>S\u00edndrome</th><th style="text-align:center">Bruto</th><th style="text-align:center">T</th><th>Perfil</th><th>Zona</th></tr></thead><tbody>'+synRows+'</tbody></table>' +
+    '<h2>Escalas Compostas</h2>' +
+    '<table><thead><tr><th>Escala</th><th style="text-align:center">Bruto</th><th style="text-align:center">T</th><th>Perfil</th><th>Zona</th></tr></thead><tbody>'+compRows+'</tbody></table>' +
+    '<h2>Respostas por Item</h2>' +
+    '<table><thead><tr><th style="text-align:center">#</th><th>Item</th><th style="text-align:center">Resp.</th></tr></thead><tbody>'+respRows+'</tbody></table>' +
+    '<p style="margin-top:18px;font-style:italic;color:#999;font-size:10px;">Interpreta\u00e7\u00e3o autom\u00e1tica \u2014 integrar no contexto cl\u00ednico completo.</p>' +
+    '</body></html>';
+  var w=window.open('','_blank');
+  if(!w){alert('Pop-up bloqueado.');return;}
+  w.document.write(html);w.document.close();
 }
 
 // ====== INIT ======
