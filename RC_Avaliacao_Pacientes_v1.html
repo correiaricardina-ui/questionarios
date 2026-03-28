@@ -645,7 +645,8 @@ const SYNC_KEY_TO_ABA = {
   'brief_pais':       'BRIEF_Pais',
   'scared_r_crianca': 'SCARED_R_CRIANCA',
   'scared_r_pais':    'SCARED_R_PAIS',
-  'qc_coparen':        'QC_Coparentalidade',
+  'qc_mae':            'QC_Coparentalidade',
+  'qc_pai':            'QC_Coparentalidade',
   'erc_prof':          'ERC_Professores',
   'erc_pais':          'ERC_Pais'
 };
@@ -719,11 +720,16 @@ function initCatalog() {
     { id:'q_swan',       name:'SWAN',                  dest:['Pais','Mãe','Pai','Enc. Educação','Professor(a)'], link:'https://correiaricardina-ui.github.io/questionarios/SWAN_v1.html', syncKey:'swan', area:'Atenção e Comportamento', ageRange:'6–18 anos', objective:'Avaliar sintomas de PHDA em contexto dimensional', domains:['Desatenção','Hiperatividade-Impulsividade'] },
     { id:'q_scared_r_crianca', name:'SCARED-R — Criança',    dest:['Paciente'], link:'https://correiaricardina-ui.github.io/questionarios/SCARED_R_Crianca.html', syncKey:'scared_r_crianca', area:'Ansiedade', ageRange:'8–18 anos', objective:'Avaliação de perturbações de ansiedade — versão autorrelato', domains:['Pânico','Ansiedade Generalizada','Separação','Fobia Social','Fobia Específica','Obsessivo-Compulsiva','Stress Pós-Traumático','Total'] },
     { id:'q_scared_r_pais',    name:'SCARED-R — Pais/Cuid.', dest:['Mãe','Pai','Enc. Educação'], link:'https://correiaricardina-ui.github.io/questionarios/SCARED_R_Pais.html', syncKey:'scared_r_pais', area:'Ansiedade', ageRange:'8–18 anos', objective:'Avaliação de perturbações de ansiedade — versão pais/cuidadores', domains:['Pânico','Ansiedade Generalizada','Separação','Fobia Social','Fobia Específica','Obsessivo-Compulsiva','Stress Pós-Traumático','Total'] },
-    { id:'q_qc_coparen', name:'QC Coparentalidade', dest:['Mãe','Pai'],
-      link:'https://correiaricardina-ui.github.io/questionarios/QC_Coparentalidade_v3.html',
-      syncKey:'qc_coparen', area:'Dinâmica Familiar', ageRange:'Adultos',
-      objective:'Avalia a qualidade da coparentalidade percebida por cada progenitor',
-      domains:['Cooperação','Triangulação','Conflito','Apoio','Acordo','Exclusão'] },
+    { id:'q_qc_mae', name:'QC Coparentalidade — Mãe', dest:['Mãe'],
+      link:'https://correiaricardina-ui.github.io/questionarios/QC_Mae.html',
+      syncKey:'qc_mae', area:'Dinâmica Familiar', ageRange:'Adultos',
+      objective:'Avalia cooperação, triangulação e conflito coparental — versão mãe',
+      domains:['Cooperação','Triangulação','Conflito'] },
+    { id:'q_qc_pai', name:'QC Coparentalidade — Pai', dest:['Pai'],
+      link:'https://correiaricardina-ui.github.io/questionarios/QC_Pai.html',
+      syncKey:'qc_pai', area:'Dinâmica Familiar', ageRange:'Adultos',
+      objective:'Avalia cooperação, triangulação e conflito coparental — versão pai',
+      domains:['Cooperação','Triangulação','Conflito'] },
     { id:'q_erc_prof', name:'ERC — Professores', dest:['Professor(a)','Educador(a)'],
       link:'https://correiaricardina-ui.github.io/questionarios/ERC_Professores_v1.html',
       syncKey:'erc_prof', area:'Regulação Emocional', ageRange:'3–18 anos',
@@ -749,7 +755,8 @@ function initCatalog() {
       'q_swan':       { link:'https://correiaricardina-ui.github.io/questionarios/SWAN_v1.html', syncKey:'swan' },
       'q_scared_r_crianca': { link:'https://correiaricardina-ui.github.io/questionarios/SCARED_R_Crianca.html', syncKey:'scared_r_crianca' },
       'q_scared_r_pais':    { link:'https://correiaricardina-ui.github.io/questionarios/SCARED_R_Pais.html', syncKey:'scared_r_pais' },
-      'q_qc_coparen':       { link:'https://correiaricardina-ui.github.io/questionarios/QC_Coparentalidade_v3.html', syncKey:'qc_coparen' },
+      'q_qc_mae':           { link:'https://correiaricardina-ui.github.io/questionarios/QC_Mae.html', syncKey:'qc_mae' },
+      'q_qc_pai':           { link:'https://correiaricardina-ui.github.io/questionarios/QC_Pai.html', syncKey:'qc_pai' },
       'q_erc_prof':         { link:'https://correiaricardina-ui.github.io/questionarios/ERC_Professores_v1.html', syncKey:'erc_prof' },
       'q_erc_pais':         { link:'https://correiaricardina-ui.github.io/questionarios/ERC_Pais_v1.html', syncKey:'erc_pais' },
     };
@@ -786,9 +793,13 @@ function initCatalog() {
       const d2 = defaults.find(d => d.id === 'q_scared_r_pais');
       if(d2) { store.set('q_scared_r_pais', d2); catalog.push('q_scared_r_pais'); store.set('catalog', catalog); }
     }
-    if(!catalog.includes('q_qc_coparen')) {
-      const d3 = defaults.find(d => d.id === 'q_qc_coparen');
-      if(d3) { store.set('q_qc_coparen', d3); catalog.push('q_qc_coparen'); store.set('catalog', catalog); }
+    if(!catalog.includes('q_qc_mae')) {
+      const dQcMae = defaults.find(d => d.id === 'q_qc_mae');
+      if(dQcMae) { store.set('q_qc_mae', dQcMae); catalog.push('q_qc_mae'); store.set('catalog', catalog); }
+    }
+    if(!catalog.includes('q_qc_pai')) {
+      const dQcPai = defaults.find(d => d.id === 'q_qc_pai');
+      if(dQcPai) { store.set('q_qc_pai', dQcPai); catalog.push('q_qc_pai'); store.set('catalog', catalog); }
     }
     // ERC Professores
     if(!catalog.includes('q_erc_prof')) {
@@ -984,12 +995,15 @@ function formatScoreSummary(scores, syncKey) {
       return `<span style="font-size:0.78rem;${cls}">Total = ${total}${classif ? ' · ' + classif : ''}</span>`;
     }
   }
-  if(syncKey === 'qc_coparen') {
-    const coop = scores['cooperacao'] ?? scores['Cooperação'];
-    const conf = scores['conflito']   ?? scores['Conflito_A'];
-    if(coop != null) {
-      return `<span style="font-size:0.78rem;color:var(--blue)">Coop=${coop} · Conf=${conf||'—'}</span>`;
-    }
+  if(syncKey === 'qc_mae' || syncKey === 'qc_pai') {
+    const coop = scores['Cooperacao_Raw'] ?? scores['coop'] ?? scores['cooperacao'] ?? '—';
+    const coopM = scores['Cooperacao_Media'] ?? scores['coopM'] ?? '';
+    const tri  = scores['Triangulacao_Raw'] ?? scores['triang'] ?? '—';
+    const conf = scores['Conflito_Raw']     ?? scores['conf']   ?? '—';
+    const versao = scores['versao'] || (syncKey === 'qc_mae' ? 'Mãe' : 'Pai');
+    return `<span style="font-size:0.78rem;color:var(--blue)">` +
+      `${versao} · Coop=${coop}${coopM ? ' (M='+coopM+')' : ''} · Tri=${tri} · Conf=${conf}` +
+      `</span>`;
   }
   if(syncKey === 'erc_prof' || syncKey === 'erc_pais') {
     const ln  = scores.ln  ?? scores.ln_score  ?? scores['L/N'] ?? '—';
