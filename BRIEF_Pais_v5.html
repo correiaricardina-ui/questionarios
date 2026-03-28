@@ -794,7 +794,10 @@ const NORM_KEY_MAP = {
 };
 
 function getAgeGroup(gender, age) {
-  const norms = gender === "Masculino" ? NORMS_M : NORMS_F;
+  // Normalizar género: aceitar M/F, Masculino/Feminino, m/f
+  const g = (gender||'').toString().trim().toUpperCase();
+  const isMale = g === 'M' || g === 'MASCULINO' || g === 'MASC';
+  const norms = isMale ? NORMS_M : NORMS_F;
   const groups = Object.values(norms);
   for (const g of groups) {
     if (age >= g.range[0] && age <= g.range[1]) return g;
