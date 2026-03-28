@@ -1119,32 +1119,39 @@ function renderAssignments(patientId) {
           if(aba && sheetData[aba]) {
             const patCode = String(patient.code || '').trim().toUpperCase();
             // Colunas de respondente por aba (para verificar por destinatário)
-            const RESP_COLS = {
-              'SWAN':['Informante','Relação'], 'SRS2_IE_Pais':['Respondente'],
-              'SRS2_IE_Prof':['Respondente'], 'TRF_618':['PreenchidoPor'],
-              'CBCL_618':['PreenchidoPor'], 'CBCL_15':['Informante'],
-              'CTRF_15':['Informante'], 'BRIEF_Pais':['NomeRespondente'],
-              'BRIEF_Professores':['Professor'], 'SCARED_R_CRIANCA':['NomeInformante'],
-              'SCARED_R_PAIS':['NomeInformante','Relação'], 'SPAS_Pais':['NomeInformante','Relação'],
-              'SPAS_Prof':['NomeInformante','Relação'], 'ABAS3_05':['Informante'],
-              'ABAS3_05P':['Informante'], 'QEDP':['Informante','NomeInformante'],
-              'QC_Coparentalidade':['Respondente']
-            };
-            const respCols = RESP_COLS[aba] || [];
+
+            // ── Verificação nome-primeiro, relação como fallback ──
+            function matchRespondent(row, aba, recip) {
+              const NC = {
+                'SWAN':['Informante'],'SRS2_IE_Pais':['Respondente'],'SRS2_IE_Prof':['Respondente'],
+                'TRF_618':['PreenchidoPor'],'CBCL_618':['PreenchidoPor'],'CBCL_15':['Informante'],
+                'CTRF_15':['Informante'],'BRIEF_Pais':['NomeRespondente'],'BRIEF_Professores':['Professor'],
+                'SCARED_R_CRIANCA':['NomeInformante'],'SCARED_R_PAIS':['NomeInformante'],
+                'SPAS_Pais':['NomeInformante'],'SPAS_Prof':['NomeInformante'],
+                'ABAS3_05':['Informante'],'ABAS3_05P':['Informante'],
+                'QEDP':['Informante','NomeInformante'],'QC_Coparentalidade':['NomeRespondente','Respondente']
+              };
+              const RC = {
+                'SWAN':['Relação'],'BRIEF_Pais':['Relação'],'SCARED_R_PAIS':['Relação'],
+                'SPAS_Pais':['Relação'],'SPAS_Prof':['Relação'],'QC_Coparentalidade':['Respondente']
+              };
+              function sm(a,b){if(!a||!b)return false;
+                return a.includes(b)||b.includes(a)||
+                  a.split(/[\s\/\(\)]+/).some(w=>w.length>3&&b.includes(w))||
+                  b.split(/[\s\/\(\)]+/).some(w=>w.length>3&&a.includes(w));}
+              const nCols=NC[aba]||[]; const rCols=RC[aba]||[];
+              if(nCols.length===0&&rCols.length===0) return true;
+              const nVals=nCols.map(c=>String(row[c]||'').toLowerCase().trim()).filter(Boolean);
+              if(nVals.length>0) return nVals.some(v=>sm(v,recip));
+              const rVals=rCols.map(c=>String(row[c]||'').toLowerCase().trim()).filter(Boolean);
+              if(rVals.length>0) return rVals.some(v=>sm(v,recip));
+              return true;
+            }
             const recipientRaw = (a.recipient || '').toLowerCase().trim();
             const found = patCode.length >= 4 && sheetData[aba].some(row => {
               const rowCod = String(row['Código'] || row['codigo'] || row['Código Paciente'] || row['patientCode'] || '').trim().toUpperCase();
               if(rowCod.length < 4 || rowCod !== patCode) return false;
-              // Se não há colunas de respondente (instrumento de respondente único), basta o código
-              if(respCols.length === 0) return true;
-              // Verificar se o respondente da linha bate com o destinatário da atribuição
-              return respCols.some(col => {
-                const rowResp = String(row[col] || '').toLowerCase().trim();
-                if(!rowResp) return false;
-                // Correspondência parcial bidirecional (ex: 'professor(a)' ~ 'professor')
-                return rowResp.includes(recipientRaw) || recipientRaw.includes(rowResp) ||
-                       rowResp.split(/[\s\/\(\)]+/).some(w => w.length > 3 && recipientRaw.includes(w));
-              });
+              return matchRespondent(row, aba, recipientRaw);
             });
             if(found) {
               assignments[idx].status = 'received';
@@ -1301,9 +1308,38 @@ async function syncAndMark(patientId, idx) {
       if(q && q.syncKey) aba = SYNC_KEY_TO_ABA[q.syncKey];
     }
     if(aba && sheetData[aba]) {
-      const found = sheetData[aba].some(row =>
-        String(row['Código'] || row['codigo'] || row['Código Paciente'] || row['patientCode'] || '') === String(patient.code)
-      );
+      const smRecip = (a.recipient || '').toLowerCase().trim();
+      const patUpper = String(patient.code).trim().toUpperCase();
+      function matchResp2(row, aba2, recip) {
+        const NC2 = {
+          'SWAN':['Informante'],'SRS2_IE_Pais':['Respondente'],'SRS2_IE_Prof':['Respondente'],
+          'TRF_618':['PreenchidoPor'],'CBCL_618':['PreenchidoPor'],'CBCL_15':['Informante'],
+          'CTRF_15':['Informante'],'BRIEF_Pais':['NomeRespondente'],'BRIEF_Professores':['Professor'],
+          'SCARED_R_CRIANCA':['NomeInformante'],'SCARED_R_PAIS':['NomeInformante'],
+          'SPAS_Pais':['NomeInformante'],'SPAS_Prof':['NomeInformante'],
+          'ABAS3_05':['Informante'],'ABAS3_05P':['Informante'],'QEDP':['Informante','NomeInformante'],
+          'QC_Coparentalidade':['NomeRespondente','Respondente']
+        };
+        const RC2 = {
+          'SWAN':['Relação'],'BRIEF_Pais':['Relação'],'SCARED_R_PAIS':['Relação'],
+          'SPAS_Pais':['Relação'],'SPAS_Prof':['Relação'],'QC_Coparentalidade':['Respondente']
+        };
+        function sm(a,b){if(!a||!b)return false;return a.includes(b)||b.includes(a)||
+          a.split(/[\s\/\(\)]+/).some(w=>w.length>3&&b.includes(w))||
+          b.split(/[\s\/\(\)]+/).some(w=>w.length>3&&a.includes(w));}
+        const nCols=NC2[aba2]||[]; const rCols=RC2[aba2]||[];
+        if(nCols.length===0&&rCols.length===0) return true;
+        const nVals=nCols.map(c=>String(row[c]||'').toLowerCase().trim()).filter(Boolean);
+        if(nVals.length>0) return nVals.some(v=>sm(v,recip));
+        const rVals=rCols.map(c=>String(row[c]||'').toLowerCase().trim()).filter(Boolean);
+        if(rVals.length>0) return rVals.some(v=>sm(v,recip));
+        return true;
+      }
+      const found = sheetData[aba].some(row => {
+        const rowCod = String(row['Código'] || row['codigo'] || row['Código Paciente'] || row['patientCode'] || '').trim().toUpperCase();
+        if(rowCod !== patUpper) return false;
+        return matchResp2(row, aba, smRecip);
+      });
       if(found) {
         assignments[idx].status = 'received';
         if(!assignments[idx].sentAt) assignments[idx].sentAt = new Date().toISOString();
