@@ -576,7 +576,10 @@ function verDetalhe(idx){
   inner+='Nome: '+esc(String(row.nomeCrianca))+' &middot; Data: '+esc(String(row.date))+'<br>';
   inner+='Educador: '+esc(String(row.nomeInformante||'\u2014'))+' &middot; Inst.: '+esc(String(row.nomeInst||'\u2014'));
   inner+='</div></div>';
+  inner+='<div style="display:flex;gap:8px;align-items:center">';
+  inner+='<button style="background:#EBF2F8;color:#3B5A7A;border:1px solid #D6E4F0;border-radius:6px;padding:4px 12px;font-size:0.8rem;font-weight:600;cursor:pointer;font-family:DM Sans,sans-serif" onclick="imprimirDetalhe_CTRF(this)">&#128438; Imprimir / PDF</button>';
   inner+='<button class="btn btn-secondary" style="padding:4px 12px" onclick="document.querySelector(\'.modal-overlay\').remove()">\u2715 Fechar</button>';
+  inner+='</div>';
   inner+='</div>';
   if(sc) inner+='<div style="background:#EBF2F8;border-radius:8px;padding:12px 16px;margin-bottom:14px;font-size:0.85rem;line-height:1.6">'+interp+'</div>';
   inner+='<div style="font-weight:700;color:#3B5A7A;font-size:0.9rem;margin-bottom:8px">Perfil de T-scores</div>';
@@ -586,11 +589,108 @@ function verDetalhe(idx){
   inner+='T calculados por z-score (\u00b12-4 pontos). S\u00edndromes: border\u226565, cl\u00ednico\u226570. \u00cdndices: border\u226560, cl\u00ednico\u226564.';
   inner+='</div>';
   if(row.item100) inner+='<div style="background:#EBF2F8;border-radius:8px;padding:10px;font-size:0.85rem;margin-bottom:10px"><strong>Item 100:</strong> '+esc(String(row.item100))+'</div>';
-  inner+='<details><summary style="cursor:pointer;font-weight:600;color:#3B5A7A;margin-bottom:8px">Ver respostas por item (99 itens)</summary>'+iHtml+'</details>';
+  inner+='<details open><summary style="cursor:pointer;font-weight:600;color:#3B5A7A;margin-bottom:8px">Ver respostas por item (99 itens)</summary>'+iHtml+'</details>';
   inner+='</div>';
   overlay.innerHTML=inner;
   document.body.appendChild(overlay);
   overlay.addEventListener('click',function(e){if(e.target===overlay)overlay.remove();});
+}
+
+function imprimirDetalhe_CTRF(btn) {
+  var overlay = btn.closest('.modal-overlay');
+  if (!overlay) { overlay = document.querySelector('.modal-overlay'); }
+  if (!overlay) return;
+  var box = overlay.querySelector('.modal-box');
+  if (!box) return;
+
+  // Abrir details de respostas antes de copiar
+  var det = box.querySelector('details');
+  if (det) det.open = true;
+
+  var titulo = 'C-TRF 1\u00bd\u20135 \u2014 Relat\u00f3rio Detalhado';
+  var css = [
+    'body{font-family:DM Sans,Arial,sans-serif;padding:28px 32px;max-width:860px;margin:0 auto;color:#2C3E50;font-size:13px;}',
+    'h1{font-family:Georgia,serif;color:#3B5A7A;font-size:1.3rem;margin-bottom:4px;}',
+    '.sub{color:#6B7A8D;font-size:0.8rem;margin-bottom:18px;}',
+    'table{width:100%;border-collapse:collapse;margin-bottom:14px;}',
+    'th{background:#D6E4F0;padding:7px 10px;text-align:left;color:#3B5A7A;font-size:0.82rem;}',
+    'td{padding:6px 10px;border-bottom:1px solid #EBF2F8;font-size:0.82rem;vertical-align:middle;}',
+    '.interp{background:#EBF2F8;border-radius:8px;padding:12px 16px;margin-bottom:14px;font-size:0.84rem;line-height:1.65;}',
+    '.nota{font-size:0.7rem;color:#6B7A8D;border-top:1px solid #EBF2F8;padding-top:8px;margin-bottom:14px;}',
+    '.bar-wrap{background:#DDE3EA;border-radius:4px;height:8px;min-width:80px;}',
+    '.bar-fill{border-radius:4px;height:100%;}',
+    '.badge{border-radius:5px;padding:1px 8px;font-size:0.72rem;font-weight:700;display:inline-block;}',
+    '.secTitle{font-weight:700;color:#3B5A7A;font-size:0.88rem;margin:16px 0 6px;text-transform:uppercase;letter-spacing:.04em;border-bottom:2px solid #D6E4F0;padding-bottom:4px;}',
+    '.item100{background:#EBF2F8;border-radius:8px;padding:10px;font-size:0.85rem;margin-bottom:14px;}',
+    '.print-btn{background:#3B5A7A;color:white;border:none;border-radius:6px;padding:8px 20px;font-size:0.88rem;cursor:pointer;margin-bottom:20px;}',
+    '@media print{.print-btn{display:none!important;} details{display:block!important;} summary{display:none!important;}}'
+  ].join('\n');
+
+  // Reconstruir conteúdo do modal como HTML limpo para impressão
+  var row = sessaoActual;
+  if (!row) return;
+
+  // Cabeçalho
+  var hHtml = '<h1>C-TRF 1\u00bd\u20135 \u2014 Relat\u00f3rio Detalhado</h1>' +
+    '<div class="sub">Ricardina Correia &middot; C\u00e9dula 8233 &middot; Psicologia Pedi\u00e1trica &middot; ' + new Date().toLocaleDateString('pt-PT') + '</div>' +
+    '<table><tbody>' +
+    '<tr><td style="width:120px;color:#6B7A8D;font-weight:600">C\u00f3digo</td><td>' + esc(String(row.patientCode||'')) + '</td>' +
+    '<td style="width:120px;color:#6B7A8D;font-weight:600">Nome</td><td>' + esc(String(row.nomeCrianca||'')) + '</td></tr>' +
+    '<tr><td style="color:#6B7A8D;font-weight:600">Data</td><td>' + esc(String(row.date||'')) + '</td>' +
+    '<td style="color:#6B7A8D;font-weight:600">Educador/a</td><td>' + esc(String(row.nomeInformante||'\u2014')) + '</td></tr>' +
+    '<tr><td style="color:#6B7A8D;font-weight:600">Institui\u00e7\u00e3o</td><td colspan="3">' + esc(String(row.nomeInst||'\u2014')) + '</td></tr>' +
+    '</tbody></table>';
+
+  // Copiar conteúdo do modal — interpretação, tabela, notas
+  var interpEl = box.querySelector('.interp, [style*="EBF2F8"][style*="border-radius"]');
+  var interpContent = '';
+  // Re-extrair interpretação do box
+  var allDivs = box.querySelectorAll('div');
+  for (var i = 0; i < allDivs.length; i++) {
+    var s = allDivs[i].getAttribute('style') || '';
+    if (s.indexOf('EBF2F8') !== -1 && s.indexOf('border-radius') !== -1 && s.indexOf('line-height') !== -1) {
+      interpContent = allDivs[i].innerHTML;
+      break;
+    }
+  }
+  var interpHtml = interpContent
+    ? '<div class="secTitle">Interpreta\u00e7\u00e3o</div><div class="interp">' + interpContent + '</div>'
+    : '';
+
+  // Tabela de T-scores — copiar do DOM
+  var tabelaEl = box.querySelector('table');
+  var tabelaHtml = tabelaEl ? '<div class="secTitle">Perfil de T-scores</div>' + tabelaEl.outerHTML : '';
+
+  // Notas normativas
+  var notaHtml = '<div class="nota">Normas: Achenbach &amp; Rescorla (2000); Dias et al. (2014), N=734. ' +
+    'T calculados por z-score (\u00b12\u20134 pontos). S\u00edndromes: borderline \u226565, cl\u00ednico \u226570. \u00cdndices compostos: borderline \u226560, cl\u00ednico \u226564.</div>';
+
+  // Item 100
+  var item100Html = '';
+  if (row.item100) {
+    item100Html = '<div class="item100"><strong>Item 100 (resposta aberta):</strong> ' + esc(String(row.item100)) + '</div>';
+  }
+
+  // Respostas item a item — copiar do DOM
+  var detailsEl = box.querySelector('details');
+  var respostasHtml = '';
+  if (detailsEl) {
+    var tbl = detailsEl.querySelector('table');
+    if (tbl) respostasHtml = '<div class="secTitle">Respostas por Item (99 itens)</div>' + tbl.outerHTML;
+  }
+
+  var fullHtml = '<!DOCTYPE html><html lang="pt"><head><meta charset="UTF-8">' +
+    '<title>' + titulo + '</title>' +
+    '<style>' + css + '</style></head><body>' +
+    '<button class="print-btn" onclick="window.print()">&#128438; Imprimir / Guardar PDF</button>' +
+    hHtml + interpHtml + tabelaHtml + notaHtml + item100Html + respostasHtml +
+    '<p style="font-size:0.72rem;color:#aaa;margin-top:24px;font-style:italic">Interpreta\u00e7\u00e3o autom\u00e1tica &mdash; integrar sempre no contexto cl\u00ednico completo da avalia\u00e7\u00e3o.</p>' +
+    '</body></html>';
+
+  var win = window.open('', '_blank', 'width=950,height=800');
+  if (!win) { alert('Pop-up bloqueado. Permite pop-ups para este site.'); return; }
+  win.document.write(fullHtml);
+  win.document.close();
 }
 
 function exportarCSV(){
