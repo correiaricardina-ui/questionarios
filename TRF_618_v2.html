@@ -1456,6 +1456,27 @@ ${s.mainConcern||s.strengths||s.healthDesc?`<div class="card" style="margin-bott
   ${s.healthDesc?`<p style="font-size:10px;"><strong style="color:#C0392B;">Problema de saúde:</strong> ${s.healthDesc}</p>`:''}
 </div>`:''}
 
+${(()=>{
+  const ans = s.answers || {};
+  const keys = Object.keys(ans);
+  if(!keys.length) return '';
+  const rows = ITEMS.map(function(item){
+    const v = ans[item.n];
+    const vStr = (v!==undefined&&v!==null)?String(v):'—';
+    const bg = v==2?'#FDECEA':v==1?'#FFF8E1':'#F0F7FF';
+    return '<tr style="background:'+bg+';"><td style="padding:3px 6px;border-bottom:1px solid #eee;color:#8a99a8;text-align:center;font-size:9px;width:28px;">'+item.n+'</td>'+
+      '<td style="padding:3px 6px;border-bottom:1px solid #eee;font-size:9px;">'+item.text+'</td>'+
+      '<td style="padding:3px 6px;border-bottom:1px solid #eee;text-align:center;font-weight:700;font-size:9px;color:'+(v==2?'#C0392B':v==1?'#E67E22':'#5B7FA6')+';width:24px;">'+vStr+'</td></tr>';
+  }).join('');
+  return '<div class="card" style="margin-bottom:14px;page-break-before:always;">'+
+    '<div class="clabel">Respostas por Item (0=Não verdade · 1=Às vezes · 2=Muitas vezes)</div>'+
+    '<table style="font-size:9px;"><thead><tr>'+
+    '<th style="text-align:center;font-size:8px;color:#5B7FA6;padding:4px 6px;background:#EBF2F8;">#</th>'+
+    '<th style="text-align:left;font-size:8px;color:#5B7FA6;padding:4px 6px;background:#EBF2F8;">Item</th>'+
+    '<th style="text-align:center;font-size:8px;color:#5B7FA6;padding:4px 6px;background:#EBF2F8;">R</th>'+
+    '</tr></thead><tbody>'+rows+'</tbody></table></div>';
+})()}
+
 <div class="footer">Documento confidencial — uso clínico exclusivo · Ricardina Correia · Psicologia Pediátrica · Cédula 8233 · Ordem dos Psicólogos Portugueses</div>
 
 </body></html>`);
