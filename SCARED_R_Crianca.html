@@ -379,6 +379,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--gray);color:var(--text);m
         <button class="btn btn-secondary" style="padding:6px 14px;font-size:.82rem" onclick="exportarCSV()">⬇ Exportar CSV</button>
         <button class="btn btn-secondary" style="padding:6px 14px;font-size:.82rem" onclick="exportarPDF()">📄 Exportar PDF</button>
         <button class="btn btn-secondary" style="padding:6px 14px;font-size:.82rem" onclick="window.print()">🖨 Imprimir</button>
+        <button class="btn btn-secondary" style="padding:6px 14px;font-size:.82rem" onclick="exportarInterpretacaoPDF(sessaoActual)">📊 Exportar Interpretação PDF</button>
         <input type="file" id="import-file-input" accept=".csv" style="display:none" onchange="processarFicheiroImportado(this)">
       </div>
       <div id="import-feedback" style="margin-bottom:12px;display:none"></div>
@@ -612,6 +613,8 @@ function validarSecao(s){
       alert('Código inválido.\n\nDevem ser 2 ou 3 iniciais + data de nascimento (DDMMAAAA).\nExemplo: MV14062013 ou DDL25072014');
       return false;
     }
+    var ni=document.getElementById('nome_informante').value.trim();
+    if(!ni){alert('Por favor indique o nome da criança/respondente.');return false;}
     return true;
   }
   var ranges={2:[1,24],3:[25,48],4:[49,69]};
@@ -684,6 +687,7 @@ function submeterQuestionario(){
     genero:genero,
     ano_escolar:ano_escolar,
     nome_informante:nome_informante,
+    nome_preenche:nome_informante,
     date:surveyDate,
     answers:answers.join('|'),
     totalScore:totalScore,
@@ -1184,6 +1188,16 @@ document.addEventListener('DOMContentLoaded', function(){
   buildItemRows(49,69,'items-49-69');
   document.getElementById('survey-date').value=new Date().toISOString().slice(0,10);
 });
+
+function voltarParaIdentificacao() {
+  [2,3,4].forEach(function(i){
+    var s=document.getElementById('section-'+i); if(s) s.style.display='none';
+  });
+  document.getElementById('section-1').style.display='block';
+  secaoAtual=1;
+  updateProgress(1);
+  window.scrollTo(0,0);
+}
 
 showPage('page-home');
 </script>
