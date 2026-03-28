@@ -253,7 +253,7 @@ input,select,textarea,button{font-family:'DM Sans',sans-serif;}
       <div class="field-row">
         <div class="field-group">
           <label>Nome do(a) Professor(a)</label>
-          <input type="text" id="teacher-name" placeholder="Nome">
+          <input type="text" id="nome_informante" placeholder="Nome">
         </div>
         <div class="field-group">
           <label>Preenchido por</label>
@@ -537,7 +537,8 @@ input,select,textarea,button{font-family:'DM Sans',sans-serif;}
       <div style="display:flex;gap:8px;">
         <button style="padding:8px 18px;background:#1E7E5A;color:white;border:none;border-radius:8px;font-size:0.85rem;font-weight:600;cursor:pointer;" onclick="syncToSheets()">⬆ Enviar para Sheet</button>
         <button style="padding:8px 18px;background:#3B5A7A;color:white;border:none;border-radius:8px;font-size:0.85rem;font-weight:600;cursor:pointer;" onclick="carregarDoSheet()">↺ Sincronizar Sheet</button>
-        <button style="padding:8px 18px;background:#5B7FA6;color:white;border:none;border-radius:8px;font-size:0.85rem;font-weight:600;cursor:pointer;" onclick="exportarRespostasPDF()">📋 Respostas PDF</button>
+        <button style="padding:8px 18px;background:#5B7FA6;color:white;border:none;border-radius:8px;font-size:0.85rem;font-weight:600;cursor:pointer;" onclick="exportarRespostasPDF(sessaoActual)">📋 Respostas PDF</button>
+        <button style="padding:8px 18px;background:#5B7FA6;color:white;border:none;border-radius:8px;font-size:0.85rem;font-weight:600;cursor:pointer;" onclick="exportarInterpretacaoPDF(sessaoActual)">📊 Exportar Interpretação PDF</button>
         <button style="padding:8px 18px;background:#5B7FA6;color:white;border:none;border-radius:8px;font-size:0.85rem;font-weight:600;cursor:pointer;" onclick="exportarDados()">📤 Exportar</button>
         <button style="padding:8px 18px;background:#5B7FA6;color:white;border:none;border-radius:8px;font-size:0.85rem;font-weight:600;cursor:pointer;" onclick="importarDados()">📥 Importar</button>
         <button style="padding:8px 18px;background:white;color:var(--blue);border:1.5px solid var(--gray-bdr);border-radius:8px;font-size:0.85rem;font-weight:600;cursor:pointer;" onclick="goTo('screen-home')">Sair</button>
@@ -749,6 +750,8 @@ function startTRF() {
   const age  = parseInt(document.getElementById('child-age').value);
   const err  = document.getElementById('landing-err');
   if(!name||!sex||!age){err.textContent='Por favor preencha o nome, sexo e idade.';err.style.display='block';return;}
+  const tname=document.getElementById('nome_informante').value.trim();
+  if(!tname){err.textContent='Por favor indique o nome do/a professor/a.';err.style.display='block';return;}
   err.style.display='none';
   const code = document.getElementById('session-code').value.trim().toUpperCase();
   if(!code){err.textContent='Por favor indique o código do paciente.';err.style.display='block';return;}
@@ -758,7 +761,7 @@ function startTRF() {
     childName: name, sex, age, ageGroup: ag,
     grade: document.getElementById('child-grade').value.trim(),
     fillDate: document.getElementById('fill-date').value || new Date().toISOString().split('T')[0],
-    teacherName: document.getElementById('teacher-name').value.trim(),
+    teacherName: document.getElementById('nome_informante').value.trim(),
     filledBy: document.getElementById('filled-by').value,
     code, moment:'T1'
   };
@@ -931,6 +934,8 @@ async function syncToSheets() {
           patientCode: s.code || '',
           nomeCrianca: s.childName || '',
           nomeInquirido: s.filledBy || '',
+          nome_informante: s.teacherName || '',
+          nome_preenche: s.teacherName || '',
           grauParentesco: 'Professor(a)',
           idade: s.age || '',
           sexo: s.sex || '',
@@ -1054,9 +1059,11 @@ function delSession(code) {
 }
 
 // ══════════════ VIEW SESSION ══════════════
+var sessaoActual = null;
 function viewSession(code) {
   const sessions = load(SK)||{};
   const s = sessions[code]; if(!s) return;
+  sessaoActual = s;
   const html = buildResultsHTML(s);
   document.getElementById('modal-content').innerHTML = html;
   document.getElementById('modal-box').dataset.sessionCode = code;
@@ -1403,13 +1410,16 @@ ${s.mainConcern||s.strengths||s.healthDesc?`<div class="card" style="margin-bott
 }
 
 // ══════════════ EXPORTAR RESPOSTAS PDF ══════════════
-function exportarRespostasPDF() {
+function exportarRespostasPDF(sessaoParam) {
   const sessions = load(SK) || {};
   const entries = Object.values(sessions);
   if (!entries.length) { alert('Sem sessões para exportar.'); return; }
 
   // Se só há uma sessão, usa-a directamente; se houver várias, pede ao utilizador
   let s;
+  if (sessaoParam) {
+    s = sessaoParam;
+  } else {
   const code = document.getElementById('modal-box')?.dataset?.sessionCode;
   if (code && sessions[code]) {
     s = sessions[code];
@@ -1421,6 +1431,7 @@ function exportarRespostasPDF() {
     s = sessions[chosen?.trim().toUpperCase()];
     if (!s) { alert('Código não encontrado.'); return; }
   }
+  }  // end else (sessaoParam not provided)
 
   const ans = s.answers || {};
   if (!Object.keys(ans).length) { alert('Sem respostas registadas para esta sessão.'); return; }
@@ -1456,7 +1467,88 @@ function exportarRespostasPDF() {
 }
 
 // Header badge click to login
+function voltarParaIdentificacao() {
+  goTo('screen-landing');
+}
+
+function exportarInterpretacaoPDF(sessaoParam) {
+  const sessions = load(SK) || {};
+  var s = sessaoParam;
+  if (!s) {
+    const code = document.getElementById('modal-box')?.dataset?.sessionCode;
+    s = (code && sessions[code]) ? sessions[code] : (Object.values(sessions).length===1 ? Object.values(sessions)[0] : null);
+  }
+  if (!s) { alert('Seleccione primeiro uma sess\u00e3o (clique em "Ver").'); return; }
+  if (!s.scores) { alert('Esta sess\u00e3o n\u00e3o tem scores calculados.'); return; }
+
+  const sc = s.scores;
+  const tScores = sc.tScores || {};
+  const scaleRaws = sc.scaleRaws || {};
+  const syndromeNames = {
+    I:'Ansiedade/Depress\u00e3o', II:'Isolamento/Depress\u00e3o', III:'Queixas Som\u00e1ticas',
+    IV:'Problemas Sociais', V:'Problemas de Pensamento', VI:'Problemas de Aten\u00e7\u00e3o',
+    VII:'Comportamento de Quebra de Regras', VIII:'Comportamento Agressivo'
+  };
+
+  function row(label, raw, t, bold) {
+    const zona = !t?'\u2014':t>=65?'Cl\u00ednica':t>=60?'Borderline':'Normal';
+    const cor  = !t?'#6B7A8D':t>=65?'#C0392B':t>=60?'#E67E22':'#27AE60';
+    const pct  = t ? Math.min(100,Math.round(((t-35)/65)*100)) : 0;
+    return `<tr${bold?' style="background:#EBF2F8;"':''}>
+      <td style="padding:5px 8px;border-bottom:1px solid #eee;">${bold?`<strong>${label}</strong>`:label}</td>
+      <td style="padding:5px 8px;border-bottom:1px solid #eee;text-align:center;">${raw!==undefined?raw:'\u2014'}</td>
+      <td style="padding:5px 8px;border-bottom:1px solid #eee;text-align:center;font-weight:700;color:${cor};">${t||'\u2014'}</td>
+      <td style="padding:5px 8px;border-bottom:1px solid #eee;"><div style="background:#eee;border-radius:3px;height:8px;width:80px;display:inline-block;overflow:hidden;"><div style="background:${cor};height:8px;width:${pct}%;"></div></div></td>
+      <td style="padding:5px 8px;border-bottom:1px solid #eee;color:${cor};font-weight:600;">${zona}</td></tr>`;
+  }
+
+  let synRows = '';
+  Object.entries(syndromeNames).forEach(([key,label]) => {
+    synRows += row(label, scaleRaws[key], tScores[key], false);
+  });
+  const compRows = [
+    row('Internaliza\u00e7\u00e3o', sc.intRaw, tScores.INT, false),
+    row('Externaliza\u00e7\u00e3o', sc.extRaw, tScores.EXT, false),
+    row('Total de Problemas', sc.totRaw, tScores.TOT, true),
+  ].join('');
+
+  const ans = s.answers || {};
+  const totalItems = 126;
+  let respRows = '';
+  for (let i=1; i<=totalItems; i++) {
+    const r = ans[i] !== undefined ? ans[i] : '\u2014';
+    respRows += `<tr><td style="padding:3px 6px;border-bottom:1px solid #f0f0f0;color:#999;text-align:center;width:30px;">${i}</td><td style="padding:3px 6px;border-bottom:1px solid #f0f0f0;text-align:center;font-weight:700;width:40px;">${r}</td></tr>`;
+  }
+
+  const dt = s.fillDate || (s.submittedAt ? new Date(s.submittedAt).toLocaleDateString('pt-PT') : '\u2014');
+  const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>TRF 6-18 Interpreta\u00e7\u00e3o</title>
+    <style>body{font-family:Arial,sans-serif;font-size:12px;padding:24px;max-width:900px;margin:0 auto;}
+    h1{color:#3B5A7A;font-size:15px;}h2{color:#3B5A7A;font-size:12px;margin:14px 0 5px;border-bottom:2px solid #D6E4F0;padding-bottom:3px;}
+    p{color:#6B7A8D;font-size:11px;margin-bottom:12px;}table{width:100%;border-collapse:collapse;margin-bottom:12px;}
+    th{background:#D6E4F0;padding:5px 8px;text-align:left;color:#3B5A7A;font-size:11px;}
+    .np{margin-bottom:14px;}@media print{.np{display:none;}}</style></head><body>
+    <div class="np"><button onclick="window.print()" style="padding:5px 12px;cursor:pointer;">&#128424; Imprimir</button></div>
+    <h1>TRF 6-18 \u2014 Relat\u00f3rio de Avalia\u00e7\u00e3o</h1>
+    <p>C\u00f3digo: <strong>${s.code||''}</strong>
+    ${s.childName?' &nbsp;|&nbsp; Crian\u00e7a: <strong>'+s.childName+'</strong>':''}
+    ${s.teacherName?' &nbsp;|&nbsp; Professor/a: <strong>'+s.teacherName+'</strong>':''}
+    &nbsp;|&nbsp; Data: ${dt} &nbsp;|&nbsp; Ricardina Correia \u00b7 C\u00e9dula 8233</p>
+    <h2>S\u00edndromes Cl\u00ednicas</h2>
+    <table><thead><tr><th>S\u00edndrome</th><th style="text-align:center">Bruto</th><th style="text-align:center">T</th><th>Perfil</th><th>Zona</th></tr></thead><tbody>${synRows}</tbody></table>
+    <h2>Escalas Compostas</h2>
+    <table><thead><tr><th>Escala</th><th style="text-align:center">Bruto</th><th style="text-align:center">T</th><th>Perfil</th><th>Zona</th></tr></thead><tbody>${compRows}</tbody></table>
+    <h2>Respostas por Item (126 itens)</h2>
+    <table style="width:auto"><thead><tr><th style="text-align:center">#</th><th style="text-align:center">Resp.</th></tr></thead><tbody>${respRows}</tbody></table>
+    <p style="margin-top:18px;font-style:italic;color:#999;font-size:10px;">Interpreta\u00e7\u00e3o autom\u00e1tica \u2014 integrar no contexto cl\u00ednico completo.</p>
+    </body></html>`;
+
+  const w = window.open('', '_blank');
+  if (!w) { alert('Pop-up bloqueado.'); return; }
+  w.document.write(html); w.document.close();
+}
+
 document.addEventListener('DOMContentLoaded', function(){
+  goTo('screen-home');
   const hb = document.getElementById('header-badge');
   if(hb){ hb.style.cursor='pointer'; hb.addEventListener('click', ()=>goTo('screen-login')); }
 });
