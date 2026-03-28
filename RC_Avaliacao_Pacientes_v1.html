@@ -645,7 +645,9 @@ const SYNC_KEY_TO_ABA = {
   'brief_pais':       'BRIEF_Pais',
   'scared_r_crianca': 'SCARED_R_CRIANCA',
   'scared_r_pais':    'SCARED_R_PAIS',
-  'qc_coparen':        'QC_Coparentalidade'
+  'qc_coparen':        'QC_Coparentalidade',
+  'erc_prof':          'ERC_Professores',
+  'erc_pais':          'ERC_Pais'
 };
 
 // Cache em memória das respostas do Sheet (evita fetch repetidos na mesma sessão)
@@ -722,6 +724,16 @@ function initCatalog() {
       syncKey:'qc_coparen', area:'Dinâmica Familiar', ageRange:'Adultos',
       objective:'Avalia a qualidade da coparentalidade percebida por cada progenitor',
       domains:['Cooperação','Triangulação','Conflito','Apoio','Acordo','Exclusão'] },
+    { id:'q_erc_prof', name:'ERC — Professores', dest:['Professor(a)','Educador(a)'],
+      link:'https://correiaricardina-ui.github.io/questionarios/ERC_Professores_v1.html',
+      syncKey:'erc_prof', area:'Regulação Emocional', ageRange:'3–18 anos',
+      objective:'Avalia a regulação emocional da criança — versão professor/educador',
+      domains:['Labilidade/Negatividade (L/N)','Regulação Emocional (RE)','Total ERC'] },
+    { id:'q_erc_pais', name:'ERC — Pais/Cuidadores', dest:['Mãe','Pai','Enc. Educação'],
+      link:'https://correiaricardina-ui.github.io/questionarios/ERC_Pais_v1.html',
+      syncKey:'erc_pais', area:'Regulação Emocional', ageRange:'3–18 anos',
+      objective:'Avalia a regulação emocional da criança — versão pais/cuidadores',
+      domains:['Labilidade/Negatividade (L/N)','Regulação Emocional (RE)','Total ERC'] },
   ];
   if(existing.length === 0) {
     defaults.forEach(q => store.set('q_' + q.id, q));
@@ -738,6 +750,8 @@ function initCatalog() {
       'q_scared_r_crianca': { link:'https://correiaricardina-ui.github.io/questionarios/SCARED_R_Crianca.html', syncKey:'scared_r_crianca' },
       'q_scared_r_pais':    { link:'https://correiaricardina-ui.github.io/questionarios/SCARED_R_Pais.html', syncKey:'scared_r_pais' },
       'q_qc_coparen':       { link:'https://correiaricardina-ui.github.io/questionarios/QC_Coparentalidade_v3.html', syncKey:'qc_coparen' },
+      'q_erc_prof':         { link:'https://correiaricardina-ui.github.io/questionarios/ERC_Professores_v1.html', syncKey:'erc_prof' },
+      'q_erc_pais':         { link:'https://correiaricardina-ui.github.io/questionarios/ERC_Pais_v1.html', syncKey:'erc_pais' },
     };
     Object.entries(META).forEach(([id, meta]) => {
       const q = store.get(id);
@@ -775,6 +789,16 @@ function initCatalog() {
     if(!catalog.includes('q_qc_coparen')) {
       const d3 = defaults.find(d => d.id === 'q_qc_coparen');
       if(d3) { store.set('q_qc_coparen', d3); catalog.push('q_qc_coparen'); store.set('catalog', catalog); }
+    }
+    // ERC Professores
+    if(!catalog.includes('q_erc_prof')) {
+      const d4 = defaults.find(d => d.id === 'q_erc_prof');
+      if(d4) { store.set('q_erc_prof', d4); catalog.push('q_erc_prof'); store.set('catalog', catalog); }
+    }
+    // ERC Pais
+    if(!catalog.includes('q_erc_pais')) {
+      const d5 = defaults.find(d => d.id === 'q_erc_pais');
+      if(d5) { store.set('q_erc_pais', d5); catalog.push('q_erc_pais'); store.set('catalog', catalog); }
     }
   }
 }
@@ -966,6 +990,12 @@ function formatScoreSummary(scores, syncKey) {
     if(coop != null) {
       return `<span style="font-size:0.78rem;color:var(--blue)">Coop=${coop} · Conf=${conf||'—'}</span>`;
     }
+  }
+  if(syncKey === 'erc_prof' || syncKey === 'erc_pais') {
+    const ln  = scores.ln  ?? scores.ln_score  ?? scores['L/N'] ?? '—';
+    const re  = scores.re  ?? scores.re_score  ?? scores.RE     ?? '—';
+    const tot = scores.total ?? scores.total_score               ?? '—';
+    return `<span style="font-size:0.78rem;color:var(--blue)">L/N=${ln} · RE=${re} · Total=${tot}</span>`;
   }
   // Genérico
   const entries = Object.entries(scores).filter(([,v]) => v != null).slice(0,3);
