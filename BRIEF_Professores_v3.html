@@ -2028,15 +2028,34 @@ function esc(v) {
 // ═══════════════════════════════════════════════
 var sessaoActual = null;
 function verDetalhe(idx) {
+  try {
   var row = (window._clinico_sessions || [])[idx];
   sessaoActual = row;
-  if (!row) return;
-  var answers = (row.answers||'').split('|').map(function(v){return parseInt(v)||1;});
+  if (!row) { alert('Erro: sessão não encontrada (idx='+idx+').'); return; }
 
-  // Recalcular scores a partir das respostas
+  // Se não há respostas individuais, usar scores já calculados
+  var answers = [];
+  if (row.answers && row.answers.length > 0) {
+    answers = row.answers.split('|').map(function(v){return parseInt(v)||1;});
+  }
+
+  // Recalcular scores a partir das respostas (ou usar os do sheet se não há respostas)
   var ans = {};
-  answers.forEach(function(v,i){ ans[i+1]=v; });
-  var scores = calcularScores(ans);
+  if (answers.length >= 73) {
+    answers.forEach(function(v,i){ ans[i+1]=v; });
+  }
+  var scores;
+  if (Object.keys(ans).length >= 73) {
+    scores = calcularScores(ans);
+  } else {
+    // Fallback: usar scores directamente do sheet
+    scores = {
+      INI: +row.INI||0, MUD: +row.MUD||0, CE: +row.CE||0,
+      INC: +row.INC||0, MT: +row.MT||0, PO: +row.PO||0,
+      OM: +row.OM||0, MON: +row.MON||0,
+      IRC: +row.IRC||0, IM: +row.IM||0, GEF: +row.GEF||0
+    };
+  }
 
   var overlay = document.createElement('div');
   overlay.className = 'modal-overlay';
@@ -2209,6 +2228,10 @@ function verDetalhe(idx) {
 
   document.body.appendChild(overlay);
   overlay.addEventListener('click', function(e){ if(e.target===overlay) overlay.remove(); });
+  } catch(e) {
+    alert('Erro ao abrir detalhe: ' + e.message + '\n\nPor favor reporte este erro à Dra. Ricardina.');
+    console.error('verDetalhe error:', e);
+  }
 }
 
 // ═══════════════════════════════════════════════
