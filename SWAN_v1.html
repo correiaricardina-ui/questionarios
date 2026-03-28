@@ -313,7 +313,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--gray);color:var(--text);m
     <button class="btn btn-secondary" style="padding:6px 14px;font-size:0.82rem;" onclick="importarCSV()">&#8679; Importar</button>
     <button class="btn btn-secondary" style="padding:6px 14px;font-size:0.82rem;" onclick="exportarCSV()">&#8681; Exportar CSV</button>
     <button class="btn btn-secondary" style="padding:6px 14px;font-size:0.82rem;" onclick="exportarPDF()">&#128196; Exportar PDF</button>
-    <button class="btn btn-secondary" style="padding:6px 14px;font-size:0.82rem;" onclick="window.print()">&#128424; Imprimir</button>
+    <button class="btn btn-secondary" style="padding:6px 14px;font-size:0.82rem;" onclick="printModal()">&#128424; Imprimir / PDF</button>
     <button class="btn btn-secondary" style="padding:6px 14px;font-size:0.82rem;" onclick="exportarRespostasPDF(sessaoActual)">&#128203; Respostas PDF</button>
     <button class="btn btn-secondary" style="padding:6px 14px;font-size:0.82rem;" onclick="exportarInterpretacaoPDF(sessaoActual)">&#128202; Exportar Interpreta&#231;&#227;o PDF</button>
     <input type="file" id="import-file-input" accept=".csv" style="display:none" onchange="processarFicheiroImportado(this)">
@@ -770,6 +770,153 @@ function buildItens(grupo, answers) {
   });
   h += '</div>';
   return h;
+}
+
+// ── Print Modal SWAN ─────────────────────────────────────────
+function printModal() {
+  var row = sessaoActual;
+  if (!row) { alert('Seleccione primeiro um registo.'); return; }
+  var f = getField(row);
+  var answers = String(f.answers || '').split('|');
+
+  // Gauge SVG estático — substitui Canvas para impressão
+  function gaugeSVG(score) {
+    var pct  = Math.max(0, Math.min(1, (score + 3) / 6));
+    var ang  = -180 + pct * 180; // de -180° a 0°
+    var rad  = ang * Math.PI / 180;
+    var cx = 90, cy = 80, r = 60;
+    var ex  = cx + r * Math.cos(rad);
+    var ey  = cy + r * Math.sin(rad);
+    var cor = score <= -1.65 ? '#C0392B' : score <= -1.0 ? '#E67E22' : '#27AE60';
+    // Corte clínico a -1.65
+    var cutA = (-180 + ((-1.65+3)/6)*180) * Math.PI/180;
+    var cex  = cx + r * Math.cos(cutA);
+    var cey  = cy + r * Math.sin(cutA);
+    return '<svg width="180" height="110" viewBox="0 0 180 110" xmlns="http://www.w3.org/2000/svg">' +
+      // fundo cinzento
+      '<path d="M' + (cx-r) + ',' + cy + ' A' + r + ',' + r + ' 0 0 1 ' + (cx+r) + ',' + cy + '" fill="none" stroke="#EBF2F8" stroke-width="16" stroke-linecap="round"/>' +
+      // arco colorido
+      '<path d="M' + (cx-r) + ',' + cy + ' A' + r + ',' + r + ' 0 0 1 ' + ex.toFixed(1) + ',' + ey.toFixed(1) + '" fill="none" stroke="' + cor + '" stroke-width="16" stroke-linecap="round"/>' +
+      // linha de corte clínico
+      '<line x1="' + (cx + (r-12)*Math.cos(cutA)).toFixed(1) + '" y1="' + (cy + (r-12)*Math.sin(cutA)).toFixed(1) + '" x2="' + (cx + (r+4)*Math.cos(cutA)).toFixed(1) + '" y2="' + (cy + (r+4)*Math.sin(cutA)).toFixed(1) + '" stroke="#C0392B" stroke-width="2.5"/>' +
+      // labels -3 e +3
+      '<text x="' + (cx-r-8) + '" y="' + (cy+14) + '" font-size="9" fill="#aaa" text-anchor="middle">−3</text>' +
+      '<text x="' + (cx+r+8) + '" y="' + (cy+14) + '" font-size="9" fill="#aaa" text-anchor="middle">+3</text>' +
+      // agulha
+      '<line x1="' + cx + '" y1="' + cy + '" x2="' + ex.toFixed(1) + '" y2="' + ey.toFixed(1) + '" stroke="#2C3E50" stroke-width="2.5" stroke-linecap="round"/>' +
+      '<circle cx="' + cx + '" cy="' + cy + '" r="4" fill="#2C3E50"/>' +
+      '</svg>';
+  }
+
+  function corScore(s) {
+    return s <= -1.65 ? '#C0392B' : s <= -1.0 ? '#E67E22' : '#27AE60';
+  }
+
+  function barPct(s) { return Math.max(2, ((s+3)/6*100)).toFixed(1); }
+  var cutPct = (((-1.65+3)/6)*100).toFixed(1);
+
+  // Itens para impressão (sem barras — só texto)
+  function itensHTML(grupo) {
+    var rows = SWAN_ITEMS.filter(function(it){ return it.grupo === grupo; }).map(function(item) {
+      var val = parseFloat(answers[item.id - 1]);
+      var label = '';
+      ESCALA_LABELS.forEach(function(op){ if(op.valor === val) label = op.label; });
+      var valStr = isNaN(val) ? '—' : (val > 0 ? '+' : '') + val.toFixed(0);
+      var cor = isNaN(val) ? '#aaa' : corScore(val);
+      var bg  = val <= -1.65 ? '#FDECEA' : val <= -1.0 ? '#FEF9EC' : '#F0F7FF';
+      return '<tr style="background:' + bg + ';">' +
+        '<td style="padding:3px 6px;font-size:9px;color:#8a99a8;text-align:center;width:20px;">' + item.id + '</td>' +
+        '<td style="padding:3px 6px;font-size:9px;">' + item.texto + '</td>' +
+        '<td style="padding:3px 8px;font-size:9px;font-weight:700;color:' + cor + ';text-align:right;white-space:nowrap;">' + valStr + (label?' · '+label:'') + '</td>' +
+        '</tr>';
+    }).join('');
+    return '<table style="width:100%;border-collapse:collapse;">' +
+      '<thead><tr style="background:#EBF2F8;"><th style="font-size:8px;color:#5B7FA6;padding:4px 6px;text-align:left;" colspan="3">' +
+      (grupo==='desatencao'?'🎯 Desatenção (itens 1–9)':'⚡ Hiperatividade-Impulsividade (itens 10–18)') +
+      '</th></tr></thead><tbody>' + rows + '</tbody></table>';
+  }
+
+  // Interpretação — extrair texto sem HTML tags para impressão limpa
+  var interp = gerarInterpretacao(f.scoreD, f.scoreH, f.scoreT, f.cl);
+
+  var dt = f.data || '—';
+  var html = '<!DOCTYPE html><html><head><meta charset="UTF-8">' +
+    '<title>SWAN — ' + (f.patientCode||'') + '</title>' +
+    '<style>' +
+    'body{font-family:Arial,sans-serif;font-size:11px;color:#2C3E50;padding:28px 36px;max-width:900px;margin:0 auto;-webkit-print-color-adjust:exact;print-color-adjust:exact;}' +
+    'h1{font-size:15px;color:#3B5A7A;margin-bottom:2px;}' +
+    'h2{font-size:11px;color:#3B5A7A;text-transform:uppercase;letter-spacing:.06em;margin:14px 0 6px;border-bottom:1px solid #D6E4F0;padding-bottom:3px;}' +
+    'table{border-collapse:collapse;width:100%;}' +
+    '.info-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px;}' +
+    '.info-block{background:#EBF2F8;border-radius:6px;padding:6px 10px;}' +
+    '.info-lbl{font-size:8px;color:#5B7FA6;text-transform:uppercase;letter-spacing:.05em;display:block;}' +
+    '.info-val{font-size:11px;font-weight:700;color:#2C3E50;}' +
+    '.gauge-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;text-align:center;margin-bottom:14px;}' +
+    '.score-val{font-size:20px;font-weight:800;margin-top:2px;}' +
+    '.bar-wrap{background:#EBF2F8;border-radius:6px;height:12px;position:relative;margin:3px 0 6px;}' +
+    '.bar-fill{height:100%;border-radius:6px;}' +
+    '.bar-cut{position:absolute;top:-3px;bottom:-3px;width:2px;background:#C0392B;border-radius:1px;}' +
+    '.interp{background:#EBF2F8;border-radius:8px;padding:10px 14px;font-size:10px;line-height:1.6;margin-bottom:14px;}' +
+    '.items-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;}' +
+    '.footer{margin-top:16px;padding-top:6px;border-top:1px solid #DDE3EA;font-size:8px;color:#aaa;text-align:center;}' +
+    '.np{margin-bottom:14px;}' +
+    '@media print{.np{display:none;}@page{margin:1cm;size:A4;}}' +
+    '</style></head><body>' +
+    '<div class="np"><button onclick="window.print()" style="padding:6px 14px;cursor:pointer;background:#3B5A7A;color:white;border:none;border-radius:6px;font-size:11px;">🖨 Imprimir / Guardar PDF</button></div>' +
+
+    // Cabeçalho
+    '<div style="display:flex;justify-content:space-between;align-items:flex-end;border-bottom:2px solid #3B5A7A;padding-bottom:8px;margin-bottom:14px;">' +
+      '<div><h1>SWAN Rating Scale</h1><div style="font-size:9px;color:#5B7FA6;">Swanson et al., 2000 · Versão PT Moura, 2006 · 18 itens</div></div>' +
+      '<div style="font-size:9px;color:#5B7FA6;text-align:right;">Ricardina Correia · Cédula 8233<br>Psicologia Pediátrica</div>' +
+    '</div>' +
+
+    // Info
+    '<div class="info-grid">' +
+      '<div class="info-block"><span class="info-lbl">Código</span><span class="info-val">' + (f.patientCode||'—') + '</span></div>' +
+      '<div class="info-block"><span class="info-lbl">Nome da criança</span><span class="info-val">' + (f.nomeCrianca||'—') + '</span></div>' +
+      '<div class="info-block"><span class="info-lbl">Informante</span><span class="info-val">' + (f.informante||'—') + (f.relacao?' ('+f.relacao+')':'') + '</span></div>' +
+      '<div class="info-block"><span class="info-lbl">Data</span><span class="info-val">' + dt + '</span></div>' +
+      '<div class="info-block" style="grid-column:span 2;"><span class="info-lbl">Classificação global</span><span class="info-val" style="color:' + corScore(f.scoreT) + ';">' + f.cl + '</span></div>' +
+    '</div>' +
+
+    // Velocímetros SVG
+    '<h2>Perfil de Scores</h2>' +
+    '<div class="gauge-grid">' +
+      '<div>' + gaugeSVG(f.scoreD) + '<div style="font-size:10px;font-weight:700;color:#3B5A7A;">Desatenção</div><div class="score-val" style="color:' + corScore(f.scoreD) + ';">' + (f.scoreD>=0?'+':'') + f.scoreD.toFixed(2) + '</div><div style="font-size:8px;color:#8a99a8;">média itens 1–9</div></div>' +
+      '<div>' + gaugeSVG(f.scoreH) + '<div style="font-size:10px;font-weight:700;color:#3B5A7A;">Hiperatividade-Impulsividade</div><div class="score-val" style="color:' + corScore(f.scoreH) + ';">' + (f.scoreH>=0?'+':'') + f.scoreH.toFixed(2) + '</div><div style="font-size:8px;color:#8a99a8;">média itens 10–18</div></div>' +
+      '<div>' + gaugeSVG(f.scoreT) + '<div style="font-size:10px;font-weight:700;color:#3B5A7A;">Score Total</div><div class="score-val" style="color:' + corScore(f.scoreT) + ';">' + (f.scoreT>=0?'+':'') + f.scoreT.toFixed(2) + '</div><div style="font-size:8px;color:#8a99a8;">média 18 itens</div></div>' +
+    '</div>' +
+
+    // Barras de comparação
+    '<h2>Comparação de Subescalas</h2>' +
+    '<div style="margin-bottom:12px;">' +
+      '<div style="display:flex;justify-content:space-between;font-size:10px;margin-bottom:2px;"><span>Desatenção</span><span style="font-weight:700;color:' + corScore(f.scoreD) + ';">' + (f.scoreD>=0?'+':'') + f.scoreD.toFixed(2) + '</span></div>' +
+      '<div class="bar-wrap"><div class="bar-fill" style="width:' + barPct(f.scoreD) + '%;background:' + corScore(f.scoreD) + ';"></div><div class="bar-cut" style="left:' + cutPct + '%;"></div></div>' +
+      '<div style="display:flex;justify-content:space-between;font-size:10px;margin-bottom:2px;"><span>Hiperatividade-Impulsividade</span><span style="font-weight:700;color:' + corScore(f.scoreH) + ';">' + (f.scoreH>=0?'+':'') + f.scoreH.toFixed(2) + '</span></div>' +
+      '<div class="bar-wrap"><div class="bar-fill" style="width:' + barPct(f.scoreH) + '%;background:' + corScore(f.scoreH) + ';"></div><div class="bar-cut" style="left:' + cutPct + '%;"></div></div>' +
+      '<div style="font-size:8px;color:#8a99a8;">│ linha vermelha = corte clínico (−1.65 · percentil 5)</div>' +
+    '</div>' +
+
+    // Interpretação
+    '<h2>Interpretação Clínica</h2>' +
+    '<div class="interp">' + interp.replace(/<[^>]+>/g, ' ').replace(/\s+/g,' ').trim() + '</div>' +
+
+    // Respostas item a item
+    '<h2>Respostas por Item</h2>' +
+    '<div class="items-grid">' +
+      '<div>' + itensHTML('desatencao') + '</div>' +
+      '<div>' + itensHTML('hiper') + '</div>' +
+    '</div>' +
+
+    '<div class="footer">Documento confidencial — uso clínico exclusivo · Ricardina Correia · Psicologia Pediátrica · Cédula 8233 · Ordem dos Psicólogos Portugueses</div>' +
+    '</body></html>';
+
+  var pw = window.open('','_blank','width=860,height=720');
+  if(!pw){ alert('Pop-up bloqueado. Permite pop-ups para este site.'); return; }
+  pw.document.write(html);
+  pw.document.close();
+  pw.focus();
+  setTimeout(function(){ pw.print(); }, 800);
 }
 
 function exportarRespostasPDF_SWAN(idx) {
