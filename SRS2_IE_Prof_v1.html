@@ -1493,7 +1493,8 @@ function verDetalhe(idx){
       '<h3 style="font-family:DM Serif Display,serif;color:var(--blue);margin-bottom:4px;">Detalhe — '+( r.patientCode||'—')+'</h3>'+
       '<div style="font-size:.82rem;color:var(--text-light);">'+dt+' · Sexo: '+(r.sexo||'—')+' · Idade: '+(r.idade||'—')+'a · Respondente: '+(r.respondente||'—')+'</div>'+
     '</div>'+
-    '<div style="display:flex;gap:8px;" class="no-print">'+
+    '<div style="display:flex;gap:8px;flex-wrap:wrap;" class="no-print">'+
+      '<button class="btn btn-xs btn-secondary" style="background:var(--blue);color:white;" onclick="imprimirDetalhe_SRS2()">&#128438; Imprimir / PDF</button>'+
       '<button class="btn btn-xs btn-secondary" onclick="exportarRespostasPDF(sessaoActual)">&#128203; Respostas</button>'+
       '<button class="btn btn-xs btn-secondary" onclick="exportarInterpretacaoPDF(sessaoActual)">&#128196; Interpretação</button>'+
     '</div>'+
@@ -1526,9 +1527,175 @@ function verDetalhe(idx){
     '<div style="margin-top:18px;padding-top:14px;border-top:1px solid var(--gray-bdr);font-size:.78rem;color:var(--text-light);">'+
     'Limiares: T &lt; 60 → Normativo · T 60–65 → Borderline · T 66–75 → Clínico Lig-Mod · T ≥ 76 → Clínico Grave<br>'+
     'Normas Brasileiras, Formulário Idade Escolar · Lima, 2020 · Hogrefe CETEPP'+
-    '</div>';
+    '</div>'+
+    // Respostas item a item
+    (function(){
+      var resp = r.respostas ? (typeof r.respostas==='string' ? r.respostas.split('|') : r.respostas) : [];
+      if(!resp.length) return '';
+      var ESCALA_LABEL = {PERC:'Percepção Social',COG:'Cognição Social',COM:'Comunicação Social',MOT:'Motivação Social',PRR:'Padrões Restritos e Repetitivos'};
+      var ESCALA_COR   = {PERC:'#3B5A7A',COG:'#2ECC71',COM:'#E67E22',MOT:'#9B59B6',PRR:'#E74C3C'};
+      var iHtml = '<details style="margin-top:16px"><summary style="cursor:pointer;font-weight:600;color:var(--blue);font-size:.88rem;padding:6px 0">&#128221; Ver respostas por item ('+ITEMS.length+' itens)</summary>';
+      iHtml += '<div style="overflow-x:auto;margin-top:8px">';
+      var escalasOrdem = ['PERC','COG','COM','MOT','PRR'];
+      escalasOrdem.forEach(function(esc){
+        var idxs = SUBESCALAS[esc] || [];
+        var cor = ESCALA_COR[esc] || 'var(--blue)';
+        iHtml += '<div style="font-weight:700;color:'+cor+';font-size:.8rem;margin:10px 0 4px;padding:4px 8px;background:#f8f9fa;border-left:3px solid '+cor+'">'+ESCALA_LABEL[esc]+'</div>';
+        iHtml += '<table style="width:100%;border-collapse:collapse;font-size:.79rem;margin-bottom:6px">';
+        iHtml += '<thead><tr><th style="background:var(--blue-xpale);padding:5px 8px;text-align:center;color:var(--blue);width:36px">#</th>';
+        iHtml += '<th style="background:var(--blue-xpale);padding:5px 8px;text-align:left;color:var(--blue)">Item</th>';
+        iHtml += '<th style="background:var(--blue-xpale);padding:5px 8px;text-align:center;color:var(--blue);width:110px">Resposta</th>';
+        iHtml += '<th style="background:var(--blue-xpale);padding:5px 8px;text-align:center;color:var(--blue);width:60px">Inv.?</th></tr></thead><tbody>';
+        idxs.forEach(function(gi){
+          var val = parseInt(resp[gi]) || 0;
+          var inv = INVERTIDOS.indexOf(gi+1) >= 0;
+          var bg = val===4?'#fdecea':val===3?'#fef3e2':val===2?'#fefce8':'#eafaf1';
+          var lbl = val===1?'1 — Nunca':val===2?'2 — Raramente':val===3?'3 — Às vezes':'4 — Frequente';
+          iHtml += '<tr style="background:'+bg+'"><td style="padding:4px 8px;text-align:center;font-weight:600;color:#5B7FA6">'+(gi+1)+'</td>';
+          iHtml += '<td style="padding:4px 8px">'+ITEMS[gi]+'</td>';
+          iHtml += '<td style="padding:4px 8px;text-align:center;font-weight:700;font-size:.8rem">'+lbl+'</td>';
+          iHtml += '<td style="padding:4px 8px;text-align:center;font-size:.75rem;color:var(--text-light)">'+(inv?'Inv.':'')+'</td></tr>';
+        });
+        iHtml += '</tbody></table>';
+      });
+      iHtml += '</div></details>';
+      return iHtml;
+    })();
 
   document.getElementById('modal-overlay').style.display='flex';
+}
+
+function imprimirDetalhe_SRS2(){
+  var r=sessaoActual;
+  if(!r) return;
+  var dt=r.timestamp?new Date(r.timestamp).toLocaleString('pt-PT'):(r.Data||'—');
+  var resp=r.respostas?(typeof r.respostas==='string'?r.respostas.split('|'):r.respostas):[];
+
+  var css=[
+    'body{font-family:DM Sans,Arial,sans-serif;padding:28px 32px;max-width:860px;margin:0 auto;color:#2C3E50;font-size:13px;}',
+    'h1{font-family:Georgia,serif;color:#3B5A7A;font-size:1.3rem;margin-bottom:4px;}',
+    '.sub{color:#6B7A8D;font-size:.78rem;margin-bottom:18px;}',
+    'h2{color:#3B5A7A;font-size:.92rem;margin:18px 0 6px;border-bottom:2px solid #D6E4F0;padding-bottom:4px;}',
+    'table{width:100%;border-collapse:collapse;margin-bottom:12px;}',
+    'th{background:#D6E4F0;padding:6px 8px;text-align:left;color:#3B5A7A;font-size:.79rem;}',
+    'td{padding:5px 8px;border-bottom:1px solid #EBF2F8;font-size:.79rem;vertical-align:middle;}',
+    '.interp{background:#EBF2F8;border-radius:8px;padding:12px 16px;margin-bottom:12px;font-size:.84rem;line-height:1.7;}',
+    '.nota{font-size:.7rem;color:#6B7A8D;margin-bottom:14px;}',
+    '.bar-bg{background:#DDE3EA;border-radius:4px;height:8px;min-width:60px;}',
+    '.bar-fill{border-radius:4px;height:8px;}',
+    '.badge{border-radius:5px;padding:1px 8px;font-size:.72rem;font-weight:700;display:inline-block;}',
+    '.badge-clinical{background:#fdecea;color:#C0392B;}',
+    '.badge-borderline{background:#fef3e2;color:#E67E22;}',
+    '.badge-normative{background:#eafaf1;color:#27AE60;}',
+    '.dom-hdr{font-weight:700;font-size:.78rem;padding:3px 8px;border-left:3px solid;margin:10px 0 3px;background:#f8f9fa;}',
+    '.print-btn{background:#3B5A7A;color:white;border:none;border-radius:6px;padding:8px 20px;font-size:.88rem;cursor:pointer;margin-bottom:20px;}',
+    '@media print{.print-btn{display:none!important;}}'
+  ].join('');
+
+  var ts={
+    PERC:parseInt(r.PERC_T)||0, COG:parseInt(r.COG_T)||0,
+    COM:parseInt(r.COM_T)||0,   MOT:parseInt(r.MOT_T)||0,
+    PRR:parseInt(r.PRR_T)||0,   CIS:parseInt(r.CIS_T)||0,
+    TOT:parseInt(r.TOT_T)||0
+  };
+
+  // Cabeçalho
+  var hHtml='<h1>SRS-2 \u2014 Formulário Idade Escolar (Professor/a)</h1>'+
+    '<div class="sub">Ricardina Correia \u00b7 C\u00e9dula 8233 \u00b7 Psicologia Pedi\u00e1trica \u00b7 '+new Date().toLocaleDateString('pt-PT')+'</div>'+
+    '<table><tbody>'+
+    '<tr><td style="width:90px;color:#6B7A8D;font-weight:600">C\u00f3digo</td><td>'+(r.patientCode||'')+'</td>'+
+    '<td style="width:90px;color:#6B7A8D;font-weight:600">Data</td><td>'+dt+'</td></tr>'+
+    '<tr><td style="color:#6B7A8D;font-weight:600">Sexo</td><td>'+(r.sexo||'\u2014')+'</td>'+
+    '<td style="color:#6B7A8D;font-weight:600">Idade</td><td>'+(r.idade||'\u2014')+' anos</td></tr>'+
+    '<tr><td style="color:#6B7A8D;font-weight:600">Respondente</td><td colspan="3">'+(r.respondente||'\u2014')+'</td></tr>'+
+    '</tbody></table>';
+
+  // Tabela de scores brutos
+  var LABEL_MAP={PERC:'Percep\u00e7\u00e3o Social',COG:'Cogni\u00e7\u00e3o Social',COM:'Comunica\u00e7\u00e3o Social',MOT:'Motiva\u00e7\u00e3o Social',PRR:'Padr\u00f5es Restritos e Rep.',CIS:'Comun. e Intera\u00e7\u00e3o Social',TOT:'Total SRS-2'};
+  var rawHtml='<h2>Scores Brutos e T-Scores</h2><table><thead><tr><th>Escala</th><th style="text-align:center">Score Bruto</th><th style="text-align:center">T-Score</th><th style="text-align:center">Percentil</th></tr></thead><tbody>';
+  ['PERC','COG','COM','MOT','PRR','CIS','TOT'].forEach(function(k){
+    var t=ts[k];
+    var cor=t>=66?'#C0392B':t>=60?'#E67E22':'#27AE60';
+    var bg=k==='TOT'||k==='CIS'?'background:#EBF2F8':'';
+    rawHtml+='<tr style="'+bg+'"><td>'+(k==='TOT'||k==='CIS'?'<strong>'+LABEL_MAP[k]+'</strong>':LABEL_MAP[k])+'</td>'+
+      '<td style="text-align:center">'+(r[k+'_raw']||'\u2014')+'</td>'+
+      '<td style="text-align:center;font-weight:700;color:'+cor+'">'+(r[k+'_T']||'\u2014')+'</td>'+
+      '<td style="text-align:center">'+(r[k+'_pct']||'\u2014')+'</td></tr>';
+  });
+  rawHtml+='</tbody></table>';
+
+  // Tabela de perfil com barras
+  var escalas=[
+    {k:'PERC',l:'Percep\u00e7\u00e3o Social'},
+    {k:'COG', l:'Cogni\u00e7\u00e3o Social'},
+    {k:'COM', l:'Comunica\u00e7\u00e3o Social'},
+    {k:'MOT', l:'Motiva\u00e7\u00e3o Social'},
+    {k:'PRR', l:'Padr\u00f5es Restritos e Repetitivos'},
+    {k:'CIS', l:'Comun. e Intera\u00e7\u00e3o Social (CIS)',sep:true},
+    {k:'TOT', l:'Total SRS-2'}
+  ];
+  var perfilHtml='<h2>Perfil de T-Scores</h2><table><thead><tr><th>Escala</th><th style="text-align:center">T</th><th>Perfil</th><th style="text-align:center">Zona</th></tr></thead><tbody>';
+  escalas.forEach(function(s){
+    var t=ts[s.k]; if(!t) return;
+    var zona=t>=66?'Cl\u00ednico':t>=60?'Borderline':'Normativo';
+    var cls=t>=66?'badge-clinical':t>=60?'badge-borderline':'badge-normative';
+    var cor=t>=66?'#C0392B':t>=60?'#E67E22':'#27AE60';
+    var pct=Math.min(100,Math.round(((t-30)/70)*100));
+    var sep=s.sep?'border-top:2px solid #D6E4F0;':'';
+    perfilHtml+='<tr style="'+sep+'"><td>'+s.l+'</td><td style="text-align:center;font-weight:700;color:'+cor+'">'+t+'</td>'+
+      '<td><div class="bar-bg"><div class="bar-fill" style="width:'+pct+'%;background:'+cor+'"></div></div></td>'+
+      '<td style="text-align:center"><span class="badge '+cls+'">'+zona+'</span></td></tr>';
+  });
+  perfilHtml+='</tbody></table>';
+
+  // Interpretação
+  var tot_zona=ts.TOT>=66?'cl\u00ednica':ts.TOT>=60?'borderline':'normativa';
+  var tot_desc=ts.TOT>=66?'sugerindo dificuldades significativas na responsividade social':ts.TOT>=60?'representando um resultado lim\u00edtrofe que merece monitoriza\u00e7\u00e3o':'n\u00e3o evidenciando preocupa\u00e7\u00f5es significativas na responsividade social';
+  var clinicos=escalas.filter(function(s){return ts[s.k]&&ts[s.k]>=66;});
+  var borders=escalas.filter(function(s){return ts[s.k]&&ts[s.k]>=60&&ts[s.k]<66;});
+  var ip=['O Total SRS-2 situa-se na zona <strong>'+tot_zona+'</strong> (T='+ts.TOT+'), '+tot_desc+'.'];
+  if(clinicos.length) ip.push('Apresenta resultados na zona cl\u00ednica em: <strong>'+clinicos.map(function(s){return s.l+' (T='+ts[s.k]+')';}).join(', ')+'</strong>.');
+  if(borders.length)  ip.push('Na zona borderline: <strong>'+borders.map(function(s){return s.l+' (T='+ts[s.k]+')';}).join(', ')+'</strong>.');
+  if(!clinicos.length&&!borders.length) ip.push('Todas as escalas situam-se dentro dos limites normativos.');
+  var interpHtml='<h2>Interpreta\u00e7\u00e3o Autom\u00e1tica</h2><div class="interp">'+ip.join(' ')+
+    '<br><span style="font-size:.72rem;color:#6B7A8D;font-style:italic">Interpreta\u00e7\u00e3o autom\u00e1tica \u2014 integrar sempre no contexto cl\u00ednico completo da avalia\u00e7\u00e3o.</span></div>'+
+    '<div class="nota">Limiares: T &lt; 60 \u2192 Normativo \u00b7 T 60\u201365 \u2192 Borderline \u00b7 T 66\u201375 \u2192 Cl\u00ednico Lig-Mod \u00b7 T \u2265 76 \u2192 Cl\u00ednico Grave<br>'+
+    'Normas Brasileiras, Formul\u00e1rio Idade Escolar \u00b7 Lima, 2020 \u00b7 Hogrefe CETEPP</div>';
+
+  // Respostas item a item
+  var ESCALA_LABEL={PERC:'Percep\u00e7\u00e3o Social',COG:'Cogni\u00e7\u00e3o Social',COM:'Comunica\u00e7\u00e3o Social',MOT:'Motiva\u00e7\u00e3o Social',PRR:'Padr\u00f5es Restritos e Repetitivos'};
+  var ESCALA_COR={PERC:'#3B5A7A',COG:'#2ECC71',COM:'#E67E22',MOT:'#9B59B6',PRR:'#E74C3C'};
+  var resHtml='';
+  if(resp.length>0){
+    resHtml='<h2>Respostas por Item ('+ITEMS.length+' itens)</h2>';
+    ['PERC','COG','COM','MOT','PRR'].forEach(function(esc){
+      var idxs=SUBESCALAS[esc]||[];
+      var cor=ESCALA_COR[esc]||'#3B5A7A';
+      resHtml+='<div class="dom-hdr" style="border-left-color:'+cor+';color:'+cor+'">'+ESCALA_LABEL[esc]+'</div>';
+      resHtml+='<table><thead><tr><th style="width:32px;text-align:center">#</th><th>Item</th><th style="width:120px;text-align:center">Resposta</th><th style="width:50px;text-align:center">Inv.</th></tr></thead><tbody>';
+      idxs.forEach(function(gi){
+        var val=parseInt(resp[gi])||1;
+        var inv=INVERTIDOS.indexOf(gi+1)>=0;
+        var bg=val===4?'#fdecea':val===3?'#fef3e2':val===2?'#fefce8':'#eafaf1';
+        var lbl=val===1?'1 \u2014 Nunca':val===2?'2 \u2014 Raramente':val===3?'3 \u2014 \u00c0s vezes':'4 \u2014 Frequente';
+        resHtml+='<tr style="background:'+bg+'"><td style="text-align:center;font-weight:600;color:#5B7FA6">'+(gi+1)+'</td>'+
+          '<td>'+ITEMS[gi]+'</td>'+
+          '<td style="text-align:center;font-weight:700;font-size:.78rem">'+lbl+'</td>'+
+          '<td style="text-align:center;font-size:.75rem;color:#6B7A8D">'+(inv?'Inv.':'')+'</td></tr>';
+      });
+      resHtml+='</tbody></table>';
+    });
+  }
+
+  var fullHtml='<!DOCTYPE html><html lang="pt"><head><meta charset="UTF-8"><title>SRS-2 IE Professor/a</title><style>'+css+'</style></head><body>'+
+    '<button class="print-btn" onclick="window.print()">&#128438; Imprimir / Guardar PDF</button>'+
+    hHtml+rawHtml+perfilHtml+interpHtml+resHtml+
+    '</body></html>';
+
+  var win=window.open('','_blank','width=950,height=800');
+  if(!win){alert('Pop-up bloqueado. Permite pop-ups para este site.');return;}
+  win.document.write(fullHtml);
+  win.document.close();
 }
 
 function fecharModal(){
