@@ -223,7 +223,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--gray-bg);color:var(--text
       <div class="field-row">
         <div class="field-group">
           <label>O teu nome</label>
-          <input type="text" id="youth-name" placeholder="Nome completo">
+          <input type="text" id="nome_informante" placeholder="Nome completo">
         </div>
         <div class="field-group">
           <label>Código de sessão <span style="font-weight:400;color:var(--text-light);font-size:0.82rem;">(fornecido pela psicóloga)</span></label>
@@ -769,6 +769,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--gray-bg);color:var(--text
         <button class="btn-nav btn-back" onclick="syncToSheets()" style="font-size:0.82rem;padding:8px 16px;background:#1E7E5A;color:white;border:none;">⬆ Enviar para Sheet</button>
         <button class="btn-nav btn-back" onclick="exportarDados()" style="font-size:0.82rem;padding:8px 16px;background:#5B7FA6;color:white;border:none;">📤 Exportar</button>
         <button class="btn-nav btn-back" onclick="importarDados()" style="font-size:0.82rem;padding:8px 16px;background:#5B7FA6;color:white;border:none;">📥 Importar</button>
+        <button class="btn-nav btn-back" onclick="exportarRespostasPDF(sessaoActual)" style="font-size:0.82rem;padding:8px 16px;background:#5B7FA6;color:white;border:none;">&#128203; Respostas PDF</button>
+        <button class="btn-nav btn-back" onclick="exportarInterpretacaoPDF(sessaoActual)" style="font-size:0.82rem;padding:8px 16px;background:#5B7FA6;color:white;border:none;">&#128202; Exportar Interpreta&#231;&#227;o PDF</button>
         <button class="btn-nav btn-back" onclick="goTo('screen-home')" style="font-size:0.82rem;padding:8px 16px;">← Sair</button>
       </div>
     </div>
@@ -1018,7 +1020,7 @@ function goTo(id){document.querySelectorAll('.screen').forEach(s=>s.classList.re
 
 // ═══════════ START ═══════════
 function startQuestionnaire(){
-  const name=document.getElementById('youth-name').value.trim();
+  const name=document.getElementById('nome_informante').value.trim();
   const sex=document.getElementById('youth-sex').value;
   const err=document.getElementById('landing-err');
   if(!name||!sex){err.textContent='Por favor preenche o nome e o sexo.';err.style.display='block';return;}
@@ -1026,8 +1028,9 @@ function startQuestionnaire(){
   if(!rawCode){err.textContent='Por favor indique o c\u00f3digo do paciente.';err.style.display='block';return;}
   if(!/^[A-Z]{2,3}\d{8}$/.test(rawCode)){err.textContent='Código inválido. Deve ter 2 ou 3 iniciais + data de nascimento (ex: MV14062013 ou DDL25072014). Verifica o código fornecido pela psicóloga.';err.style.display='block';return;}
   err.style.display='none';
+  const nome_inf = document.getElementById('nome_informante').value.trim();
   sessionMeta={
-    name, sex,
+    name: nome_inf, sex,
     dob:document.getElementById('youth-dob').value,
     grade:document.getElementById('youth-grade').value.trim(),
     date:document.getElementById('fill-date').value||new Date().toISOString().split('T')[0],
@@ -1241,6 +1244,8 @@ async function syncToSheets() {
           data: s.date || s.fillDate || new Date().toLocaleDateString('pt-PT'),
           codigo: s.code || '',
           nome: s.name || '',
+          nome_informante: s.name || '',
+          nome_preenche: s.name || '',
           idade: s.age || '',
           sexo: s.sex || '',
           grupoIdade: s.ageGroup || '',
@@ -1358,9 +1363,11 @@ function delSession(code){
   const s=load(SK)||{}; delete s[code]; store(SK,s); renderPanel();
 }
 
+var sessaoActual = null;
 function viewSession(code){
   const sess=(load(SK)||{})[code];
   if(!sess||!sess.scores)return;
+  sessaoActual = sess;
   document.getElementById('modal-content').innerHTML=buildResultsHTML(sess)+(sess.competences?buildCompetencesHTML(sess.competences):'');
   document.getElementById('modal-detail').classList.add('open');
 }
@@ -1847,7 +1854,7 @@ window.addEventListener('load',()=>{
     const sessions=load(SK)||{};
     const sess=sessions[p.toUpperCase()];
     if(sess&&!sess.completed){
-      document.getElementById('youth-name').value=sess.name;
+      document.getElementById('nome_informante').value=sess.name;
       document.getElementById('youth-sex').value=sess.sex;
       if(sess.dob)document.getElementById('youth-dob').value=sess.dob;
       if(sess.grade)document.getElementById('youth-grade').value=sess.grade;
@@ -1861,6 +1868,105 @@ document.querySelectorAll('.modal-overlay').forEach(m=>m.addEventListener('click
 
 // ── DESELECT COMPETENCE RADIOS (click again to clear) ──
 let _compPreClick = null;
+function voltarParaIdentificacao() {
+  goTo('screen-landing');
+}
+
+function exportarRespostasPDF(sessaoParam) {
+  const sessions = load(SK) || {};
+  var s = sessaoParam || (Object.values(sessions).length===1 ? Object.values(sessions)[0] : null);
+  if (!s) { alert('Seleccione primeiro uma sess\u00e3o (clique em "Ver").'); return; }
+  const ans = s.answers || {};
+  const totalItems = 119;
+  let linhas = '';
+  for (let i=1; i<=totalItems; i++) {
+    const r = ans[i]!==undefined ? ans[i] : '\u2014';
+    const cor = r==2?'#C0392B':r==1?'#E67E22':'#6B7A8D';
+    linhas += `<tr><td style="padding:3px 8px;border-bottom:1px solid #eee;color:#999;text-align:center;width:30px;">${i}</td><td style="padding:3px 8px;border-bottom:1px solid #eee;text-align:center;font-weight:700;color:${cor};width:40px;">${r}</td></tr>`;
+  }
+  const dt = s.date || s.fillDate || '\u2014';
+  const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>YSR Respostas</title>
+    <style>body{font-family:Arial,sans-serif;font-size:12px;padding:24px;max-width:900px;margin:0 auto;}
+    h1{color:#3B5A7A;font-size:15px;}p{color:#6B7A8D;font-size:11px;margin-bottom:12px;}
+    table{width:auto;border-collapse:collapse;}th{background:#D6E4F0;padding:5px 8px;text-align:left;color:#3B5A7A;font-size:11px;}
+    .np{margin-bottom:14px;}@media print{.np{display:none;}}</style></head><body>
+    <div class="np"><button onclick="window.print()" style="padding:5px 12px;cursor:pointer;">&#128424; Imprimir</button></div>
+    <h1>YSR 11-18 \u2014 Respostas por Item</h1>
+    <p>C\u00f3digo: <strong>${s.code||''}</strong>
+    ${s.name?' &nbsp;|&nbsp; Nome: <strong>'+s.name+'</strong>':''}
+    &nbsp;|&nbsp; Data: ${dt} &nbsp;|&nbsp; Ricardina Correia \u00b7 C\u00e9dula 8233</p>
+    <table><thead><tr><th style="text-align:center">#</th><th style="text-align:center">Resp.</th></tr></thead>
+    <tbody>${linhas}</tbody></table>
+    <p style="margin-top:14px;font-size:10px;color:#999;">0=N\u00e3o verdadeiro &nbsp;|&nbsp; 1=\u00c0s vezes verdadeiro &nbsp;|&nbsp; 2=Muitas vezes verdadeiro</p>
+    </body></html>`;
+  const w=window.open('','_blank');
+  if(!w){alert('Pop-up bloqueado.');return;}
+  w.document.write(html);w.document.close();
+}
+
+function exportarInterpretacaoPDF(sessaoParam) {
+  const sessions = load(SK) || {};
+  var s = sessaoParam || (Object.values(sessions).length===1 ? Object.values(sessions)[0] : null);
+  if (!s) { alert('Seleccione primeiro uma sess\u00e3o (clique em "Ver").'); return; }
+  if (!s.scores) { alert('Esta sess\u00e3o n\u00e3o tem scores calculados.'); return; }
+
+  const sc = s.scores;
+  const syndromeNames = {
+    I:'Ansiedade/Depress\u00e3o', II:'Isolamento/Depress\u00e3o', III:'Queixas Som\u00e1ticas',
+    IV:'Problemas Sociais', V:'Problemas de Pensamento', VI:'Problemas de Aten\u00e7\u00e3o',
+    VII:'Comportamento de Quebra de Regras', VIII:'Comportamento Agressivo'
+  };
+
+  function row(label, scObj, bold) {
+    if (!scObj) return '';
+    const t = scObj.T || scObj.t;
+    const raw = scObj.raw !== undefined ? scObj.raw : (scObj.sum !== undefined ? scObj.sum : null);
+    const zona = !t ? '\u2014' : t>=65?'Cl\u00ednica':t>=60?'Borderline':'Normal';
+    const cor  = !t ? '#6B7A8D' : t>=65?'#C0392B':t>=60?'#E67E22':'#27AE60';
+    const pct  = t ? Math.min(100,Math.round(((t-35)/65)*100)) : 0;
+    return `<tr${bold?' style="background:#EBF2F8;"':''}>
+      <td style="padding:5px 8px;border-bottom:1px solid #eee;">${bold?`<strong>${label}</strong>`:label}</td>
+      <td style="padding:5px 8px;border-bottom:1px solid #eee;text-align:center;">${raw!==null?raw:'\u2014'}</td>
+      <td style="padding:5px 8px;border-bottom:1px solid #eee;text-align:center;font-weight:700;color:${cor};">${t||'\u2014'}</td>
+      <td style="padding:5px 8px;border-bottom:1px solid #eee;"><div style="background:#eee;border-radius:3px;height:8px;width:80px;display:inline-block;overflow:hidden;"><div style="background:${cor};height:8px;width:${pct}%;"></div></div></td>
+      <td style="padding:5px 8px;border-bottom:1px solid #eee;color:${cor};font-weight:600;">${zona}</td></tr>`;
+  }
+
+  const scales = (sc.scales) || {};
+  let synRows = '';
+  Object.entries(syndromeNames).forEach(([key,label]) => {
+    synRows += row(label, scales[key], false);
+  });
+  const compRows = [
+    row('Internaliza\u00e7\u00e3o', sc.INT, false),
+    row('Externaliza\u00e7\u00e3o', sc.EXT, false),
+    row('Total de Problemas', sc.TOT, true),
+  ].join('');
+
+  const dt = s.date || s.fillDate || '\u2014';
+  const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>YSR 11-18 Interpreta\u00e7\u00e3o</title>
+    <style>body{font-family:Arial,sans-serif;font-size:12px;padding:24px;max-width:900px;margin:0 auto;}
+    h1{color:#3B5A7A;font-size:15px;}h2{color:#3B5A7A;font-size:12px;margin:14px 0 5px;border-bottom:2px solid #D6E4F0;padding-bottom:3px;}
+    p{color:#6B7A8D;font-size:11px;margin-bottom:12px;}table{width:100%;border-collapse:collapse;margin-bottom:12px;}
+    th{background:#D6E4F0;padding:5px 8px;text-align:left;color:#3B5A7A;font-size:11px;}
+    .np{margin-bottom:14px;}@media print{.np{display:none;}}</style></head><body>
+    <div class="np"><button onclick="window.print()" style="padding:5px 12px;cursor:pointer;">&#128424; Imprimir</button></div>
+    <h1>YSR 11-18 \u2014 Relat\u00f3rio de Avalia\u00e7\u00e3o</h1>
+    <p>C\u00f3digo: <strong>${s.code||''}</strong>
+    ${s.name?' &nbsp;|&nbsp; Nome: <strong>'+s.name+'</strong>':''}
+    &nbsp;|&nbsp; Data: ${dt} &nbsp;|&nbsp; Ricardina Correia \u00b7 C\u00e9dula 8233</p>
+    <h2>S\u00edndromes Cl\u00ednicas</h2>
+    <table><thead><tr><th>S\u00edndrome</th><th style="text-align:center">Bruto</th><th style="text-align:center">T</th><th>Perfil</th><th>Zona</th></tr></thead><tbody>${synRows}</tbody></table>
+    <h2>Escalas Compostas</h2>
+    <table><thead><tr><th>Escala</th><th style="text-align:center">Bruto</th><th style="text-align:center">T</th><th>Perfil</th><th>Zona</th></tr></thead><tbody>${compRows}</tbody></table>
+    <p style="margin-top:18px;font-style:italic;color:#999;font-size:10px;">Interpreta\u00e7\u00e3o autom\u00e1tica \u2014 integrar no contexto cl\u00ednico completo.</p>
+    </body></html>`;
+
+  const w=window.open('','_blank');
+  if(!w){alert('Pop-up bloqueado.');return;}
+  w.document.write(html);w.document.close();
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   function attachDeselect(container) {
     container.querySelectorAll('.radio-opt input[type="radio"]').forEach(input => {
