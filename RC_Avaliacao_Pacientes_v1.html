@@ -1145,7 +1145,8 @@ function renderAssignments(patientId) {
               if(nVals.length>0) return nVals.some(v=>sm(v,recip));
               const rVals=rCols.map(c=>String(row[c]||'').toLowerCase().trim()).filter(Boolean);
               if(rVals.length>0) return rVals.some(v=>sm(v,recip));
-              return true;
+              // Ambos vazios mas colunas existem → não confirmar (dados incompletos no Sheet)
+              return false;
             }
             const recipientRaw = (a.recipient || '').toLowerCase().trim();
             const found = patCode.length >= 4 && sheetData[aba].some(row => {
@@ -1338,7 +1339,7 @@ async function syncAndMark(patientId, idx) {
         if(nVals.length>0) return nVals.some(v=>sm(v,recip));
         const rVals=rCols.map(c=>String(row[c]||'').toLowerCase().trim()).filter(Boolean);
         if(rVals.length>0) return rVals.some(v=>sm(v,recip));
-        return true;
+        return false;
       }
       const found = sheetData[aba].some(row => {
         const rowCod = String(row['Código'] || row['codigo'] || row['Código Paciente'] || row['patientCode'] || '').trim().toUpperCase();
