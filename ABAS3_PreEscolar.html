@@ -580,7 +580,8 @@ function carregarDados(){
   fetch(SCRIPT_URL+"?instrumento="+INSTR+"&t="+Date.now())
     .then(function(r){return r.json();})
     .then(function(data){
-      sessoes=Array.isArray(data)?data.map(parseSessao):[];
+      var rows=Array.isArray(data)?data:(data&&data.rows?data.rows:[]);
+      sessoes=rows.map(parseSessao);
       if(window._clinico_sessions) window._clinico_sessions.forEach(function(s){
         if(!sessoes.some(function(x){return x.patientCode===s.patientCode&&x.date===s.date;}))
           sessoes.unshift(s);
