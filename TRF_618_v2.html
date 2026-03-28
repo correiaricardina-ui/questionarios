@@ -1090,6 +1090,8 @@ var sessaoActual = null;
 function viewSession(code) {
   const sessions = load(SK)||{};
   const s = sessions[code]; if(!s) return;
+  // Garantir que scores existe antes de chamar buildResultsHTML
+  if(!s.scores) s.scores = {};
   sessaoActual = s;
   const html = buildResultsHTML(s);
   document.getElementById('modal-content').innerHTML = html;
@@ -1099,7 +1101,24 @@ function viewSession(code) {
 function closeModal(){document.getElementById('modal-overlay').classList.remove('open');}
 
 function buildResultsHTML(s) {
-  const {scaleRaws, tScores, intRaw, extRaw, totRaw, hiRaw, desatRaw} = s.scores;
+  // Normalizar scores — defensivo para sessões importadas do Sheet
+  const _sc = s.scores || {};
+  const tScores  = _sc.tScores  || {};
+  const scaleRaws = _sc.scaleRaws || {};
+  const intRaw   = _sc.intRaw   || 0;
+  const extRaw   = _sc.extRaw   || 0;
+  const totRaw   = _sc.totRaw   || 0;
+  const hiRaw    = _sc.hiRaw    || 0;
+  const desatRaw = _sc.desatRaw || 0;
+  // Reconstruir tScores a partir das colunas planas se necessário (sessões do Sheet)
+  if(!tScores.TOT && (_sc.T_TOT || _sc['T_TOT'])) {
+    tScores.INT = parseFloat(_sc.T_INT||_sc['T_INT']||0);
+    tScores.EXT = parseFloat(_sc.T_EXT||_sc['T_EXT']||0);
+    tScores.TOT = parseFloat(_sc.T_TOT||_sc['T_TOT']||0);
+    ['I','II','III','IV','V','VI','VII','VIII'].forEach(k => {
+      tScores[k] = parseFloat(_sc['T_'+k]||0);
+    });
+  }
   const bw = t => Math.min(98, Math.max(2, ((t-35)/65)*100)).toFixed(1);
   const col = (t, comp) => t>=(comp?65:70)?'var(--red)':t>=(comp?60:65)?'var(--blue-mid)':'var(--green)';
   const lbl = (t, comp) => t>=(comp?65:70)?'Clínico':t>=(comp?60:65)?'Borderline':'Normativo';
