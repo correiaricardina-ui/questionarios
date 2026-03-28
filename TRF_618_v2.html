@@ -970,16 +970,43 @@ async function carregarDoSheet() {
       const code = row['Código'] || row['Codigo'] || row.patientCode || row.codigo || '';
       if (!code) continue;
       if (!sessions[code]) {
+        // Reconstruir scores a partir das colunas do Sheet
+        const _tInt  = parseFloat(row['T_INT']  || 0);
+        const _tExt  = parseFloat(row['T_EXT']  || 0);
+        const _tTot  = parseFloat(row['T_TOT']  || 0);
+        const _tI    = parseFloat(row['T_I']    || 0);
+        const _tII   = parseFloat(row['T_II']   || 0);
+        const _tIII  = parseFloat(row['T_III']  || 0);
+        const _tIV   = parseFloat(row['T_IV']   || 0);
+        const _tV    = parseFloat(row['T_V']    || 0);
+        const _tVI   = parseFloat(row['T_VI']   || 0);
+        const _tVII  = parseFloat(row['T_VII']  || 0);
+        const _tVIII = parseFloat(row['T_VIII'] || 0);
+        // Normalizar data e grupoIdade (remover ISO Z se necessário)
+        const _fillDate = (() => {
+          const d = String(row['Data'] || row.data || '');
+          if(d.includes('T')) { const dt = new Date(d); return isNaN(dt)?d:dt.toLocaleDateString('pt-PT'); }
+          return d;
+        })();
+        const _ageGroup = (() => {
+          const g = String(row['GrupoIdade'] || row.grupoIdade || '');
+          if(g.includes('T')) return g.includes('2026-12')||g.includes('2026-06') ? '12-18' : '6-11';
+          return g;
+        })();
         sessions[code] = {
           code,
-          childName: row.nomeCrianca || row.nome || '',
-          filledBy:  row['PreenchidoPor'] || row.nomeInquirido || row.preenchidoPor || '',
-          fillDate:  row['Data'] || row.data || '',
-          age:       row['Idade'] || row.idade || '',
-          sex:       row['Sexo'] || row.sexo || '',
-          ageGroup:  row['GrupoIdade'] || row.grupoIdade || '',
-          submittedAt: row.timestamp || row.data || '',
-          scores:    row.scores || {},
+          childName:   row['NomeCriança'] || row['NomeCrianca'] || row.nomeCrianca || row.nome || '',
+          filledBy:    row['PreenchidoPor'] || row.nomeInquirido || row.preenchidoPor || '',
+          fillDate:    _fillDate,
+          age:         row['Idade'] || row.idade || '',
+          sex:         row['Sexo'] || row.sexo || '',
+          ageGroup:    _ageGroup,
+          submittedAt: _fillDate,
+          scores: {
+            tScores:   { INT:_tInt, EXT:_tExt, TOT:_tTot, I:_tI, II:_tII, III:_tIII, IV:_tIV, V:_tV, VI:_tVI, VII:_tVII, VIII:_tVIII },
+            scaleRaws: { I:0, II:0, III:0, IV:0, V:0, VI:0, VII:0, VIII:0 },
+            intRaw:0, extRaw:0, totRaw:0
+          },
           fromSheet: true
         };
         importados++;
