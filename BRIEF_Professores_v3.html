@@ -1955,9 +1955,9 @@ function carregarDados() {
           return {
             date: row['Data']||row['date']||'',
             patientCode: row['C\u00f3digo']||row['patientCode']||row['C&oacute;digo']||'',
-            childName: row['Crian\u00e7a']||row['childName']||'',
-            dob: row['Nasc.']||row['dob']||'',
-            gender: row['G\u00e9nero']||row['gender']||'',
+            childName: row['Crian\u00e7a']||row['childName']||row['NomeCrian\u00e7a']||row['NomeCrianca']||'',
+            dob: row['Nasc.']||row['dob']||row['DataNasc']||row['DataNascimento']||'',
+            gender: row['G\u00e9nero']||row['gender']||row['Genero']||'',
             grade: row['Ano']||row['grade']||'',
             teacherName: row['Prof./a']||row['teacherName']||'',
             subject: row['Disciplina']||row['subject']||'',
@@ -2309,8 +2309,8 @@ function processarFicheiroImportado(input) {
       var id = code+'_'+date;
       if (existingIds[id]) { duplicados++; return; }
       existing.push({
-        date:date, patientCode:code, childName:row['Crian\u00e7a']||row['childName']||'',
-        dob:row['Nasc.']||row['dob']||'', gender:row['G\u00e9nero']||row['gender']||'',
+        date:date, patientCode:code, childName:row['Crian\u00e7a']||row['childName']||row['NomeCrian\u00e7a']||row['NomeCrianca']||'',
+        dob:row['Nasc.']||row['dob']||row['DataNasc']||row['DataNascimento']||'', gender:row['G\u00e9nero']||row['gender']||row['Genero']||'',
         grade:row['Ano']||row['grade']||'', teacherName:row['Prof./a']||row['teacherName']||'',
         subject:row['Disciplina']||row['subject']||'',
         INI:+row['INI']||0, MUD:+row['MUD']||0, CE:+row['CE']||0, INC:+row['INC']||0,
