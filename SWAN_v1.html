@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SWAN Rating Scale — Psicologia Pediátrica</title>
+<title>SWAN Rating Scale -- Psicologia Pediátrica</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Serif+Display&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
@@ -131,7 +131,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--gray);color:var(--text);m
   if(location.protocol==='file:'){
     var banner=document.createElement('div');
     banner.style.cssText='background:#C0392B;color:white;text-align:center;padding:10px 20px;font-size:0.85rem;font-family:DM Sans,sans-serif;font-weight:600;position:sticky;top:0;z-index:9999;';
-    banner.innerHTML='&#9888; Ficheiro aberto localmente — os dados NÃO serão enviados para o servidor. Use o link GitHub Pages.';
+    banner.innerHTML='&#9888; Ficheiro aberto localmente -- os dados NÃO serão enviados para o servidor. Use o link GitHub Pages.';
     document.body.insertBefore(banner,document.body.firstChild);
   }
 })();
@@ -154,7 +154,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--gray);color:var(--text);m
   <div class="card landing-card">
     <div class="landing-icon">🧠</div>
     <div class="landing-title">SWAN Rating Scale</div>
-    <div class="landing-sub">Avaliação de Pontos Fortes e Dificuldades — PHDA<br>Swanson et al., 2000 &middot; Versão PT: Moura, 2006</div>
+    <div class="landing-sub">Avaliação de Pontos Fortes e Dificuldades -- PHDA<br>Swanson et al., 2000 &middot; Versão PT: Moura, 2006</div>
     <div class="landing-btns">
       <div class="landing-btn" onclick="showPage('page-questionario')">
         <div class="landing-btn-icon">📋</div>
@@ -226,7 +226,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--gray);color:var(--text);m
     <div class="form-row">
       <label>Quem preenche este questionário?</label>
       <select id="relacao" class="form-select">
-        <option value="">— Selecione —</option>
+        <option value="">-- Selecione --</option>
         <option value="Mãe">Mãe</option>
         <option value="Pai">Pai</option>
         <option value="Encarregado de Educação">Encarregado de Educação</option>
@@ -302,7 +302,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--gray);color:var(--text);m
 
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
     <div>
-      <div style="font-family:'DM Serif Display',serif;font-size:1.4rem;color:var(--blue);">Painel Clínico — SWAN</div>
+      <div style="font-family:'DM Serif Display',serif;font-size:1.4rem;color:var(--blue);">Painel Clínico -- SWAN</div>
       <div style="font-size:0.8rem;color:var(--text-light);">Ricardina Correia &middot; Psicologia Pediátrica &middot; Cédula 8233</div>
     </div>
     <button class="btn btn-ghost no-print" style="background:var(--blue-pale);color:var(--blue);" onclick="showPage('page-home')">&#8592; Sair</button>
@@ -353,7 +353,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--gray);color:var(--text);m
 
 <script>
 // ============================================================
-// SWAN RATING SCALE v2 — SCRIPT COMPLETO
+// SWAN RATING SCALE v2 -- SCRIPT COMPLETO
 // Correcção principal: carregarDados usa ?instrumento=SWAN
 // e extrai data.rows antes de data[SHEET_NAME]
 // ============================================================
@@ -617,7 +617,7 @@ function downloadCSVFallback(payload, answers) {
   URL.revokeObjectURL(url);
 }
 
-// ── Painel Clínico — FUNÇÃO CORRIGIDA ─────────────────────
+// ── Painel Clínico -- FUNÇÃO CORRIGIDA ─────────────────────
 // Alteração 1: usa ?instrumento=SWAN (em vez de ?sheet=SWAN)
 // Alteração 2: verifica data.rows ANTES de data[SHEET_NAME]
 function carregarDados() {
@@ -693,10 +693,10 @@ function renderTabela(dados) {
     var f = getField(row);
     var clClass = f.cl === 'Clínico' ? 'badge-red' : f.cl === 'Borderline' ? 'badge-orange' : 'badge-green';
     html += '<tr>';
-    html += '<td>' + (f.data||'—') + '</td>';
-    html += '<td><strong>' + (f.patientCode||'—') + '</strong></td>';
-    html += '<td>' + (f.nomeCrianca||'—') + '</td>';
-    html += '<td>' + (f.informante||'—') + '</td>';
+    html += '<td>' + (f.data||'--') + '</td>';
+    html += '<td><strong>' + (f.patientCode||'--') + '</strong></td>';
+    html += '<td>' + (f.nomeCrianca||'--') + '</td>';
+    html += '<td>' + (f.informante||'--') + '</td>';
     html += '<td style="text-align:center;">' + f.scoreD.toFixed(2) + '</td>';
     html += '<td style="text-align:center;">' + f.scoreH.toFixed(2) + '</td>';
     html += '<td style="text-align:center;font-weight:600;">' + f.scoreT.toFixed(2) + '</td>';
@@ -747,7 +747,7 @@ function gerarInterpretacao(scoreD, scoreH, scoreT, cl) {
     '<p style="margin-bottom:' + (perfil?'8px':'0') + ';">' + txtH + '</p>' +
     (perfil ? '<p style="margin-bottom:0;padding-top:8px;border-top:1px solid var(--blue-pale);">' + perfil + '</p>' : '') +
     '</div>' +
-    '<p style="font-size:0.72rem;color:var(--text-light);margin-top:8px;"><em>⚠️ Corte clínico: média ≥ 1.65 (~percentil 95). Swanson et al., 2000; Moura, 2006. Interpretação automática — integrar no contexto clínico completo.</em></p>';
+    '<p style="font-size:0.72rem;color:var(--text-light);margin-top:8px;"><em>⚠️ Corte clínico: média ≥ 1.65 (~percentil 95). Swanson et al., 2000; Moura, 2006. Interpretação automática -- integrar no contexto clínico completo.</em></p>';
 }
 
 function buildItens(grupo, answers) {
@@ -758,11 +758,11 @@ function buildItens(grupo, answers) {
     ESCALA_LABELS.forEach(function(op){ if (op.valor === val) label = op.label; });
     var pct = isNaN(val) ? 0 : ((val + 3) / 6) * 100;
     var cor = isNaN(val) ? '#aaa' : corScore(val);
-    var valStr = isNaN(val) ? '—' : (val > 0 ? '+' : '') + val.toFixed(0);
+    var valStr = isNaN(val) ? '--' : (val > 0 ? '+' : '') + val.toFixed(0);
     h += '<div style="font-size:0.78rem;">';
     h += '<div style="display:flex;justify-content:space-between;margin-bottom:3px;">';
     h += '<span style="color:var(--text-light);flex:1;">' + item.id + '. ' + item.texto + '</span>';
-    h += '<span style="font-weight:700;color:' + cor + ';white-space:nowrap;margin-left:12px;min-width:80px;text-align:right;">' + valStr + (label ? ' · ' + label : '') + '</span>';
+    h += '<span style="font-weight:700;color:' + cor + ';white-space:nowrap;margin-left:12px;min-width:80px;text-align:right;">' + valStr + (label ? ' . ' + label : '') + '</span>';
     h += '</div>';
     h += '<div style="height:6px;background:#EBF2F8;border-radius:4px;">';
     h += '<div style="height:100%;width:' + pct.toFixed(1) + '%;background:' + cor + ';border-radius:4px;"></div>';
@@ -779,10 +779,10 @@ function printModal() {
   var f = getField(row);
   var answers = String(f.answers || '').split('|');
 
-  // Gauge SVG estático — substitui Canvas para impressão
+  // Gauge SVG estático -- substitui Canvas para impressão
   function gaugeSVG(score) {
     var pct  = Math.max(0, Math.min(1, (score + 3) / 6));
-    var ang  = -180 + pct * 180; // de -180° a 0°
+    var ang  = -180 + pct * 180; // de -180 a 0 graus
     var rad  = ang * Math.PI / 180;
     var cx = 90, cy = 80, r = 60;
     var ex  = cx + r * Math.cos(rad);
@@ -800,7 +800,7 @@ function printModal() {
       // linha de corte clínico
       '<line x1="' + (cx + (r-12)*Math.cos(cutA)).toFixed(1) + '" y1="' + (cy + (r-12)*Math.sin(cutA)).toFixed(1) + '" x2="' + (cx + (r+4)*Math.cos(cutA)).toFixed(1) + '" y2="' + (cy + (r+4)*Math.sin(cutA)).toFixed(1) + '" stroke="#C0392B" stroke-width="2.5"/>' +
       // labels -3 e +3
-      '<text x="' + (cx-r-8) + '" y="' + (cy+14) + '" font-size="9" fill="#aaa" text-anchor="middle">−3</text>' +
+      '<text x="' + (cx-r-8) + '" y="' + (cy+14) + '" font-size="9" fill="#aaa" text-anchor="middle">-3</text>' +
       '<text x="' + (cx+r+8) + '" y="' + (cy+14) + '" font-size="9" fill="#aaa" text-anchor="middle">+3</text>' +
       // agulha
       '<line x1="' + cx + '" y1="' + cy + '" x2="' + ex.toFixed(1) + '" y2="' + ey.toFixed(1) + '" stroke="#2C3E50" stroke-width="2.5" stroke-linecap="round"/>' +
@@ -815,19 +815,19 @@ function printModal() {
   function barPct(s) { return Math.max(2, ((s+3)/6*100)).toFixed(1); }
   var cutPct = (((-1.65+3)/6)*100).toFixed(1);
 
-  // Itens para impressão (sem barras — só texto)
+  // Itens para impressão (sem barras -- só texto)
   function itensHTML(grupo) {
     var rows = SWAN_ITEMS.filter(function(it){ return it.grupo === grupo; }).map(function(item) {
       var val = parseFloat(answers[item.id - 1]);
       var label = '';
       ESCALA_LABELS.forEach(function(op){ if(op.valor === val) label = op.label; });
-      var valStr = isNaN(val) ? '—' : (val > 0 ? '+' : '') + val.toFixed(0);
+      var valStr = isNaN(val) ? '--' : (val > 0 ? '+' : '') + val.toFixed(0);
       var cor = isNaN(val) ? '#aaa' : corScore(val);
       var bg  = val <= -1.65 ? '#FDECEA' : val <= -1.0 ? '#FEF9EC' : '#F0F7FF';
       return '<tr style="background:' + bg + ';">' +
         '<td style="padding:3px 6px;font-size:9px;color:#8a99a8;text-align:center;width:20px;">' + item.id + '</td>' +
         '<td style="padding:3px 6px;font-size:9px;">' + item.texto + '</td>' +
-        '<td style="padding:3px 8px;font-size:9px;font-weight:700;color:' + cor + ';text-align:right;white-space:nowrap;">' + valStr + (label?' · '+label:'') + '</td>' +
+        '<td style="padding:3px 8px;font-size:9px;font-weight:700;color:' + cor + ';text-align:right;white-space:nowrap;">' + valStr + (label?' . '+label:'') + '</td>' +
         '</tr>';
     }).join('');
     return '<table style="width:100%;border-collapse:collapse;">' +
@@ -836,12 +836,12 @@ function printModal() {
       '</th></tr></thead><tbody>' + rows + '</tbody></table>';
   }
 
-  // Interpretação — extrair texto sem HTML tags para impressão limpa
+  // Interpretação -- extrair texto sem HTML tags para impressão limpa
   var interp = gerarInterpretacao(f.scoreD, f.scoreH, f.scoreT, f.cl);
 
-  var dt = f.data || '—';
+  var dt = f.data || '--';
   var html = '<!DOCTYPE html><html><head><meta charset="UTF-8">' +
-    '<title>SWAN — ' + (f.patientCode||'') + '</title>' +
+    '<title>SWAN -- ' + (f.patientCode||'') + '</title>' +
     '<style>' +
     'body{font-family:Arial,sans-serif;font-size:11px;color:#2C3E50;padding:28px 36px;max-width:900px;margin:0 auto;-webkit-print-color-adjust:exact;print-color-adjust:exact;}' +
     'h1{font-size:15px;color:#3B5A7A;margin-bottom:2px;}' +
@@ -866,15 +866,15 @@ function printModal() {
 
     // Cabeçalho
     '<div style="display:flex;justify-content:space-between;align-items:flex-end;border-bottom:2px solid #3B5A7A;padding-bottom:8px;margin-bottom:14px;">' +
-      '<div><h1>SWAN Rating Scale</h1><div style="font-size:9px;color:#5B7FA6;">Swanson et al., 2000 · Versão PT Moura, 2006 · 18 itens</div></div>' +
-      '<div style="font-size:9px;color:#5B7FA6;text-align:right;">Ricardina Correia · Cédula 8233<br>Psicologia Pediátrica</div>' +
+      '<div><h1>SWAN Rating Scale</h1><div style="font-size:9px;color:#5B7FA6;">Swanson et al., 2000 . Versão PT Moura, 2006 . 18 itens</div></div>' +
+      '<div style="font-size:9px;color:#5B7FA6;text-align:right;">Ricardina Correia . Cédula 8233<br>Psicologia Pediátrica</div>' +
     '</div>' +
 
     // Info
     '<div class="info-grid">' +
-      '<div class="info-block"><span class="info-lbl">Código</span><span class="info-val">' + (f.patientCode||'—') + '</span></div>' +
-      '<div class="info-block"><span class="info-lbl">Nome da criança</span><span class="info-val">' + (f.nomeCrianca||'—') + '</span></div>' +
-      '<div class="info-block"><span class="info-lbl">Informante</span><span class="info-val">' + (f.informante||'—') + (f.relacao?' ('+f.relacao+')':'') + '</span></div>' +
+      '<div class="info-block"><span class="info-lbl">Código</span><span class="info-val">' + (f.patientCode||'--') + '</span></div>' +
+      '<div class="info-block"><span class="info-lbl">Nome da criança</span><span class="info-val">' + (f.nomeCrianca||'--') + '</span></div>' +
+      '<div class="info-block"><span class="info-lbl">Informante</span><span class="info-val">' + (f.informante||'--') + (f.relacao?' ('+f.relacao+')':'') + '</span></div>' +
       '<div class="info-block"><span class="info-lbl">Data</span><span class="info-val">' + dt + '</span></div>' +
       '<div class="info-block" style="grid-column:span 2;"><span class="info-lbl">Classificação global</span><span class="info-val" style="color:' + corScore(f.scoreT) + ';">' + f.cl + '</span></div>' +
     '</div>' +
@@ -894,7 +894,7 @@ function printModal() {
       '<div class="bar-wrap"><div class="bar-fill" style="width:' + barPct(f.scoreD) + '%;background:' + corScore(f.scoreD) + ';"></div><div class="bar-cut" style="left:' + cutPct + '%;"></div></div>' +
       '<div style="display:flex;justify-content:space-between;font-size:10px;margin-bottom:2px;"><span>Hiperatividade-Impulsividade</span><span style="font-weight:700;color:' + corScore(f.scoreH) + ';">' + (f.scoreH>=0?'+':'') + f.scoreH.toFixed(2) + '</span></div>' +
       '<div class="bar-wrap"><div class="bar-fill" style="width:' + barPct(f.scoreH) + '%;background:' + corScore(f.scoreH) + ';"></div><div class="bar-cut" style="left:' + cutPct + '%;"></div></div>' +
-      '<div style="font-size:8px;color:#8a99a8;">│ linha vermelha = corte clínico (−1.65 · percentil 5)</div>' +
+      '<div style="font-size:8px;color:#8a99a8;">│ linha vermelha = corte clínico (-1.65 . percentil 5)</div>' +
     '</div>' +
 
     // Interpretação
@@ -908,7 +908,7 @@ function printModal() {
       '<div>' + itensHTML('hiper') + '</div>' +
     '</div>' +
 
-    '<div class="footer">Documento confidencial — uso clínico exclusivo · Ricardina Correia · Psicologia Pediátrica · Cédula 8233 · Ordem dos Psicólogos Portugueses</div>' +
+    '<div class="footer">Documento confidencial -- uso clínico exclusivo . Ricardina Correia . Psicologia Pediátrica . Cédula 8233 . Ordem dos Psicólogos Portugueses</div>' +
     '</body></html>';
 
   var pw = window.open('','_blank','width=860,height=720');
@@ -927,9 +927,9 @@ function exportarRespostasPDF_SWAN(idx) {
   var linhasHTML = '';
   SWAN_ITEMS.forEach(function(item, i) {
     var val = parseFloat(answers[i]);
-    var label = '—';
+    var label = '--';
     ESCALA_LABELS.forEach(function(op){ if (op.valor === val) label = op.label; });
-    var valStr = isNaN(val) ? '—' : (val > 0 ? '+' : '') + val.toFixed(0);
+    var valStr = isNaN(val) ? '--' : (val > 0 ? '+' : '') + val.toFixed(0);
     var grupo = item.grupo === 'desatencao' ? 'Desatenção' : 'Hiperatividade-Impulsividade';
     linhasHTML += '<tr><td style="padding:4px 8px;border-bottom:1px solid #eee;text-align:center;color:#6B7A8D">' + item.id + '</td>' +
       '<td style="padding:4px 8px;border-bottom:1px solid #eee;font-size:11px;color:#6B7A8D">' + grupo + '</td>' +
@@ -943,12 +943,12 @@ function exportarRespostasPDF_SWAN(idx) {
     'table{width:100%;border-collapse:collapse} th{background:#D6E4F0;padding:6px 8px;text-align:left;color:#3B5A7A}' +
     '.np{margin-bottom:16px} @media print{.np{display:none}}</style></head><body>' +
     '<div class="np"><button onclick="window.print()" style="padding:8px 16px;background:#3B5A7A;color:white;border:none;border-radius:6px;cursor:pointer">🖨 Imprimir</button></div>' +
-    '<h1>SWAN — Respostas por Item</h1>' +
-    '<p style="color:#6B7A8D;font-size:11px">Código: <strong>' + (f.patientCode||'—') + '</strong> · Data: <strong>' + (f.data||'—') + '</strong> · Respondente: <strong>' + (f.informante||'—') + '</strong> (' + (f.relacao||'—') + ')<br>Ricardina Correia · Cédula 8233 · Psicologia Pediátrica</p>' +
+    '<h1>SWAN -- Respostas por Item</h1>' +
+    '<p style="color:#6B7A8D;font-size:11px">Código: <strong>' + (f.patientCode||'--') + '</strong> . Data: <strong>' + (f.data||'--') + '</strong> . Respondente: <strong>' + (f.informante||'--') + '</strong> (' + (f.relacao||'--') + ')<br>Ricardina Correia . Cédula 8233 . Psicologia Pediátrica</p>' +
     '<h2>Scores</h2>' +
     '<table><tr style="background:#D6E4F0"><th>Subescala</th><th>Score Médio</th><th>Zona</th></tr>' +
     '<tr><td>Desatenção</td><td><strong>' + f.scoreD.toFixed(3) + '</strong></td><td>' + f.cl + '</td></tr>' +
-    '<tr><td>Hiperatividade-Impulsividade</td><td><strong>' + f.scoreH.toFixed(3) + '</strong></td><td>—</td></tr>' +
+    '<tr><td>Hiperatividade-Impulsividade</td><td><strong>' + f.scoreH.toFixed(3) + '</strong></td><td>--</td></tr>' +
     '<tr><td><strong>Total</strong></td><td><strong>' + f.scoreT.toFixed(3) + '</strong></td><td><strong>' + f.cl + '</strong></td></tr></table>' +
     '<h2>Respostas por Item</h2>' +
     '<table><thead><tr><th>#</th><th>Subescala</th><th>Item</th><th>Valor</th><th>Rótulo</th></tr></thead>' +
@@ -988,7 +988,7 @@ function verDetalhe(idx) {
       '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;">' +
         '<div>' +
           '<div class="serif" style="font-size:1.4rem;color:var(--blue);">Relatório SWAN</div>' +
-          '<div style="font-size:0.8rem;color:var(--text-light);">Ricardina Correia · Psicologia Pediátrica · Cédula n.º 8233</div>' +
+          '<div style="font-size:0.8rem;color:var(--text-light);">Ricardina Correia . Psicologia Pediátrica . Cédula n.. 8233</div>' +
         '</div>' +
         '<div style="display:flex;gap:8px;align-items:center">' +
           '<button onclick="exportarRespostasPDF_SWAN(' + idx + ')" style="background:var(--blue-pale);color:var(--blue);border:none;border-radius:8px;padding:6px 14px;cursor:pointer;font-weight:600;font-size:0.82rem">📋 Respostas PDF</button>' +
@@ -997,10 +997,10 @@ function verDetalhe(idx) {
       '</div>' +
       // Info
       '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px;">' +
-        '<div class="info-block"><span class="info-lbl">Código</span><span class="info-val">' + (f.patientCode||'—') + '</span></div>' +
-        '<div class="info-block"><span class="info-lbl">Nome da criança</span><span class="info-val">' + (f.nomeCrianca||'—') + '</span></div>' +
-        '<div class="info-block"><span class="info-lbl">Informante</span><span class="info-val">' + (f.informante||'—') + (f.relacao ? ' ('+f.relacao+')' : '') + '</span></div>' +
-        '<div class="info-block"><span class="info-lbl">Data</span><span class="info-val">' + (f.data||'—') + '</span></div>' +
+        '<div class="info-block"><span class="info-lbl">Código</span><span class="info-val">' + (f.patientCode||'--') + '</span></div>' +
+        '<div class="info-block"><span class="info-lbl">Nome da criança</span><span class="info-val">' + (f.nomeCrianca||'--') + '</span></div>' +
+        '<div class="info-block"><span class="info-lbl">Informante</span><span class="info-val">' + (f.informante||'--') + (f.relacao ? ' ('+f.relacao+')' : '') + '</span></div>' +
+        '<div class="info-block"><span class="info-lbl">Data</span><span class="info-val">' + (f.data||'--') + '</span></div>' +
         '<div class="info-block" style="grid-column:span 2;"><span class="info-lbl">Classificação global</span><span class="info-val"><span class="badge ' + clClass + '" style="font-size:0.85rem;padding:3px 12px;">' + f.cl + '</span></span></div>' +
       '</div>' +
       // Gauges
@@ -1035,7 +1035,7 @@ function verDetalhe(idx) {
             '<div style="position:absolute;left:' + cutPct + '%;top:-4px;bottom:-4px;width:2px;background:var(--red);border-radius:2px;"></div>' +
           '</div>' +
         '</div>' +
-        '<div style="margin-top:6px;font-size:0.72rem;color:var(--text-light);">│ linha vermelha = corte clínico (−1.65 · percentil 5)</div>' +
+        '<div style="margin-top:6px;font-size:0.72rem;color:var(--text-light);">│ linha vermelha = corte clínico (-1.65 . percentil 5)</div>' +
       '</div>' +
       // Interpretação
       gerarInterpretacao(f.scoreD, f.scoreH, f.scoreT, f.cl) +
@@ -1102,7 +1102,7 @@ function desenharGauge(canvasId, score) {
     ctx.beginPath(); ctx.arc(cx,cy,r,s2a(f.from),s2a(f.to));
     ctx.lineWidth=18; ctx.strokeStyle=f.cor; ctx.stroke();
   });
-  [[-3,'−3'],[0,'0'],[3,'+3']].forEach(function(m){
+  [[-3,'-3'],[0,'0'],[3,'+3']].forEach(function(m){
     var ang=s2a(m[0]);
     ctx.fillStyle='#6B7A8D'; ctx.font='500 10px DM Sans,sans-serif';
     ctx.textAlign='center'; ctx.textBaseline='middle';
