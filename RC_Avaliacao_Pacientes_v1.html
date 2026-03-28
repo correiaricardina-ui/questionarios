@@ -1158,6 +1158,11 @@ function renderAssignments(patientId) {
               if(!assignments[idx].sentAt) assignments[idx].sentAt = new Date().toISOString();
               assignments[idx].receivedAt = new Date().toISOString();
               changed = true;
+            } else if(assignments[idx].status === 'received' && assignments[idx].fromSheet !== true) {
+              // Corrigir estado errado — Sheet não confirma este respondente
+              assignments[idx].status = 'sent';
+              delete assignments[idx].receivedAt;
+              changed = true;
             }
           }
         });
