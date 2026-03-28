@@ -1303,10 +1303,11 @@ async function syncFromSheets() {
   try {
     const res = await fetch(CBCL_SCRIPT_URL + '?instrumento=CBCL_618&t=' + Date.now());
     const data = await res.json();
-    if (!Array.isArray(data)) return;
+    const data2 = Array.isArray(data) ? data : (data && data.rows ? data.rows : []);
+    if (!data2.length) return;
     const all = load(STORE_KEY) || [];
     let changed = false;
-    for (const row of data) {
+    for (const row of data2) {
       const code = row['Código'] || row['codigo'];
       if (!code) continue;
       if (!all.find(s => s.patientCode===code)) {
