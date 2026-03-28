@@ -1369,7 +1369,7 @@ function carregarDados(){
   fetch(SCRIPT_URL+'?instrumento='+NOME_ABA+'&t='+Date.now())
     .then(function(r){ return r.json(); })
     .then(function(data){
-      var rows=data.data||data||[];
+      var rows=Array.isArray(data)?data:(data&&data.rows?data.rows:(data.data||[]));
       // Fundir com sessões locais
       var local=(window._clinico_sessions&&window._clinico_sessions[SYNC_KEY])||[];
       local.forEach(function(l){
