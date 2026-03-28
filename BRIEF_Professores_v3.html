@@ -240,7 +240,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--gray);color:var(--text);m
       <div class="form-row">
         <div class="form-field">
           <label>Nome do/a professor/a que preenche</label>
-          <input type="text" id="teacher-name" class="form-input" placeholder="Nome completo">
+          <input type="text" id="nome_informante" class="form-input" placeholder="Nome completo" oninput="var hv=document.getElementById('h-nome-preenche-hidden'); if(hv) hv.value=this.value;">
         </div>
         <div class="form-field">
           <label>Disciplina / Área</label>
@@ -952,6 +952,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--gray);color:var(--text);m
       <button class="btn btn-secondary" style="padding:6px 14px;font-size:0.82rem;" onclick="exportarCSV()">&#8681; Exportar CSV</button>
       <button class="btn btn-secondary" style="padding:6px 14px;font-size:0.82rem;" onclick="exportarPDF()">&#128196; Exportar PDF</button>
       <button class="btn btn-secondary" style="padding:6px 14px;font-size:0.82rem;" onclick="window.print()">&#128424; Imprimir</button>
+      <button class="btn btn-secondary" style="padding:6px 14px;font-size:0.82rem;" onclick="exportarRespostasPDF(sessaoActual)">&#128203; Respostas PDF</button>
+      <button class="btn btn-secondary" style="padding:6px 14px;font-size:0.82rem;" onclick="exportarInterpretacaoPDF(sessaoActual)">&#128202; Exportar Interpreta&#231;&#227;o PDF</button>
       <input type="file" id="import-file-input" accept=".csv,.xlsx,.xls" style="display:none" onchange="processarFicheiroImportado(this)">
     </div>
     <div id="import-feedback" style="margin-bottom:12px;display:none;"></div>
@@ -1544,6 +1546,10 @@ function validarSecao(num, para) {
       alert('C\u00f3digo inv\u00e1lido.\n\nDevem ser 2 ou 3 iniciais + data de nascimento (DDMMAAAA).\nExemplo: MV14062013 ou DDL25072014\n\nVerifique o c\u00f3digo fornecido pela psi\u00f3loga.');
       return false;
     }
+    var cn = document.getElementById('child-name').value.trim();
+    if (!cn) { alert('Por favor indique o nome da crian\u00e7a.'); return false; }
+    var tn = document.getElementById('nome_informante').value.trim();
+    if (!tn) { alert('Por favor indique o nome do/a professor/a.'); return false; }
     return true;
   }
   if (num === 2 && para === 3) {
@@ -1677,6 +1683,7 @@ function submeterQuestionario() {
     gender: gender,
     grade: grade,
     teacherName: teacherName,
+    nome_preenche: teacherName,
     subject: subject,
     INI: scores.INI,
     MUD: scores.MUD,
@@ -1810,8 +1817,10 @@ function esc(v) {
 // ═══════════════════════════════════════════════
 // MODAL DE DETALHE
 // ═══════════════════════════════════════════════
+var sessaoActual = null;
 function verDetalhe(idx) {
   var row = (window._clinico_sessions || [])[idx];
+  sessaoActual = row;
   if (!row) return;
   var answers = (row.answers||'').split('|').map(function(v){return parseInt(v)||1;});
 
@@ -2073,6 +2082,122 @@ document.addEventListener('DOMContentLoaded', function(){
   var fd = document.getElementById('fill-date');
   if (fd && !fd.value) fd.value = today;
 });
+
+function voltarParaIdentificacao() {
+  [2,3].forEach(function(i){
+    var s=document.getElementById('section-'+i); if(s) s.style.display='none';
+  });
+  document.getElementById('section-1').style.display='block';
+  [1,2,3].forEach(function(i){
+    var el=document.getElementById('step'+i); if(!el) return;
+    el.classList.remove('active','done');
+    if(i===1) el.classList.add('active');
+  });
+  window.scrollTo(0,0);
+}
+
+function exportarRespostasPDF(sessao) {
+  if (!sessao) { alert('Seleccione primeiro uma sess\u00e3o (clique em "Ver \u2192").'); return; }
+  var answers = (sessao.answers||'').split('|');
+  var scaleMap = {
+    INI:[9,38,42,43,45,47,57,58,59,69], MUD:[4,5,6,13,14,24,30,40,53,62],
+    CE:[1,7,26,27,48,51,64,66,72],      INC:[3,10,19,34,50,63,70],
+    MT:[2,8,18,21,25,28,31,32,39,60],   PO:[12,17,23,29,35,37,41,49,52,56],
+    OM:[11,16,20,67,68,71,73],           MON:[15,22,33,36,44,46,54,55,61,65]
+  };
+  var itemScale = {};
+  Object.keys(scaleMap).forEach(function(sc){ scaleMap[sc].forEach(function(n){ itemScale[n]=sc; }); });
+  var linhas = answers.map(function(r,i) {
+    var n=i+1;
+    return '<tr><td style="padding:3px 8px;border-bottom:1px solid #eee;color:#999;text-align:center;width:30px;">'+n+'</td>' +
+      '<td style="padding:3px 8px;border-bottom:1px solid #eee;color:#5B7FA6;font-size:10px;width:40px;">'+(itemScale[n]||'')+'</td>' +
+      '<td style="padding:3px 8px;border-bottom:1px solid #eee;font-size:11px;">Item '+n+'</td>' +
+      '<td style="padding:3px 8px;border-bottom:1px solid #eee;text-align:center;font-weight:700;width:40px;">'+(r||'\u2014')+'</td></tr>';
+  }).join('');
+  var dt = sessao.date || '\u2014';
+  var html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Respostas</title>' +
+    '<style>body{font-family:Arial,sans-serif;font-size:12px;padding:24px;max-width:900px;margin:0 auto;}' +
+    'h1{color:#3B5A7A;font-size:15px;}p{color:#6B7A8D;font-size:11px;margin-bottom:12px;}' +
+    'table{width:100%;border-collapse:collapse;}th{background:#D6E4F0;padding:5px 8px;text-align:left;color:#3B5A7A;font-size:11px;}' +
+    '.np{margin-bottom:14px;}@media print{.np{display:none;}}</style></head><body>' +
+    '<div class="np"><button onclick="window.print()" style="padding:5px 12px;cursor:pointer;">&#128424; Imprimir</button></div>' +
+    '<h1>BRIEF-2 Professores \u2014 Respostas por Item</h1>' +
+    '<p>C\u00f3digo: <strong>'+(sessao.patientCode||'')+'</strong>' +
+    (sessao.childName?' &nbsp;|&nbsp; Crian\u00e7a: <strong>'+sessao.childName+'</strong>':'') +
+    (sessao.teacherName?' &nbsp;|&nbsp; Professor/a: <strong>'+sessao.teacherName+'</strong>':'') +
+    ' &nbsp;|&nbsp; Data: '+dt+' &nbsp;|&nbsp; Ricardina Correia \u00b7 C\u00e9dula 8233</p>' +
+    '<table><thead><tr><th style="text-align:center">#</th><th>Escala</th><th>Item</th><th style="text-align:center">Resp.</th></tr></thead>' +
+    '<tbody>'+linhas+'</tbody></table>' +
+    '<p style="margin-top:14px;font-size:10px;color:#999;">1=N &nbsp;|&nbsp; 2=AV &nbsp;|&nbsp; 3=F</p>' +
+    '</body></html>';
+  var w=window.open('','_blank');
+  if(!w){alert('Pop-up bloqueado.');return;}
+  w.document.write(html);w.document.close();
+}
+
+function exportarInterpretacaoPDF(sessao) {
+  if (!sessao) { alert('Seleccione primeiro uma sess\u00e3o (clique em "Ver \u2192").'); return; }
+  var answers = (sessao.answers||'').split('|');
+  var ans = {};
+  answers.forEach(function(v,i){ ans[i+1]=parseInt(v)||1; });
+  var scores = calcularScores(ans);
+
+  var escalasList = [
+    {key:'INI',label:'Inibi\u00e7\u00e3o'},{key:'MUD',label:'Mudan\u00e7a'},
+    {key:'CE',label:'Controlo Emocional'},{key:'INC',label:'Inicia\u00e7\u00e3o'},
+    {key:'MT',label:'Mem\u00f3ria de Trabalho'},{key:'PO',label:'Planifica\u00e7\u00e3o/Org.'},
+    {key:'OM',label:'Organiza\u00e7\u00e3o Mat.'},{key:'MON',label:'Monitoriza\u00e7\u00e3o'}
+  ];
+  var indicesList = [
+    {key:'IRC',label:'IRC \u2014 Regula\u00e7\u00e3o Comportamento'},
+    {key:'IM',label:'IM \u2014 Metacogni\u00e7\u00e3o'},
+    {key:'GEF',label:'GEF \u2014 Global Fun\u00e7\u00f5es Executivas',bold:true}
+  ];
+
+  function row(label, raw, isBold) {
+    var cor='#6B7A8D';
+    return '<tr'+(isBold?' style="background:#EBF2F8;"':'')+'>' +
+      '<td style="padding:5px 8px;border-bottom:1px solid #eee;">'+(isBold?'<strong>'+label+'</strong>':label)+'</td>' +
+      '<td style="padding:5px 8px;border-bottom:1px solid #eee;text-align:center;font-weight:700;">'+(raw!==undefined?raw:'\u2014')+'</td>' +
+      '</tr>';
+  }
+
+  var escRows = escalasList.map(function(e){ return row(e.label, scores[e.key], false); }).join('');
+  var idxRows = indicesList.map(function(e){ return row(e.label, scores[e.key], e.bold||false); }).join('');
+
+  var respRows = answers.map(function(r,i){
+    return '<tr><td style="padding:3px 6px;border-bottom:1px solid #f0f0f0;color:#999;text-align:center;width:30px;">'+(i+1)+'</td>' +
+      '<td style="padding:3px 6px;border-bottom:1px solid #f0f0f0;font-size:10px;">Item '+(i+1)+'</td>' +
+      '<td style="padding:3px 6px;border-bottom:1px solid #f0f0f0;text-align:center;font-weight:700;width:40px;">'+(r||'\u2014')+'</td></tr>';
+  }).join('');
+
+  var dt = sessao.date || '\u2014';
+  var html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Interpreta\u00e7\u00e3o</title>' +
+    '<style>body{font-family:Arial,sans-serif;font-size:12px;padding:24px;max-width:900px;margin:0 auto;}' +
+    'h1{color:#3B5A7A;font-size:15px;}h2{color:#3B5A7A;font-size:12px;margin:14px 0 5px;border-bottom:2px solid #D6E4F0;padding-bottom:3px;}' +
+    'p{color:#6B7A8D;font-size:11px;margin-bottom:12px;}table{width:100%;border-collapse:collapse;margin-bottom:12px;}' +
+    'th{background:#D6E4F0;padding:5px 8px;text-align:left;color:#3B5A7A;font-size:11px;}' +
+    '.np{margin-bottom:14px;}@media print{.np{display:none;}}</style></head><body>' +
+    '<div class="np"><button onclick="window.print()" style="padding:5px 12px;cursor:pointer;">&#128424; Imprimir</button></div>' +
+    '<h1>BRIEF-2 Professores \u2014 Relat\u00f3rio de Avalia\u00e7\u00e3o</h1>' +
+    '<p>C\u00f3digo: <strong>'+(sessao.patientCode||'')+'</strong>' +
+    (sessao.childName?' &nbsp;|&nbsp; Crian\u00e7a: <strong>'+sessao.childName+'</strong>':'') +
+    (sessao.teacherName?' &nbsp;|&nbsp; Professor/a: <strong>'+sessao.teacherName+'</strong>':'') +
+    ' &nbsp;|&nbsp; Data: '+dt+' &nbsp;|&nbsp; Ricardina Correia \u00b7 C\u00e9dula 8233</p>' +
+    '<h2>Escalas Cl\u00ednicas (Scores Brutos)</h2>' +
+    '<table><thead><tr><th>Escala</th><th style="text-align:center">Score</th></tr></thead><tbody>'+escRows+'</tbody></table>' +
+    '<h2>\u00cdndices Compostos</h2>' +
+    '<table><thead><tr><th>\u00cdndice</th><th style="text-align:center">Score</th></tr></thead><tbody>'+idxRows+'</tbody></table>' +
+    '<p style="font-size:10px;color:#888;font-style:italic;">Nota: Este instrumento n\u00e3o inclui tabelas normativas nesta vers\u00e3o. Consultar manual para interpreta\u00e7\u00e3o dos scores brutos.</p>' +
+    '<h2>Respostas por Item</h2>' +
+    '<table><thead><tr><th style="text-align:center">#</th><th>Item</th><th style="text-align:center">Resp.</th></tr></thead><tbody>'+respRows+'</tbody></table>' +
+    '<p style="margin-top:18px;font-style:italic;color:#999;font-size:10px;">Interpreta\u00e7\u00e3o autom\u00e1tica \u2014 integrar no contexto cl\u00ednico completo.</p>' +
+    '</body></html>';
+  var w=window.open('','_blank');
+  if(!w){alert('Pop-up bloqueado.');return;}
+  w.document.write(html);w.document.close();
+}
+
 </script>
 </body>
 </html>
