@@ -1007,6 +1007,13 @@ async function carregarDoSheet() {
             scaleRaws: { I:0, II:0, III:0, IV:0, V:0, VI:0, VII:0, VIII:0 },
             intRaw:0, extRaw:0, totRaw:0
           },
+          answers: (() => {
+            const r = row['Respostas'] || row.answers || '';
+            if(!r) return {};
+            try { return typeof r === 'string' ? JSON.parse(r) : r; } catch(e) { return {}; }
+          })(),
+          mainConcern: row['Preocupacao'] || row.mainConcern || '',
+          strengths:   row['Pontos_Fortes'] || row.strengths || '',
           fromSheet: true
         };
         importados++;
