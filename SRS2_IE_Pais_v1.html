@@ -165,7 +165,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--gray);color:var(--text);m
 
         <div class="form-field">
           <label>Nome do respondente</label>
-          <input type="text" id="nome-respondente" class="form-input" placeholder="Nome do pai/mãe/EE">
+          <input type="text" id="nome_informante" class="form-input" placeholder="Nome do pai/mãe/EE">
         </div>
 
         <div style="margin-top:8px;">
@@ -1227,6 +1227,8 @@ function avancarSecao(para){
     }
     var sexo=document.getElementById('sexo-crianca').value;
     if(!sexo){ alert('Por favor selecione o sexo da criança.'); return; }
+    var ni=document.getElementById('nome_informante').value.trim();
+    if(!ni){ alert('Por favor indique o nome do respondente.'); return; }
     document.getElementById('section-0').style.display='none';
     document.getElementById('quest-progress').style.display='block';
   } else {
@@ -1299,7 +1301,7 @@ function submeter(){
   var code=document.getElementById('patient-code').value.trim().toUpperCase();
   var sexo=document.getElementById('sexo-crianca').value;
   var idade=document.getElementById('idade-crianca').value||'';
-  var respondente=document.getElementById('nome-respondente').value.trim();
+  var respondente=document.getElementById('nome_informante').value.trim();
   var btn=document.getElementById('btn-submeter');
   if(btn){ btn.disabled=true; btn.textContent='A enviar...'; }
 
@@ -1317,6 +1319,8 @@ function submeter(){
     patientCode: code,
       nomeCrianca: (document.getElementById('nome-crianca')||{value:''}).value.trim(),
     respondente: respondente,
+    nome_informante: respondente,
+    nome_preenche: respondente,
     sexo:        sexo,
     idade:       idade,
     respostas:   cotar.respostas.join('|'),
@@ -1674,6 +1678,8 @@ function exportarInterpretacaoPDF(sessao){
 
 
 // ── Init ──────────────────────────────────────────────────────
+function voltarParaIdentificacao() { avancarSecao(0); }
+
 document.addEventListener('DOMContentLoaded', function(){
   showPage('page-home');
 });
