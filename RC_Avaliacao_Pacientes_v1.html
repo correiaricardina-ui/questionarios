@@ -786,10 +786,19 @@ function initCatalog() {
   let catalogChanged = false;
   defaults.forEach(function(q) {
     // Forçar sempre actualização dos metadados do catálogo central
-    // (garante que name, dest, domains, ageRange, ageMin/ageMax estão sempre correctos)
-    // Seguro: não afecta assignments, pacientes nem o catálogo
     store.set(q.id, q);
-    if (!catalog.includes(q.id)) { catalog.push(q.id); catalogChanged = true; }
+    // Remover variantes antigas do mesmo id (sem prefixo 'q_') para evitar duplicados
+    const shortId = q.id.startsWith('q_') ? q.id.slice(2) : null;
+    const hasShort = shortId && catalog.includes(shortId);
+    const hasFull  = catalog.includes(q.id);
+    if (hasShort && !hasFull) {
+      // Catálogo antigo tem 'brief_pais' — substituir pelo id completo 'q_brief_pais'
+      catalog[catalog.indexOf(shortId)] = q.id;
+      catalogChanged = true;
+    } else if (!hasFull) {
+      catalog.push(q.id);
+      catalogChanged = true;
+    }
   });
   if (existing.length === 0 || catalogChanged) store.set('catalog', catalog);
 
@@ -914,7 +923,10 @@ function initCatalog() {
 
 function getCatalog() {
   const ids = store.get('catalog') || [];
-  return ids.map(id => store.get('q_' + id)).filter(Boolean);
+  return ids.map(id => {
+    // Suporta ids com ou sem prefixo 'q_' (retrocompatibilidade)
+    return store.get(id) || store.get('q_' + id) || null;
+  }).filter(Boolean);
 }
 
 // ═══════════════════════════════════════════════════════
