@@ -614,6 +614,12 @@ const QID_TO_ABA = {
   'q_cbcl_15_v5': 'CBCL_15',
   'q_srs2_pais':  'SRS2_IE_Pais',
   'q_srs2_prof':  'SRS2_IE_Prof',
+  'q_brief_prof': 'BRIEF_Professores',
+  'q_brief_pais': 'BRIEF_Pais',
+  'q_brief_pe_pais': 'BRIEF_PreEscolar_Pais',
+  'q_spas_pais': 'SPAS_Pais',
+  'q_spas_prof': 'SPAS_Prof',
+  'q_qedp': 'QEDP',
   'q_abas3_pais':  'ABAS3_PAIS',
   'q_abas3_prof':  'ABAS3_PROF',
   'q_abas3_adult': 'ABAS3_ADULT',
@@ -653,6 +659,10 @@ const SYNC_KEY_TO_ABA = {
   'qc_pai':            'QC_Coparentalidade',
   'erc_prof':          'ERC_Professores',
   'erc_pais':          'ERC_Pais',
+  'brief_pe_pais': 'BRIEF_PreEscolar_Pais',
+  'spas_pais': 'SPAS_Pais',
+  'spas_prof': 'SPAS_Prof',
+  'qedp': 'QEDP',
   'abas3_pais':  'ABAS3_PAIS',
   'abas3_prof':  'ABAS3_PROF',
   'abas3_adult': 'ABAS3_ADULT',
@@ -720,50 +730,70 @@ async function checkSheetForResponse(qid, patientCode) {
 function initCatalog() {
   const existing = store.get('catalog') || [];
   const defaults = [
-    { id:'q_abas3_pais',  name:'ABAS-3 — Pais/Cuid. (>6)', dest:['Mãe','Pai','Enc. Educação'], link:'https://correiaricardina-ui.github.io/questionarios/ABAS3_Pais_v2.html', syncKey:'abas3_pais', area:'Comportamento Adaptativo', ageRange:'6–21 anos', objective:'Avalia comportamento adaptativo — versão pais/cuidadores (>6 anos)', domains:['CAG','CC','SC','PC'] },
-    { id:'q_abas3_prof',  name:'ABAS-3 — Professor (>6)', dest:['Professor(a)'], link:'https://correiaricardina-ui.github.io/questionarios/ABAS3_Professor_v2.html', syncKey:'abas3_prof', area:'Comportamento Adaptativo', ageRange:'6–21 anos', objective:'Avalia comportamento adaptativo — versão professor (>6 anos)', domains:['CAG','CC','SC','PC'] },
-    { id:'q_abas3_adult', name:'ABAS-3 — Auto-relato', dest:['Paciente'], link:'https://correiaricardina-ui.github.io/questionarios/ABAS3_Autorrelato_v1.html', syncKey:'abas3_adult', area:'Comportamento Adaptativo', ageRange:'16–89 anos', objective:'Avalia comportamento adaptativo — auto-relato (16–89 anos)', domains:['GAC','CC','SC','PC'] },
-    { id:'q_aseba_cbcl', name:'ASEBA — CBCL 6-18',   dest:['Pais','Mãe','Pai','Enc. Educação'], link:'https://correiaricardina-ui.github.io/questionarios/CBCL_618_v1.html',  syncKey:'cbcl',  area:'Comportamento', ageRange:'6–18 anos', objective:'Avaliar problemas emocionais e comportamentais', domains:['Internalizante','Externalizante','Total','Ansiedade/Depressão','Queixas Somáticas','Isolamento','Problemas Sociais','Problemas de Atenção','Comportamento Agressivo','Comportamento de Quebra de Regras'] },
-    { id:'q_aseba_trf',  name:'ASEBA — TRF 6-18',    dest:['Professor(a)'],              link:'https://correiaricardina-ui.github.io/questionarios/TRF_618_v1.html',   syncKey:'trf',   area:'Comportamento', ageRange:'6–18 anos', objective:'Avaliar comportamento em contexto escolar (versão professor)', domains:['Internalizante','Externalizante','Total','Problemas de Atenção','Comportamento Agressivo'] },
-    { id:'q_aseba_ysr',  name:'ASEBA — YSR 11-18',   dest:['Paciente'],                  link:'https://correiaricardina-ui.github.io/questionarios/YSR_1118_v1.html',  syncKey:'ysr',   area:'Comportamento', ageRange:'11–18 anos', objective:'Auto-avaliação de problemas emocionais e comportamentais', domains:['Internalizante','Externalizante','Total','Ansiedade/Depressão','Isolamento','Queixas Somáticas','Problemas Sociais','Problemas de Atenção','Comportamento Agressivo'] },
-    { id:'q_cbcl_15',    name:'ASEBA — CBCL 1½-5',   dest:['Pais','Mãe','Pai','Enc. Educação'], link:'https://correiaricardina-ui.github.io/questionarios/CBCL_15_v3.html',   syncKey:'cbcl15', area:'Comportamento', ageRange:'1½–5 anos', objective:'Avaliar problemas emocionais e comportamentais em idade pré-escolar', domains:['Internalizante','Externalizante','Total','Reatividade Emocional','Ansiedade','Queixas Somáticas','Retraimento','Problemas de Sono','Problemas de Atenção','Comportamento Agressivo'] },
-    { id:'q_tas20',      name:'TAS-20',               dest:['Paciente'],                  link:'https://correiaricardina-ui.github.io/questionarios/TAS20_v7.html',      syncKey:'tas20',  area:'Emocional / Alexitimia', ageRange:'Adultos', objective:'Avaliar alexitimia (dificuldade em identificar e descrever emoções)', domains:['Dificuldade em Identificar Sentimentos (F1)','Dificuldade em Descrever Sentimentos (F2)','Pensamento Orientado para o Exterior (F3)','Total'] },
-    { id:'q_swan',       name:'SWAN',                  dest:['Pais','Mãe','Pai','Enc. Educação','Professor(a)'], link:'https://correiaricardina-ui.github.io/questionarios/SWAN_v1.html', syncKey:'swan', area:'PHDA', ageRange:'6–18 anos', objective:'Avaliar sintomas de PHDA em contexto dimensional', domains:['Desatenção','Hiperatividade-Impulsividade'] },
-    { id:'q_scared_r_crianca', name:'SCARED-R — Criança',    dest:['Paciente'], link:'https://correiaricardina-ui.github.io/questionarios/SCARED_R_Crianca.html', syncKey:'scared_r_crianca', area:'Ansiedade', ageRange:'8–18 anos', objective:'Avaliação de perturbações de ansiedade — versão autorrelato', domains:['Pânico','Ansiedade Generalizada','Separação','Fobia Social','Fobia Específica','Obsessivo-Compulsiva','Stress Pós-Traumático','Total'] },
-    { id:'q_scared_r_pais',    name:'SCARED-R — Pais/Cuid.', dest:['Mãe','Pai','Enc. Educação'], link:'https://correiaricardina-ui.github.io/questionarios/SCARED_R_Pais.html', syncKey:'scared_r_pais', area:'Ansiedade', ageRange:'8–18 anos', objective:'Avaliação de perturbações de ansiedade — versão pais/cuidadores', domains:['Pânico','Ansiedade Generalizada','Separação','Fobia Social','Fobia Específica','Obsessivo-Compulsiva','Stress Pós-Traumático','Total'] },
+    { id:'q_ctrf_15', name:'CTRF-15', dest:['Professor(a)','Educador(a)'], link:'https://correiaricardina-ui.github.io/questionarios/CTRF_15_v2.html', syncKey:'ctrf15', area:'Comportamento', ageRange:'1½–5 anos', objective:'Avalia comportamento em contexto pré-escolar — versão educador', domains:['Score Total'] , ageMin:18, ageMax:71},
+    { id:'q_brief_prof', name:'BRIEF — Professores', dest:['Professor(a)'], link:'https://correiaricardina-ui.github.io/questionarios/BRIEF_Professores_v3.html', syncKey:'brief_professores', area:'Funções Executivas', ageRange:'5–18 anos', objective:'Avalia funções executivas em contexto escolar — versão professor', domains:['INHIB','SHIFT','ECON','WM','PO','ISCI','FI','EMI','GEF'] , ageMin:60, ageMax:215},
+    { id:'q_brief_pais', name:'BRIEF — Pais', dest:['Mãe','Pai','Enc. Educação'], link:'https://correiaricardina-ui.github.io/questionarios/BRIEF_Pais_v5.html', syncKey:'brief_pais', area:'Funções Executivas', ageRange:'5–18 anos', objective:'Avalia funções executivas em casa — versão pais/cuidadores', domains:['INHIB','SHIFT','ECON','WM','PO','ISCI','FI','EMI','GEF'] , ageMin:60, ageMax:215},
+    { id:'q_brief_pe_pais', name:'BRIEF Pré-Escolar — Pais', dest:['Mãe','Pai','Enc. Educação'], link:'https://correiaricardina-ui.github.io/questionarios/BRIEF_PreEscolar_Pais_v2.html', syncKey:'brief_pe_pais', area:'Funções Executivas', ageRange:'2–5 anos', objective:'Avalia funções executivas em contexto pré-escolar — versão pais', domains:['INHIB','SHIFT','ECON','WM','PO','ISCI','FI','EMI','GEF'] , ageMin:24, ageMax:71},
+    { id:'q_srs2_pais', name:'SRS-2 — Pais/Cuid.', dest:['Mãe','Pai','Enc. Educação'], link:'https://correiaricardina-ui.github.io/questionarios/SRS2_IE_Pais_v1.html', syncKey:'srs2_pais', area:'Espectro do Autismo', ageRange:'4–18 anos', objective:'Avalia responsividade social — versão pais/cuidadores', domains:['PERC','COG','COM','MOT','PRR','CIS','Total'] , ageMin:48, ageMax:215},
+    { id:'q_srs2_prof', name:'SRS-2 — Professor', dest:['Professor(a)'], link:'https://correiaricardina-ui.github.io/questionarios/SRS2_IE_Prof_v1.html', syncKey:'srs2_prof', area:'Espectro do Autismo', ageRange:'4–18 anos', objective:'Avalia responsividade social — versão professor', domains:['PERC','COG','COM','MOT','PRR','CIS','Total'] , ageMin:48, ageMax:215},
+    { id:'q_lds', name:'LDS — Desenvolvimento Linguagem', dest:['Mãe','Pai','Enc. Educação'], link:'https://correiaricardina-ui.github.io/questionarios/LDS_v2.html', syncKey:'lds', area:'Linguagem', ageRange:'18–35 meses', objective:'Rastreio do desenvolvimento da linguagem — MacArthur adaptado', domains:['Vocabulário','MLU'] , ageMin:18, ageMax:35},
+    { id:'q_abas3_05', name:'ABAS-3 — Pais/Cuid. (0–5)', dest:['Mãe','Pai','Enc. Educação'], link:'https://correiaricardina-ui.github.io/questionarios/ABAS3_PreEscolar.html', syncKey:'abas3_05', area:'Comportamento Adaptativo', ageRange:'0–5 anos', objective:'Avalia comportamento adaptativo — versão pais (0–5 anos)', domains:['CAG','CC','SC','PC'] , ageMin:0, ageMax:71},
+    { id:'q_abas3_05p', name:'ABAS-3 — Educador (0–5)', dest:['Educador(a)'], link:'https://correiaricardina-ui.github.io/questionarios/ABAS3_PreEscolar_Educador.html', syncKey:'abas3_05p', area:'Comportamento Adaptativo', ageRange:'0–5 anos', objective:'Avalia comportamento adaptativo — versão educador (0–5 anos)', domains:['CAG','CC','SC','PC'] , ageMin:0, ageMax:71},
+    { id:'q_spas_pais', name:'SPAS — Pais', dest:['Mãe','Pai','Enc. Educação'], link:'https://correiaricardina-ui.github.io/questionarios/SPAS_Pais.html', syncKey:'spas_pais', area:'Ansiedade', ageRange:'3–13 anos', objective:'Avalia ansiedade social em crianças — versão pais', domains:['AG','AS','SEP','MDF','POC','Total'] , ageMin:36, ageMax:155},
+    { id:'q_spas_prof', name:'SPAS — Professor', dest:['Professor(a)','Educador(a)'], link:'https://correiaricardina-ui.github.io/questionarios/SPAS_Educador.html', syncKey:'spas_prof', area:'Ansiedade', ageRange:'3–13 anos', objective:'Avalia ansiedade social em crianças — versão professor/educador', domains:['AG','AS','SEP','MDF','POC','Total'] , ageMin:36, ageMax:155},
+    { id:'q_qedp', name:'QEDP', dest:['Mãe','Pai','Enc. Educação'], link:'https://correiaricardina-ui.github.io/questionarios/QEDP_v2.html', syncKey:'qedp', area:'Parentalidade', ageRange:'0–5 anos', objective:'Avalia envolvimento e desenvolvimento parental', domains:['Demandingness','Autonomia','Percepcao'] , ageMin:0, ageMax:71},
+    { id:'q_abas3_pais',  name:'ABAS-3 — Pais/Cuid. (>6)', dest:['Mãe','Pai','Enc. Educação'], link:'https://correiaricardina-ui.github.io/questionarios/ABAS3_Pais_v2.html', syncKey:'abas3_pais', area:'Comportamento Adaptativo', ageRange:'6–21 anos', objective:'Avalia comportamento adaptativo — versão pais/cuidadores (>6 anos)', domains:['CAG','CC','SC','PC'] , ageMin:72, ageMax:251},
+    { id:'q_abas3_prof',  name:'ABAS-3 — Professor (>6)', dest:['Professor(a)'], link:'https://correiaricardina-ui.github.io/questionarios/ABAS3_Professor_v2.html', syncKey:'abas3_prof', area:'Comportamento Adaptativo', ageRange:'6–21 anos', objective:'Avalia comportamento adaptativo — versão professor (>6 anos)', domains:['CAG','CC','SC','PC'] , ageMin:72, ageMax:251},
+    { id:'q_abas3_adult', name:'ABAS-3 — Auto-relato', dest:['Paciente'], link:'https://correiaricardina-ui.github.io/questionarios/ABAS3_Autorrelato_v1.html', syncKey:'abas3_adult', area:'Comportamento Adaptativo', ageRange:'16–89 anos', objective:'Avalia comportamento adaptativo — auto-relato (16–89 anos)', domains:['GAC','CC','SC','PC'] , ageMin:192, ageMax:null},
+    { id:'q_aseba_cbcl', name:'ASEBA — CBCL 6-18',   dest:['Pais','Mãe','Pai','Enc. Educação'], link:'https://correiaricardina-ui.github.io/questionarios/CBCL_618_v1.html',  syncKey:'cbcl',  area:'Comportamento', ageRange:'6–18 anos', objective:'Avaliar problemas emocionais e comportamentais', domains:['Internalizante','Externalizante','Total','Ansiedade/Depressão','Queixas Somáticas','Isolamento','Problemas Sociais','Problemas de Atenção','Comportamento Agressivo','Comportamento de Quebra de Regras'] , ageMin:72, ageMax:215},
+    { id:'q_aseba_trf',  name:'ASEBA — TRF 6-18',    dest:['Professor(a)'],              link:'https://correiaricardina-ui.github.io/questionarios/TRF_618_v1.html',   syncKey:'trf',   area:'Comportamento', ageRange:'6–18 anos', objective:'Avaliar comportamento em contexto escolar (versão professor)', domains:['Internalizante','Externalizante','Total','Problemas de Atenção','Comportamento Agressivo'] , ageMin:72, ageMax:215},
+    { id:'q_aseba_ysr',  name:'ASEBA — YSR 11-18',   dest:['Paciente'],                  link:'https://correiaricardina-ui.github.io/questionarios/YSR_1118_v1.html',  syncKey:'ysr',   area:'Comportamento', ageRange:'11–18 anos', objective:'Auto-avaliação de problemas emocionais e comportamentais', domains:['Internalizante','Externalizante','Total','Ansiedade/Depressão','Isolamento','Queixas Somáticas','Problemas Sociais','Problemas de Atenção','Comportamento Agressivo'] , ageMin:132, ageMax:215},
+    { id:'q_cbcl_15',    name:'ASEBA — CBCL 1½-5',   dest:['Pais','Mãe','Pai','Enc. Educação'], link:'https://correiaricardina-ui.github.io/questionarios/CBCL_15_v3.html',   syncKey:'cbcl15', area:'Comportamento', ageRange:'1½–5 anos', objective:'Avaliar problemas emocionais e comportamentais em idade pré-escolar', domains:['Internalizante','Externalizante','Total','Reatividade Emocional','Ansiedade','Queixas Somáticas','Retraimento','Problemas de Sono','Problemas de Atenção','Comportamento Agressivo'] , ageMin:18, ageMax:71},
+    { id:'q_tas20',      name:'TAS-20',               dest:['Paciente'],                  link:'https://correiaricardina-ui.github.io/questionarios/TAS20_v7.html',      syncKey:'tas20',  area:'Emocional / Alexitimia', ageRange:'Adultos', objective:'Avaliar alexitimia (dificuldade em identificar e descrever emoções)', domains:['Dificuldade em Identificar Sentimentos (F1)','Dificuldade em Descrever Sentimentos (F2)','Pensamento Orientado para o Exterior (F3)','Total'] , ageMin:192, ageMax:null},
+    { id:'q_swan',       name:'SWAN',                  dest:['Pais','Mãe','Pai','Enc. Educação','Professor(a)'], link:'https://correiaricardina-ui.github.io/questionarios/SWAN_v1.html', syncKey:'swan', area:'PHDA', ageRange:'6–18 anos', objective:'Avaliar sintomas de PHDA em contexto dimensional', domains:['Desatenção','Hiperatividade-Impulsividade'] , ageMin:72, ageMax:215},
+    { id:'q_scared_r_crianca', name:'SCARED-R — Criança',    dest:['Paciente'], link:'https://correiaricardina-ui.github.io/questionarios/SCARED_R_Crianca.html', syncKey:'scared_r_crianca', area:'Ansiedade', ageRange:'8–18 anos', objective:'Avaliação de perturbações de ansiedade — versão autorrelato', domains:['Pânico','Ansiedade Generalizada','Separação','Fobia Social','Fobia Específica','Obsessivo-Compulsiva','Stress Pós-Traumático','Total'] , ageMin:96, ageMax:215},
+    { id:'q_scared_r_pais',    name:'SCARED-R — Pais/Cuid.', dest:['Mãe','Pai','Enc. Educação'], link:'https://correiaricardina-ui.github.io/questionarios/SCARED_R_Pais.html', syncKey:'scared_r_pais', area:'Ansiedade', ageRange:'8–18 anos', objective:'Avaliação de perturbações de ansiedade — versão pais/cuidadores', domains:['Pânico','Ansiedade Generalizada','Separação','Fobia Social','Fobia Específica','Obsessivo-Compulsiva','Stress Pós-Traumático','Total'] , ageMin:96, ageMax:215},
     { id:'q_qc_mae', name:'QC Coparentalidade — Mãe', dest:['Mãe'],
       link:'https://correiaricardina-ui.github.io/questionarios/QC_Mae.html',
       syncKey:'qc_mae', area:'Família / Parentalidade', ageRange:'Adultos',
       objective:'Avalia cooperação, triangulação e conflito coparental — versão mãe',
-      domains:['Cooperação','Triangulação','Conflito'] },
+      domains:['Cooperação','Triangulação','Conflito'] , ageMin:0, ageMax:null},
     { id:'q_qc_pai', name:'QC Coparentalidade — Pai', dest:['Pai'],
       link:'https://correiaricardina-ui.github.io/questionarios/QC_Pai.html',
       syncKey:'qc_pai', area:'Família / Parentalidade', ageRange:'Adultos',
       objective:'Avalia cooperação, triangulação e conflito coparental — versão pai',
-      domains:['Cooperação','Triangulação','Conflito'] },
+      domains:['Cooperação','Triangulação','Conflito'] , ageMin:0, ageMax:null},
     { id:'q_erc_prof', name:'ERC — Professores', dest:['Professor(a)','Educador(a)'],
       link:'https://correiaricardina-ui.github.io/questionarios/ERC_Professores_v1.html',
       syncKey:'erc_prof', area:'Regulação Emocional', ageRange:'3–18 anos',
       objective:'Avalia a regulação emocional da criança — versão professor/educador',
-      domains:['Labilidade/Negatividade (L/N)','Regulação Emocional (RE)','Total ERC'] },
+      domains:['Labilidade/Negatividade (L/N)','Regulação Emocional (RE)','Total ERC'] , ageMin:36, ageMax:215},
     { id:'q_erc_pais', name:'ERC — Pais/Cuidadores', dest:['Mãe','Pai','Enc. Educação'],
       link:'https://correiaricardina-ui.github.io/questionarios/ERC_Pais_v1.html',
       syncKey:'erc_pais', area:'Regulação Emocional', ageRange:'3–18 anos',
       objective:'Avalia a regulação emocional da criança — versão pais/cuidadores',
-      domains:['Labilidade/Negatividade (L/N)','Regulação Emocional (RE)','Total ERC'] },
+      domains:['Labilidade/Negatividade (L/N)','Regulação Emocional (RE)','Total ERC'] , ageMin:36, ageMax:215},
     { id:'q_diva5', name:'DIVA-5',
       dest:['Clínico'],
       link:'https://correiaricardina-ui.github.io/questionarios/DIVA5_v1.html',
       syncKey:'diva5', area:'PHDA', ageRange:'5 anos+',
       objective:'Entrevista diagnóstica para PHDA — adultos, jovens e DI (DSM-5)',
-      domains:['Desatenção','Hiperatividade/Impulsividade','Diagnóstico PHDA'] },
+      domains:['Desatenção','Hiperatividade/Impulsividade','Diagnóstico PHDA'] , ageMin:60, ageMax:null},
   ];
   // Garantir que TODOS os defaults estão no catálogo, sempre
   // (funciona em RC novos e em RC existentes — nunca perde questionários)
   const catalog = store.get('catalog') || [];
   let catalogChanged = false;
   defaults.forEach(function(q) {
-    if (!store.get(q.id)) store.set(q.id, q);
+    const existing = store.get(q.id);
+    if (!existing) {
+      store.set(q.id, q);  // Novo — guardar completo
+    } else if (existing.ageMin === undefined && q.ageMin !== undefined) {
+      // Existente sem ageMin/ageMax — actualizar retrocompatível
+      existing.ageMin = q.ageMin;
+      if (q.ageMax !== undefined) existing.ageMax = q.ageMax;
+      store.set(q.id, existing);
+    }
     if (!catalog.includes(q.id)) { catalog.push(q.id); catalogChanged = true; }
   });
   if (existing.length === 0 || catalogChanged) store.set('catalog', catalog);
@@ -784,6 +814,18 @@ function initCatalog() {
       'q_qc_mae':           { link:'https://correiaricardina-ui.github.io/questionarios/QC_Mae.html', syncKey:'qc_mae' },
       'q_qc_pai':           { link:'https://correiaricardina-ui.github.io/questionarios/QC_Pai.html', syncKey:'qc_pai' },
       'q_erc_prof':         { link:'https://correiaricardina-ui.github.io/questionarios/ERC_Professores_v1.html', syncKey:'erc_prof' },
+      'q_ctrf_15': { link:'https://correiaricardina-ui.github.io/questionarios/CTRF_15_v2.html', syncKey:'ctrf15' },
+      'q_brief_prof': { link:'https://correiaricardina-ui.github.io/questionarios/BRIEF_Professores_v3.html', syncKey:'brief_professores' },
+      'q_brief_pais': { link:'https://correiaricardina-ui.github.io/questionarios/BRIEF_Pais_v5.html', syncKey:'brief_pais' },
+      'q_brief_pe_pais': { link:'https://correiaricardina-ui.github.io/questionarios/BRIEF_PreEscolar_Pais_v2.html', syncKey:'brief_pe_pais' },
+      'q_srs2_pais': { link:'https://correiaricardina-ui.github.io/questionarios/SRS2_IE_Pais_v1.html', syncKey:'srs2_pais' },
+      'q_srs2_prof': { link:'https://correiaricardina-ui.github.io/questionarios/SRS2_IE_Prof_v1.html', syncKey:'srs2_prof' },
+      'q_lds': { link:'https://correiaricardina-ui.github.io/questionarios/LDS_v2.html', syncKey:'lds' },
+      'q_abas3_05': { link:'https://correiaricardina-ui.github.io/questionarios/ABAS3_PreEscolar.html', syncKey:'abas3_05' },
+      'q_abas3_05p': { link:'https://correiaricardina-ui.github.io/questionarios/ABAS3_PreEscolar_Educador.html', syncKey:'abas3_05p' },
+      'q_spas_pais': { link:'https://correiaricardina-ui.github.io/questionarios/SPAS_Pais.html', syncKey:'spas_pais' },
+      'q_spas_prof': { link:'https://correiaricardina-ui.github.io/questionarios/SPAS_Educador.html', syncKey:'spas_prof' },
+      'q_qedp': { link:'https://correiaricardina-ui.github.io/questionarios/QEDP_v2.html', syncKey:'qedp' },
       'q_abas3_pais':  { link:'https://correiaricardina-ui.github.io/questionarios/ABAS3_Pais_v2.html',      syncKey:'abas3_pais'  },
       'q_abas3_prof':  { link:'https://correiaricardina-ui.github.io/questionarios/ABAS3_Professor_v2.html', syncKey:'abas3_prof'  },
       'q_abas3_adult': { link:'https://correiaricardina-ui.github.io/questionarios/ABAS3_Autorrelato_v1.html', syncKey:'abas3_adult' },
@@ -792,7 +834,14 @@ function initCatalog() {
     };
     Object.entries(META).forEach(([id, meta]) => {
       const q = store.get('q_' + id);
-      if(q) { q.link = meta.link; if(!q.syncKey) q.syncKey = meta.syncKey; store.set('q_' + id, q); }
+      if(q) {
+        q.link = meta.link;
+        if(!q.syncKey) q.syncKey = meta.syncKey;
+        // Propagar ageMin/ageMax retrocompatível — apenas se não definido
+        if(meta.ageMin !== undefined && q.ageMin === undefined) q.ageMin = meta.ageMin;
+        if(meta.ageMax !== undefined && q.ageMax === undefined) q.ageMax = meta.ageMax;
+        store.set('q_' + id, q);
+      }
     });
     // Adicionar q_cbcl_15 ao catálogo se ainda não existir
     const catalog = store.get('catalog') || [];
@@ -1080,7 +1129,50 @@ function formatScoreSummary(scores, syncKey) {
     const tot = scores.total ?? scores.total_score               ?? '—';
     return `<span style="font-size:0.78rem;color:var(--blue)">L/N=${ln} · RE=${re} · Total=${tot}</span>`;
   }
+  // CTRF-15
+  if(syncKey === 'ctrf15') {
+    const tot = scores['Score Total'] ?? scores['ScoreTotal'] ?? scores['total'];
+    if(tot != null) {
+      const cls = tot >= 180 ? 'color:#C0392B;font-weight:700;' : tot >= 160 ? 'color:#E67E22;font-weight:600;' : 'color:var(--green);font-weight:600;';
+      return `<span style="font-size:0.78rem;${cls}">Total = ${tot}</span>`;
+    }
+  }
+  // BRIEF Professores / Pais / Pré-Escolar
+  if(['brief_professores','brief_pais','brief_pe_pais'].includes(syncKey)) {
+    const gef = scores['GEF_T'] ?? scores['GEC_T'] ?? scores['GEF'] ?? scores['gef'];
+    if(gef != null) {
+      const cls = gef >= 65 ? 'color:#C0392B;font-weight:700;' : gef >= 60 ? 'color:#E67E22;font-weight:600;' : 'color:var(--green);font-weight:600;';
+      return `<span style="font-size:0.78rem;${cls}">GEF T=${gef}</span>`;
+    }
+  }
+  // SRS-2
+  if(syncKey === 'srs2_pais' || syncKey === 'srs2_prof') {
+    const tot = scores['TOT_T'] ?? scores['Total_T'] ?? scores['total_T'];
+    if(tot != null) {
+      const cls = tot >= 76 ? 'color:#C0392B;font-weight:700;' : tot >= 60 ? 'color:#E67E22;font-weight:600;' : 'color:var(--green);font-weight:600;';
+      return `<span style="font-size:0.78rem;${cls}">Total T=${tot}</span>`;
+    }
+  }
+  // LDS
+  if(syncKey === 'lds') {
+    const vocab = scores['Vocab Score'] ?? scores['vocabScore'];
+    if(vocab != null) return `<span style="font-size:0.78rem;color:var(--blue)">Vocab = ${vocab}</span>`;
+  }
+  // SPAS
+  if(syncKey === 'spas_pais' || syncKey === 'spas_prof') {
+    const tot = scores['Total'] ?? scores['totalScore'];
+    if(tot != null) {
+      const cls = tot >= 22 ? 'color:#C0392B;font-weight:700;' : tot >= 16 ? 'color:#E67E22;font-weight:600;' : 'color:var(--green);font-weight:600;';
+      return `<span style="font-size:0.78rem;${cls}">Total = ${tot}</span>`;
+    }
+  }
+  // QEDP
+  if(syncKey === 'qedp') {
+    const dem = scores['Dem_T'] ?? scores['dem_t'];
+    if(dem != null) return `<span style="font-size:0.78rem;color:var(--blue)">Dem T=${dem}</span>`;
+  }
   // ABAS-3 Pais/Cuidadores >6
+
   if(syncKey === 'abas3_pais') {
     const gac = scores['CAG'] ?? scores['cag'] ?? scores['GAC'] ?? scores['gac'];
     const cc  = scores['CC']  ?? scores['cc'];
@@ -1366,6 +1458,22 @@ function renderAssignments(patientId) {
   }).join('');
 }
 
+function calcPatientAgeMonths(dob) {
+  if(!dob) return null;
+  const d = new Date(dob);
+  const now = new Date();
+  return (now.getFullYear() - d.getFullYear()) * 12 + (now.getMonth() - d.getMonth());
+}
+
+function qMatchesAge(q, ageMonths) {
+  // Retrocompatível: questionários sem ageMin/ageMax passam sempre
+  if(ageMonths === null) return true;
+  if(q.ageMin === undefined && q.ageMax === undefined) return true;
+  const min = q.ageMin ?? 0;
+  const max = q.ageMax ?? Infinity;
+  return ageMonths >= min && ageMonths <= max;
+}
+
 function renderAddAssignment(patientId) {
   const catalog = getCatalog();
   const assignments = store.get('assignments_' + patientId) || [];
@@ -1376,23 +1484,58 @@ function renderAddAssignment(patientId) {
     return;
   }
 
+  // Calcular idade do paciente
+  const patient = store.get('patient_' + patientId);
+  const ageMonths = patient ? calcPatientAgeMonths(patient.dob) : null;
+  const ageYears = ageMonths !== null ? (ageMonths / 12).toFixed(1) : null;
+
+  // Estado do toggle (persistido por sessão)
+  if(!window._showAllQuestionnaires) window._showAllQuestionnaires = {};
+  const showAll = window._showAllQuestionnaires[patientId] || false;
+
+  // Filtrar catálogo por idade
+  const filtered = showAll ? catalog : catalog.filter(q => qMatchesAge(q, ageMonths));
+  const hiddenCount = catalog.length - filtered.length;
+
+  // Header com info de idade + toggle
+  let headerHtml = '';
+  if(ageMonths !== null) {
+    const ageLabel = ageMonths < 24
+      ? ageMonths + ' meses'
+      : ageMonths < 36
+        ? Math.floor(ageMonths/12) + ' ano' + (Math.floor(ageMonths/12)!==1?'s':'') + ' e ' + (ageMonths%12) + ' meses'
+        : Math.round(ageMonths/12) + ' anos';
+    headerHtml = `<div style="display:flex;align-items:center;justify-content:space-between;padding:6px 10px;background:var(--blue-xpale);border-radius:8px;margin-bottom:10px;font-size:0.8rem;">
+      <span style="color:var(--blue)">🗓 <strong>${ageLabel}</strong>${hiddenCount > 0 && !showAll ? ` · <span style="color:var(--text-light)">${hiddenCount} questionário${hiddenCount!==1?'s':''} fora da faixa etária</span>` : ''}</span>
+      <button onclick="window._showAllQuestionnaires['${patientId}']=!window._showAllQuestionnaires['${patientId}'];renderAddAssignment('${patientId}')"
+        style="background:none;border:1px solid var(--blue-mid);border-radius:6px;padding:2px 9px;font-size:0.75rem;color:var(--blue);cursor:pointer;font-weight:600;">
+        ${showAll ? '🎯 Filtrar por idade' : '👁 Mostrar todos'}
+      </button>
+    </div>`;
+  }
+
   // Agrupar por área (ordem alfabética)
   const groups = {};
-  catalog.forEach(q => {
+  filtered.forEach(q => {
     const area = q.area || 'Outro';
     if(!groups[area]) groups[area] = [];
     groups[area].push(q);
   });
   const sortedAreas = Object.keys(groups).sort((a,b) => a.localeCompare(b, 'pt'));
+  const sortedAreas = Object.keys(groups).sort((a,b) => a.localeCompare(b, 'pt'));
 
-  el.innerHTML = sortedAreas.map((area, aIdx) => {
+  el.innerHTML = headerHtml + sortedAreas.map((area, aIdx) => {
     const items = groups[area].map(q => {
       const alreadyAssigned = assignments.filter(a => a.qid === q.id);
       const countLabel = alreadyAssigned.length > 0
         ? ` <span style="font-size:0.72rem;color:var(--blue-mid);font-weight:600;">(${alreadyAssigned.length}×)</span>` : '';
       const destTags = (q.dest||[]).map(d => `<span class="dest-tag" style="font-size:0.7rem;">${d}</span>`).join('');
-      const ageSpan = q.ageRange ? `<span style="font-size:0.71rem;color:var(--text-light);">🗓 ${q.ageRange}</span>` : '';
-      return `<div style="display:flex;align-items:center;justify-content:space-between;padding:7px 10px;border:1px solid var(--gray-bdr);border-radius:7px;margin-bottom:5px;background:white;gap:8px;">
+      const outOfRange = (ageMonths !== null && !qMatchesAge(q, ageMonths));
+      const ageSpan = q.ageRange
+        ? `<span style="font-size:0.71rem;color:${outOfRange ? 'var(--orange)' : 'var(--text-light)'};">${outOfRange ? '⚠ ' : '🗓 '}${q.ageRange}</span>`
+        : '';
+      const outBorder = outOfRange ? 'border-color:var(--orange);opacity:0.75;' : '';
+      return `<div style="display:flex;align-items:center;justify-content:space-between;padding:7px 10px;border:1px solid var(--gray-bdr);border-radius:7px;margin-bottom:5px;background:white;gap:8px;${outBorder}">
         <div style="flex:1;min-width:0;">
           <div style="font-weight:600;font-size:0.84rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${q.name}${countLabel}</div>
           <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:2px;align-items:center;">${destTags}${ageSpan}</div>
@@ -1403,6 +1546,7 @@ function renderAddAssignment(patientId) {
 
     const areaId = 'acc-area-' + aIdx;
     const count = groups[area].length;
+    // Badge mostra apenas questionários compatíveis com a idade
     return `<div style="margin-bottom:6px;border:1.5px solid var(--gray-bdr);border-radius:9px;overflow:hidden;">
       <button onclick="toggleAcc('${areaId}')" style="width:100%;display:flex;justify-content:space-between;align-items:center;padding:9px 13px;background:var(--blue-pale);border:none;cursor:pointer;font-weight:600;font-size:0.82rem;color:var(--text);text-align:left;">
         <span>${area} <span style="font-size:0.75rem;color:var(--blue);font-weight:700;margin-left:4px;">${count}</span></span>
