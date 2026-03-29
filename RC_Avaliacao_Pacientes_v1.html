@@ -636,7 +636,8 @@ const QID_TO_ABA = {
   'cns_q_q_custom_1774358768853': 'SRS2_IE_Pais',
   'q_custom_17744371527307': 'CTRF_15',
   'q_custom_177443725011​7': 'SRS2_IE_Pais',
-  'q_diva5':              'DIVA5'
+  'q_diva5':              'DIVA5',
+  'q_eafe':               'EAFE'
 };
 
 
@@ -670,7 +671,8 @@ const SYNC_KEY_TO_ABA = {
   'abas3_pais':  'ABAS3_PAIS',
   'abas3_prof':  'ABAS3_PROF',
   'abas3_adult': 'ABAS3_ADULT',
-  'diva5':              'DIVA5'
+  'diva5':              'DIVA5',
+  'eafe':               'EAFE'
 };
 
 // Cache em memória das respostas do Sheet (evita fetch repetidos na mesma sessão)
@@ -785,6 +787,12 @@ function initCatalog() {
       syncKey:'diva5', area:'PHDA', ageRange:'5 anos+',
       objective:'Entrevista diagnóstica para PHDA — adultos, jovens e DI (DSM-5)',
       domains:['Desatenção','Hiperatividade/Impulsividade','Diagnóstico PHDA'] , ageMin:60, ageMax:null},
+    { id:'q_eafe', name:'EAFE',
+      dest:['Paciente'],
+      link:'https://correiaricardina-ui.github.io/questionarios/EAFE_v2.html',
+      syncKey:'eafe', area:'Aprendizagem / Estudo', ageRange:'8–18 anos',
+      objective:'Entrevista de Análise Funcional do Estudo — avalia dificuldades de regulação emocional no estudo',
+      domains:['DE','DR','EE','DRE'] , ageMin:96, ageMax:215},
   ];
   // Garantir que TODOS os defaults estão no catálogo, sempre
   // (funciona em RC novos e em RC existentes — nunca perde questionários)
@@ -843,6 +851,7 @@ function initCatalog() {
       'q_abas3_adult': { link:'https://correiaricardina-ui.github.io/questionarios/ABAS3_Autorrelato_v1.html', syncKey:'abas3_adult' },
       'q_erc_pais':         { link:'https://correiaricardina-ui.github.io/questionarios/ERC_Pais_v1.html', syncKey:'erc_pais' },
       'q_diva5':             { link:'https://correiaricardina-ui.github.io/questionarios/DIVA5_v1.html', syncKey:'diva5' },
+      'q_eafe':              { link:'https://correiaricardina-ui.github.io/questionarios/EAFE_v2.html', syncKey:'eafe' },
     };
     Object.entries(META).forEach(([id, meta]) => {
       const q = store.get('q_' + id);
@@ -924,6 +933,11 @@ function initCatalog() {
     if(!catalog.includes('q_abas3_adult')) {
       const dAA = defaults.find(d => d.id === 'q_abas3_adult');
       if(dAA) { store.set('q_' + dAA.id, dAA); catalog.push('q_abas3_adult'); store.set('catalog', catalog); }
+    }
+    // EAFE
+    if(!catalog.includes('q_eafe')) {
+      const dEafe = defaults.find(d => d.id === 'q_eafe');
+      if(dEafe) { store.set('q_' + dEafe.id, dEafe); catalog.push('q_eafe'); store.set('catalog', catalog); }
     }
     }
   }
@@ -1226,6 +1240,23 @@ function formatScoreSummary(scores, syncKey) {
     if(gac != null) {
       const cls = gac >= 90 ? 'color:var(--green);font-weight:600;' : gac >= 80 ? 'color:#E67E22;font-weight:600;' : 'color:#C0392B;font-weight:700;';
       return `<span style="font-size:0.78rem;${cls}">GAC = ${gac}${cc!=null?' · CC='+cc:''}${sc!=null?' SC='+sc:''}${pc!=null?' PC='+pc:''}</span>`;
+    }
+  }
+  // EAFE
+  if(syncKey === 'eafe') {
+    const de  = scores['DE']  ?? scores['de']  ?? null;
+    const dr  = scores['DR']  ?? scores['dr']  ?? null;
+    const ee  = scores['EE']  ?? scores['ee']  ?? null;
+    const dre = scores['DRE'] ?? scores['dre'] ?? null;
+    const perfil = scores['Perfil'] ?? scores['perfil'] ?? '';
+    if(de != null || dr != null || ee != null || dre != null) {
+      const parts = [];
+      if(de  != null) parts.push('DE='  + de);
+      if(dr  != null) parts.push('DR='  + dr);
+      if(ee  != null) parts.push('EE='  + ee);
+      if(dre != null) parts.push('DRE=' + dre);
+      if(perfil) parts.push(perfil);
+      return `<span style="font-size:0.78rem;color:var(--blue)">${parts.join(' · ')}</span>`;
     }
   }
   // Genérico
