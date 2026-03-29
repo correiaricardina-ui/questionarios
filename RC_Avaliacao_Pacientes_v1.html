@@ -614,6 +614,9 @@ const QID_TO_ABA = {
   'q_cbcl_15_v5': 'CBCL_15',
   'q_srs2_pais':  'SRS2_IE_Pais',
   'q_srs2_prof':  'SRS2_IE_Prof',
+  'q_abas3_pais':  'ABAS3_PAIS',
+  'q_abas3_prof':  'ABAS3_PROF',
+  'q_abas3_adult': 'ABAS3_ADULT',
   'q_abas3_05':   'ABAS3_05',
   'q_abas3_05p':  'ABAS3_05P',
   'cns_q_q_custom_1773331516231': 'CTRF_15',
@@ -650,6 +653,9 @@ const SYNC_KEY_TO_ABA = {
   'qc_pai':            'QC_Coparentalidade',
   'erc_prof':          'ERC_Professores',
   'erc_pais':          'ERC_Pais',
+  'abas3_pais':  'ABAS3_PAIS',
+  'abas3_prof':  'ABAS3_PROF',
+  'abas3_adult': 'ABAS3_ADULT',
   'diva5':              'DIVA5'
 };
 
@@ -714,6 +720,9 @@ async function checkSheetForResponse(qid, patientCode) {
 function initCatalog() {
   const existing = store.get('catalog') || [];
   const defaults = [
+    { id:'q_abas3_pais',  name:'ABAS-3 — Pais/Cuid. (>6)', dest:['Mãe','Pai','Enc. Educação'], link:'https://correiaricardina-ui.github.io/questionarios/ABAS3_Pais_v2.html', syncKey:'abas3_pais', area:'Comportamento Adaptativo', ageRange:'6–21 anos', objective:'Avalia comportamento adaptativo — versão pais/cuidadores (>6 anos)', domains:['CAG','CC','SC','PC'] },
+    { id:'q_abas3_prof',  name:'ABAS-3 — Professor (>6)', dest:['Professor(a)'], link:'https://correiaricardina-ui.github.io/questionarios/ABAS3_Professor_v2.html', syncKey:'abas3_prof', area:'Comportamento Adaptativo', ageRange:'6–21 anos', objective:'Avalia comportamento adaptativo — versão professor (>6 anos)', domains:['CAG','CC','SC','PC'] },
+    { id:'q_abas3_adult', name:'ABAS-3 — Auto-relato', dest:['Paciente'], link:'https://correiaricardina-ui.github.io/questionarios/ABAS3_Autorrelato_v1.html', syncKey:'abas3_adult', area:'Comportamento Adaptativo', ageRange:'16–89 anos', objective:'Avalia comportamento adaptativo — auto-relato (16–89 anos)', domains:['GAC','CC','SC','PC'] },
     { id:'q_aseba_cbcl', name:'ASEBA — CBCL 6-18',   dest:['Pais','Mãe','Pai','Enc. Educação'], link:'https://correiaricardina-ui.github.io/questionarios/CBCL_618_v1.html',  syncKey:'cbcl',  area:'Comportamento', ageRange:'6–18 anos', objective:'Avaliar problemas emocionais e comportamentais', domains:['Internalizante','Externalizante','Total','Ansiedade/Depressão','Queixas Somáticas','Isolamento','Problemas Sociais','Problemas de Atenção','Comportamento Agressivo','Comportamento de Quebra de Regras'] },
     { id:'q_aseba_trf',  name:'ASEBA — TRF 6-18',    dest:['Professor(a)'],              link:'https://correiaricardina-ui.github.io/questionarios/TRF_618_v1.html',   syncKey:'trf',   area:'Comportamento', ageRange:'6–18 anos', objective:'Avaliar comportamento em contexto escolar (versão professor)', domains:['Internalizante','Externalizante','Total','Problemas de Atenção','Comportamento Agressivo'] },
     { id:'q_aseba_ysr',  name:'ASEBA — YSR 11-18',   dest:['Paciente'],                  link:'https://correiaricardina-ui.github.io/questionarios/YSR_1118_v1.html',  syncKey:'ysr',   area:'Comportamento', ageRange:'11–18 anos', objective:'Auto-avaliação de problemas emocionais e comportamentais', domains:['Internalizante','Externalizante','Total','Ansiedade/Depressão','Isolamento','Queixas Somáticas','Problemas Sociais','Problemas de Atenção','Comportamento Agressivo'] },
@@ -766,6 +775,9 @@ function initCatalog() {
       'q_qc_mae':           { link:'https://correiaricardina-ui.github.io/questionarios/QC_Mae.html', syncKey:'qc_mae' },
       'q_qc_pai':           { link:'https://correiaricardina-ui.github.io/questionarios/QC_Pai.html', syncKey:'qc_pai' },
       'q_erc_prof':         { link:'https://correiaricardina-ui.github.io/questionarios/ERC_Professores_v1.html', syncKey:'erc_prof' },
+      'q_abas3_pais':  { link:'https://correiaricardina-ui.github.io/questionarios/ABAS3_Pais_v2.html',      syncKey:'abas3_pais'  },
+      'q_abas3_prof':  { link:'https://correiaricardina-ui.github.io/questionarios/ABAS3_Professor_v2.html', syncKey:'abas3_prof'  },
+      'q_abas3_adult': { link:'https://correiaricardina-ui.github.io/questionarios/ABAS3_Autorrelato_v1.html', syncKey:'abas3_adult' },
       'q_erc_pais':         { link:'https://correiaricardina-ui.github.io/questionarios/ERC_Pais_v1.html', syncKey:'erc_pais' },
       'q_diva5':             { link:'https://correiaricardina-ui.github.io/questionarios/DIVA5_v1.html', syncKey:'diva5' },
     };
@@ -827,6 +839,21 @@ function initCatalog() {
     if(!catalog.includes('q_diva5')) {
       const dDiva5 = defaults.find(d => d.id === 'q_diva5');
       if(dDiva5) { store.set('q_' + dDiva5.id, dDiva5); catalog.push('q_diva5'); store.set('catalog', catalog); }
+    }
+    // ABAS-3 Pais >6 anos
+    if(!catalog.includes('q_abas3_pais')) {
+      const dAP = defaults.find(d => d.id === 'q_abas3_pais');
+      if(dAP) { store.set('q_' + dAP.id, dAP); catalog.push('q_abas3_pais'); store.set('catalog', catalog); }
+    }
+    // ABAS-3 Professor >6 anos
+    if(!catalog.includes('q_abas3_prof')) {
+      const dAR = defaults.find(d => d.id === 'q_abas3_prof');
+      if(dAR) { store.set('q_' + dAR.id, dAR); catalog.push('q_abas3_prof'); store.set('catalog', catalog); }
+    }
+    // ABAS-3 Auto-relato
+    if(!catalog.includes('q_abas3_adult')) {
+      const dAA = defaults.find(d => d.id === 'q_abas3_adult');
+      if(dAA) { store.set('q_' + dAA.id, dAA); catalog.push('q_abas3_adult'); store.set('catalog', catalog); }
     }
     }
   }
@@ -1044,6 +1071,39 @@ function formatScoreSummary(scores, syncKey) {
     const tot = scores.total ?? scores.total_score               ?? '—';
     return `<span style="font-size:0.78rem;color:var(--blue)">L/N=${ln} · RE=${re} · Total=${tot}</span>`;
   }
+  // ABAS-3 Pais/Cuidadores >6
+  if(syncKey === 'abas3_pais') {
+    const gac = scores['CAG'] ?? scores['cag'] ?? scores['GAC'] ?? scores['gac'];
+    const cc  = scores['CC']  ?? scores['cc'];
+    const sc  = scores['SC']  ?? scores['sc'];
+    const pc  = scores['PC']  ?? scores['pc'];
+    if(gac != null) {
+      const cls = gac >= 90 ? 'color:var(--green);font-weight:600;' : gac >= 80 ? 'color:#E67E22;font-weight:600;' : 'color:#C0392B;font-weight:700;';
+      return `<span style="font-size:0.78rem;${cls}">CAG = ${gac}${cc!=null?' · CC='+cc:''}${sc!=null?' SC='+sc:''}${pc!=null?' PC='+pc:''}</span>`;
+    }
+  }
+  // ABAS-3 Professor >6
+  if(syncKey === 'abas3_prof') {
+    const gac = scores['CAG'] ?? scores['cag'] ?? scores['GAC'] ?? scores['gac'];
+    const cc  = scores['CC']  ?? scores['cc'];
+    const sc  = scores['SC']  ?? scores['sc'];
+    const pc  = scores['PC']  ?? scores['pc'];
+    if(gac != null) {
+      const cls = gac >= 90 ? 'color:var(--green);font-weight:600;' : gac >= 80 ? 'color:#E67E22;font-weight:600;' : 'color:#C0392B;font-weight:700;';
+      return `<span style="font-size:0.78rem;${cls}">CAG = ${gac}${cc!=null?' · CC='+cc:''}${sc!=null?' SC='+sc:''}${pc!=null?' PC='+pc:''}</span>`;
+    }
+  }
+  // ABAS-3 Auto-relato
+  if(syncKey === 'abas3_adult') {
+    const gac = scores['GAC'] ?? scores['gac'] ?? scores['CAG'] ?? scores['cag'];
+    const cc  = scores['CC']  ?? scores['cc'];
+    const sc  = scores['SC']  ?? scores['sc'];
+    const pc  = scores['PC']  ?? scores['pc'];
+    if(gac != null) {
+      const cls = gac >= 90 ? 'color:var(--green);font-weight:600;' : gac >= 80 ? 'color:#E67E22;font-weight:600;' : 'color:#C0392B;font-weight:700;';
+      return `<span style="font-size:0.78rem;${cls}">GAC = ${gac}${cc!=null?' · CC='+cc:''}${sc!=null?' SC='+sc:''}${pc!=null?' PC='+pc:''}</span>`;
+    }
+  }
   // Genérico
   const entries = Object.entries(scores).filter(([,v]) => v != null).slice(0,3);
   if(entries.length > 0) return `<span style="font-size:0.78rem;color:var(--blue-dark);">${entries.map(([k,v])=>k+'='+v).join(' · ')}</span>`;
@@ -1205,7 +1265,7 @@ function renderAssignments(patientId) {
                 'CTRF_15':['Informante'],'BRIEF_Pais':['NomeRespondente'],'BRIEF_Professores':['Professor'],
                 'SCARED_R_CRIANCA':['NomeInformante'],'SCARED_R_PAIS':['NomeInformante'],
                 'SPAS_Pais':['NomeInformante'],'SPAS_Prof':['NomeInformante'],
-                'ABAS3_05':['Informante'],'ABAS3_05P':['Informante'],
+                'ABAS3_PAIS':['NomeCrianca','NomeInformante'],'ABAS3_PROF':['NomeCrianca','NomeInformante'],'ABAS3_ADULT':['NomeCrianca','NomeInformante'],'ABAS3_05':['Informante'],'ABAS3_05P':['Informante'],
                 'QEDP':['Informante','NomeInformante'],'QC_Coparentalidade':['NomeRespondente','Respondente']
               };
               const RC = {
@@ -1425,7 +1485,7 @@ async function syncAndMark(patientId, idx) {
           'CTRF_15':['Informante'],'BRIEF_Pais':['NomeRespondente'],'BRIEF_Professores':['Professor'],
           'SCARED_R_CRIANCA':['NomeInformante'],'SCARED_R_PAIS':['NomeInformante'],
           'SPAS_Pais':['NomeInformante'],'SPAS_Prof':['NomeInformante'],
-          'ABAS3_05':['Informante'],'ABAS3_05P':['Informante'],'QEDP':['Informante','NomeInformante'],
+          'ABAS3_PAIS':['NomeCrianca','NomeInformante'],'ABAS3_PROF':['NomeCrianca','NomeInformante'],'ABAS3_ADULT':['NomeCrianca','NomeInformante'],'ABAS3_05':['Informante'],'ABAS3_05P':['Informante'],'QEDP':['Informante','NomeInformante'],
           'QC_Coparentalidade':['NomeRespondente','Respondente']
         };
         const RC2 = {
