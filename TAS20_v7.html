@@ -535,22 +535,28 @@ async function submeterQuestionario(){
     }));
   } catch(e) {}
 
-  // Payload compatível com Apps Script existente
+  // Payload compatível com Apps Script v7.4 — aba TAS20
   const payload = {
+    instrumento: 'TAS20',
     patientCode: sessao.patientCode,
-    name: sessao.patientName,
+    patientName: sessao.patientName,
+    nome: sessao.patientName,
+    data: sessao.date,
     total: scores.total,
     dif: scores.f1,
     ddf: scores.f2,
     eot: scores.f3,
     classification: cls.label,
-    answers: answersArray
+    classificacao: cls.label,
+    answers: answersArray.join('|')
   };
 
   // Tentar Google Sheets
   try {
     await fetch(APPS_SCRIPT_URL, {
-      method:'POST',
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
     });
     sessao.source='online';
@@ -596,25 +602,25 @@ async function carregarDados(){
   // Local
   allSessions = store.getAll();
 
-  // Google Sheets — o doGet devolve array de objectos com chaves nomeadas
+  // Google Sheets — doGet com ?instrumento=TAS20 devolve { rows: [...] }
   try {
-    const r = await fetch(APPS_SCRIPT_URL + '?t=' + Date.now()); // cache-bust
+    const r = await fetch(APPS_SCRIPT_URL + '?instrumento=TAS20&t=' + Date.now()); // cache-bust
     const data = await r.json();
-    // data pode ser [] ou [{Data, 'Código Paciente', Nome, Total, DIF, DDF, EOT, Classificação, 'Respostas (1-20)'}, ...]
-    const rows = Array.isArray(data) ? data : [];
+    // data pode ser { rows: [...] } ou [] (fallback)
+    const rows = Array.isArray(data) ? data : (data.rows || []);
     rows.forEach(row=>{
       try {
         // Suporta tanto objectos com chaves nomeadas como arrays
         const isObj = !Array.isArray(row);
         const date         = isObj ? (row['Data']             || row[0] || '') : (row[0] || '');
-        const patientCode  = isObj ? (row['Código Paciente']  || row[1] || '') : (row[1] || '');
+        const patientCode  = isObj ? (row['Código']           || row['Código Paciente'] || row[1] || '') : (row[1] || '');
         const patientName  = isObj ? (row['Nome']             || row[2] || '') : (row[2] || '');
         const total        = isObj ? (row['Total']            || row[3] || 0)  : (row[3] || 0);
         const dif          = isObj ? (row['DIF']              || row[4] || 0)  : (row[4] || 0);
         const ddf          = isObj ? (row['DDF']              || row[5] || 0)  : (row[5] || 0);
         const eot          = isObj ? (row['EOT']              || row[6] || 0)  : (row[6] || 0);
         const classification = isObj ? (row['Classificação']  || row[7] || '') : (row[7] || '');
-        const answersRaw   = isObj ? (row['Respostas (1-20)'] || row[8] || '') : (row[8] || '');
+        const answersRaw   = isObj ? (row['Respostas']        || row['Respostas (1-20)'] || row[8] || '') : (row[8] || '');
 
         if(!patientCode) return; // ignorar linhas vazias
 
