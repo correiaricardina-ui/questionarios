@@ -1505,14 +1505,17 @@ function renderAddAssignment(patientId) {
       : ageMonths < 36
         ? Math.floor(ageMonths/12) + ' ano' + (Math.floor(ageMonths/12)!==1?'s':'') + ' e ' + (ageMonths%12) + ' meses'
         : Math.round(ageMonths/12) + ' anos';
-    headerHtml = `<div style="display:flex;align-items:center;justify-content:space-between;padding:6px 10px;background:var(--blue-xpale);border-radius:8px;margin-bottom:10px;font-size:0.8rem;">
-      <span style="color:var(--blue)">🗓 <strong>${ageLabel}</strong>${hiddenCount > 0 && !showAll ? ` · <span style="color:var(--text-light)">${hiddenCount} questionário${hiddenCount!==1?'s':''} fora da faixa etária</span>` : ''}</span>
-      <button onclick="window._showAllQuestionnaires['${patientId}']=!window._showAllQuestionnaires['${patientId}'];renderAddAssignment('${patientId}')"
-        style="background:none;border:1px solid var(--blue-mid);border-radius:6px;padding:2px 9px;font-size:0.75rem;color:var(--blue);cursor:pointer;font-weight:600;">
-        ${showAll ? '🎯 Filtrar por idade' : '👁 Mostrar todos'}
-      </button>
-    </div>`;
-  }
+    const hiddenInfo = hiddenCount > 0 && !showAll
+      ? ' &nbsp;·&nbsp; <span style="color:var(--text-light)">' + hiddenCount + ' questionário' + (hiddenCount!==1?'s':'') + ' fora da faixa etária</span>'
+      : '';
+    const toggleLabel = showAll ? '🎯 Filtrar por idade' : '👁 Mostrar todos';
+    const onclickStr = "window._showAllQuestionnaires['" + patientId + "']=!window._showAllQuestionnaires['" + patientId + "'];renderAddAssignment('" + patientId + "')";
+    headerHtml = '<div style="display:flex;align-items:center;justify-content:space-between;padding:6px 10px;background:var(--blue-xpale);border-radius:8px;margin-bottom:10px;font-size:0.8rem;">'
+      + '<span style="color:var(--blue)">📅 <strong>' + ageLabel + '</strong>' + hiddenInfo + '</span>'
+      + '<button onclick="' + onclickStr + '" style="background:none;border:1px solid var(--blue-mid);border-radius:6px;padding:2px 9px;font-size:0.75rem;color:var(--blue);cursor:pointer;font-weight:600;">'
+      + toggleLabel
+      + '</button></div>';
+   }
 
   // Agrupar por área (ordem alfabética)
   const groups = {};
