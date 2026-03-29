@@ -785,15 +785,10 @@ function initCatalog() {
   const catalog = store.get('catalog') || [];
   let catalogChanged = false;
   defaults.forEach(function(q) {
-    const existing = store.get(q.id);
-    if (!existing) {
-      store.set(q.id, q);  // Novo — guardar completo
-    } else if (existing.ageMin === undefined && q.ageMin !== undefined) {
-      // Existente sem ageMin/ageMax — actualizar retrocompatível
-      existing.ageMin = q.ageMin;
-      if (q.ageMax !== undefined) existing.ageMax = q.ageMax;
-      store.set(q.id, existing);
-    }
+    // Forçar sempre actualização dos metadados do catálogo central
+    // (garante que name, dest, domains, ageRange, ageMin/ageMax estão sempre correctos)
+    // Seguro: não afecta assignments, pacientes nem o catálogo
+    store.set(q.id, q);
     if (!catalog.includes(q.id)) { catalog.push(q.id); catalogChanged = true; }
   });
   if (existing.length === 0 || catalogChanged) store.set('catalog', catalog);
