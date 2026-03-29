@@ -617,6 +617,8 @@ const QID_TO_ABA = {
   'q_brief_prof': 'BRIEF_Professores',
   'q_brief_pais': 'BRIEF_Pais',
   'q_brief_pe_pais': 'BRIEF_PreEscolar_Pais',
+  'q_brief_pe_prof': 'BRIEF_PreEscolar_Professores',
+  'q_brief_auto':    'BRIEF_Autoavaliacao',
   'q_spas_pais': 'SPAS_Pais',
   'q_spas_prof': 'SPAS_Prof',
   'q_qedp': 'QEDP',
@@ -660,6 +662,8 @@ const SYNC_KEY_TO_ABA = {
   'erc_prof':          'ERC_Professores',
   'erc_pais':          'ERC_Pais',
   'brief_pe_pais': 'BRIEF_PreEscolar_Pais',
+  'brief_pe_prof': 'BRIEF_PreEscolar_Professores',
+  'brief_auto':    'BRIEF_Autoavaliacao',
   'spas_pais': 'SPAS_Pais',
   'spas_prof': 'SPAS_Prof',
   'qedp': 'QEDP',
@@ -734,6 +738,8 @@ function initCatalog() {
     { id:'q_brief_prof', name:'BRIEF — Professores', dest:['Professor(a)'], link:'https://correiaricardina-ui.github.io/questionarios/BRIEF_Professores_v3.html', syncKey:'brief_professores', area:'Funções Executivas', ageRange:'5–18 anos', objective:'Avalia funções executivas em contexto escolar — versão professor', domains:['INHIB','SHIFT','ECON','WM','PO','ISCI','FI','EMI','GEF'] , ageMin:60, ageMax:215},
     { id:'q_brief_pais', name:'BRIEF — Pais', dest:['Mãe','Pai','Enc. Educação'], link:'https://correiaricardina-ui.github.io/questionarios/BRIEF_Pais_v5.html', syncKey:'brief_pais', area:'Funções Executivas', ageRange:'5–18 anos', objective:'Avalia funções executivas em casa — versão pais/cuidadores', domains:['INHIB','SHIFT','ECON','WM','PO','ISCI','FI','EMI','GEF'] , ageMin:60, ageMax:215},
     { id:'q_brief_pe_pais', name:'BRIEF Pré-Escolar — Pais', dest:['Mãe','Pai','Enc. Educação'], link:'https://correiaricardina-ui.github.io/questionarios/BRIEF_PreEscolar_Pais_v2.html', syncKey:'brief_pe_pais', area:'Funções Executivas', ageRange:'2–5 anos', objective:'Avalia funções executivas em contexto pré-escolar — versão pais', domains:['INHIB','SHIFT','ECON','WM','PO','ISCI','FI','EMI','GEF'] , ageMin:24, ageMax:71},
+    { id:'q_brief_pe_prof', name:'BRIEF Pré-Escolar — Professores', dest:['Professor(a)','Educador(a)'], link:'https://correiaricardina-ui.github.io/questionarios/BRIEF_PreEscolar_Professores_v2.html', syncKey:'brief_pe_prof', area:'Funções Executivas', ageRange:'2–5 anos', objective:'Avalia funções executivas em contexto pré-escolar — versão professor/educador', domains:['INHIB','SHIFT','ECON','WM','PO','ISCI','FI','EMI','GEF'] , ageMin:24, ageMax:71},
+    { id:'q_brief_auto', name:'BRIEF — Auto-questionário', dest:['Paciente'], link:'https://correiaricardina-ui.github.io/questionarios/BRIEF_Autoavaliacao_v2.html', syncKey:'brief_auto', area:'Funções Executivas', ageRange:'11–18 anos', objective:'Avalia funções executivas — versão auto-relato para adolescentes', domains:['INHIB','SHIFT','EC','MON','WM','PO','OM','TC','IRC','IM','GEF'] , ageMin:132, ageMax:215},
     { id:'q_srs2_pais', name:'SRS-2 — Pais/Cuid.', dest:['Mãe','Pai','Enc. Educação'], link:'https://correiaricardina-ui.github.io/questionarios/SRS2_IE_Pais_v1.html', syncKey:'srs2_pais', area:'Espectro do Autismo', ageRange:'4–18 anos', objective:'Avalia responsividade social — versão pais/cuidadores', domains:['PERC','COG','COM','MOT','PRR','CIS','Total'] , ageMin:48, ageMax:215},
     { id:'q_srs2_prof', name:'SRS-2 — Professor', dest:['Professor(a)'], link:'https://correiaricardina-ui.github.io/questionarios/SRS2_IE_Prof_v1.html', syncKey:'srs2_prof', area:'Espectro do Autismo', ageRange:'4–18 anos', objective:'Avalia responsividade social — versão professor', domains:['PERC','COG','COM','MOT','PRR','CIS','Total'] , ageMin:48, ageMax:215},
     { id:'q_lds', name:'LDS — Desenvolvimento Linguagem', dest:['Mãe','Pai','Enc. Educação'], link:'https://correiaricardina-ui.github.io/questionarios/LDS_v2.html', syncKey:'lds', area:'Linguagem', ageRange:'18–35 meses', objective:'Rastreio do desenvolvimento da linguagem — MacArthur adaptado', domains:['Vocabulário','MLU'] , ageMin:18, ageMax:35},
@@ -822,6 +828,8 @@ function initCatalog() {
       'q_brief_prof': { link:'https://correiaricardina-ui.github.io/questionarios/BRIEF_Professores_v3.html', syncKey:'brief_professores' },
       'q_brief_pais': { link:'https://correiaricardina-ui.github.io/questionarios/BRIEF_Pais_v5.html', syncKey:'brief_pais' },
       'q_brief_pe_pais': { link:'https://correiaricardina-ui.github.io/questionarios/BRIEF_PreEscolar_Pais_v2.html', syncKey:'brief_pe_pais' },
+      'q_brief_pe_prof': { link:'https://correiaricardina-ui.github.io/questionarios/BRIEF_PreEscolar_Professores_v2.html', syncKey:'brief_pe_prof' },
+      'q_brief_auto':    { link:'https://correiaricardina-ui.github.io/questionarios/BRIEF_Autoavaliacao_v2.html', syncKey:'brief_auto' },
       'q_srs2_pais': { link:'https://correiaricardina-ui.github.io/questionarios/SRS2_IE_Pais_v1.html', syncKey:'srs2_pais' },
       'q_srs2_prof': { link:'https://correiaricardina-ui.github.io/questionarios/SRS2_IE_Prof_v1.html', syncKey:'srs2_prof' },
       'q_lds': { link:'https://correiaricardina-ui.github.io/questionarios/LDS_v2.html', syncKey:'lds' },
@@ -1144,9 +1152,17 @@ function formatScoreSummary(scores, syncKey) {
       return `<span style="font-size:0.78rem;${cls}">Total = ${tot}</span>`;
     }
   }
-  // BRIEF Professores / Pais / Pré-Escolar
-  if(['brief_professores','brief_pais','brief_pe_pais'].includes(syncKey)) {
+  // BRIEF Professores / Pais / Pré-Escolar Pais / Pré-Escolar Professores
+  if(['brief_professores','brief_pais','brief_pe_pais','brief_pe_prof'].includes(syncKey)) {
     const gef = scores['GEF_T'] ?? scores['GEC_T'] ?? scores['GEF'] ?? scores['gef'];
+    if(gef != null) {
+      const cls = gef >= 65 ? 'color:#C0392B;font-weight:700;' : gef >= 60 ? 'color:#E67E22;font-weight:600;' : 'color:var(--green);font-weight:600;';
+      return `<span style="font-size:0.78rem;${cls}">GEF T=${gef}</span>`;
+    }
+  }
+  // BRIEF Auto-questionário (adolescentes) — chave T_GEF
+  if(syncKey === 'brief_auto') {
+    const gef = scores['T_GEF'] ?? scores['tGEF'] ?? scores['GEF_T'] ?? scores['GEC_T'];
     if(gef != null) {
       const cls = gef >= 65 ? 'color:#C0392B;font-weight:700;' : gef >= 60 ? 'color:#E67E22;font-weight:600;' : 'color:var(--green);font-weight:600;';
       return `<span style="font-size:0.78rem;${cls}">GEF T=${gef}</span>`;
