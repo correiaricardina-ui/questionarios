@@ -672,7 +672,8 @@ const SYNC_KEY_TO_ABA = {
   'abas3_prof':  'ABAS3_PROF',
   'abas3_adult': 'ABAS3_ADULT',
   'diva5':              'DIVA5',
-  'eafe':               'EAFE'
+  'eafe':               'EAFE',
+  'ece_fea':            'ECE_FEA'
 };
 
 // Cache em memória das respostas do Sheet (evita fetch repetidos na mesma sessão)
@@ -793,6 +794,12 @@ function initCatalog() {
       syncKey:'eafe', area:'Aprendizagem / Estudo', ageRange:'8–18 anos',
       objective:'Entrevista de Análise Funcional do Estudo — avalia dificuldades de regulação emocional no estudo',
       domains:['DE','DR','EE','DRE'] , ageMin:96, ageMax:215},
+    { id:'q_ece_fea', name:'ECE-FEA',
+      dest:['Paciente'],
+      link:'https://correiaricardina-ui.github.io/questionarios/ECE-FEA.html',
+      syncKey:'ece_fea', area:'Alimentação / Emocional', ageRange:'≥ 10 anos',
+      objective:'Avalia a função emocional da alimentação — ingestão emocional, controlo, fome, regulação e insight',
+      domains:['Dom. A — Ingestão Emocional','Dom. B — Perda de Controlo','Dom. C — Ingestão sem Fome','Dom. D — Função Reguladora','Dom. E — Consciência/Insight','IGAE'] , ageMin:120, ageMax:null},
   ];
   // Garantir que TODOS os defaults estão no catálogo, sempre
   // (funciona em RC novos e em RC existentes — nunca perde questionários)
@@ -852,6 +859,7 @@ function initCatalog() {
       'q_erc_pais':         { link:'https://correiaricardina-ui.github.io/questionarios/ERC_Pais_v1.html', syncKey:'erc_pais' },
       'q_diva5':             { link:'https://correiaricardina-ui.github.io/questionarios/DIVA5_v1.html', syncKey:'diva5' },
       'q_eafe':              { link:'https://correiaricardina-ui.github.io/questionarios/EAFE_v2.html', syncKey:'eafe' },
+      'q_ece_fea':           { link:'https://correiaricardina-ui.github.io/questionarios/ECE-FEA.html', syncKey:'ece_fea' },
     };
     Object.entries(META).forEach(([id, meta]) => {
       const q = store.get('q_' + id);
@@ -938,6 +946,11 @@ function initCatalog() {
     if(!catalog.includes('q_eafe')) {
       const dEafe = defaults.find(d => d.id === 'q_eafe');
       if(dEafe) { store.set('q_' + dEafe.id, dEafe); catalog.push('q_eafe'); store.set('catalog', catalog); }
+    }
+    // ECE-FEA
+    if(!catalog.includes('q_ece_fea')) {
+      const dEceFea = defaults.find(d => d.id === 'q_ece_fea');
+      if(dEceFea) { store.set('q_' + dEceFea.id, dEceFea); catalog.push('q_ece_fea'); store.set('catalog', catalog); }
     }
     }
   }
@@ -1257,6 +1270,16 @@ function formatScoreSummary(scores, syncKey) {
       if(dre != null) parts.push('DRE=' + dre);
       if(perfil) parts.push(perfil);
       return `<span style="font-size:0.78rem;color:var(--blue)">${parts.join(' · ')}</span>`;
+    }
+  }
+  // ECE-FEA
+  if(syncKey === 'ece_fea') {
+    const igae = scores['IGAE'] ?? scores['igae'] ?? scores['igae'] ?? null;
+    const scoreB = scores['ScoreB'] ?? scores['scoreB'] ?? null;
+    if(igae != null) {
+      const cls = igae >= 3.1 ? 'color:#C0392B;font-weight:700;' : igae >= 2.1 ? 'color:#E67E22;font-weight:600;' : igae >= 1.1 ? 'color:#c08000;font-weight:600;' : 'color:var(--green);font-weight:600;';
+      const bAlert = (scoreB != null && parseFloat(scoreB) >= 2) ? ' · \u26A0 LOC' : '';
+      return `<span style="font-size:0.78rem;${cls}">IGAE = ${parseFloat(igae).toFixed(2)}${bAlert}</span>`;
     }
   }
   // Genérico
