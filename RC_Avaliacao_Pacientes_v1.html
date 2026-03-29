@@ -448,6 +448,7 @@ body { font-family: 'DM Sans', sans-serif; background: var(--gray-bg); color: va
         <option value="Emocional / Alexitimia">Emocional / Alexitimia</option>
         <option value="Desenvolvimento">Desenvolvimento</option>
         <option value="Sono">Sono</option>
+        <option value="Neurodesenvolvimento / PHDA">Neurodesenvolvimento / PHDA</option>
         <option value="Família / Parentalidade">Família / Parentalidade</option>
         <option value="Personalidade">Personalidade</option>
         <option value="Outro">Outro</option>
@@ -624,7 +625,8 @@ const QID_TO_ABA = {
   'cns_q_q_custom_1773333230615': 'SWAN',
   'cns_q_q_custom_1774358768853': 'SRS2_IE_Pais',
   'q_custom_17744371527307': 'CTRF_15',
-  'q_custom_177443725011​7': 'SRS2_IE_Pais'
+  'q_custom_177443725011​7': 'SRS2_IE_Pais',
+  'q_diva5':              'DIVA5'
 };
 
 
@@ -648,7 +650,8 @@ const SYNC_KEY_TO_ABA = {
   'qc_mae':            'QC_Coparentalidade',
   'qc_pai':            'QC_Coparentalidade',
   'erc_prof':          'ERC_Professores',
-  'erc_pais':          'ERC_Pais'
+  'erc_pais':          'ERC_Pais',
+  'diva5':              'DIVA5'
 };
 
 // Cache em memória das respostas do Sheet (evita fetch repetidos na mesma sessão)
@@ -722,12 +725,12 @@ function initCatalog() {
     { id:'q_scared_r_pais',    name:'SCARED-R — Pais/Cuid.', dest:['Mãe','Pai','Enc. Educação'], link:'https://correiaricardina-ui.github.io/questionarios/SCARED_R_Pais.html', syncKey:'scared_r_pais', area:'Ansiedade', ageRange:'8–18 anos', objective:'Avaliação de perturbações de ansiedade — versão pais/cuidadores', domains:['Pânico','Ansiedade Generalizada','Separação','Fobia Social','Fobia Específica','Obsessivo-Compulsiva','Stress Pós-Traumático','Total'] },
     { id:'q_qc_mae', name:'QC Coparentalidade — Mãe', dest:['Mãe'],
       link:'https://correiaricardina-ui.github.io/questionarios/QC_Mae.html',
-      syncKey:'qc_mae', area:'Dinâmica Familiar', ageRange:'Adultos',
+      syncKey:'qc_mae', area:'Família / Parentalidade', ageRange:'Adultos',
       objective:'Avalia cooperação, triangulação e conflito coparental — versão mãe',
       domains:['Cooperação','Triangulação','Conflito'] },
     { id:'q_qc_pai', name:'QC Coparentalidade — Pai', dest:['Pai'],
       link:'https://correiaricardina-ui.github.io/questionarios/QC_Pai.html',
-      syncKey:'qc_pai', area:'Dinâmica Familiar', ageRange:'Adultos',
+      syncKey:'qc_pai', area:'Família / Parentalidade', ageRange:'Adultos',
       objective:'Avalia cooperação, triangulação e conflito coparental — versão pai',
       domains:['Cooperação','Triangulação','Conflito'] },
     { id:'q_erc_prof', name:'ERC — Professores', dest:['Professor(a)','Educador(a)'],
@@ -740,6 +743,12 @@ function initCatalog() {
       syncKey:'erc_pais', area:'Regulação Emocional', ageRange:'3–18 anos',
       objective:'Avalia a regulação emocional da criança — versão pais/cuidadores',
       domains:['Labilidade/Negatividade (L/N)','Regulação Emocional (RE)','Total ERC'] },
+    { id:'q_diva5', name:'DIVA-5',
+      dest:['Clínico'],
+      link:'https://correiaricardina-ui.github.io/questionarios/DIVA5_v1.html',
+      syncKey:'diva5', area:'Neurodesenvolvimento / PHDA', ageRange:'5 anos+',
+      objective:'Entrevista diagnóstica para PHDA — adultos, jovens e DI (DSM-5)',
+      domains:['Desatenção','Hiperatividade/Impulsividade','Diagnóstico PHDA'] },
   ];
   if(existing.length === 0) {
     defaults.forEach(q => store.set('q_' + q.id, q));
@@ -759,6 +768,7 @@ function initCatalog() {
       'q_qc_pai':           { link:'https://correiaricardina-ui.github.io/questionarios/QC_Pai.html', syncKey:'qc_pai' },
       'q_erc_prof':         { link:'https://correiaricardina-ui.github.io/questionarios/ERC_Professores_v1.html', syncKey:'erc_prof' },
       'q_erc_pais':         { link:'https://correiaricardina-ui.github.io/questionarios/ERC_Pais_v1.html', syncKey:'erc_pais' },
+      'q_diva5':             { link:'https://correiaricardina-ui.github.io/questionarios/DIVA5_v1.html', syncKey:'diva5' },
     };
     Object.entries(META).forEach(([id, meta]) => {
       const q = store.get('q_' + id);
@@ -814,6 +824,11 @@ function initCatalog() {
     if(!catalog.includes('q_erc_pais')) {
       const d5 = defaults.find(d => d.id === 'q_erc_pais');
       if(d5) { store.set('q_' + d5.id, d5); catalog.push(d5.id); store.set('catalog', catalog); }
+    // DIVA-5
+    if(!catalog.includes('q_diva5')) {
+      const dDiva5 = defaults.find(d => d.id === 'q_diva5');
+      if(dDiva5) { store.set('q_' + dDiva5.id, dDiva5); catalog.push('q_diva5'); store.set('catalog', catalog); }
+    }
     }
   }
 }
@@ -1008,6 +1023,21 @@ function formatScoreSummary(scores, syncKey) {
     return `<span style="font-size:0.78rem;color:var(--blue)">` +
       `${versao} · Coop=${coop}${coopM ? ' (M='+coopM+')' : ''} · Tri=${tri} · Conf=${conf}` +
       `</span>`;
+  }
+  if(syncKey === 'diva5') {
+    const diag    = scores['Diagnóstico'] ?? scores['diagnostico'] ?? scores['diag'] ?? '';
+    const dA      = scores['Desatenção_Adultez']  ?? scores['desatAdult'] ?? '';
+    const hA      = scores['HI_Adultez']          ?? scores['hiAdult']   ?? '';
+    const versao  = scores['Versão'] ?? scores['versao'] ?? '';
+    const versLabel = versao === 'young' ? 'Young' : versao === 'id' ? 'ID' : 'Adultos';
+    const isComb  = String(diag).includes('Combinado');
+    const isDes   = String(diag).includes('Desatento');
+    const isHI    = String(diag).includes('H/I');
+    const cls = (isComb || isDes || isHI)
+      ? (isComb ? 'color:#C0392B;font-weight:700;' : 'color:#E67E22;font-weight:600;')
+      : 'color:var(--green);font-weight:600;';
+    return `<span style="font-size:0.78rem;${cls}">${versLabel} · ${diag || '—'}` +
+      `${dA !== '' ? ' · Des='+dA : ''}${hA !== '' ? ' H/I='+hA : ''}</span>`;
   }
   if(syncKey === 'erc_prof' || syncKey === 'erc_pais') {
     const ln  = scores.ln  ?? scores.ln_score  ?? scores['L/N'] ?? '—';
@@ -1518,7 +1548,7 @@ function renderCatalog() {
     groups[area].push(q);
   });
 
-  const areaOrder = ['Comportamento','Alimentação','Autismo / NEE','Atenção / PHDA','Ansiedade / Humor','Emocional / Alexitimia','Desenvolvimento','Sono','Família / Parentalidade','Personalidade'];
+  const areaOrder = ['Comportamento','Alimentação','Autismo / NEE','Atenção / PHDA','Neurodesenvolvimento / PHDA','Ansiedade / Humor','Emocional / Alexitimia','Desenvolvimento','Sono','Família / Parentalidade','Regulação Emocional','Personalidade'];
   const sortedAreas = Object.keys(groups).sort((a,b) => {
     const ia = areaOrder.indexOf(a), ib = areaOrder.indexOf(b);
     if(ia===-1 && ib===-1) return a.localeCompare(b);
