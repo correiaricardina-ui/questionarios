@@ -1525,7 +1525,6 @@ function renderAddAssignment(patientId) {
     groups[area].push(q);
   });
   const sortedAreas = Object.keys(groups).sort((a,b) => a.localeCompare(b, 'pt'));
-  const sortedAreas = Object.keys(groups).sort((a,b) => a.localeCompare(b, 'pt'));
 
   el.innerHTML = headerHtml + sortedAreas.map((area, aIdx) => {
     const items = groups[area].map(q => {
