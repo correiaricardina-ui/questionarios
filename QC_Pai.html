@@ -523,8 +523,8 @@ function submeter(){
   // Enviar ao Sheet
   var isFile = location.protocol==='file:';
   if(isFile){
-    // Download CSV automático
-    downloadCSV(payload);
+    // Download CSV automático (em file://)
+    try{ downloadCSV(payload); }catch(e){ console.warn('CSV download falhou:', e); }
   } else {
     try{
       fetch(SCRIPT_URL,{method:'POST',mode:'no-cors',
@@ -543,7 +543,7 @@ function downloadCSV(obj){
   var csv=bom+header+'\n'+row;
   var a=document.createElement('a');
   a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
-  a.download='QC_'+versao+'_'+new Date().toISOString().slice(0,10)+'.csv';
+  a.download='QC_'+VERSAO+'_'+new Date().toISOString().slice(0,10)+'.csv';
   a.click();
 }
 
