@@ -758,9 +758,18 @@ function initCatalog() {
       objective:'Entrevista diagnóstica para PHDA — adultos, jovens e DI (DSM-5)',
       domains:['Desatenção','Hiperatividade/Impulsividade','Diagnóstico PHDA'] },
   ];
+  // Garantir que TODOS os defaults estão no catálogo, sempre
+  // (funciona em RC novos e em RC existentes — nunca perde questionários)
+  const catalog = store.get('catalog') || [];
+  let catalogChanged = false;
+  defaults.forEach(function(q) {
+    if (!store.get(q.id)) store.set(q.id, q);
+    if (!catalog.includes(q.id)) { catalog.push(q.id); catalogChanged = true; }
+  });
+  if (existing.length === 0 || catalogChanged) store.set('catalog', catalog);
+
   if(existing.length === 0) {
-    defaults.forEach(q => store.set('q_' + q.id, q));
-    store.set('catalog', defaults.map(q => q.id));
+    // Primeiro arranque — já tratado acima
   } else {
     // Forçar links e syncKeys actualizados
     const META = {
