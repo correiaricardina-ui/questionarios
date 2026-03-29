@@ -761,8 +761,8 @@ function initCatalog() {
       'q_erc_pais':         { link:'https://correiaricardina-ui.github.io/questionarios/ERC_Pais_v1.html', syncKey:'erc_pais' },
     };
     Object.entries(META).forEach(([id, meta]) => {
-      const q = store.get(id);
-      if(q) { q.link = meta.link; if(!q.syncKey) q.syncKey = meta.syncKey; store.set(id, q); }
+      const q = store.get('q_' + id);
+      if(q) { q.link = meta.link; if(!q.syncKey) q.syncKey = meta.syncKey; store.set('q_' + id, q); }
     });
     // Adicionar q_cbcl_15 ao catálogo se ainda não existir
     const catalog = store.get('catalog') || [];
@@ -778,7 +778,7 @@ function initCatalog() {
     if(!catalog.includes('q_swan')) {
       const swanDefault = defaults.find(d => d.id === 'q_swan');
       if(swanDefault) {
-        store.set('q_swan', swanDefault);
+        store.set('q_' + swanDefault.id, swanDefault);
         catalog.push('q_swan');
         store.set('catalog', catalog);
       }
@@ -786,30 +786,34 @@ function initCatalog() {
     // SCARED-R Criança
     if(!catalog.includes('q_scared_r_crianca')) {
       const d1 = defaults.find(d => d.id === 'q_scared_r_crianca');
-      if(d1) { store.set('q_scared_r_crianca', d1); catalog.push('q_scared_r_crianca'); store.set('catalog', catalog); }
+      if(d1) { store.set('q_' + d1.id, d1); catalog.push(d1.id); store.set('catalog', catalog); }
     }
     // SCARED-R Pais
     if(!catalog.includes('q_scared_r_pais')) {
       const d2 = defaults.find(d => d.id === 'q_scared_r_pais');
-      if(d2) { store.set('q_scared_r_pais', d2); catalog.push('q_scared_r_pais'); store.set('catalog', catalog); }
+      if(d2) { store.set('q_' + d2.id, d2); catalog.push(d2.id); store.set('catalog', catalog); }
     }
-    if(!catalog.includes('q_qc_mae')) {
-      const dQcMae = defaults.find(d => d.id === 'q_qc_mae');
-      if(dQcMae) { store.set('q_qc_mae', dQcMae); catalog.push('q_qc_mae'); store.set('catalog', catalog); }
+    // QC Coparentalidade — forçar re-escrita com chave correcta sempre
+    // (garante compatibilidade mesmo que versão anterior tenha guardado com chave errada)
+    const dQcMae = defaults.find(d => d.id === 'q_qc_mae');
+    if(dQcMae) {
+      store.set('q_' + dQcMae.id, dQcMae); // garante chave 'q_q_qc_mae' correcta
+      if(!catalog.includes('q_qc_mae')) { catalog.push('q_qc_mae'); store.set('catalog', catalog); }
     }
-    if(!catalog.includes('q_qc_pai')) {
-      const dQcPai = defaults.find(d => d.id === 'q_qc_pai');
-      if(dQcPai) { store.set('q_qc_pai', dQcPai); catalog.push('q_qc_pai'); store.set('catalog', catalog); }
+    const dQcPai = defaults.find(d => d.id === 'q_qc_pai');
+    if(dQcPai) {
+      store.set('q_' + dQcPai.id, dQcPai); // garante chave 'q_q_qc_pai' correcta
+      if(!catalog.includes('q_qc_pai')) { catalog.push('q_qc_pai'); store.set('catalog', catalog); }
     }
     // ERC Professores
     if(!catalog.includes('q_erc_prof')) {
       const d4 = defaults.find(d => d.id === 'q_erc_prof');
-      if(d4) { store.set('q_erc_prof', d4); catalog.push('q_erc_prof'); store.set('catalog', catalog); }
+      if(d4) { store.set('q_' + d4.id, d4); catalog.push(d4.id); store.set('catalog', catalog); }
     }
     // ERC Pais
     if(!catalog.includes('q_erc_pais')) {
       const d5 = defaults.find(d => d.id === 'q_erc_pais');
-      if(d5) { store.set('q_erc_pais', d5); catalog.push('q_erc_pais'); store.set('catalog', catalog); }
+      if(d5) { store.set('q_' + d5.id, d5); catalog.push(d5.id); store.set('catalog', catalog); }
     }
   }
 }
