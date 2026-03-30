@@ -826,26 +826,112 @@ function exportarPDF(){var w=window.open('','_blank');w.document.write('<html><h
 
 function exportarRespostasPDF(s){if(!s){alert('Sem dados.');return;}var resps={};try{resps=JSON.parse(s.respostas||'{}');}catch(e){}var w=window.open('','_blank');w.document.write('<html><head><title>Conners 3-T — Respostas</title><style>body{font-family:Arial;padding:24px;font-size:12px}table{border-collapse:collapse;width:100%}th{background:#3B5A7A;color:white;padding:6px}td{padding:6px;border:1px solid #ddd}tr:nth-child(even){background:#EBF2F8}</style></head><body><h3 style="color:#3B5A7A">Conners 3-T — Registo de Respostas (Professores)</h3><p>Aluno(a): <strong>'+(s.nomeCrianca||'—')+'</strong> · Código: <strong>'+(s.patientCode||'—')+'</strong><br>Professor(a): <strong>'+(s.nomeInformante||'—')+'</strong> · Função: '+(s.grauParentesco||'—')+' · Data: '+(s.data||'—')+' · Ricardina Correia · Cédula n.º 8233 · OPP</p><table><tr><th>Nº</th><th>Item</th><th>Resposta</th></tr>');for(var n=1;n<=115;n++){var vals=['Nunca','Às vezes','Frequentemente','Muito frequentemente'];var v=resps[n];w.document.write('<tr><td>'+n+'</td><td>'+ITENS[n]+'</td><td>'+(v!==undefined?v+' — '+vals[v]:'—')+'</td></tr>');}w.document.write('</table></body></html>');w.document.close();w.print();}
 
-function exportarInterpretacaoPDF(s){if(!s){alert('Sem dados.');return;}var subs=[{k:'scoreIN',n:'IN — Desatenção',max:27},{k:'scoreHI',n:'HI — Hiperactiv./Impulsividade',max:27},{k:'scoreLP',n:'LP — Problemas Aprendizagem',max:24},{k:'scoreEF',n:'EF — Funções Executivas',max:24},{k:'scoreAG',n:'AG — Agressividade/Oposição',max:30},{k:'scorePR',n:'PR — Relações com Pares',max:15},{k:'scoreAI',n:'AI — ADHD Index',max:30},{k:'scoreGI',n:'GI — Global Index',max:30},{k:'scoreDSMI',n:'DSM-5 PHDA Desatento',max:27},{k:'scoreDSMH',n:'DSM-5 PHDA Hiperact.-Impuls.',max:27},{k:'scoreDSMO',n:'DSM-5 POD',max:9},{k:'scoreDSMC',n:'DSM-5 Perturbação Comportamento',max:15}];var w=window.open('','_blank');w.document.write('<html><head><title>Conners 3-T — Interpretação</title><style>body{font-family:Arial;padding:24px;font-size:12px}table{border-collapse:collapse;width:100%}th{background:#3B5A7A;color:white;padding:6px}td{padding:6px;border:1px solid #ddd}tr:nth-child(even){background:#EBF2F8}</style></head><body><h3 style="color:#3B5A7A">Conners 3-T — Perfil de Resultados (Professores)</h3><p>Aluno(a): <strong>'+(s.nomeCrianca||'—')+'</strong> · Código: <strong>'+(s.patientCode||'—')+'</strong><br>Professor(a): <strong>'+(s.nomeInformante||'—')+'</strong> · '+(s.grauParentesco||'—')+' · Data: '+(s.data||'—')+' · Ricardina Correia · Cédula n.º 8233 · OPP</p><table><tr><th>Subescala</th><th>Score Bruto</th><th>Score Máx.</th><th>T-Score</th><th>Classificação</th></tr>');subs.forEach(function(sb){var v=parseInt(s[sb.k])||0;w.document.write('<tr><td>'+sb.n+'</td><td style="text-align:center;font-weight:700">'+v+'</td><td style="text-align:center">'+sb.max+'</td><td style="text-align:center">—</td><td>Consultar Manual MHS</td></tr>');});w.document.write('</table><p style="font-size:10px;margin-top:16px;color:#6B7A8D">⚠️ T-Scores requerem conversão com base nas tabelas normativas do Manual Conners 3 (MHS, 2008), separadas por sexo e faixa etária.</p></body></html>');w.document.close();w.print();}
-
-buildSections();
-var _orig=showPage;
-showPage=function(id){_orig(id);if(id==='page-questionario'){document.querySelectorAll('[id^="section-"]').forEach(function(s){s.style.display='none';});document.getElementById('section-1').style.display='block';secaoAtual=1;document.getElementById('prog').style.width='0%';document.querySelectorAll('.section-step').forEach(function(el){el.classList.remove('active','done');if(el.id==='step-1')el.classList.add('active');});}};
-
-  // Abrir painel clínico directamente se URL contém ?clinico=RC2024
-  (function(){
-    var params = new URLSearchParams(window.location.search);
-    var pw = params.get('clinico');
-    if(pw && pw === PASSWORD){
-      showPage('page-login');
-      setTimeout(function(){
-        document.getElementById('login-pw').value = pw;
-        tentarLogin();
-      }, 100);
-    } else {
-      showPage('page-home');
-    }
-  })();
-</script>
-</body>
-</html>
+function exportarInterpretacaoPDF(s){
+  if(!s){alert('Sem dados.');return;}
+  var age=parseInt(s.dataNasc?calcIdade(s.dataNasc):(s.idade||0))||0;
+  var lpRaw=parseInt(s.scoreLP)||0;
+  var efRaw=parseInt(s.scoreEF)||0;
+  var lpefRaw=lpRaw+efRaw;
+  var subs=[
+    {k:'scoreIN',  n:'IN &#8212; Desaten&#231;&#227;o',              max:27, lkp:NORMS_T_IN,   raw:null},
+    {k:'scoreHI',  n:'HI &#8212; Hiperactiv./Impulsividade',         max:27, lkp:NORMS_T_HI,   raw:null},
+    {k:'scoreLP',  n:'LP &#8212; Prob. Aprendizagem (SB)',           max:24, lkp:null,          raw:null},
+    {k:'scoreEF',  n:'EF &#8212; Fun&#231;&#245;es Executivas (SB)', max:24, lkp:null,          raw:null},
+    {k:'_LPEF',    n:'LP+EF &#8212; T-Score combinado',              max:48, lkp:NORMS_T_LPEF, raw:lpefRaw},
+    {k:'scoreAG',  n:'AG &#8212; Agressividade/Oposi&#231;&#227;o',  max:30, lkp:NORMS_T_AG,   raw:null},
+    {k:'scorePR',  n:'PR &#8212; Rela&#231;&#245;es com Pares',      max:15, lkp:NORMS_T_PR,   raw:null},
+    {k:'scoreAI',  n:'AI &#8212; ADHD Index',                        max:30, lkp:null,          raw:null},
+    {k:'scoreGIRI',n:'GI-RI &#8212; Restless-Impulsive',             max:15, lkp:null,          raw:null},
+    {k:'scoreGIEL',n:'GI-EL &#8212; Emotional Lability',             max:15, lkp:null,          raw:null},
+    {k:'scoreGI',  n:'GI &#8212; Global Index Total',                max:30, lkp:null,          raw:null},
+    {k:'scoreDSMI',n:'DSM-5 PHDA Desatento',                         max:27, lkp:null,          raw:null},
+    {k:'scoreDSMH',n:'DSM-5 PHDA Hiperact.-Impuls.',                 max:27, lkp:null,          raw:null},
+    {k:'scoreDSMO',n:'DSM-5 POD',                                     max:9,  lkp:null,          raw:null},
+    {k:'scoreDSMC',n:'DSM-5 Perturbação Comportamento',              max:15, lkp:null,          raw:null},
+  ];
+  var hasT=age>=6&&age<=18;
+  var clinico=[],borderline=[];
+  var linhas='';
+  subs.forEach(function(sb,i){
+    var v=sb.raw!==null?sb.raw:(parseInt(s[sb.k])||0);
+    var t=hasT&&sb.lkp?getT(v,age,sb.lkp):null;
+    var z=t!==null?tZone(t):{label:'&#8212;',color:'#888',bg:'#f5f5f5'};
+    var barW=t!==null?Math.min(100,Math.max(0,Math.round((t-40)/50*100))):Math.round(v/sb.max*100);
+    var barCol=t!==null?z.color:'#ccc';
+    var tDisplay=t!==null?t:'&#8212;';
+    var bg=i%2===0?'#EBF2F8':'#fff';
+    linhas+='<tr style="background:'+bg+'">'
+      +'<td style="padding:5px 8px;border:1px solid #ddd">'+sb.n+'</td>'
+      +'<td style="padding:5px 8px;border:1px solid #ddd;text-align:center;font-weight:700">'+v+'</td>'
+      +'<td style="padding:5px 8px;border:1px solid #ddd;text-align:center">'+sb.max+'</td>'
+      +'<td style="padding:5px 8px;border:1px solid #ddd;text-align:center;font-weight:700;color:'+z.color+'">'+tDisplay+'</td>'
+      +'<td style="padding:5px 8px;border:1px solid #ddd;width:140px">'
+        +'<div style="background:#eee;border-radius:3px;height:10px">'
+          +'<div style="background:'+barCol+';width:'+barW+'%;height:100%;border-radius:3px"></div>'
+        +'</div>'
+      +'</td>'
+      +'<td style="padding:5px 8px;border:1px solid #ddd;text-align:center">'
+        +'<span style="background:'+z.bg+';color:'+z.color+';padding:2px 7px;border-radius:99px;font-size:10px;font-weight:700">'+z.label+'</span>'
+      +'</td>'
+      +'</tr>';
+    if(t!==null&&t>=65)clinico.push(sb.n.replace(/&#\d+;/g,'').replace(/&\w+;/g,'')+' (T='+t+')');
+    else if(t!==null&&t>=60)borderline.push(sb.n.replace(/&#\d+;/g,'').replace(/&\w+;/g,'')+' (T='+t+')');
+  });
+  var resps={};
+  try{resps=JSON.parse(s.respostas||'{}');}catch(e){}
+  var linhasResp='';
+  for(var n=1;n<=115;n++){
+    var v2=resps[n]!==undefined?resps[n]:'&#8212;';
+    var lbl=['Nunca','&#192;s vezes','Frequentemente','Muito Freq.'][v2]||v2;
+    var txt=ITENS[n]||'Item '+n;
+    var bg2=n%2===0?'#EBF2F8':'#fff';
+    linhasResp+='<tr style="background:'+bg2+'">'
+      +'<td style="padding:4px 6px;border:1px solid #ddd;text-align:center;color:#555">'+n+'</td>'
+      +'<td style="padding:4px 6px;border:1px solid #ddd">'+txt+'</td>'
+      +'<td style="padding:4px 6px;border:1px solid #ddd;text-align:center;font-weight:700">'+lbl+'</td>'
+      +'</tr>';
+  }
+  var sumario='';
+  if(clinico.length>0)sumario+='<strong>Zona cl&#237;nica (T&#8805;65):</strong> '+clinico.join(', ')+'. ';
+  if(borderline.length>0)sumario+='<strong>Ligeiramente elevado (T&#8805;60):</strong> '+borderline.join(', ')+'.';
+  if(!sumario&&hasT)sumario='Todas as escalas com normas dispon&#237;veis situam-se dentro dos limites normativos.';
+  var w=window.open('','_blank');
+  w.document.write('<!DOCTYPE html><html><head><meta charset="utf-8"><title>Conners 3-T &#8212; Relat&#243;rio</title>'
+    +'<style>body{font-family:Arial,sans-serif;padding:24px;font-size:11px;color:#222}'
+    +'h2{color:#1F4E79;font-size:14px;margin-bottom:4px}'
+    +'h3{color:#1F4E79;font-size:12px;margin:16px 0 6px}'
+    +'table{border-collapse:collapse;width:100%;margin-bottom:12px}'
+    +'th{background:#1F4E79;color:white;padding:6px 8px;text-align:left}'
+    +'.sumario{background:#EBF2F8;border-left:4px solid #1F4E79;padding:8px 12px;margin:12px 0;font-size:11px;line-height:1.6}'
+    +'.nota{font-size:9px;color:#888;margin-top:16px;border-top:1px solid #eee;padding-top:8px}'
+    +'@media print{.no-print{display:none}}'
+    +'</style></head><body>');
+  w.document.write('<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px">'
+    +'<div><h2>Conners 3-T &#8212; Perfil de Resultados (Professores)</h2>'
+    +'<div style="font-size:10px;color:#555">Ricardina Correia &middot; C&#233;dula n.&#186; 8233 &middot; Ordem dos Psic&#243;logos Portugueses &middot; Psicologia Pedi&#225;trica</div></div>'
+    +'<button class="no-print" onclick="window.print()" style="background:#1F4E79;color:white;border:none;padding:6px 14px;border-radius:4px;cursor:pointer;font-size:11px">&#128438; Guardar / Imprimir</button>'
+    +'</div>');
+  w.document.write('<table style="width:100%;border-collapse:collapse;margin-bottom:16px;font-size:11px">'
+    +'<tr><td style="padding:3px 8px"><strong>Aluno(a):</strong> '+(s.nomeCrianca||'&#8212;')+'</td>'
+    +'<td style="padding:3px 8px"><strong>C&#243;digo:</strong> '+(s.patientCode||'&#8212;')+'</td>'
+    +'<td style="padding:3px 8px"><strong>Data Nasc.:</strong> '+(s.dataNasc||'&#8212;')+'</td>'
+    +'<td style="padding:3px 8px"><strong>Idade:</strong> '+(hasT?age+' anos':'&#8212;')+'</td></tr>'
+    +'<tr><td style="padding:3px 8px"><strong>Professor(a):</strong> '+(s.nomeInformante||'&#8212;')+'</td>'
+    +'<td style="padding:3px 8px"><strong>Fun&#231;&#227;o:</strong> '+(s.grauParentesco||'&#8212;')+'</td>'
+    +'<td style="padding:3px 8px"><strong>Disciplina:</strong> '+(s.disciplina||'&#8212;')+'</td>'
+    +'<td style="padding:3px 8px"><strong>Data:</strong> '+(s.data||'&#8212;')+'</td></tr>'
+    +'</table>');
+  w.document.write('<h3>Perfil de Subescalas</h3>');
+  w.document.write('<table><tr><th>Subescala</th><th style="width:60px;text-align:center">SB</th><th style="width:40px;text-align:center">M&#225;x</th><th style="width:50px;text-align:center">T-Score</th><th style="width:150px">Perfil</th><th style="width:100px;text-align:center">Zona</th></tr>'+linhas+'</table>');
+  if(sumario)w.document.write('<div class="sumario">'+sumario+'<br><em style="font-size:10px;color:#777">Interpreta&#231;&#227;o autom&#225;tica &#8212; integrar no contexto cl&#237;nico completo.</em></div>');
+  if(linhasResp){
+    w.document.write('<h3 style="page-break-before:always">Respostas Item-a-Item</h3>');
+    w.document.write('<table><tr><th style="width:30px;text-align:center">N&#186;</th><th>Item</th><th style="width:120px;text-align:center">Resposta</th></tr>'+linhasResp+'</table>');
+  }else{
+    w.document.write('<p style="color:#888;font-size:10px;margin-top:12px"><em>Respostas item-a-item n&#227;o dispon&#237;veis (sess&#227;o importada do Sheet sem respostas individuais).</em></p>');
+  }
+  w.document.write('<div class="nota">Normas: Appendix B Combined Gender Norms, Conners 3 (MHS, 2008). T-Scores: IN, HI, AG, PR, LP+EF combinado. AI, GI, DSM-5: normas por g&#233;nero separado &#8212; consultar Manual MHS.</div>');
+  w.document.write('</body></html>');
+  w.document.close();
+}
+>
