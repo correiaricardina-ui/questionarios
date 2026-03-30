@@ -682,7 +682,10 @@ const SYNC_KEY_TO_ABA = {
   'rcads_47cg':         'RCADS_47CG',
   'rcads_47y':          'RCADS_47Y',
   // ── EAT-26 v7.9 ─────────────────────────────────────────
-  'eat26':              'EAT26'
+  'eat26':              'EAT26',
+  // ── Conners 3 v9.0 ─────────────────────────────────────
+  'conners3p':          'CONNERS3P',
+  'conners3t':          'CONNERS3T'
 };
 
 // Cache em memória das respostas do Sheet (evita fetch repetidos na mesma sessão)
@@ -834,6 +837,21 @@ function initCatalog() {
       syncKey:'rcads_47y', area:'Ansiedade / Humor', ageRange:'9–18 anos',
       objective:'Avalia ansiedade e depressão em crianças e adolescentes — versão de auto-avaliação (47 itens)',
       domains:['MDD_T','ANX_T','Total_T','SP','SP_T','SAD','SAD_T','GAD','GAD_T','PD','PD_T','OCD','OCD_T'], ageMin:108, ageMax:216},
+    // ── Conners 3 v9.0 ─────────────────────────────────────────────────
+    { id:'q_conners3p', name:'Conners 3 — Pais/Cuid.',
+      dest:['Mãe','Pai','Enc. Educação'],
+      link:'https://correiaricardina-ui.github.io/questionarios/Conners3_Questionario_Pais_v3.html',
+      syncKey:'conners3p', area:'PHDA', ageRange:'6–18 anos',
+      objective:'Avalia sintomas de PHDA, aprendizagem e comportamento — versão pais/cuidadores (110 itens)',
+      domains:['IN','HI','LP','EF','AG','PR','FR','AI','GI-RI','GI-EL','GI','DSMI','DSMH','DSMO'],
+      ageMin:72, ageMax:215 },
+    { id:'q_conners3t', name:'Conners 3 — Professores',
+      dest:['Professor(a)'],
+      link:'https://correiaricardina-ui.github.io/questionarios/Conners3T_Questionario_Professores_v3.html',
+      syncKey:'conners3t', area:'PHDA', ageRange:'6–18 anos',
+      objective:'Avalia sintomas de PHDA, aprendizagem e comportamento — versão professores (115 itens)',
+      domains:['IN','HI','LP','EF','AG','PR','AI','GI-RI','GI-EL','GI','DSMI','DSMH','DSMO','DSMC'],
+      ageMin:72, ageMax:215 },
     // ── NOVO v7.9 — EAT-26 ──────────────────────────────────────────────
     { id:'q_eat26', name:'EAT-26',
       dest:['Paciente'],
@@ -908,6 +926,9 @@ function initCatalog() {
       'q_rcads_47y':  { link:'https://correiaricardina-ui.github.io/questionarios/RCADS47_Youth_v2.html', syncKey:'rcads_47y' },
       // ── EAT-26 v7.9 ──────────────────────────────────────────────────
       'q_eat26': { link:'https://correiaricardina-ui.github.io/questionarios/EAT26_v2.html', syncKey:'eat26' },
+      // ── Conners 3 v9.0 ────────────────────────────────────────────────────
+      'q_conners3p': { link:'https://correiaricardina-ui.github.io/questionarios/Conners3_Questionario_Pais_v3.html', syncKey:'conners3p' },
+      'q_conners3t': { link:'https://correiaricardina-ui.github.io/questionarios/Conners3T_Questionario_Professores_v3.html', syncKey:'conners3t' },
     };
     Object.entries(META).forEach(([id, meta]) => {
       const q = store.get('q_' + id);
@@ -1021,6 +1042,16 @@ function initCatalog() {
     if(!catalog.includes('q_eat26')) {
       const dEat26 = defaults.find(d => d.id === 'q_eat26');
       if(dEat26) { store.set('q_' + dEat26.id, dEat26); catalog.push('q_eat26'); store.set('catalog', catalog); }
+    }
+    // Conners 3 — Pais (v9.0)
+    if(!catalog.includes('q_conners3p')) {
+      const dC3P = defaults.find(d => d.id === 'q_conners3p');
+      if(dC3P) { store.set(dC3P.id, dC3P); catalog.push('q_conners3p'); store.set('catalog', catalog); }
+    }
+    // Conners 3 — Professores (v9.0)
+    if(!catalog.includes('q_conners3t')) {
+      const dC3T = defaults.find(d => d.id === 'q_conners3t');
+      if(dC3T) { store.set(dC3T.id, dC3T); catalog.push('q_conners3t'); store.set('catalog', catalog); }
     }
     }
   }
@@ -1153,6 +1184,30 @@ function getResultSummary(qid, patientCode) {
       }
     }
   } catch(e) {}
+
+  // ── Conners 3 — Pais e Professores (v9.0) ───────────────────────────────
+  try {
+    const c3map = { 'q_conners3p':'conners3p_sessions', 'q_conners3t':'conners3t_sessions' };
+    const c3store = c3map[qid];
+    if(c3store) {
+      const sessions = JSON.parse(localStorage.getItem(c3store) || 'null');
+      if(sessions) {
+        const arr = Array.isArray(sessions) ? sessions : Object.values(sessions);
+        const s = arr.find(s => (s.patientCode||s.codigo||'') === patientCode);
+        if(s) {
+          const inT  = parseInt(s.scoreIN)  || null;
+          const hiT  = parseInt(s.scoreHI)  || null;
+          const lpT  = parseInt(s.scoreLP)  || null;
+          const maxT = Math.max(inT||0, hiT||0, lpT||0);
+          if(maxT > 0) {
+            const cls = maxT >= 70 ? 'color:#C0392B;font-weight:700;' : maxT >= 65 ? 'color:#E67E22;font-weight:600;' : maxT >= 60 ? 'color:#7D6608;font-weight:600;' : 'color:var(--green);font-weight:600;';
+            return '<span style="font-size:0.78rem;' + cls + '">IN=' + (inT||'—') + ' · HI=' + (hiT||'—') + (lpT?' · LP='+lpT:'') + '</span>';
+          }
+        }
+      }
+    }
+  } catch(e) {}
+
   return null;
 }
 
