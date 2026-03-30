@@ -707,9 +707,10 @@ function downloadCSVOffline(p){
   var a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);a.download='Conners3T_'+p.patientCode+'_'+p.data.replace(/\//g,'-')+'.csv';a.click();
 }
 
+function parseSessaoConners(row){return{data:row['Data']||row.data||'',patientCode:row['Codigo']||row.patientCode||'',nomeCrianca:row['NomeCrianca']||row.nomeCrianca||'',nomeInformante:row['NomeInformante']||row.nomeInformante||'',grauParentesco:row['Funcao']||row.grauParentesco||'',disciplina:row['Disciplina']||row.disciplina||'',dataNasc:row['DataNasc']||row.dataNasc||'',sexo:row['Sexo']||row.sexo||'',scoreIN:row['IN']||row.scoreIN||0,scoreHI:row['HI']||row.scoreHI||0,scoreLP:row['LP']||row.scoreLP||0,scoreEF:row['EF']||row.scoreEF||0,scoreAG:row['AG']||row.scoreAG||0,scorePR:row['PR']||row.scorePR||0,scoreAI:row['AI']||row.scoreAI||0,scoreGI:row['GI']||row.scoreGI||0,scoreGIRI:row['GI_RI']||row.scoreGIRI||0,scoreGIEL:row['GI_EL']||row.scoreGIEL||0,scoreDSMI:row['DSMI']||row.scoreDSMI||0,scoreDSMH:row['DSMH']||row.scoreDSMH||0,scoreDSMO:row['DSMO']||row.scoreDSMO||0,scoreDSMC:row['DSMC']||row.scoreDSMC||0,respostas:row['Respostas']||row.respostas||''};}
 function carregarDados(){
   document.getElementById('clinico-subtitle').textContent='A carregar...';
-  fetch(SCRIPT_URL+'?instrumento='+INSTRUMENTO+'&t='+Date.now()).then(function(r){return r.json();}).then(function(data){sessoesLocal=data.rows||data||[];renderTabela(sessoesLocal);document.getElementById('clinico-subtitle').textContent=sessoesLocal.length+' registo(s) carregado(s)';}).catch(function(){document.getElementById('clinico-subtitle').textContent='Sem ligação — dados locais';renderTabela(sessoesLocal);});
+  fetch(SCRIPT_URL+'?instrumento='+INSTRUMENTO+'&t='+Date.now()).then(function(r){return r.json();}).then(function(data){var _rows=Array.isArray(data)?data:(data&&data.rows?data.rows:[]);sessoesLocal=_rows.map(parseSessaoConners);renderTabela(sessoesLocal);document.getElementById('clinico-subtitle').textContent=sessoesLocal.length+' registo(s) carregado(s)';}).catch(function(){document.getElementById('clinico-subtitle').textContent='Sem ligação — dados locais';renderTabela(sessoesLocal);});
 }
 
 function renderTabela(sessoes){

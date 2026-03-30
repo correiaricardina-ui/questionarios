@@ -853,12 +853,45 @@ function downloadCSVOffline(p){
 // ══════════════════════════════════════════════════
 // PAINEL CLÍNICO
 // ══════════════════════════════════════════════════
+
+function parseSessaoConners(row) {
+  // Mapear colunas do Sheet (ex: 'DataNasc') para campos JS (ex: 'dataNasc')
+  return {
+    // identificação
+    data:            row['Data']           || row.data            || '',
+    patientCode:     row['Codigo']         || row.patientCode     || row.Codigo || '',
+    nomeCrianca:     row['NomeCrianca']    || row.nomeCrianca     || '',
+    nomeInformante:  row['NomeInformante'] || row.nomeInformante  || '',
+    grauParentesco:  row['GrauParentesco'] || row.grauParentesco  || '',
+    dataNasc:        row['DataNasc']       || row.dataNasc        || '',
+    sexo:            row['Sexo']           || row.sexo            || '',
+    // scores — Sheet guarda 'IN', painel espera 'scoreIN'
+    scoreIN:   row['IN']    || row.scoreIN   || 0,
+    scoreHI:   row['HI']    || row.scoreHI   || 0,
+    scoreLP:   row['LP']    || row.scoreLP   || 0,
+    scoreEF:   row['EF']    || row.scoreEF   || 0,
+    scoreAG:   row['AG']    || row.scoreAG   || 0,
+    scorePR:   row['PR']    || row.scorePR   || 0,
+    scoreFR:   row['FR']    || row.scoreFR   || 0,
+    scoreAI:   row['AI']    || row.scoreAI   || 0,
+    scoreGI:   row['GI']    || row.scoreGI   || 0,
+    scoreGIRI: row['GI_RI'] || row.scoreGIRI || 0,
+    scoreGIEL: row['GI_EL'] || row.scoreGIEL || 0,
+    scoreDSMI: row['DSMI']  || row.scoreDSMI || 0,
+    scoreDSMH: row['DSMH']  || row.scoreDSMH || 0,
+    scoreDSMO: row['DSMO']  || row.scoreDSMO || 0,
+    // respostas item-a-item
+    respostas: row['Respostas'] || row.respostas || ''
+  };
+}
+
 function carregarDados(){
   document.getElementById('clinico-subtitle').textContent = 'A carregar...';
   fetch(SCRIPT_URL+'?instrumento='+INSTRUMENTO+'&t='+Date.now())
     .then(function(r){return r.json();})
     .then(function(data){
-      sessoesLocal = data.rows || data || [];
+      var rows = Array.isArray(data) ? data : (data && data.rows ? data.rows : []);
+      sessoesLocal = rows.map(parseSessaoConners);
       renderTabela(sessoesLocal);
       document.getElementById('clinico-subtitle').textContent = sessoesLocal.length+' registo(s) carregado(s)';
     })
