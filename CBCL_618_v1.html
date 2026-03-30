@@ -1708,6 +1708,41 @@ function printModal() {
   };
 
   const sexLabel = s.sex === 'F' ? 'Feminino' : 'Masculino';
+
+  // ── Respostas item a item para impressão ──
+  const ansObj = s.answers || {};
+  let respostasHTML = '';
+  if (Object.keys(ansObj).length > 0) {
+    function buildGrpPrint(from, to, label) {
+      const its = ITEMS.filter(i => { const n = parseFloat(i.n); return n >= from && n <= to; });
+      const rows = its.map(i => {
+        const v = (ansObj[i.n] !== undefined) ? ansObj[i.n] : (ansObj[String(i.n)] !== undefined ? ansObj[String(i.n)] : undefined);
+        const vStr = (v !== undefined && v !== null) ? String(v) : '—';
+        const bg = v == 2 ? '#FDECEA' : v == 1 ? '#FFF8E1' : '#F5F8FF';
+        const cor = v == 2 ? '#C0392B' : v == 1 ? '#E67E22' : '#8a99a8';
+        return '<tr style="background:' + bg + ';">' +
+          '<td style="width:28px;text-align:right;padding:3px 6px;color:#8a99a8;font-size:9px;">' + i.n + '</td>' +
+          '<td style="padding:3px 6px;font-size:9.5px;">' + i.text + '</td>' +
+          '<td style="width:22px;text-align:center;font-weight:700;font-size:9px;color:' + cor + ';padding:3px 4px;">' + vStr + '</td></tr>';
+      }).join('');
+      return '<tr><td colspan="3" style="padding:5px 6px;background:#3B5A7A;color:white;font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;">' + label + '</td></tr>' + rows;
+    }
+    respostasHTML = '<div style="margin-top:18px;page-break-before:always;">' +
+      '<div style="font-size:8.5px;font-weight:700;color:#5B7FA6;text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;">Respostas Item a Item</div>' +
+      '<table style="width:100%;border-collapse:collapse;font-family:DM Sans,Arial,sans-serif;">' +
+      '<thead><tr>' +
+      '<th style="width:28px;text-align:right;padding:4px 6px;background:#EBF2F8;color:#3B5A7A;font-size:8.5px;">#</th>' +
+      '<th style="padding:4px 6px;background:#EBF2F8;color:#3B5A7A;font-size:8.5px;text-align:left;">Item</th>' +
+      '<th style="width:22px;text-align:center;padding:4px 4px;background:#EBF2F8;color:#3B5A7A;font-size:8.5px;">R</th>' +
+      '</tr></thead><tbody>' +
+      buildGrpPrint(1, 40, '📋 Itens 1–40') +
+      buildGrpPrint(41, 80, '📋 Itens 41–80') +
+      buildGrpPrint(81, 113, '📋 Itens 81–113') +
+      '</tbody></table>' +
+      '<p style="margin-top:6px;font-size:8px;color:#aaa;">R: 0 = Não verdadeiro · 1 = Às vezes verdadeiro · 2 = Muitas vezes verdadeiro</p>' +
+      '</div>';
+  }
+
   const printWin = window.open('', '_blank', 'width=860,height=720');
   const compHTML = buildCompSection(s.compAnswers, true);
   printWin.document.write(`<!DOCTYPE html>
@@ -1782,7 +1817,8 @@ function printModal() {
   </div>
 
   ${compHTML}
-  <div class="footer">Documento confidencial — uso clínico exclusivo · CNS Campus Neurológico · ricardinacorreia@cnscampus.com</div>
+  ${respostasHTML}
+  <div class="footer" style="margin-top:18px;">Documento confidencial — uso clínico exclusivo · CNS Campus Neurológico · ricardinacorreia@cnscampus.com</div>
 </body>
 </html>`);
   printWin.document.close();
