@@ -673,7 +673,12 @@ const SYNC_KEY_TO_ABA = {
   'abas3_adult': 'ABAS3_ADULT',
   'diva5':              'DIVA5',
   'eafe':               'EAFE',
-  'ece_fea':            'ECE_FEA'
+  'ece_fea':            'ECE_FEA',
+  // ── RCADS v7.8 ───────────────────────────────────────────
+  'rcads_25cg':         'RCADS_25CG',
+  'rcads_25y':          'RCADS_25Y',
+  'rcads_47cg':         'RCADS_47CG',
+  'rcads_47y':          'RCADS_47Y'
 };
 
 // Cache em memória das respostas do Sheet (evita fetch repetidos na mesma sessão)
@@ -800,6 +805,31 @@ function initCatalog() {
       syncKey:'ece_fea', area:'Alimentação / Emocional', ageRange:'≥ 10 anos',
       objective:'Avalia a função emocional da alimentação — ingestão emocional, controlo, fome, regulação e insight',
       domains:['Dom. A — Ingestão Emocional','Dom. B — Perda de Controlo','Dom. C — Ingestão sem Fome','Dom. D — Função Reguladora','Dom. E — Consciência/Insight','IGAE'] , ageMin:120, ageMax:null},
+    // ── RCADS v7.8 ──────────────────────────────────────────────────────────
+    { id:'q_rcads_25cg', name:'RCADS-25 — Pais/Cuidadores',
+      dest:['Mãe','Pai','Enc. Educação','Cuidador'],
+      link:'https://correiaricardina-ui.github.io/questionarios/RCADS25_Pais_v2.html',
+      syncKey:'rcads_25cg', area:'Ansiedade / Humor', ageRange:'9–18 anos',
+      objective:'Avalia ansiedade e depressão em crianças e adolescentes — versão para pais (25 itens)',
+      domains:['MDD_T','ANX_T','Total_T','SP','SAD','GAD','PD','OCD'], ageMin:108, ageMax:216},
+    { id:'q_rcads_25y', name:'RCADS-25 — Youth (Self-Report)',
+      dest:['Paciente'],
+      link:'https://correiaricardina-ui.github.io/questionarios/RCADS25_Youth_v2.html',
+      syncKey:'rcads_25y', area:'Ansiedade / Humor', ageRange:'9–18 anos',
+      objective:'Avalia ansiedade e depressão em crianças e adolescentes — versão de auto-avaliação (25 itens)',
+      domains:['MDD_T','ANX_T','Total_T','SP','SAD','GAD','PD','OCD'], ageMin:108, ageMax:216},
+    { id:'q_rcads_47cg', name:'RCADS-47 — Pais/Cuidadores',
+      dest:['Mãe','Pai','Enc. Educação','Cuidador'],
+      link:'https://correiaricardina-ui.github.io/questionarios/RCADS47_Pais_v2.html',
+      syncKey:'rcads_47cg', area:'Ansiedade / Humor', ageRange:'9–18 anos',
+      objective:'Avalia ansiedade e depressão em crianças e adolescentes — versão para pais (47 itens)',
+      domains:['MDD_T','ANX_T','Total_T','SP','SP_T','SAD','SAD_T','GAD','GAD_T','PD','PD_T','OCD','OCD_T'], ageMin:108, ageMax:216},
+    { id:'q_rcads_47y', name:'RCADS-47 — Youth (Self-Report)',
+      dest:['Paciente'],
+      link:'https://correiaricardina-ui.github.io/questionarios/RCADS47_Youth_v2.html',
+      syncKey:'rcads_47y', area:'Ansiedade / Humor', ageRange:'9–18 anos',
+      objective:'Avalia ansiedade e depressão em crianças e adolescentes — versão de auto-avaliação (47 itens)',
+      domains:['MDD_T','ANX_T','Total_T','SP','SP_T','SAD','SAD_T','GAD','GAD_T','PD','PD_T','OCD','OCD_T'], ageMin:108, ageMax:216},
   ];
   // Garantir que TODOS os defaults estão no catálogo, sempre
   // (funciona em RC novos e em RC existentes — nunca perde questionários)
@@ -860,6 +890,11 @@ function initCatalog() {
       'q_diva5':             { link:'https://correiaricardina-ui.github.io/questionarios/DIVA5_v1.html', syncKey:'diva5' },
       'q_eafe':              { link:'https://correiaricardina-ui.github.io/questionarios/EAFE_v2.html', syncKey:'eafe' },
       'q_ece_fea':           { link:'https://correiaricardina-ui.github.io/questionarios/ECE-FEA.html', syncKey:'ece_fea' },
+      // ── RCADS v7.8 ───────────────────────────────────────────────────
+      'q_rcads_25cg': { link:'https://correiaricardina-ui.github.io/questionarios/RCADS25_Pais_v2.html',  syncKey:'rcads_25cg' },
+      'q_rcads_25y':  { link:'https://correiaricardina-ui.github.io/questionarios/RCADS25_Youth_v2.html', syncKey:'rcads_25y' },
+      'q_rcads_47cg': { link:'https://correiaricardina-ui.github.io/questionarios/RCADS47_Pais_v2.html',  syncKey:'rcads_47cg' },
+      'q_rcads_47y':  { link:'https://correiaricardina-ui.github.io/questionarios/RCADS47_Youth_v2.html', syncKey:'rcads_47y' },
     };
     Object.entries(META).forEach(([id, meta]) => {
       const q = store.get('q_' + id);
@@ -951,6 +986,23 @@ function initCatalog() {
     if(!catalog.includes('q_ece_fea')) {
       const dEceFea = defaults.find(d => d.id === 'q_ece_fea');
       if(dEceFea) { store.set('q_' + dEceFea.id, dEceFea); catalog.push('q_ece_fea'); store.set('catalog', catalog); }
+    }
+    // ── RCADS v7.8 ────────────────────────────────────────────────────────
+    if(!catalog.includes('q_rcads_25cg')) {
+      const d25cg = defaults.find(d => d.id === 'q_rcads_25cg');
+      if(d25cg) { store.set('q_' + d25cg.id, d25cg); catalog.push('q_rcads_25cg'); store.set('catalog', catalog); }
+    }
+    if(!catalog.includes('q_rcads_25y')) {
+      const d25y = defaults.find(d => d.id === 'q_rcads_25y');
+      if(d25y) { store.set('q_' + d25y.id, d25y); catalog.push('q_rcads_25y'); store.set('catalog', catalog); }
+    }
+    if(!catalog.includes('q_rcads_47cg')) {
+      const d47cg = defaults.find(d => d.id === 'q_rcads_47cg');
+      if(d47cg) { store.set('q_' + d47cg.id, d47cg); catalog.push('q_rcads_47cg'); store.set('catalog', catalog); }
+    }
+    if(!catalog.includes('q_rcads_47y')) {
+      const d47y = defaults.find(d => d.id === 'q_rcads_47y');
+      if(d47y) { store.set('q_' + d47y.id, d47y); catalog.push('q_rcads_47y'); store.set('catalog', catalog); }
     }
     }
   }
@@ -1280,6 +1332,30 @@ function formatScoreSummary(scores, syncKey) {
       const cls = igae >= 3.1 ? 'color:#C0392B;font-weight:700;' : igae >= 2.1 ? 'color:#E67E22;font-weight:600;' : igae >= 1.1 ? 'color:#c08000;font-weight:600;' : 'color:var(--green);font-weight:600;';
       const bAlert = (scoreB != null && parseFloat(scoreB) >= 2) ? ' · \u26A0 LOC' : '';
       return `<span style="font-size:0.78rem;${cls}">IGAE = ${parseFloat(igae).toFixed(2)}${bAlert}</span>`;
+    }
+  }
+  // ── RCADS 25/47 — Pais e Youth ─────────────────────────────────────────
+  if(syncKey === 'rcads_25cg' || syncKey === 'rcads_25y' ||
+     syncKey === 'rcads_47cg' || syncKey === 'rcads_47y') {
+    const mddT   = scores['mddT']   ?? scores['MDD_T']   ?? null;
+    const anxT   = scores['anxT']   ?? scores['ANX_T']   ?? null;
+    const totalT = scores['totalT'] ?? scores['Total_T'] ?? null;
+    const lbl = (syncKey.endsWith('cg')) ? 'Pais' : 'Youth';
+    const ver = (syncKey.startsWith('rcads_47')) ? '47' : '25';
+    if(totalT != null) {
+      const t = parseFloat(totalT);
+      const cls = t >= 70 ? 'color:#C0392B;font-weight:700;'
+                : t >= 65 ? 'color:#E67E22;font-weight:600;'
+                : 'color:var(--green);font-weight:600;';
+      const mStr = mddT  != null ? ' · MDD=' + mddT  : '';
+      const aStr = anxT  != null ? ' · ANX=' + anxT  : '';
+      return '<span style="font-size:0.78rem;' + cls + '">RCADS-' + ver + ' ' + lbl + ' T=' + t + mStr + aStr + '</span>';
+    }
+    if(mddT != null || anxT != null) {
+      const parts = [];
+      if(mddT != null) parts.push('MDD_T=' + mddT);
+      if(anxT != null) parts.push('ANX_T=' + anxT);
+      return '<span style="font-size:0.78rem;color:var(--blue-dark);">RCADS-' + ver + ' ' + lbl + ' · ' + parts.join(' · ') + '</span>';
     }
   }
   // Genérico
