@@ -637,7 +637,9 @@ const QID_TO_ABA = {
   'q_custom_17744371527307': 'CTRF_15',
   'q_custom_177443725011​7': 'SRS2_IE_Pais',
   'q_diva5':              'DIVA5',
-  'q_eafe':               'EAFE'
+  'q_eafe':               'EAFE',
+  // ── v7.9 ──────────────────────────────────────────────
+  'q_eat26':              'EAT26'
 };
 
 
@@ -678,7 +680,9 @@ const SYNC_KEY_TO_ABA = {
   'rcads_25cg':         'RCADS_25CG',
   'rcads_25y':          'RCADS_25Y',
   'rcads_47cg':         'RCADS_47CG',
-  'rcads_47y':          'RCADS_47Y'
+  'rcads_47y':          'RCADS_47Y',
+  // ── EAT-26 v7.9 ─────────────────────────────────────────
+  'eat26':              'EAT26'
 };
 
 // Cache em memória das respostas do Sheet (evita fetch repetidos na mesma sessão)
@@ -830,6 +834,13 @@ function initCatalog() {
       syncKey:'rcads_47y', area:'Ansiedade / Humor', ageRange:'9–18 anos',
       objective:'Avalia ansiedade e depressão em crianças e adolescentes — versão de auto-avaliação (47 itens)',
       domains:['MDD_T','ANX_T','Total_T','SP','SP_T','SAD','SAD_T','GAD','GAD_T','PD','PD_T','OCD','OCD_T'], ageMin:108, ageMax:216},
+    // ── NOVO v7.9 — EAT-26 ──────────────────────────────────────────────
+    { id:'q_eat26', name:'EAT-26',
+      dest:['Paciente'],
+      link:'https://correiaricardina-ui.github.io/questionarios/EAT26_v2.html',
+      syncKey:'eat26', area:'Comportamento Alimentar', ageRange:'Adolescentes / Adultos',
+      objective:'Rastreio de atitudes e comportamentos alimentares de risco (Garner et al., 1982)',
+      domains:['D','B','OC','Total'], ageMin:132, ageMax:null},
   ];
   // Garantir que TODOS os defaults estão no catálogo, sempre
   // (funciona em RC novos e em RC existentes — nunca perde questionários)
@@ -895,6 +906,8 @@ function initCatalog() {
       'q_rcads_25y':  { link:'https://correiaricardina-ui.github.io/questionarios/RCADS25_Youth_v2.html', syncKey:'rcads_25y' },
       'q_rcads_47cg': { link:'https://correiaricardina-ui.github.io/questionarios/RCADS47_Pais_v2.html',  syncKey:'rcads_47cg' },
       'q_rcads_47y':  { link:'https://correiaricardina-ui.github.io/questionarios/RCADS47_Youth_v2.html', syncKey:'rcads_47y' },
+      // ── EAT-26 v7.9 ──────────────────────────────────────────────────
+      'q_eat26': { link:'https://correiaricardina-ui.github.io/questionarios/EAT26_v2.html', syncKey:'eat26' },
     };
     Object.entries(META).forEach(([id, meta]) => {
       const q = store.get('q_' + id);
@@ -1003,6 +1016,11 @@ function initCatalog() {
     if(!catalog.includes('q_rcads_47y')) {
       const d47y = defaults.find(d => d.id === 'q_rcads_47y');
       if(d47y) { store.set('q_' + d47y.id, d47y); catalog.push('q_rcads_47y'); store.set('catalog', catalog); }
+    }
+    // ── EAT-26 v7.9 ──────────────────────────────────────────────────────
+    if(!catalog.includes('q_eat26')) {
+      const dEat26 = defaults.find(d => d.id === 'q_eat26');
+      if(dEat26) { store.set('q_' + dEat26.id, dEat26); catalog.push('q_eat26'); store.set('catalog', catalog); }
     }
     }
   }
@@ -1356,6 +1374,21 @@ function formatScoreSummary(scores, syncKey) {
       if(mddT != null) parts.push('MDD_T=' + mddT);
       if(anxT != null) parts.push('ANX_T=' + anxT);
       return '<span style="font-size:0.78rem;color:var(--blue-dark);">RCADS-' + ver + ' ' + lbl + ' · ' + parts.join(' · ') + '</span>';
+    }
+  }
+  // ── EAT-26 v7.9 ────────────────────────────────────────────────────────
+  if(syncKey === 'eat26') {
+    const total   = scores['Total']    ?? scores['total']    ?? null;
+    const rastreio = scores['Rastreio'] ?? scores['rastreio'] ?? '';
+    const d       = scores['D']        ?? scores['scoreD']   ?? null;
+    const b       = scores['B']        ?? scores['scoreB']   ?? null;
+    const oc      = scores['OC']       ?? scores['scoreOC']  ?? null;
+    if(total != null) {
+      const t = parseFloat(total);
+      const cls = t >= 20 ? 'color:#C0392B;font-weight:700;' : 'color:var(--green);font-weight:600;';
+      const rLabel = rastreio && rastreio.toUpperCase().includes('POSITIVO') ? ' ⚠ POSITIVO' : ' negativo';
+      const subStr = (d != null && b != null && oc != null) ? ` · D=${d} B=${b} OC=${oc}` : '';
+      return `<span style="font-size:0.78rem;${cls}">Total=${t}${rLabel}${subStr}</span>`;
     }
   }
   // Genérico
