@@ -1136,7 +1136,21 @@ showPage = function(id){
   }
 };
 
-showPage('page-home');
+
+  // Abrir painel clínico directamente se URL contém ?clinico=RC2024
+  (function(){
+    var params = new URLSearchParams(window.location.search);
+    var pw = params.get('clinico');
+    if(pw && pw === PASSWORD){
+      showPage('page-login');
+      setTimeout(function(){
+        document.getElementById('login-pw').value = pw;
+        tentarLogin();
+      }, 100);
+    } else {
+      showPage('page-home');
+    }
+  })();
 </script>
 </body>
 </html>

@@ -1677,7 +1677,7 @@ function renderAssignments(patientId) {
       const patient = store.get('patient_' + patientId);
       const scoreHtml = patient ? (getResultSummary(a.qid, patient.code) || '') : '';
       const dataStr = a.receivedAt ? ' · ' + new Date(a.receivedAt).toLocaleDateString('pt-PT') : '';
-      const linkResult = q?.link ? (q.link + (q.link.includes('?') ? '&' : '?') + 'clinico=CNS2024') : '#';
+      const linkResult = q?.link ? (q.link + (q.link.includes('?') ? '&' : '?') + 'clinico=RC2024') : '#';
       resultZone = `<div style="margin-top:6px;padding:8px 10px;background:#F0FBF5;border:1.5px solid #1E7E5A33;border-radius:8px;display:flex;flex-wrap:wrap;align-items:center;gap:8px;">
         <span style="font-size:0.78rem;color:var(--green);font-weight:600;">✓ Preenchido${dataStr}</span>
         ${scoreHtml ? '<span style="margin-left:4px;">' + scoreHtml + '</span>' : ''}

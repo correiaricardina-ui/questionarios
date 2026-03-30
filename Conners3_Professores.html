@@ -830,7 +830,21 @@ function exportarInterpretacaoPDF(s){if(!s){alert('Sem dados.');return;}var subs
 buildSections();
 var _orig=showPage;
 showPage=function(id){_orig(id);if(id==='page-questionario'){document.querySelectorAll('[id^="section-"]').forEach(function(s){s.style.display='none';});document.getElementById('section-1').style.display='block';secaoAtual=1;document.getElementById('prog').style.width='0%';document.querySelectorAll('.section-step').forEach(function(el){el.classList.remove('active','done');if(el.id==='step-1')el.classList.add('active');});}};
-showPage('page-home');
+
+  // Abrir painel clínico directamente se URL contém ?clinico=RC2024
+  (function(){
+    var params = new URLSearchParams(window.location.search);
+    var pw = params.get('clinico');
+    if(pw && pw === PASSWORD){
+      showPage('page-login');
+      setTimeout(function(){
+        document.getElementById('login-pw').value = pw;
+        tentarLogin();
+      }, 100);
+    } else {
+      showPage('page-home');
+    }
+  })();
 </script>
 </body>
 </html>
