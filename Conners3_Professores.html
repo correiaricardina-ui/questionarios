@@ -475,7 +475,7 @@ function tZone(t){
 }
 
 
-const SCRIPT_URL='https://script.google.com/macros/s/AKfycbx5rn4u4wISYdO5AR1Ajo8cVh4JBWTn14FMZba1yh2k90T9PmofW8k5-RKKF95uymk_wg/exec';
+const SCRIPT_URL='https://script.google.com/macros/s/AKfycbxX2_Ry7VRH6jr7eGBMmtmyZFXZc69blwdO5bqJK0j69HRSexpXXPuEfDC5OHQRMLLL/exec';
 const INSTRUMENTO='CONNERS3T';
 const PASSWORD='RC2024';
 var respostas={};var secaoAtual=1;var modalSessaoAtual=null;var sessoesLocal=[];
@@ -483,17 +483,17 @@ var isFile=location.protocol==='file:';
 if(isFile)document.getElementById('offline-banner').style.display='block';
 
 var SECOES=[
-  {id:3,titulo:'A — Atenção e Actividade',desc:'Itens 1–18',itens:[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18]},
-  {id:4,titulo:'B — Problemas de Aprendizagem',desc:'Itens 19–26',itens:[19,20,21,22,23,24,25,26]},
-  {id:5,titulo:'C — Funções Executivas',desc:'Itens 27–34',itens:[27,28,29,30,31,32,33,34]},
-  {id:6,titulo:'D — Comportamento e Relações com Pares',desc:'Itens 35–49',itens:[35,36,37,38,39,40,41,42,43,44,45,46,47,48,49]},
-  {id:7,titulo:'E — Emoções e Comportamento de Risco',desc:'Itens 50–61',itens:[50,51,52,53,54,55,56,57,58,59,60,61]},
-  {id:8,titulo:'F — Índice PHDA / Global Index',desc:'Itens 62–81',itens:[62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81]},
-  {id:9,titulo:'G — Validade',desc:'Itens 82–87',itens:[82,83,84,85,86,87]},
-  {id:10,titulo:'H — DSM-5 PHDA Desatento',desc:'Itens 88–96',itens:[88,89,90,91,92,93,94,95,96]},
-  {id:11,titulo:'I — DSM-5 PHDA Hiperactivo-Impulsivo',desc:'Itens 97–105',itens:[97,98,99,100,101,102,103,104,105]},
-  {id:12,titulo:'J — DSM-5 POD + Perturbação Comportamento',desc:'Itens 106–113',itens:[106,107,108,109,110,111,112,113]},
-  {id:13,titulo:'K — Impacto Académico / NEE',desc:'Itens 114–115',itens:[114,115]},
+  {id:3,titulo:'A — Comportamento em sala de aula',desc:'Itens 1–18',itens:[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18]},
+  {id:4,titulo:'B — Aprendizagem e desempenho',desc:'Itens 19–26',itens:[19,20,21,22,23,24,25,26]},
+  {id:5,titulo:'C — Organização e planeamento',desc:'Itens 27–34',itens:[27,28,29,30,31,32,33,34]},
+  {id:6,titulo:'D — Comportamento e relações',desc:'Itens 35–49',itens:[35,36,37,38,39,40,41,42,43,44,45,46,47,48,49]},
+  {id:7,titulo:'E — Emoções e outros comportamentos',desc:'Itens 50–61',itens:[50,51,52,53,54,55,56,57,58,59,60,61]},
+  {id:8,titulo:'F — Actividade e atenção (continuação)',desc:'Itens 62–81',itens:[62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81]},
+  {id:9,titulo:'G — Situações escolares',desc:'Itens 82–87',itens:[82,83,84,85,86,87]},
+  {id:10,titulo:'H — Atenção e concentração',desc:'Itens 88–96',itens:[88,89,90,91,92,93,94,95,96]},
+  {id:11,titulo:'I — Actividade e impulsividade',desc:'Itens 97–105',itens:[97,98,99,100,101,102,103,104,105]},
+  {id:12,titulo:'J — Comportamento e obediência',desc:'Itens 106–113',itens:[106,107,108,109,110,111,112,113]},
+  {id:13,titulo:'K — Funcionamento académico',desc:'Itens 114–115',itens:[114,115]},
 ];
 var TOTAL_SECOES=13;
 

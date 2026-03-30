@@ -502,7 +502,7 @@ function tZone(t){
 // ══════════════════════════════════════════════════
 // CONFIG
 // ══════════════════════════════════════════════════
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx5rn4u4wISYdO5AR1Ajo8cVh4JBWTn14FMZba1yh2k90T9PmofW8k5-RKKF95uymk_wg/exec';
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxX2_Ry7VRH6jr7eGBMmtmyZFXZc69blwdO5bqJK0j69HRSexpXXPuEfDC5OHQRMLLL/exec';
 const INSTRUMENTO = 'CONNERS3P';
 const PASSWORD = 'RC2024';
 var respostas = {};
@@ -518,17 +518,17 @@ if(isFile){ document.getElementById('offline-banner').style.display='block'; }
 // ITEMS DATA
 // ══════════════════════════════════════════════════
 var SECOES = [
-  { id:3, titulo:'A — Atenção e Actividade', desc:'Itens 1–18', itens:[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18] },
-  { id:4, titulo:'B — Aprendizagem e Funções Executivas', desc:'Itens 19–30', itens:[19,20,21,22,23,24,25,26,27,28,29,30] },
-  { id:5, titulo:'C — Comportamento e Relações', desc:'Itens 31–50', itens:[31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50] },
-  { id:6, titulo:'D — Emoções e Saúde Mental', desc:'Itens 51–56', itens:[51,52,53,54,55,56] },
-  { id:7, titulo:'E — Comportamento de Risco / Impacto', desc:'Itens 57–63', itens:[57,58,59,60,61,62,63] },
-  { id:8, titulo:'F — Índice PHDA (ADHD Index)', desc:'Itens 64–73', itens:[64,65,66,67,68,69,70,71,72,73] },
-  { id:9, titulo:'G — Índice Global', desc:'Itens 74–83', itens:[74,75,76,77,78,79,80,81,82,83] },
-  { id:10, titulo:'H — Validade', desc:'Itens 84–89', itens:[84,85,86,87,88,89] },
-  { id:11, titulo:'I — DSM-5 PHDA Desatento', desc:'Itens 90–98', itens:[90,91,92,93,94,95,96,97,98] },
-  { id:12, titulo:'J — DSM-5 PHDA Hiperactivo-Impulsivo', desc:'Itens 99–107', itens:[99,100,101,102,103,104,105,106,107] },
-  { id:13, titulo:'K — DSM-5 POD', desc:'Itens 108–110', itens:[108,109,110] },
+  { id:3, titulo:'A — Comportamento geral', desc:'Itens 1–18', itens:[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18] },
+  { id:4, titulo:'B — Aprendizagem e organização', desc:'Itens 19–30', itens:[19,20,21,22,23,24,25,26,27,28,29,30] },
+  { id:5, titulo:'C — Comportamento e relações', desc:'Itens 31–50', itens:[31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50] },
+  { id:6, titulo:'D — Emoções e bem-estar', desc:'Itens 51–56', itens:[51,52,53,54,55,56] },
+  { id:7, titulo:'E — Outros comportamentos', desc:'Itens 57–63', itens:[57,58,59,60,61,62,63] },
+  { id:8, titulo:'F — Actividade e atenção (continuação)', desc:'Itens 64–73', itens:[64,65,66,67,68,69,70,71,72,73] },
+  { id:9, titulo:'G — Comportamento global', desc:'Itens 74–83', itens:[74,75,76,77,78,79,80,81,82,83] },
+  { id:10, titulo:'H — Situações do dia a dia', desc:'Itens 84–89', itens:[84,85,86,87,88,89] },
+  { id:11, titulo:'I — Atenção e concentração', desc:'Itens 90–98', itens:[90,91,92,93,94,95,96,97,98] },
+  { id:12, titulo:'J — Actividade e impulsividade', desc:'Itens 99–107', itens:[99,100,101,102,103,104,105,106,107] },
+  { id:13, titulo:'K — Comportamento e obediência', desc:'Itens 108–110', itens:[108,109,110] },
 ];
 var TOTAL_SECOES = 13; // 1=ID,2=Instrucoes,3-13=itens
 
@@ -705,7 +705,7 @@ function buildSections(){
     var el = document.getElementById('section-'+s.id);
     if(!el) return;
     var html = '<div class="card">';
-    html += '<div class="secao-titulo">Secção '+s.titulo+'</div>';
+    html += '<div class="secao-titulo">'+s.titulo+'</div>';
     html += '<div class="secao-desc">'+s.desc+' · Avalie o comportamento no <strong>último mês</strong>.</div>';
     s.itens.forEach(function(n,idx){
       var isEven = idx % 2 === 0;
