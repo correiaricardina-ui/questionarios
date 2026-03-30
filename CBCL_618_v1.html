@@ -421,6 +421,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--gray-bg);color:var(--text
       <div class="panel-title">Painel Clínico — CBCL 6-18</div>
       <div style="display:flex;gap:10px;">
         <button class="btn-nav btn-back" onclick="syncFromSheets()" style="font-size:0.82rem;padding:8px 16px;">🔄 Sincronizar</button>
+        <button class="btn-nav btn-back" onclick="limparESync()" style="font-size:0.82rem;padding:8px 16px;background:#E67E22;color:white;border:none;" title="Apaga dados locais e volta a importar tudo do Sheet">🗑+🔄 Reimportar Sheet</button>
         <button class="btn-nav btn-back" onclick="syncToSheets()" style="font-size:0.82rem;padding:8px 16px;background:var(--green,#1E7E5A);color:white;border:none;">⬆ Enviar para Sheet</button>
         <button class="btn-nav btn-back" onclick="exportarDados()" style="font-size:0.82rem;padding:8px 16px;background:#5B7FA6;color:white;border:none;">📤 Exportar</button>
         <button class="btn-nav btn-back" onclick="importarDados()" style="font-size:0.82rem;padding:8px 16px;background:#5B7FA6;color:white;border:none;">📥 Importar</button>
@@ -1315,42 +1316,78 @@ async function syncFromSheets() {
     if (!data2.length) return;
     const all = load(STORE_KEY) || [];
     let changed = false;
+
     for (const row of data2) {
-      const code = row['Código'] || row['codigo'] || row['Codigo'];
+      const code = (row['Código'] || row['codigo'] || row['Codigo'] || '').toString().trim();
       if (!code) continue;
-      if (!all.find(s => s.patientCode===code)) {
-        // Tentar vários nomes de coluna para T-scores
-        const tINT = row['T_INT'] || row['T-INT'] || row['tInternalizacao'] || null;
-        const tEXT = row['T_EXT'] || row['T-EXT'] || row['tExternalizacao'] || null;
-        const tTOT = row['T_TOT'] || row['T-Total'] || row['T-TOT'] || row['tTotal'] || null;
-        const tI   = row['T_I']  || row['tI']  || null;
-        const tII  = row['T_II'] || row['tII'] || null;
-        const tIII = row['T_III']|| row['tIII']|| null;
-        const tIV  = row['T_IV'] || row['tIV'] || null;
-        const tV   = row['T_V']  || row['tV']  || null;
-        const tVI  = row['T_VI'] || row['tVI'] || null;
-        const tVII = row['T_VII']|| row['tVII']|| null;
-        const tVIII= row['T_VIII']||row['tVIII']||null;
-        all.push({
-          patientCode: code,
-          childName: row['Nome'] || row['nome'] || '',
-          sex: row['Sexo'] || row['sexo'] || '',
-          ageYears: row['Idade'] || row['idade'] || null,
-          ageGroup: row['GrupoIdade'] || row['grupoIdade'] || row['Grupoldade'] || null,
-          filledBy: row['PreenchidoPor'] || row['preenchidoPor'] || '',
-          nome_preenche: row['NomePreenche'] || row['nome_preenche'] || '',
-          fillDate: row['Data'] || row['data'] || '',
-          submittedAt: row['Data'] || row['data'] || '',
-          status: 'complete',
-          scores: {
-            tScores: { INT:tINT, EXT:tEXT, TOT:tTOT, I:tI, II:tII, III:tIII, IV:tIV, V:tV, VI:tVI, VII:tVII, VIII:tVIII }
-          }
-        });
-        changed = true;
+
+      const tINT  = row['T_INT']  || row['T-INT']  || row['tInternalizacao'] || null;
+      const tEXT  = row['T_EXT']  || row['T-EXT']  || row['tExternalizacao'] || null;
+      const tTOT  = row['T_TOT']  || row['T-Total'] || row['T-TOT']  || row['tTotal'] || null;
+      const tI    = row['T_I']    || row['tI']    || null;
+      const tII   = row['T_II']   || row['tII']   || null;
+      const tIII  = row['T_III']  || row['tIII']  || null;
+      const tIV   = row['T_IV']   || row['tIV']   || null;
+      const tV    = row['T_V']    || row['tV']    || null;
+      const tVI   = row['T_VI']   || row['tVI']   || null;
+      const tVII  = row['T_VII']  || row['tVII']  || null;
+      const tVIII = row['T_VIII'] || row['tVIII'] || null;
+      const rawTot = row['RawTotal'] || row['rawTotal'] || null;
+
+      let answers = {};
+      const respostasRaw = row['Respostas'] || row['respostas'] || row['answers'] || '';
+      if (respostasRaw) {
+        try {
+          const parsed = typeof respostasRaw === 'string' ? JSON.parse(respostasRaw) : respostasRaw;
+          if (parsed && typeof parsed === 'object') answers = parsed;
+        } catch(e2) {}
       }
+
+      const sessaoSheet = {
+        patientCode:  code,
+        childName:    row['Nome']          || row['nome']          || '',
+        sex:          row['Sexo']          || row['sexo']          || '',
+        ageYears:     row['Idade']         || row['idade']         || null,
+        ageGroup:     row['GrupoIdade']    || row['grupoIdade']    || row['Grupoldade'] || null,
+        filledBy:     row['PreenchidoPor'] || row['preenchidoPor'] || '',
+        nome_preenche:row['NomePreenche']  || row['nome_preenche'] || '',
+        fillDate:     row['Data']          || row['data']          || '',
+        submittedAt:  row['Data']          || row['data']          || '',
+        status: 'complete',
+        answers: answers,
+        scores: {
+          totRaw: rawTot ? Number(rawTot) : undefined,
+          tScores: { INT:tINT, EXT:tEXT, TOT:tTOT, I:tI, II:tII, III:tIII, IV:tIV, V:tV, VI:tVI, VII:tVII, VIII:tVIII }
+        }
+      };
+
+      const idx = all.findIndex(s => s.patientCode === code);
+      if (idx >= 0) {
+        if (!Object.keys(answers).length && all[idx].answers) {
+          sessaoSheet.answers = all[idx].answers;
+        }
+        if (all[idx].scores && all[idx].scores.scaleRaws) {
+          sessaoSheet.scores.scaleRaws = all[idx].scores.scaleRaws;
+          sessaoSheet.scores.intRaw    = all[idx].scores.intRaw;
+          sessaoSheet.scores.extRaw    = all[idx].scores.extRaw;
+          sessaoSheet.scores.totRaw    = all[idx].scores.totRaw || sessaoSheet.scores.totRaw;
+        }
+        all[idx] = sessaoSheet;
+      } else {
+        all.push(sessaoSheet);
+      }
+      changed = true;
     }
+
     if (changed) { store(STORE_KEY, all); renderPanel(); }
   } catch(e) { console.log('Sync error:', e); }
+}
+
+function limparESync() {
+  if (!confirm('Isto vai apagar os dados locais do CBCL e reimportar tudo do Google Sheet. Continuar?')) return;
+  localStorage.removeItem(STORE_KEY);
+  renderPanel();
+  syncFromSheets();
 }
 
 async function syncToSheets() {
