@@ -1316,10 +1316,36 @@ async function syncFromSheets() {
     const all = load(STORE_KEY) || [];
     let changed = false;
     for (const row of data2) {
-      const code = row['Código'] || row['codigo'];
+      const code = row['Código'] || row['codigo'] || row['Codigo'];
       if (!code) continue;
       if (!all.find(s => s.patientCode===code)) {
-        all.push({ patientCode:code, childName:row['Nome']||'', status:'complete', submittedAt:row['Data']||'', scores:{tScores:{INT:row['T-INT'],EXT:row['T-EXT'],TOT:row['T-Total']}} });
+        // Tentar vários nomes de coluna para T-scores
+        const tINT = row['T_INT'] || row['T-INT'] || row['tInternalizacao'] || null;
+        const tEXT = row['T_EXT'] || row['T-EXT'] || row['tExternalizacao'] || null;
+        const tTOT = row['T_TOT'] || row['T-Total'] || row['T-TOT'] || row['tTotal'] || null;
+        const tI   = row['T_I']  || row['tI']  || null;
+        const tII  = row['T_II'] || row['tII'] || null;
+        const tIII = row['T_III']|| row['tIII']|| null;
+        const tIV  = row['T_IV'] || row['tIV'] || null;
+        const tV   = row['T_V']  || row['tV']  || null;
+        const tVI  = row['T_VI'] || row['tVI'] || null;
+        const tVII = row['T_VII']|| row['tVII']|| null;
+        const tVIII= row['T_VIII']||row['tVIII']||null;
+        all.push({
+          patientCode: code,
+          childName: row['Nome'] || row['nome'] || '',
+          sex: row['Sexo'] || row['sexo'] || '',
+          ageYears: row['Idade'] || row['idade'] || null,
+          ageGroup: row['GrupoIdade'] || row['grupoIdade'] || row['Grupoldade'] || null,
+          filledBy: row['PreenchidoPor'] || row['preenchidoPor'] || '',
+          nome_preenche: row['NomePreenche'] || row['nome_preenche'] || '',
+          fillDate: row['Data'] || row['data'] || '',
+          submittedAt: row['Data'] || row['data'] || '',
+          status: 'complete',
+          scores: {
+            tScores: { INT:tINT, EXT:tEXT, TOT:tTOT, I:tI, II:tII, III:tIII, IV:tIV, V:tV, VI:tVI, VII:tVII, VIII:tVIII }
+          }
+        });
         changed = true;
       }
     }
@@ -1423,26 +1449,37 @@ var sessaoActual = null;
 function showSessionDetail(idx) {
   const sessions = load(STORE_KEY) || [];
   const s = sessions[idx];
-  if (!s || !s.scores) return;
+  if (!s) return;
   sessaoActual = s;
 
-  const { tScores, scaleRaws, intRaw, extRaw, totRaw } = s.scores;
+  // Suporte a sessões importadas do Sheet (sem scores completos) e a sessões locais completas
+  const scores = s.scores || {};
+  const tScores = scores.tScores || {};
+  const scaleRaws = scores.scaleRaws || {};
+  const intRaw = scores.intRaw;
+  const extRaw = scores.extRaw;
+  const totRaw = scores.totRaw;
   const barW = (t) => Math.min(100, Math.max(0, ((t-35)/(100-35))*100));
 
+  // Suporte a sessões com apenas T-scores compostos (importadas do Sheet)
+  const tINT = tScores.INT || tScores['T-INT'] || s['T_INT'] || null;
+  const tEXT = tScores.EXT || tScores['T-EXT'] || s['T_EXT'] || null;
+  const tTOT = tScores.TOT || tScores['T-Total'] || s['T_TOT'] || null;
+
   const compositeRows = [
-    { name:'Internalização',  raw:intRaw,  t:tScores?.INT, type:'composite' },
-    { name:'Externalização',  raw:extRaw,  t:tScores?.EXT, type:'composite' },
-    { name:'Total de Problemas', raw:totRaw, t:tScores?.TOT, type:'composite' },
+    { name:'Internalização',     raw:intRaw,  t:tINT, type:'composite' },
+    { name:'Externalização',     raw:extRaw,  t:tEXT, type:'composite' },
+    { name:'Total de Problemas', raw:totRaw,  t:tTOT, type:'composite' },
   ];
   const syndromeRows = Object.entries(SCALES).map(([key,scale]) => ({
-    key, name:scale.name, raw:scaleRaws?.[key], t:tScores?.[key], type:'syndrome'
+    key, name:scale.name, raw:scaleRaws[key], t:tScores[key], type:'syndrome'
   }));
 
   const doc = document.getElementById('modal-content');
   doc.innerHTML = `
     <div style="margin-bottom:20px;">
       <div class="cbcl-print-name" style="font-family:'DM Serif Display';font-size:1.4rem;color:var(--blue);">${s.childName} <span style="font-size:0.85rem;color:var(--text-light);font-family:'DM Sans';">· ${s.patientCode}</span></div>
-      <div style="font-size:0.84rem;color:var(--text-light);margin-top:4px;">${s.sex==='F'?'Feminino':'Masculino'} · ${s.ageYears} anos · Grupo: ${s.ageGroup||'—'} · Preenchido por: ${s.filledBy||'—'} · ${s.fillDate||s.submittedAt?.split('T')[0]||''}</div>
+      <div style="font-size:0.84rem;color:var(--text-light);margin-top:4px;">${s.sex==='F'?'Feminino':'Masculino'} · ${s.ageYears||'—'} anos · Grupo: ${s.ageGroup||'—'} · Preenchido por: ${s.filledBy||s.preenchidoPor||'—'} · ${s.fillDate||s.submittedAt?.split('T')[0]||''}</div>
     </div>
 
     <!-- Composite with bars -->
@@ -1525,9 +1562,13 @@ function showSessionDetail(idx) {
       html += '<div style="margin-top:10px;padding:10px 14px;background:var(--gray-bdr);border-radius:8px;font-size:0.82rem;color:var(--text-light);text-align:center;">Respostas item a item não disponíveis para este registo.</div>';
     } else {
       function grp(from, to, label) {
-        var its = ITEMS.filter(function(i){ var n = parseFloat(i.n); return n >= from && n <= to; });
+        var its = ITEMS.filter(function(i){
+          var n = parseFloat(i.n);
+          return n >= from && n <= to;
+        });
         var rows = its.map(function(i) {
-          var v = ans[i.n];
+          // Chave pode ser numérica ou string (ex: '56a')
+          var v = (ans[i.n] !== undefined) ? ans[i.n] : (ans[String(i.n)] !== undefined ? ans[String(i.n)] : undefined);
           var vStr = (v !== undefined && v !== null) ? String(v) : '—';
           var bg = v == 2 ? '#FDECEA' : v == 1 ? '#FFF8E1' : '#F0F7FF';
           return '<div style="display:grid;grid-template-columns:32px 1fr 28px;gap:6px;align-items:center;padding:5px 8px;border-bottom:1px solid #F0F4F8;background:' + bg + ';font-size:0.8rem;">' +
@@ -1556,9 +1597,19 @@ function printModal() {
   const sessions = load(STORE_KEY) || [];
   const idx = parseInt(document.getElementById('modal-box').dataset.sessionIdx || '0');
   const s = sessions[idx];
-  if (!s || !s.scores) return;
+  if (!s) return;
 
-  const { tScores, scaleRaws, intRaw, extRaw, totRaw } = s.scores;
+  const scores = s.scores || {};
+  const tScores = scores.tScores || {};
+  const scaleRaws = scores.scaleRaws || {};
+  const intRaw = scores.intRaw;
+  const extRaw = scores.extRaw;
+  const totRaw = scores.totRaw;
+
+  // Suporte a sessões importadas do Sheet (apenas T-scores compostos)
+  const tINT = tScores.INT || tScores['T-INT'] || null;
+  const tEXT = tScores.EXT || tScores['T-EXT'] || null;
+  const tTOT = tScores.TOT || tScores['T-Total'] || null;
 
   // Helper: bar percentage from T-score (range 35–100)
   const bw = t => Math.min(98, Math.max(2, ((t - 35) / 65) * 100)).toFixed(1);
@@ -1574,12 +1625,12 @@ function printModal() {
   };
 
   const composites = [
-    { name: 'Internalização',    raw: intRaw,  t: tScores?.INT, type: 'composite' },
-    { name: 'Externalização',    raw: extRaw,  t: tScores?.EXT, type: 'composite' },
-    { name: 'Total de Problemas',raw: totRaw,  t: tScores?.TOT, type: 'composite' },
+    { name: 'Internalização',    raw: intRaw,  t: tINT, type: 'composite' },
+    { name: 'Externalização',    raw: extRaw,  t: tEXT, type: 'composite' },
+    { name: 'Total de Problemas',raw: totRaw,  t: tTOT, type: 'composite' },
   ];
   const syndromes = Object.entries(SCALES).map(([key, scale]) => ({
-    key, name: scale.name, raw: scaleRaws?.[key], t: tScores?.[key]
+    key, name: scale.name, raw: scaleRaws[key], t: tScores[key]
   }));
 
   // Build bar HTML for composites
@@ -1656,7 +1707,7 @@ function printModal() {
   </div>
 
   <div class="patient-name">${s.childName} <span style="font-family:'DM Sans';font-size:12px;color:#8a99a8;font-weight:400;">· ${s.patientCode}</span></div>
-  <div class="patient-meta">${sexLabel} · ${s.ageYears} anos · Grupo normativo: ${s.ageGroup || '—'} · Preenchido por: ${s.filledBy || '—'} · ${s.fillDate || s.submittedAt?.split('T')[0] || ''}</div>
+  <div class="patient-meta">${sexLabel} · ${s.ageYears||'—'} anos · Grupo normativo: ${s.ageGroup || '—'} · Preenchido por: ${s.filledBy || s.preenchidoPor || '—'} · ${s.fillDate || s.submittedAt?.split('T')[0] || ''}</div>
 
   <!-- COMPOSITES WITH BARS -->
   <div class="section-box">
@@ -1732,7 +1783,8 @@ function exportarRespostasPDF(sessaoParam) {
   if (!Object.keys(ans).length) { alert('Sem respostas registadas para esta sessão.'); return; }
 
   const linhasHTML = ITEMS.map(function(item) {
-    const v = ans[item.n];
+    // Chave é sempre string no localStorage (guardada via setAnswer com template literal)
+    var v = (ans[item.n] !== undefined) ? ans[item.n] : (ans[String(item.n)] !== undefined ? ans[String(item.n)] : undefined);
     const vStr = (v !== undefined && v !== null) ? String(v) : '—';
     const bg = v == 2 ? '#FDECEA' : v == 1 ? '#FFF8E1' : '#F0F7FF';
     return '<tr style="background:' + bg + ';"><td style="padding:4px 8px;border-bottom:1px solid #eee;text-align:center;color:#6B7A8D;font-size:11px;">' + item.n + '</td>' +
@@ -1784,9 +1836,17 @@ function exportarInterpretacaoPDF(sessaoParam) {
     alert('Seleccione primeiro uma sess\u00e3o (clique em "Ver detalhes").');
     return;
   }
-  if (!s.scores) { alert('Esta sess\u00e3o n\u00e3o tem scores calculados.'); return; }
+  if (!s.scores && !s['T_INT']) { alert('Esta sessão n\u00e3o tem scores calculados.'); return; }
 
-  const { tScores, scaleRaws, intRaw, extRaw, totRaw } = s.scores;
+  const scores = s.scores || {};
+  const tScores = scores.tScores || {};
+  const scaleRaws = scores.scaleRaws || {};
+  const intRaw = scores.intRaw;
+  const extRaw = scores.extRaw;
+  const totRaw = scores.totRaw;
+  const tINT = tScores.INT || tScores['T-INT'] || null;
+  const tEXT = tScores.EXT || tScores['T-EXT'] || null;
+  const tTOT = tScores.TOT || tScores['T-Total'] || null;
   const dt = s.submittedAt ? new Date(s.submittedAt).toLocaleDateString('pt-PT') : (s.fillDate||'\u2014');
 
   function row(label, raw, t, bold) {
@@ -1802,13 +1862,13 @@ function exportarInterpretacaoPDF(sessaoParam) {
   }
 
   const syndromeLabels = {
-    ANX_DEP:'Ansiedade/Depress\u00e3o',WD_DEP:'Isolamento/Depress\u00e3o',SOM:'Queixas Som\u00e1ticas',
-    SOC_PROB:'Problemas Sociais',THOUGHT:'Problemas de Pensamento',ATTN:'Problemas de Aten\u00e7\u00e3o',
-    RB:'Comportamento de Quebra de Regras',AGG:'Comportamento Agressivo'
+    I:'Ansiedade/Depress\u00e3o', II:'Isolamento/Depress\u00e3o', III:'Queixas Som\u00e1ticas',
+    IV:'Problemas Sociais', V:'Problemas de Pensamento', VI:'Problemas de Aten\u00e7\u00e3o',
+    VII:'Comportamento Delinquente', VIII:'Comportamento Agressivo'
   };
 
   let synRows = '';
-  if (tScores) {
+  if (tScores && Object.keys(tScores).length > 0) {
     Object.entries(syndromeLabels).forEach(([key,label]) => {
       const t = tScores[key];
       const raw = scaleRaws ? scaleRaws[key] : null;
@@ -1817,17 +1877,18 @@ function exportarInterpretacaoPDF(sessaoParam) {
   }
 
   const compRows = [
-    row('Internaliza\u00e7\u00e3o', intRaw, tScores?.INT, false),
-    row('Externaliza\u00e7\u00e3o', extRaw, tScores?.EXT, false),
-    row('Total de Problemas', totRaw, tScores?.TOT, true),
+    row('Internaliza\u00e7\u00e3o', intRaw, tINT, false),
+    row('Externaliza\u00e7\u00e3o', extRaw, tEXT, false),
+    row('Total de Problemas', totRaw, tTOT, true),
   ].join('');
 
-  // Respostas item-a-item
+  // Respostas item-a-item — chaves são strings (ex: '1', '56a')
   const answers = s.answers || {};
   const totalItems = 113;
   let respRows = '';
   for (let i=1; i<=totalItems; i++) {
-    const r = answers[i] !== undefined ? answers[i] : '\u2014';
+    // Tentar chave numérica e string
+    const r = (answers[i] !== undefined) ? answers[i] : (answers[String(i)] !== undefined ? answers[String(i)] : '\u2014');
     respRows += '<tr><td style="padding:3px 6px;border-bottom:1px solid #f0f0f0;color:#999;text-align:center;width:30px;">'+i+'</td>'+
       '<td style="padding:3px 6px;border-bottom:1px solid #f0f0f0;text-align:center;font-weight:700;width:40px;">'+r+'</td></tr>';
   }
