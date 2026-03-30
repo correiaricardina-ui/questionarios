@@ -867,6 +867,7 @@ function initCatalog() {
   defaults.forEach(function(q) {
     // Forçar sempre actualização dos metadados do catálogo central
     store.set(q.id, q);
+    store.set('q_' + q.id, q); // garante chave 'q_' + id para lookup em renderAssignments
     // Remover variantes antigas do mesmo id (sem prefixo 'q_') para evitar duplicados
     const shortId = q.id.startsWith('q_') ? q.id.slice(2) : null;
     const hasShort = shortId && catalog.includes(shortId);
@@ -1043,15 +1044,15 @@ function initCatalog() {
       const dEat26 = defaults.find(d => d.id === 'q_eat26');
       if(dEat26) { store.set('q_' + dEat26.id, dEat26); catalog.push('q_eat26'); store.set('catalog', catalog); }
     }
-    // Conners 3 — Pais (v9.0)
-    if(!catalog.includes('q_conners3p')) {
-      const dC3P = defaults.find(d => d.id === 'q_conners3p');
-      if(dC3P) { store.set(dC3P.id, dC3P); catalog.push('q_conners3p'); store.set('catalog', catalog); }
+    // Conners 3 — Pais (v9.0) — forçar chave correcta sempre
+    { const dC3P = defaults.find(d => d.id === 'q_conners3p');
+      if(dC3P) { store.set('q_' + dC3P.id, dC3P); }  // chave: 'q_q_conners3p'
+      if(!catalog.includes('q_conners3p')) { catalog.push('q_conners3p'); store.set('catalog', catalog); }
     }
-    // Conners 3 — Professores (v9.0)
-    if(!catalog.includes('q_conners3t')) {
-      const dC3T = defaults.find(d => d.id === 'q_conners3t');
-      if(dC3T) { store.set(dC3T.id, dC3T); catalog.push('q_conners3t'); store.set('catalog', catalog); }
+    // Conners 3 — Professores (v9.0) — forçar chave correcta sempre
+    { const dC3T = defaults.find(d => d.id === 'q_conners3t');
+      if(dC3T) { store.set('q_' + dC3T.id, dC3T); }  // chave: 'q_q_conners3t'
+      if(!catalog.includes('q_conners3t')) { catalog.push('q_conners3t'); store.set('catalog', catalog); }
     }
     }
   }
