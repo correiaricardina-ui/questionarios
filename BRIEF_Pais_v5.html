@@ -979,6 +979,8 @@ function collectPayload(){
   payload.IRC = sc.indices.IRC || '';
   payload.IM  = sc.indices.IM  || '';
   payload.GEF = sc.indices.GEF || '';
+  // Serializar respostas item-a-item como JSON para o Apps Script gravar na coluna Respostas
+  payload.Respostas = JSON.stringify(payload.respostas);
   return payload;
 }
 
@@ -1355,7 +1357,8 @@ function syncData(){
             PlaneamentoOrg:    Number(row.PO  || 0),
             OrganizacaoMat:    Number(row.OM  || 0),
             Monitorizacao:     Number(row.MON || 0)
-          }, validade: { incons: null, neg: null }}
+          }, validade: { incons: null, neg: null }},
+          respostas: (()=>{ try{ return JSON.parse(row.Respostas || '{}'); }catch(e){ return {}; } })()
         };
         const k="brief_pais_synced_"+r.codigo+"_"+r.timestamp;
         if(!localStorage.getItem(k)) localStorage.setItem(k,JSON.stringify(r));
