@@ -683,9 +683,11 @@ const SYNC_KEY_TO_ABA = {
   'rcads_47y':          'RCADS_47Y',
   // ── EAT-26 v7.9 ─────────────────────────────────────────
   'eat26':              'EAT26',
-  // ── Conners 3 v9.0 ─────────────────────────────────────
-  'conners3p':          'CONNERS3P',
-  'conners3t':          'CONNERS3T'
+  // ── Conners 3 v11.0 — 4 versões ────────────────────────
+  'conners3p_full':     'CONNERS3P_FULL',   // Pais Versão Completa
+  'conners3t_full':     'CONNERS3T_FULL',   // Professores Versão Completa
+  'conners3ps':         'CONNERS3PS',       // Pais Versão Curta
+  'conners3ts':         'CONNERS3TS'        // Professores Versão Curta
 };
 
 // Cache em memória das respostas do Sheet (evita fetch repetidos na mesma sessão)
@@ -837,20 +839,34 @@ function initCatalog() {
       syncKey:'rcads_47y', area:'Ansiedade / Humor', ageRange:'9–18 anos',
       objective:'Avalia ansiedade e depressão em crianças e adolescentes — versão de auto-avaliação (47 itens)',
       domains:['MDD_T','ANX_T','Total_T','SP','SP_T','SAD','SAD_T','GAD','GAD_T','PD','PD_T','OCD','OCD_T'], ageMin:108, ageMax:216},
-    // ── Conners 3 v9.0 ─────────────────────────────────────────────────
-    { id:'q_conners3p', name:'Conners 3 — Pais/Cuid.',
+    // ── Conners 3 v11.0 — 4 versões ─────────────────────────────────────
+    { id:'q_conners3p_full', name:'Conners 3-P — Pais (Completa)',
       dest:['Mãe','Pai','Enc. Educação'],
-      link:'https://correiaricardina-ui.github.io/questionarios/Conners3_Pais.html',
-      syncKey:'conners3p', area:'PHDA', ageRange:'6–18 anos',
-      objective:'Avalia sintomas de PHDA, aprendizagem e comportamento — versão pais/cuidadores (110 itens)',
-      domains:['IN','HI','LP','EF','AG','PR','FR','AI','GI-RI','GI-EL','GI','DSMI','DSMH','DSMO'],
+      link:'https://correiaricardina-ui.github.io/questionarios/Conners3_Pais_Full.html',
+      syncKey:'conners3p_full', area:'PHDA', ageRange:'6–18 anos',
+      objective:'Avalia sintomas de PHDA, aprendizagem e comportamento — versão pais completa (110 itens)',
+      domains:['IN','HI','LP','EF','AG','PR','DSMI','DSMH','CD','ODD'],
       ageMin:72, ageMax:215 },
-    { id:'q_conners3t', name:'Conners 3 — Professores',
+    { id:'q_conners3t_full', name:'Conners 3-T — Professores (Completa)',
       dest:['Professor(a)'],
-      link:'https://correiaricardina-ui.github.io/questionarios/Conners3_Professores.html',
-      syncKey:'conners3t', area:'PHDA', ageRange:'6–18 anos',
-      objective:'Avalia sintomas de PHDA, aprendizagem e comportamento — versão professores (115 itens)',
-      domains:['IN','HI','LP','EF','AG','PR','AI','GI-RI','GI-EL','GI','DSMI','DSMH','DSMO','DSMC'],
+      link:'https://correiaricardina-ui.github.io/questionarios/Conners3_Professores_Full.html',
+      syncKey:'conners3t_full', area:'PHDA', ageRange:'6–18 anos',
+      objective:'Avalia sintomas de PHDA, aprendizagem e comportamento — versão professores completa (115 itens)',
+      domains:['IN','HI','LPEF','AG','PR','DSMI','DSMH','CD','ODD'],
+      ageMin:72, ageMax:215 },
+    { id:'q_conners3ps', name:'Conners 3-P(S) — Pais (Curta)',
+      dest:['Mãe','Pai','Enc. Educação'],
+      link:'https://correiaricardina-ui.github.io/questionarios/Conners3_Pais_Short.html',
+      syncKey:'conners3ps', area:'PHDA', ageRange:'6–18 anos',
+      objective:'Avalia sintomas de PHDA, aprendizagem e comportamento — versão pais curta (45 itens)',
+      domains:['IN','HI','LP','EF','AG','PR'],
+      ageMin:72, ageMax:215 },
+    { id:'q_conners3ts', name:'Conners 3-T(S) — Professores (Curta)',
+      dest:['Professor(a)'],
+      link:'https://correiaricardina-ui.github.io/questionarios/Conners3_Professores_Short.html',
+      syncKey:'conners3ts', area:'PHDA', ageRange:'6–18 anos',
+      objective:'Avalia sintomas de PHDA, aprendizagem e comportamento — versão professores curta (41 itens)',
+      domains:['IN','HI','LPEF','AG','PR'],
       ageMin:72, ageMax:215 },
     // ── NOVO v7.9 — EAT-26 ──────────────────────────────────────────────
     { id:'q_eat26', name:'EAT-26',
@@ -926,9 +942,11 @@ function initCatalog() {
       'q_rcads_47y':  { link:'https://correiaricardina-ui.github.io/questionarios/RCADS47_Youth_v2.html', syncKey:'rcads_47y' },
       // ── EAT-26 v7.9 ──────────────────────────────────────────────────
       'q_eat26': { link:'https://correiaricardina-ui.github.io/questionarios/EAT26_v2.html', syncKey:'eat26' },
-      // ── Conners 3 v9.0 ────────────────────────────────────────────────────
-      'q_conners3p': { link:'https://correiaricardina-ui.github.io/questionarios/Conners3_Pais.html', syncKey:'conners3p' },
-      'q_conners3t': { link:'https://correiaricardina-ui.github.io/questionarios/Conners3_Professores.html', syncKey:'conners3t' },
+      // ── Conners 3 v11.0 ───────────────────────────────────────────────────
+      'q_conners3p_full': { link:'https://correiaricardina-ui.github.io/questionarios/Conners3_Pais_Full.html',         syncKey:'conners3p_full' },
+      'q_conners3t_full': { link:'https://correiaricardina-ui.github.io/questionarios/Conners3_Professores_Full.html',  syncKey:'conners3t_full' },
+      'q_conners3ps':     { link:'https://correiaricardina-ui.github.io/questionarios/Conners3_Pais_Short.html',        syncKey:'conners3ps' },
+      'q_conners3ts':     { link:'https://correiaricardina-ui.github.io/questionarios/Conners3_Professores_Short.html', syncKey:'conners3ts' },
     };
     Object.entries(META).forEach(([id, meta]) => {
       const q = store.get('q_' + id);
@@ -1043,15 +1061,25 @@ function initCatalog() {
       const dEat26 = defaults.find(d => d.id === 'q_eat26');
       if(dEat26) { store.set('q_' + dEat26.id, dEat26); catalog.push('q_eat26'); store.set('catalog', catalog); }
     }
-    // Conners 3 — Pais (v9.0)
-    if(!catalog.includes('q_conners3p')) {
-      const dC3P = defaults.find(d => d.id === 'q_conners3p');
-      if(dC3P) { store.set(dC3P.id, dC3P); catalog.push('q_conners3p'); store.set('catalog', catalog); }
+    // Conners 3 v11.0 — Pais Completa
+    if(!catalog.includes('q_conners3p_full')) {
+      const d = defaults.find(x => x.id === 'q_conners3p_full');
+      if(d) { store.set(d.id, d); catalog.push('q_conners3p_full'); store.set('catalog', catalog); }
     }
-    // Conners 3 — Professores (v9.0)
-    if(!catalog.includes('q_conners3t')) {
-      const dC3T = defaults.find(d => d.id === 'q_conners3t');
-      if(dC3T) { store.set(dC3T.id, dC3T); catalog.push('q_conners3t'); store.set('catalog', catalog); }
+    // Conners 3 v11.0 — Professores Completa
+    if(!catalog.includes('q_conners3t_full')) {
+      const d = defaults.find(x => x.id === 'q_conners3t_full');
+      if(d) { store.set(d.id, d); catalog.push('q_conners3t_full'); store.set('catalog', catalog); }
+    }
+    // Conners 3 v11.0 — Pais Curta
+    if(!catalog.includes('q_conners3ps')) {
+      const d = defaults.find(x => x.id === 'q_conners3ps');
+      if(d) { store.set(d.id, d); catalog.push('q_conners3ps'); store.set('catalog', catalog); }
+    }
+    // Conners 3 v11.0 — Professores Curta
+    if(!catalog.includes('q_conners3ts')) {
+      const d = defaults.find(x => x.id === 'q_conners3ts');
+      if(d) { store.set(d.id, d); catalog.push('q_conners3ts'); store.set('catalog', catalog); }
     }
     }
   }
@@ -1185,23 +1213,29 @@ function getResultSummary(qid, patientCode) {
     }
   } catch(e) {}
 
-  // ── Conners 3 — Pais e Professores (v9.0) ───────────────────────────────
+  // ── Conners 3 v11.0 — 4 versões ─────────────────────────────────────────
   try {
-    const c3map = { 'q_conners3p':'conners3p_sessions', 'q_conners3t':'conners3t_sessions' };
+    const c3map = {
+      'q_conners3p_full': 'conners_Pais_Full',
+      'q_conners3t_full': 'conners_Professores_Full',
+      'q_conners3ps':     'conners_Pais_Short',
+      'q_conners3ts':     'conners_Professores_Short',
+    };
     const c3store = c3map[qid];
     if(c3store) {
       const sessions = JSON.parse(localStorage.getItem(c3store) || 'null');
       if(sessions) {
         const arr = Array.isArray(sessions) ? sessions : Object.values(sessions);
-        const s = arr.find(s => (s.patientCode||s.codigo||'') === patientCode);
-        if(s) {
-          const inT  = parseInt(s.scoreIN)  || null;
-          const hiT  = parseInt(s.scoreHI)  || null;
-          const lpT  = parseInt(s.scoreLP)  || null;
+        const s = arr.find(s => (s.code||s.patientCode||s.codigo||'') === patientCode);
+        if(s && s.tscores) {
+          const t = s.tscores;
+          const inT  = t['IN']   || null;
+          const hiT  = t['HI']   || null;
+          const lpT  = t['LP']   || t['LPEF'] || null;
           const maxT = Math.max(inT||0, hiT||0, lpT||0);
           if(maxT > 0) {
-            const cls = maxT >= 70 ? 'color:#C0392B;font-weight:700;' : maxT >= 65 ? 'color:#E67E22;font-weight:600;' : maxT >= 60 ? 'color:#7D6608;font-weight:600;' : 'color:var(--green);font-weight:600;';
-            return '<span style="font-size:0.78rem;' + cls + '">IN=' + (inT||'—') + ' · HI=' + (hiT||'—') + (lpT?' · LP='+lpT:'') + '</span>';
+            const cls = maxT >= 70 ? 'color:#C0392B;font-weight:700;' : maxT >= 65 ? 'color:#E67E22;font-weight:600;' : 'color:var(--green);font-weight:600;';
+            return '<span style="font-size:0.78rem;' + cls + '">IN=' + (inT||'—') + ' · HI=' + (hiT||'—') + (lpT ? ' · LP/EF=' + lpT : '') + '</span>';
           }
         }
       }
@@ -1444,6 +1478,18 @@ function formatScoreSummary(scores, syncKey) {
       const rLabel = rastreio && rastreio.toUpperCase().includes('POSITIVO') ? ' ⚠ POSITIVO' : ' negativo';
       const subStr = (d != null && b != null && oc != null) ? ` · D=${d} B=${b} OC=${oc}` : '';
       return `<span style="font-size:0.78rem;${cls}">Total=${t}${rLabel}${subStr}</span>`;
+    }
+  }
+  // Conners 3 — todas as versões (v11.0)
+  if(['conners3p_full','conners3t_full','conners3ps','conners3ts'].includes(syncKey)) {
+    const inT  = scores['T_IN']   ?? scores['t_IN']   ?? null;
+    const hiT  = scores['T_HI']   ?? scores['t_HI']   ?? null;
+    const lpT  = scores['T_LP']   ?? scores['T_LPEF'] ?? scores['t_LP'] ?? scores['t_LPEF'] ?? null;
+    const agT  = scores['T_AG']   ?? scores['t_AG']   ?? null;
+    const maxT = Math.max(inT||0, hiT||0, lpT||0, agT||0);
+    if(maxT > 0) {
+      const cls = maxT >= 70 ? 'color:#C0392B;font-weight:700;' : maxT >= 65 ? 'color:#E67E22;font-weight:600;' : 'color:var(--green);font-weight:600;';
+      return `<span style="font-size:0.78rem;${cls}">IN=${inT||'—'} · HI=${hiT||'—'}${lpT ? ' · LP/EF='+lpT : ''}${agT ? ' · AG='+agT : ''}</span>`;
     }
   }
   // Genérico
