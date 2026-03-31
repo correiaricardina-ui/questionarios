@@ -812,7 +812,36 @@ function submeter() {
   sessoes.push(sessao);
   guardarSessoes();
   showPage('page-obrigado');
+
+  enviarAoSheet(sessao);
 }
+
+function enviarAoSheet(s) {
+  const payload = {
+    instrumento: 'CONNERS3PS',
+    patientCode:    s.code,
+    nomeCrianca:    s.nomeCrianca,
+    nomeInformante: s.nomeInf,
+    idade:          s.idade||'',
+      score_IN: s.scores['IN']??'',
+      score_HI: s.scores['HI']??'',
+      score_LP: s.scores['LP']??'',
+      score_EF: s.scores['EF']??'',
+      score_AG: s.scores['AG']??'',
+      score_PR: s.scores['PR']??'',
+      t_IN: s.tscores['IN']??'',
+      t_HI: s.tscores['HI']??'',
+      t_LP: s.tscores['LP']??'',
+      t_EF: s.tscores['EF']??'',
+      t_AG: s.tscores['AG']??'',
+      t_PR: s.tscores['PR']??'',
+    respostas: JSON.stringify(s.respostas),
+  };
+  fetch('https://script.google.com/macros/s/AKfycbxX2_Ry7VRH6jr7eGBMmtmyZFXZc69blwdO5bqJK0j69HRSexpXXPuEfDC5OHQRMLLL/exec', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  }).catch(function(){});
+
 
 // ── Painel clínico ────────────────────────────────────────────────────────────
 function renderClinico() {

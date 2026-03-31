@@ -639,7 +639,15 @@ const QID_TO_ABA = {
   'q_diva5':              'DIVA5',
   'q_eafe':               'EAFE',
   // ── v7.9 ──────────────────────────────────────────────
-  'q_eat26':              'EAT26'
+  'q_eat26':              'EAT26',
+  // ── Conners 3 v11.0 — 4 versões ──────────────────────────
+  'q_conners3p_full':     'CONNERS3P_FULL',
+  'q_conners3t_full':     'CONNERS3T_FULL',
+  'q_conners3ps':         'CONNERS3PS',
+  'q_conners3ts':         'CONNERS3TS',
+  // ── FAD v12.0 ─────────────────────────────────────────────
+  'q_fad_gf':             'FAD_GF',
+  'q_fad_60':             'FAD_60'
 };
 
 
@@ -687,7 +695,10 @@ const SYNC_KEY_TO_ABA = {
   'conners3p_full':     'CONNERS3P_FULL',   // Pais Versão Completa
   'conners3t_full':     'CONNERS3T_FULL',   // Professores Versão Completa
   'conners3ps':         'CONNERS3PS',       // Pais Versão Curta
-  'conners3ts':         'CONNERS3TS'        // Professores Versão Curta
+  'conners3ts':         'CONNERS3TS',        // Professores Versão Curta
+  // ── FAD v12.0 ─────────────────────────────────────────────
+  'fad_gf':              'FAD_GF',
+  'fad_60':              'FAD_60'
 };
 
 // Cache em memória das respostas do Sheet (evita fetch repetidos na mesma sessão)
@@ -868,6 +879,21 @@ function initCatalog() {
       objective:'Avalia sintomas de PHDA, aprendizagem e comportamento — versão professores curta (41 itens)',
       domains:['IN','HI','LPEF','AG','PR'],
       ageMin:72, ageMax:215 },
+    // ── FAD v12.0 ─────────────────────────────────────────────
+    { id:'q_fad_gf', name:'FAD-GF — Funcionamento Geral da Família',
+      dest:['Mãe','Pai','Enc. Educação','Outro familiar'],
+      link:'https://correiaricardina-ui.github.io/questionarios/FAD_GF_v2.html',
+      syncKey:'fad_gf', area:'Funcionamento Familiar', ageRange:'Família',
+      objective:'Avaliação do funcionamento familiar global — 12 itens (Epstein et al., 1983)',
+      domains:['Score FAD-GF','Classificação'],
+      ageMin:0, ageMax:999 },
+    { id:'q_fad_60', name:'FAD-60 — Family Assessment Device',
+      dest:['Mãe','Pai','Enc. Educação','Outro familiar'],
+      link:'https://correiaricardina-ui.github.io/questionarios/FAD_60_v1.html',
+      syncKey:'fad_60', area:'Funcionamento Familiar', ageRange:'Família',
+      objective:'Avaliação do funcionamento familiar em 7 subescalas — 60 itens (Epstein et al., 1983)',
+      domains:['PS','CO','RO','AR','AI','BC','GF'],
+      ageMin:0, ageMax:999 },
     // ── NOVO v7.9 — EAT-26 ──────────────────────────────────────────────
     { id:'q_eat26', name:'EAT-26',
       dest:['Paciente'],
@@ -947,6 +973,9 @@ function initCatalog() {
       'q_conners3t_full': { link:'https://correiaricardina-ui.github.io/questionarios/Conners3_Professores_Full.html',  syncKey:'conners3t_full' },
       'q_conners3ps':     { link:'https://correiaricardina-ui.github.io/questionarios/Conners3_Pais_Short.html',        syncKey:'conners3ps' },
       'q_conners3ts':     { link:'https://correiaricardina-ui.github.io/questionarios/Conners3_Professores_Short.html', syncKey:'conners3ts' },
+      // ── FAD v12.0 ─────────────────────────────────────────
+      'q_fad_gf': { link:'https://correiaricardina-ui.github.io/questionarios/FAD_GF_v2.html',  syncKey:'fad_gf' },
+      'q_fad_60': { link:'https://correiaricardina-ui.github.io/questionarios/FAD_60_v1.html',  syncKey:'fad_60' },
     };
     Object.entries(META).forEach(([id, meta]) => {
       const q = store.get('q_' + id);
@@ -1080,6 +1109,16 @@ function initCatalog() {
     if(!catalog.includes('q_conners3ts')) {
       const d = defaults.find(x => x.id === 'q_conners3ts');
       if(d) { store.set(d.id, d); catalog.push('q_conners3ts'); store.set('catalog', catalog); }
+    }
+    // FAD v12.0 — FAD-GF
+    if(!catalog.includes('q_fad_gf')) {
+      const d = defaults.find(x => x.id === 'q_fad_gf');
+      if(d) { store.set(d.id, d); catalog.push('q_fad_gf'); store.set('catalog', catalog); }
+    }
+    // FAD v12.0 — FAD-60
+    if(!catalog.includes('q_fad_60')) {
+      const d = defaults.find(x => x.id === 'q_fad_60');
+      if(d) { store.set(d.id, d); catalog.push('q_fad_60'); store.set('catalog', catalog); }
     }
     }
   }
@@ -1495,6 +1534,25 @@ function formatScoreSummary(scores, syncKey) {
   // Genérico
   const entries = Object.entries(scores).filter(([,v]) => v != null).slice(0,3);
   if(entries.length > 0) return `<span style="font-size:0.78rem;color:var(--blue-dark);">${entries.map(([k,v])=>k+'='+v).join(' · ')}</span>`;
+  // ── FAD v12.0 ─────────────────────────────────────────────
+  if(syncKey === 'fad_gf') {
+    const sc  = scores['Score FAD-GF'] ?? scores['score'];
+    const cls = scores['Classificação'] ?? scores['classification'] ?? '';
+    if(sc != null) {
+      const num = parseFloat(sc);
+      const col = num > 2.5 ? 'color:#C0392B;font-weight:700;' : num > 2.0 ? 'color:#E67E22;font-weight:600;' : 'color:var(--green);font-weight:600;';
+      return `<span style="font-size:0.78rem;${col}">FAD-GF = ${parseFloat(sc).toFixed(2)}${cls ? ' · ' + cls : ''}</span>`;
+    }
+  }
+  if(syncKey === 'fad_60') {
+    const gf  = scores['Score_GF'] ?? scores['score_GF'] ?? scores['score_gf'];
+    const cls = scores['Class_GF'] ?? scores['class_GF'] ?? '';
+    if(gf != null) {
+      const num = parseFloat(gf);
+      const col = num >= 2.0 ? 'color:#C0392B;font-weight:700;' : 'color:var(--green);font-weight:600;';
+      return `<span style="font-size:0.78rem;${col}">GF = ${parseFloat(gf).toFixed(2)}${cls ? ' · ' + cls : ''}</span>`;
+    }
+  }
   return null;
 }
 
@@ -1654,7 +1712,10 @@ function renderAssignments(patientId) {
                 'SCARED_R_CRIANCA':['NomeInformante'],'SCARED_R_PAIS':['NomeInformante'],
                 'SPAS_Pais':['NomeInformante'],'SPAS_Prof':['NomeInformante'],
                 'ABAS3_PAIS':['NomeCrianca','NomeInformante'],'ABAS3_PROF':['NomeCrianca','NomeInformante'],'ABAS3_ADULT':['NomeCrianca','NomeInformante'],'ABAS3_05':['Informante'],'ABAS3_05P':['Informante'],
-                'QEDP':['Informante','NomeInformante'],'QC_Coparentalidade':['NomeRespondente','Respondente']
+                'QEDP':['Informante','NomeInformante'],'QC_Coparentalidade':['NomeRespondente','Respondente'],
+                'FAD_GF':['Nome Respondente'],'FAD_60':['Nome Respondente'],
+                'CONNERS3P_FULL':['NomeInformante'],'CONNERS3T_FULL':['NomeInformante'],
+                'CONNERS3PS':['NomeInformante'],'CONNERS3TS':['NomeInformante']
               };
               const RC = {
                 'SWAN':['Relação'],'BRIEF_Pais':['Relação'],'SCARED_R_PAIS':['Relação'],
