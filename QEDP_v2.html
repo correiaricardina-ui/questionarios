@@ -640,8 +640,42 @@ async function carregarDados() {
   try {
     var res = await fetch(SCRIPT_URL + '?instrumento=QEDP&t=' + Date.now());
     var data = await res.json();
-    if (data && data.rows) {
-      todasSessoes = data.rows;
+    var rows = (data && data.rows) ? data.rows : [];
+    if (rows.length > 0) {
+      // ── Normalizar nomes de campos do Sheet (podem vir com maiúsculas) ──
+      todasSessoes = rows.map(function(row) {
+        var s = {
+          data:          row['Data']          || row.data          || row.timestamp || '—',
+          codigo:        row['Código']         || row['Codigo']     || row.codigo    || '—',
+          nome_crianca:  row['NomeCriança']    || row['NomeCrianca']|| row.nome_crianca || '',
+          informante:    row['Informante']     || row.informante    || 'outro',
+          nome_informante: row['NomeInformante']|| row.nome_informante || row.nome_preenche || '',
+          dem_media:     row['Dem_Media']      || row.dem_media     || '',
+          dem_t:         row['Dem_T']          || row.dem_t         || '',
+          dem_cls:       row['Dem_Cls']        || row.dem_cls       || '',
+          aut_media:     row['Aut_Media']      || row.aut_media     || '',
+          aut_t:         row['Aut_T']          || row.aut_t         || '',
+          aut_cls:       row['Aut_Cls']        || row.aut_cls       || '',
+          per_media:     row['Per_Media']      || row.per_media     || '',
+          per_t:         row['Per_T']          || row.per_t         || '',
+          per_cls:       row['Per_Cls']        || row.per_cls       || ''
+        };
+        // ── OBRIGATÓRIO: reconstruir respostas a partir da coluna Respostas ──
+        try {
+          var raw = row['Respostas'] || row.respostas || row.Respostas || '';
+          if (raw && typeof raw === 'string' && raw.trim().length > 0) {
+            // Formato pipe: "4|1|3|2|..." (32 valores)
+            if (raw.indexOf('|') !== -1) {
+              s.respostas = raw;
+            } else if (raw.startsWith('[') || raw.startsWith('{')) {
+              s.respostas = JSON.parse(raw).join('|');
+            } else {
+              s.respostas = raw;
+            }
+          }
+        } catch(e) { /* sem respostas */ }
+        return s;
+      });
     } else {
       // fallback: localStorage
       todasSessoes = JSON.parse(localStorage.getItem('qedp_sessoes') || '[]');
@@ -994,10 +1028,10 @@ function carregarComparativo() {
 function exportarCSV() {
   if (!todasSessoes || todasSessoes.length === 0) { alert('Sem dados para exportar.'); return; }
   var bom = '\uFEFF';
-  var header = ['Data','Código','Nome Criança','Informante','Dem_Media','Dem_T','Dem_Cls','Aut_Media','Aut_T','Aut_Cls','Per_Media','Per_T','Per_Cls'];
+  var header = ['Data','Código','Nome Criança','Informante','NomeInformante','Dem_Media','Dem_T','Dem_Cls','Aut_Media','Aut_T','Aut_Cls','Per_Media','Per_T','Per_Cls','Respostas'];
   var linhas = [header.join(';')];
   todasSessoes.forEach(function(s) {
-    linhas.push([s.data,s.codigo,s.nome_crianca,s.informante,s.dem_media,s.dem_t,s.dem_cls,s.aut_media,s.aut_t,s.aut_cls,s.per_media,s.per_t,s.per_cls].map(function(v){ return '"'+(v||'').toString().replace(/"/g,'""')+'"'; }).join(';'));
+    linhas.push([s.data,s.codigo,s.nome_crianca,s.informante,s.nome_informante||'',s.dem_media,s.dem_t,s.dem_cls,s.aut_media,s.aut_t,s.aut_cls,s.per_media,s.per_t,s.per_cls,s.respostas||''].map(function(v){ return '"'+(v||'').toString().replace(/"/g,'""')+'"'; }).join(';'));
   });
   var blob = new Blob([bom+linhas.join('\r\n')],{type:'text/csv;charset=utf-8;'});
   var a = document.createElement('a');
@@ -1033,14 +1067,21 @@ function processarFicheiroImportado(input) {
       var data   = obj['Data']   || obj['data']   || '';
       if (!codigo) return;
       if (!todasSessoes.some(function(s){ return s.codigo === codigo && s.data === data; })) {
-        todasSessoes.push({
+        var sessaoImportada = {
           codigo: codigo, data: data,
-          nome_crianca: obj['Nome Crianca'] || obj['nome_crianca'] || '',
+          nome_crianca: obj['Nome Crianca'] || obj['NomeCrianca'] || obj['nome_crianca'] || '',
           informante: obj['Informante'] || obj['informante'] || '',
+          nome_informante: obj['NomeInformante'] || obj['nome_informante'] || obj['nome_preenche'] || '',
           dem_media: obj['Dem_Media']||'', dem_t: obj['Dem_T']||'', dem_cls: obj['Dem_Cls']||'',
           aut_media: obj['Aut_Media']||'', aut_t: obj['Aut_T']||'', aut_cls: obj['Aut_Cls']||'',
           per_media: obj['Per_Media']||'', per_t: obj['Per_T']||'', per_cls: obj['Per_Cls']||''
-        });
+        };
+        // Reconstruir respostas se existir a coluna Respostas no CSV
+        try {
+          var rawResp = obj['Respostas'] || obj['respostas'] || '';
+          if (rawResp) sessaoImportada.respostas = rawResp;
+        } catch(e) {}
+        todasSessoes.push(sessaoImportada);
         added++;
       }
     });
@@ -1090,8 +1131,17 @@ function exportarInterpretacaoPDF(sessao) {
   win.document.close(); win.focus();
 }
 
-// Arranque
-showPage('page-home');
+// Arranque — suportar ?clinico=RC2024 para auto-login directo ao painel
+(function() {
+  var params = new URLSearchParams(window.location.search);
+  var clinico = params.get('clinico');
+  if (clinico === PASSWORD) {
+    showPage('page-clinico');
+    carregarDados();
+  } else {
+    showPage('page-home');
+  }
+})();
 </script>
 </body>
 </html>
