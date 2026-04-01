@@ -558,13 +558,18 @@ async function carregarDados(){
     rows.forEach(function(r){
       var code=(r['Código']||r.patientCode||'').trim().toUpperCase();
       if(!code)return;
-      var uid=code+'_sheet';
+      // Filtrar por versão para não misturar dados de Mãe e Pai
+      var versaoRow=(r['Versao']||r['versao']||r['Respondente']||'').toLowerCase();
+      if(versaoRow && versaoRow!==VERSAO.toLowerCase() && !versaoRow.includes(VERSAO.toLowerCase())) return;
+      // Chave única por código + data (permite múltiplas sessões do mesmo código)
+      var date=r['Data']||r.date||'';
+      var uid=code+'_'+(date||'sheet')+'_sheet';
       if(!local[uid]){
         local[uid]={
           uid:uid,code:code,
           nomeCrianca:r['NomeCriança']||r.nomeCrianca||'',
           nomeInf:r['Respondente']||r.nome_informante||'',
-          date:r['Data']||'',
+          date:date,
           scores:{coop:r['Cooperacao_Raw']||0,triang:r['Triangulacao_Raw']||0,conf:r['Conflito_Raw']||0,
             coopM:r['Cooperacao_Media']||'',triangM:r['Triangulacao_Media']||'',confM:r['Conflito_Media']||''},
           answers:JSON.parse(r['Respostas']||'[]'),
@@ -628,18 +633,18 @@ function verDetalhe(uid){
   var fM=parseFloat(sc.confM)||0;
 
   function interpCoop(m){
-    if(m>=4) return '{c:"#27AE60",z:"Elevada cooperação"}';
-    if(m>=3) return '{c:"#E67E22",z:"Cooperação moderada"}';
-    return '{c:"#C0392B",z:"Cooperação baixa"}';
+    if(m>=4) return {c:'#27AE60',z:'Elevada cooperação'};
+    if(m>=3) return {c:'#E67E22',z:'Cooperação moderada'};
+    return {c:'#C0392B',z:'Cooperação baixa'};
   }
   function interpNeg(m){
-    if(m<=1.5) return '{c:"#27AE60",z:"Ausente / muito baixo"}';
-    if(m<=2.5) return '{c:"#E67E22",z:"Moderado"}';
-    return '{c:"#C0392B",z:"Elevado"}';
+    if(m<=1.5) return {c:'#27AE60',z:'Ausente / muito baixo'};
+    if(m<=2.5) return {c:'#E67E22',z:'Moderado'};
+    return {c:'#C0392B',z:'Elevado'};
   }
-  var iC=eval('('+interpCoop(cM)+')');
-  var iT=eval('('+interpNeg(tM)+')');
-  var iF=eval('('+interpNeg(fM)+')');
+  var iC=interpCoop(cM);
+  var iT=interpNeg(tM);
+  var iF=interpNeg(fM);
 
   function barra(m,inv){
     var pct=inv?(((5-m)/4)*100):(((m-1)/4)*100);
