@@ -1098,12 +1098,21 @@ let clinicalData=[];
 
 function loadLocalData(){
   clinicalData=[];
-  for(let i=0;i<localStorage.length;i++){
-    const k=localStorage.key(i);
-    if(k.startsWith("brief_pais_pending_")||k.startsWith("brief_pais_synced_")){
-      try{clinicalData.push(JSON.parse(localStorage.getItem(k)));}catch(e){}
-    }
-  }
+  // Colectar todas as chaves
+  const allKeys=[];
+  for(let i=0;i<localStorage.length;i++) allKeys.push(localStorage.key(i));
+  // Chaves v2 (com respostas) e pending
+  const keysV2=allKeys.filter(k=>k.startsWith("brief_pais_pending_")||k.startsWith("brief_pais_synced_v2_"));
+  // Chaves antigas (sem v2) — incluir só se não tiver equivalente v2
+  const keysOld=allKeys.filter(k=>k.startsWith("brief_pais_synced_")&&!k.startsWith("brief_pais_synced_v2_"));
+  const codigosSynced=new Set(keysV2.map(k=>{const d=JSON.parse(localStorage.getItem(k)||'{}');return d.codigo+'_'+d.timestamp;}));
+  keysOld.forEach(k=>{
+    try{
+      const d=JSON.parse(localStorage.getItem(k));
+      if(!codigosSynced.has(d.codigo+'_'+d.timestamp)) keysV2.push(k);
+    }catch(e){}
+  });
+  keysV2.forEach(k=>{try{clinicalData.push(JSON.parse(localStorage.getItem(k)));}catch(e){}});
   renderTable();
 }
 
@@ -1378,8 +1387,9 @@ function syncData(){
             r.respostas = raw;
           }
         } catch(e) { /* sem respostas — deixar undefined */ }
-        const k="brief_pais_synced_"+r.codigo+"_"+r.timestamp;
-        if(!localStorage.getItem(k)) localStorage.setItem(k,JSON.stringify(r));
+        // Chave v2 — força re-sync de entradas antigas sem respostas
+        const k="brief_pais_synced_v2_"+r.codigo+"_"+r.timestamp;
+        localStorage.setItem(k,JSON.stringify(r));
       });
     }
     loadLocalData();

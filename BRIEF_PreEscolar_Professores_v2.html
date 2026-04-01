@@ -828,7 +828,29 @@ function verDetalhe(idx){
     '<div style="background:var(--gray);border-radius:8px;padding:10px 14px;font-size:0.82rem;"><span style="color:var(--text-light);font-weight:600;">Inconsist\u00eancia:</span> '+(r.incon||'0')+' <span style="color:var(--text-light);">(limiar &ge; 6)</span></div>'+
     '<div style="background:var(--gray);border-radius:8px;padding:10px 14px;font-size:0.82rem;"><span style="color:var(--text-light);font-weight:600;">Negatividade:</span> '+(r.neg||'0')+' <span style="color:var(--text-light);">(limiar &ge; 7)</span></div>'+
     '</div>'+
-    '<div style="font-size:0.72rem;color:var(--text-light);border-top:1px solid var(--gray-bdr);padding-top:12px;">T &ge; 65 = Cl\u00ednico &middot; T 60&ndash;64 = Borderline &middot; T &lt; 60 = Normativo &middot; BRIEF-P Teacher Sample (Gioia et al., 2003)</div>';
+    '<div style="font-size:0.72rem;color:var(--text-light);border-top:1px solid var(--gray-bdr);padding-top:12px;">T &ge; 65 = Cl\u00ednico &middot; T 60&ndash;64 = Borderline &middot; T &lt; 60 = Normativo &middot; BRIEF-P Teacher Sample (Gioia et al., 2003)</div>'+
+    (function(){
+      if(!r.answers) return '';
+      var ansMap={};
+      (r.answers+'').split('|').forEach(function(pair){
+        var pts=pair.split(':');
+        if(pts.length===2) ansMap[parseInt(pts[0])]=pts[1];
+      });
+      if(!Object.keys(ansMap).length) return '';
+      var irows='';
+      ITEMS.forEach(function(it,i){
+        var v=ansMap[it.n]||ansMap[it.id]||'—';
+        irows+='<tr style="border-bottom:1px solid #f0f0f0;"><td style="padding:4px 6px;text-align:center;color:#94A3B8;font-size:.78rem;">'+(i+1)+'</td>'+
+          '<td style="padding:4px 8px;font-size:.82rem;">'+(it.text||it.t||'')+'</td>'+
+          '<td style="padding:4px 6px;text-align:center;font-weight:600;font-size:.82rem;">'+v+'</td></tr>';
+      });
+      return '<details style="margin-top:14px;"><summary style="cursor:pointer;font-weight:700;font-size:.88rem;color:var(--blue);padding:6px 0;border-top:1px solid var(--gray-bdr);">&#9654; Respostas por item ('+ITEMS.length+' itens)</summary>'+
+        '<div style="overflow-x:auto;margin-top:8px;"><table style="width:100%;border-collapse:collapse;">'+
+        '<thead><tr style="background:#EBF2F8;"><th style="padding:5px 6px;text-align:center;color:var(--blue);width:32px;">#</th>'+
+        '<th style="padding:5px 8px;color:var(--blue);">Item</th>'+
+        '<th style="padding:5px 6px;text-align:center;color:var(--blue);">Resp.</th></tr></thead>'+
+        '<tbody>'+irows+'</tbody></table></div></details>';
+    })();
   var overlay=document.createElement('div');
   overlay.id='modal-detalhe';overlay.className='modal-overlay';
   overlay.innerHTML='<div class="modal-box">'+html+'</div>';

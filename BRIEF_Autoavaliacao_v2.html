@@ -2485,6 +2485,90 @@ const INCONS_PAIRS = [[10,28],[16,34],[22,79],[25,43],[40,74],[48,81],[57,69],[5
 // M60=row60=item58, M67=row67=item65, M65=row65=item63, M75=row75=item73
 const INCONS_PAIRS_ITEMS = [[8,26],[14,32],[20,77],[23,41],[38,72],[46,79],[55,67],[56,68],[58,65],[63,73]];
 
+// Textos dos 80 itens (índice 0 = item 1)
+var ITEM_TEXTS = [
+  'Tenho dificuldade em manter-me sentado.',
+  'Apresento resistência ou dificuldade em aceitar diferentes formas de resolver um problema com os trabalhos escolares, amigos, atividades, etc.',
+  'Quando me são dadas três tarefas para fazer, apenas recordo a primeira ou a última.',
+  'Inicio determinada tarefa (como trabalhos de casa ou seguir uma receita) sem os materiais necessários.',
+  'Reajo de forma exagerada por pequenos motivos.',
+  'A minha secretária está muito desorganizada.',
+  'Não tenho consciência de como o meu comportamento afeta ou incomoda os outros.',
+  'Tenho dificuldade em terminar projetos que exigem mais tempo (tais como trabalhos ou relatórios).',
+  'Fico incomodado com alterações de planos.',
+  'Irrito as outras pessoas.',
+  'Tento a mesma abordagem a um problema repetidamente, mesmo quando esta não resulta (fico bloqueado).',
+  'Tenho um tempo de atenção curto.',
+  'Não planeio com antecedência atividades que irei realizar.',
+  'Tenho ataques de fúria.',
+  'Perco as minhas coisas (chaves, dinheiro, carteira).',
+  'Não me apercebo que o meu comportamento causa reações negativas, até ser tarde demais.',
+  'Tenho dificuldade em terminar uma tarefa sozinho.',
+  'Fico perturbado com mudança inesperada (de professor, atividade diária).',
+  'Tenho dificuldade em esperar pela minha vez.',
+  'Sou mais lento do que os outros a concluir as minhas tarefas.',
+  'Esqueço-me de entregar os trabalhos de casa, mesmo quando estão feitos.',
+  'Tenho problemas em realizar a rotina matinal e preparar-me para a escola/trabalho.',
+  'Choro facilmente.',
+  'Esqueço-me de trazer para casa trabalhos escolares, fichas de trabalho, materiais, etc.',
+  'Não tenho noção do meu comportamento quando estou em grupo.',
+  'Tenho dificuldade em terminar o meu trabalho.',
+  'Aborrece-me quando tenho de lidar com mudanças, de rotina, comidas, lugares, etc.',
+  'Interrompo os outros.',
+  'Não sou criativo a resolver um problema.',
+  'Tenho problemas em realizar atividades ou tarefas que tenham mais que uma ação/etapa.',
+  'Não planeio com antecedência os trabalhos que tenho de realizar.',
+  'Expludo por pequenas razões.',
+  'A minha mochila/mala é desorganizada.',
+  'Não tenho consciência dos meus pontos fortes e pontos fracos.',
+  'Tenho projetos inacabados.',
+  'Tenho dificuldade em adaptar-me a novas situações (aulas, grupos, amigos).',
+  'Sou impulsivo.',
+  'Tenho maus resultados nos testes mesmo quando sei as respostas corretas.',
+  'Esqueço o que estou a fazer a meio da tarefa.',
+  'Os meus trabalhos escritos têm uma organização pobre.',
+  'Chegam-me as lágrimas aos olhos com facilidade e por pequenas coisas.',
+  'Atraso-me para muitas atividades (escola, encontros, refeições, marcações).',
+  'Não me apercebo que algumas ações incomodam os outros.',
+  'Tenho boas ideias mas não consigo executá-las.',
+  'Tenho problemas em passar de uma atividade para outra.',
+  'Levanto-me do lugar quando não devo.',
+  'Prendo-me em detalhes e perco a ideia global.',
+  'Quando me pedem que vá buscar alguma coisa, esqueço-me do que me foi pedido.',
+  'Não antecipo os possíveis problemas.',
+  'Tenho reações às situações mais fortes que os meus amigos.',
+  'Tenho dificuldade em encontrar roupas, óculos, sapatos, livros, lápis, etc.',
+  'Cometo erros por descuido.',
+  'Tenho problemas em concluir tarefas (atividades, trabalhos de casa).',
+  'Perco mais facilmente o controlo do que os meus amigos.',
+  'Tenho dificuldade em arranjar diferentes formas para resolver um problema.',
+  'Não me consigo manter no mesmo assunto quando estamos a conversar.',
+  'Tenho problemas em levar a cabo as ações necessárias para atingir um objetivo.',
+  'Chateio-me facilmente.',
+  'O meu trabalho é descuidado.',
+  'Não verifico se o meu trabalho tem erros.',
+  'Deixo escapar as coisas.',
+  'Fico bloqueado num tópico ou atividade.',
+  'Tenho dificuldade em relembrar-me de coisas, mesmo que por poucos minutos.',
+  'Tenho dificuldade em ter iniciativa própria.',
+  'Fico chateado por pequenas coisas.',
+  'Falo muito alto.',
+  'Tenho dificuldade em pensar diferentes formas de resolver um problema, quando fico bloqueado.',
+  'Mudo de assunto a meio de uma conversa.',
+  'Tenho dificuldade em atribuir prioridades às atividades.',
+  'Reajo de forma exagerada.',
+  'Comporto-me de forma demasiado selvagem ou fora de controlo.',
+  'Tenho dificuldade em mostrar o que sei nos testes.',
+  'Esqueço as instruções facilmente.',
+  'Tenho dificuldade em gerir escola, trabalho e outras atividades.',
+  'Fico facilmente sobrecarregado.',
+  'Penso ou falo em voz alta quando estou a trabalhar.',
+  'Demoro mais a terminar o meu trabalho.',
+  'Sou distraído.',
+  'Falo quando não devo.',
+  'Não penso antes de agir.'
+];
+
 // ============================================================
 // GLOBAL STATE
 // ============================================================
@@ -2883,10 +2967,16 @@ function carregarDados() {
 function mergeAndRender(newRows, source) {
   newRows.forEach(function(row) {
     var id = (row.patientCode || row.codigo || '') + '_' + (row.date || row.data || '');
-    var exists = _sessions.some(function(s) { return s.id === id; });
-    if (!exists) {
-      row.id = id;
-      row.source = source;
+    var idx = _sessions.findIndex(function(s) { return s.id === id; });
+    // Normalizar campo answers vindo do Sheet
+    if (!row.answers && row.Respostas) row.answers = row.Respostas;
+    if (!row.answers && row['Respostas']) row.answers = row['Respostas'];
+    row.id = id;
+    row.source = source;
+    if (idx >= 0) {
+      // Actualizar entrada existente (pode ter chegado sem answers antes)
+      if (!_sessions[idx].answers && row.answers) _sessions[idx] = row;
+    } else {
       _sessions.push(row);
     }
   });
@@ -3021,7 +3111,31 @@ function verDetalhe(idx) {
     '</tr></thead><tbody>' + tableRows + '</tbody></table>' +
     '<div style="font-size:0.72rem;color:var(--text-light);margin-top:12px;">' +
     'T ≥ 65 = Clinicamente significativo · T 60–64 = Limítrofe · T &lt; 60 = Dentro da norma' +
-    '</div></div></div>';
+    '</div>' +
+    // Respostas por item
+    (function(){
+      var ans = {};
+      if (row.answers) {
+        var parts = (row.answers + '').split(',');
+        for (var i = 0; i < parts.length; i++) ans[i+1] = parseInt(parts[i]) || 0;
+      }
+      if (!Object.keys(ans).length) return '';
+      var labels = ['—','Nunca','Às vezes','Muitas vezes'];
+      var irows = '';
+      for (var n = 1; n <= 80; n++) {
+        var v = ans[n] || 0;
+        irows += '<tr style="border-bottom:1px solid #f0f0f0;"><td style="padding:4px 6px;text-align:center;color:#94A3B8;font-size:.78rem;">' + n + '</td>' +
+          '<td style="padding:4px 8px;font-size:.82rem;">' + (ITEM_TEXTS[n-1] || 'Item ' + n) + '</td>' +
+          '<td style="padding:4px 6px;text-align:center;font-weight:600;font-size:.82rem;">' + (labels[v] || v) + '</td></tr>';
+      }
+      return '<details style="margin-top:14px;"><summary style="cursor:pointer;font-weight:700;font-size:.88rem;color:var(--blue);padding:6px 0;border-top:1px solid var(--gray-bdr);">▶ Respostas por item (80 itens)</summary>' +
+        '<div style="overflow-x:auto;margin-top:8px;"><table style="width:100%;border-collapse:collapse;">' +
+        '<thead><tr style="background:var(--blue-xpale);"><th style="padding:5px 6px;text-align:center;color:var(--blue);width:32px;">#</th>' +
+        '<th style="padding:5px 8px;color:var(--blue);">Item</th>' +
+        '<th style="padding:5px 6px;text-align:center;color:var(--blue);">Resp.</th></tr></thead>' +
+        '<tbody>' + irows + '</tbody></table></div></details>';
+    })() +
+    '</div></div>';
 
   var div = document.createElement('div');
   div.innerHTML = modalHtml;
