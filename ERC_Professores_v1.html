@@ -684,8 +684,9 @@ function verDetalhe(idx) {
   // ── Cards dos 2 scores principais ──
   html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px">';
   // L/N card — vermelho = elevado é preocupante
+  var lnM_num2 = ln > 0 ? ln/13 : 0;
   var lnPct = Math.min(100, Math.max(0, Math.round(((ln-13)/(52-13))*100)));
-  var lnCor = lnPct > 65 ? '#C0392B' : lnPct > 40 ? '#E67E22' : '#27AE60';
+  var lnCor = lnM_num2 >= 3.0 ? '#C0392B' : lnM_num2 >= 2.4 ? '#E67E22' : lnM_num2 >= 1.5 ? '#27AE60' : '#3B5A7A';
   html += '<div style="background:var(--blue-xpale);border-radius:10px;padding:16px;text-align:center;border-top:4px solid ' + lnCor + '">' +
     '<div style="font-size:.78rem;font-weight:700;color:' + lnCor + ';margin-bottom:4px">Labilidade/Negatividade (L/N)</div>' +
     '<div style="font-size:2rem;font-weight:700;color:' + lnCor + '">' + ln + '</div>' +
@@ -694,8 +695,9 @@ function verDetalhe(idx) {
     '<div style="margin-top:8px">' + barHtml(ln,13,52,lnCor) + '</div>' +
     '</div>';
   // RE card — verde = elevado é positivo
+  var reM_num2 = re > 0 ? re/11 : 0;
   var rePct = Math.min(100, Math.max(0, Math.round(((re-10)/(40-10))*100)));
-  var reCor = rePct > 60 ? '#27AE60' : rePct > 35 ? '#E67E22' : '#C0392B';
+  var reCor = reM_num2 >= 2.6 ? '#27AE60' : reM_num2 >= 2.0 ? '#E67E22' : '#C0392B';
   html += '<div style="background:var(--blue-xpale);border-radius:10px;padding:16px;text-align:center;border-top:4px solid ' + reCor + '">' +
     '<div style="font-size:.78rem;font-weight:700;color:' + reCor + ';margin-bottom:4px">Regulação Emocional (RE)</div>' +
     '<div style="font-size:2rem;font-weight:700;color:' + reCor + '">' + re + '</div>' +
@@ -715,20 +717,42 @@ function verDetalhe(idx) {
     '</div>';
 
   // ── Interpretação automática ──
+  // Interpretação L/N por média por item
   var interp = '';
-  if (lnPct > 65) interp += '<strong style="color:var(--red)">⚠ L/N elevada (score=' + ln + ')</strong>: sugere labilidade emocional significativa, explosividade e/ou dificuldades de auto-regulação. Área a explorar clinicamente. ';
-  else if (lnPct > 40) interp += '<span style="color:var(--orange)">L/N moderada (score=' + ln + ')</span>: alguma variabilidade emocional, monitorizar. ';
-  else interp += '<span style="color:var(--green)">L/N baixa (score=' + ln + ')</span>: indicador de estabilidade emocional adequada. ';
-
-  if (rePct > 60) interp += '<span style="color:var(--green)">RE boa (score=' + re + ')</span>: autoconsciência emocional e expressividade construtiva adequadas. ';
-  else if (rePct > 35) interp += '<span style="color:var(--orange)">RE moderada (score=' + re + ')</span>: capacidade de regulação emocional no limiar. Monitorizar. ';
-  else interp += '<strong style="color:var(--red)">⚠ RE baixa (score=' + re + ')</strong>: dificuldades na identificação/expressão emocional e empatia. Área a trabalhar. ';
+  if (lnM_num >= 3.0)       interp += '<strong style="color:var(--red)">⚠ L/N elevada — Média=' + lnM_num.toFixed(2) + ' (≥3,0): Elevada instabilidade emocional (nível clínico)</strong>. Sugere labilidade emocional significativa, explosividade e/ou dificuldades de auto-regulação. Área prioritária a explorar clinicamente. ';
+  else if (lnM_num >= 2.4)  interp += '<span style="color:var(--orange)">L/N moderada — Média=' + lnM_num.toFixed(2) + ' (2,4–2,9): Alguma labilidade/reatividade emocional</span>. Monitorizar evolução. ';
+  else if (lnM_num >= 1.5)  interp += '<span style="color:var(--green)">L/N adequada — Média=' + lnM_num.toFixed(2) + ' (1,5–2,3): Perfil emocional regulado / adequado</span>. ';
+  else                       interp += '<span style="color:var(--blue)">L/N baixa — Média=' + lnM_num.toFixed(2) + ' (&lt;1,5): Baixa labilidade</span>. Avaliar eventual rigidez afetiva. ';
+  // Interpretação RE por média por item
+  if (reM_num >= 3.3)       interp += '<span style="color:var(--green)">RE excelente — Média=' + reM_num.toFixed(2) + ' (≥3,3): Excelente regulação emocional</span>. ';
+  else if (reM_num >= 2.6)  interp += '<span style="color:var(--green)">RE adequada — Média=' + reM_num.toFixed(2) + ' (2,6–3,2): Adequada regulação emocional</span>. ';
+  else if (reM_num >= 2.0)  interp += '<span style="color:var(--orange)">RE com indícios de dificuldade — Média=' + reM_num.toFixed(2) + ' (2,0–2,5): Indícios de dificuldade na regulação</span>. Monitorizar. ';
+  else                       interp += '<strong style="color:var(--red)">⚠ RE deficiente — Média=' + reM_num.toFixed(2) + ' (&lt;2,0): Regulação emocional deficiente / alerta</strong>. Área a trabalhar. ';
 
   html += '<div style="background:var(--blue-xpale);border-radius:8px;padding:13px 16px;font-size:.85rem;line-height:1.7;color:var(--text);margin-bottom:16px">' +
     '<strong style="color:var(--blue)">Interpretação automática</strong><br>' +
     interp +
-    '<br><em style="font-size:.78rem;color:var(--text-light)">Não existem estudos normativos portugueses. Integrar sempre no contexto clínico completo. Refs: Reis et al. (2016); Shields & Cicchetti (1995).</em>' +
     '</div>';
+  // Tabela de referência de interpretação
+  html += '<div style="overflow-x:auto;margin-bottom:14px">' +
+    '<table style="width:100%;border-collapse:collapse;font-size:.78rem">' +
+    '<thead><tr style="background:var(--blue-xpale)">' +
+    '<th style="padding:6px 10px;color:var(--blue)">Subescala</th>' +
+    '<th style="padding:6px 10px;color:var(--blue)">Média/item</th>' +
+    '<th style="padding:6px 10px;color:var(--blue)">Interpretação</th>' +
+    '</tr></thead><tbody>' +
+    '<tr><td rowspan="4" style="padding:5px 10px;font-weight:600;color:#27AE60;vertical-align:top">RE</td>' +
+    '<td style="padding:4px 10px">≥ 3,3</td><td style="padding:4px 10px">Excelente regulação emocional</td></tr>' +
+    '<tr><td style="padding:4px 10px">2,6 – 3,2</td><td style="padding:4px 10px">Adequada regulação emocional</td></tr>' +
+    '<tr><td style="padding:4px 10px;color:var(--orange)">2,0 – 2,5</td><td style="padding:4px 10px;color:var(--orange)">Indícios de dificuldade na regulação</td></tr>' +
+    '<tr style="border-bottom:2px solid var(--blue-pale)"><td style="padding:4px 10px;color:var(--red)">< 2,0</td><td style="padding:4px 10px;color:var(--red)">Regulação emocional deficiente / alerta</td></tr>' +
+    '<tr><td rowspan="4" style="padding:5px 10px;font-weight:600;color:#C0392B;vertical-align:top">L/N</td>' +
+    '<td style="padding:4px 10px;color:var(--red)">≥ 3,0</td><td style="padding:4px 10px;color:var(--red)">Elevada instabilidade emocional (nível clínico)</td></tr>' +
+    '<tr><td style="padding:4px 10px;color:var(--orange)">2,4 – 2,9</td><td style="padding:4px 10px;color:var(--orange)">Alguma labilidade/reatividade emocional</td></tr>' +
+    '<tr><td style="padding:4px 10px;color:var(--green)">1,5 – 2,3</td><td style="padding:4px 10px;color:var(--green)">Perfil emocional regulado / adequado</td></tr>' +
+    '<tr><td style="padding:4px 10px">< 1,5</td><td style="padding:4px 10px">Baixa labilidade (avaliar eventual rigidez afetiva)</td></tr>' +
+    '</tbody></table></div>' +
+    '<p style="font-size:.75rem;color:var(--text-light);font-style:italic">⚠ Faixas exploratórias baseadas nas médias do estudo de validação (Reis et al., 2016). Não substituem normas estandardizadas. Integrar sempre no contexto clínico completo.</p>';
 
   // ── Respostas por item ── (sempre visíveis, agrupadas por subescala)
   if (s.answers) {
@@ -901,18 +925,28 @@ function exportarRelatorioCompleto(sessao) {
            '<div style="background:' + color + ';border-radius:4px;height:100%;width:' + pct + '%"></div></div>';
   }
 
+  // ── Interpretação baseada na MÉDIA POR ITEM (Reis et al., 2016) ──────
+  // L/N: ≥3.0 clínico | 2.4–2.9 alguma labilidade | 1.5–2.3 regulado | <1.5 baixa labilidade
+  // RE:  ≥3.3 excelente | 2.6–3.2 adequada | 2.0–2.5 indícios dificuldade | <2.0 deficiente
+  var lnM_num = ln > 0 ? ln / 13 : 0;
+  var reM_num = re > 0 ? re / 11 : 0;
   var lnPct = Math.min(100, Math.max(0, Math.round(((ln-13)/(52-13))*100)));
   var rePct = Math.min(100, Math.max(0, Math.round(((re-10)/(40-10))*100)));
-  var lnCor = lnPct > 65 ? '#C0392B' : lnPct > 40 ? '#E67E22' : '#27AE60';
-  var reCor = rePct > 60 ? '#27AE60' : rePct > 35 ? '#E67E22' : '#C0392B';
+  // Cores baseadas nos limiares de média por item
+  var lnCor = lnM_num >= 3.0 ? '#C0392B' : lnM_num >= 2.4 ? '#E67E22' : lnM_num >= 1.5 ? '#27AE60' : '#3B5A7A';
+  var reCor = reM_num >= 3.3 ? '#27AE60' : reM_num >= 2.6 ? '#27AE60' : reM_num >= 2.0 ? '#E67E22' : '#C0392B';
 
   var interp = '';
-  if (lnPct > 65) interp += '<strong style="color:#C0392B">⚠ L/N elevada (score=' + ln + ')</strong>: sugere labilidade emocional significativa, explosividade e/ou dificuldades de auto-regulação. Área a explorar clinicamente. ';
-  else if (lnPct > 40) interp += '<span style="color:#E67E22">L/N moderada (score=' + ln + ')</span>: alguma variabilidade emocional, monitorizar. ';
-  else interp += '<span style="color:#27AE60">L/N baixa (score=' + ln + ')</span>: indicador de estabilidade emocional adequada. ';
-  if (rePct > 60) interp += '<span style="color:#27AE60">RE boa (score=' + re + ')</span>: autoconsciência emocional e expressividade construtiva adequadas. ';
-  else if (rePct > 35) interp += '<span style="color:#E67E22">RE moderada (score=' + re + ')</span>: capacidade de regulação emocional no limiar. Monitorizar. ';
-  else interp += '<strong style="color:#C0392B">⚠ RE baixa (score=' + re + ')</strong>: dificuldades na identificação/expressão emocional e empatia. Área a trabalhar. ';
+  // L/N por média por item
+  if (lnM_num >= 3.0)       interp += '<strong style="color:#C0392B">⚠ L/N elevada — Média=' + lnM_num.toFixed(2) + ' (≥3,0): Elevada instabilidade emocional (nível clínico)</strong>. ';
+  else if (lnM_num >= 2.4)  interp += '<span style="color:#E67E22">L/N moderada — Média=' + lnM_num.toFixed(2) + ' (2,4–2,9): Alguma labilidade/reatividade emocional</span>. Monitorizar. ';
+  else if (lnM_num >= 1.5)  interp += '<span style="color:#27AE60">L/N adequada — Média=' + lnM_num.toFixed(2) + ' (1,5–2,3): Perfil emocional regulado / adequado</span>. ';
+  else                       interp += '<span style="color:#3B5A7A">L/N baixa — Média=' + lnM_num.toFixed(2) + ' (&lt;1,5): Baixa labilidade</span>. Avaliar eventual rigidez afetiva. ';
+  // RE por média por item
+  if (reM_num >= 3.3)       interp += '<span style="color:#27AE60">RE excelente — Média=' + reM_num.toFixed(2) + ' (≥3,3): Excelente regulação emocional</span>. ';
+  else if (reM_num >= 2.6)  interp += '<span style="color:#27AE60">RE adequada — Média=' + reM_num.toFixed(2) + ' (2,6–3,2): Adequada regulação emocional</span>. ';
+  else if (reM_num >= 2.0)  interp += '<span style="color:#E67E22">RE com indícios de dificuldade — Média=' + reM_num.toFixed(2) + ' (2,0–2,5): Indícios de dificuldade na regulação</span>. Monitorizar. ';
+  else                       interp += '<strong style="color:#C0392B">⚠ RE deficiente — Média=' + reM_num.toFixed(2) + ' (&lt;2,0): Regulação emocional deficiente / alerta</strong>. Área a trabalhar. ';
 
   // Respostas por item agrupadas
   var respostasHtml = '';
