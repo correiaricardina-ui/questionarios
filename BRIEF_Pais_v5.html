@@ -1369,6 +1369,15 @@ function syncData(){
             Monitorizacao:     Number(row.MON || 0)
           }, validade: { incons: null, neg: null }}
         };
+        // Reconstruir respostas a partir da coluna Respostas (JSON guardado pelo Apps Script)
+        try {
+          const raw = row.Respostas || row.respostas || '';
+          if (raw && typeof raw === 'string' && raw.startsWith('{')) {
+            r.respostas = JSON.parse(raw);
+          } else if (raw && typeof raw === 'object') {
+            r.respostas = raw;
+          }
+        } catch(e) { /* sem respostas — deixar undefined */ }
         const k="brief_pais_synced_"+r.codigo+"_"+r.timestamp;
         if(!localStorage.getItem(k)) localStorage.setItem(k,JSON.stringify(r));
       });
