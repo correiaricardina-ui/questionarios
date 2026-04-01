@@ -276,7 +276,6 @@ tr:hover td{background:var(--blue-xpale)}
         <button class="btn btn-secondary" style="padding:6px 14px;font-size:.82rem" onclick="window.print()">🖨 Imprimir</button>
         <button class="btn btn-secondary" style="padding:6px 14px;font-size:.82rem" onclick="exportarRespostasPDF(sessaoActual)">📋 Respostas PDF</button>
         <button class="btn btn-secondary" style="padding:6px 14px;font-size:.82rem" onclick="exportarInterpretacaoPDF(sessaoActual)">📊 Exportar Interpretação PDF</button>
-        <button class="btn btn-primary" style="padding:6px 14px;font-size:.82rem" onclick="exportarRelatorioCompleto(sessaoActual)">📄 Relatório Completo PDF</button>
         <input type="file" id="import-file-input" accept=".csv" style="display:none" onchange="processarFicheiroImportado(this)">
         <div style="margin-left:auto;display:flex;gap:8px;align-items:center">
           <input type="text" id="filtro-codigo" class="login-input" placeholder="Filtrar por código..." style="padding:6px 12px;font-size:.82rem;width:180px" oninput="filtrarTabela()">
@@ -323,6 +322,9 @@ tr:hover td{background:var(--blue-xpale)}
       <button onclick="fecharModal()" style="background:none;border:none;font-size:1.4rem;cursor:pointer;color:var(--text-light)">✕</button>
     </div>
     <div id="modal-conteudo"></div>
+    <div id="modal-acoes" style="margin-top:16px;padding-top:14px;border-top:1px solid var(--gray-bdr);display:none" class="no-print">
+      <button class="btn btn-primary" style="padding:8px 18px;font-size:.85rem" onclick="exportarRelatorioCompleto(sessaoActual)">📄 Relatório Completo PDF</button>
+    </div>
   </div>
 </div>
 
@@ -858,6 +860,7 @@ function verDetalhe(idx) {
   html += '</div>';
 
   document.getElementById('modal-conteudo').innerHTML = html;
+  document.getElementById('modal-acoes').style.display = 'block';
   document.getElementById('modal-overlay').style.display = 'flex';
 }
 
@@ -879,6 +882,7 @@ function imprimirDetalhe(){
 
 function fecharModal() {
   document.getElementById('modal-overlay').style.display = 'none';
+  document.getElementById('modal-acoes').style.display = 'none';
 }
 
 // ── Comparativo Mãe / Pai ──
