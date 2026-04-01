@@ -698,12 +698,7 @@ const SYNC_KEY_TO_ABA = {
   'conners3ts':         'CONNERS3TS',        // Professores Versão Curta
   // ── FAD v12.0 ─────────────────────────────────────────────
   'fad_gf':              'FAD_GF',
-  'fad_60':              'FAD_60',
-  // ── MAP Parental Sistémico — v14.0 ──────────────────────────────────────
-  'map_pi':          'MAP_Parental_PI',
-  'map':             'MAP_Parental',
-  'map_1214':        'MAP_Parental_1214',
-  'map_1518':        'MAP_Parental_1518',
+  'fad_60':              'FAD_60'
 };
 
 // Cache em memória das respostas do Sheet (evita fetch repetidos na mesma sessão)
@@ -906,31 +901,6 @@ function initCatalog() {
       syncKey:'eat26', area:'Comportamento Alimentar', ageRange:'Adolescentes / Adultos',
       objective:'Rastreio de atitudes e comportamentos alimentares de risco (Garner et al., 1982)',
       domains:['D','B','OC','Total'], ageMin:132, ageMax:null},
-    // ── MAP Parental Sistémico — v14.0 ────────────────────────────────────────
-    { id:'q_map_pi', name:'MAP Parental — Primeira Infância',
-      dest:['Mãe','Pai','Enc. Educação'],
-      link:'https://correiaricardina-ui.github.io/questionarios/MAP_ParentalAvaliacaoSistemica_PI_v1.html',
-      syncKey:'map_pi', area:'Parentalidade', ageRange:'< 6 anos',
-      objective:'Mapeamento coparental sistémico — primeira infância',
-      domains:['Estado_Temas','Flexibilidade','Rotinas'], ageMin:0, ageMax:71},
-    { id:'q_map_611', name:'MAP Parental — 6–11 anos',
-      dest:['Mãe','Pai','Enc. Educação'],
-      link:'https://correiaricardina-ui.github.io/questionarios/MAP_ParentalAvaliacaoSistemica_v1.html',
-      syncKey:'map', area:'Parentalidade', ageRange:'6–11 anos',
-      objective:'Mapeamento coparental sistémico — idade escolar',
-      domains:['Estado_Temas','Negociação','Rotinas'], ageMin:72, ageMax:143},
-    { id:'q_map_1214', name:'MAP Parental — 12–14 anos',
-      dest:['Mãe','Pai','Enc. Educação'],
-      link:'https://correiaricardina-ui.github.io/questionarios/MAP_ParentalAvaliacaoSistemica_1214_v1.html',
-      syncKey:'map_1214', area:'Parentalidade', ageRange:'12–14 anos',
-      objective:'Mapeamento coparental sistémico — adolescência inicial',
-      domains:['Estado_Temas','Negociação','Rotinas'], ageMin:144, ageMax:179},
-    { id:'q_map_1518', name:'MAP Parental — 15–18 anos',
-      dest:['Mãe','Pai','Enc. Educação'],
-      link:'https://correiaricardina-ui.github.io/questionarios/MAP_ParentalAvaliacaoSistemica_1518_v1.html',
-      syncKey:'map_1518', area:'Parentalidade', ageRange:'15–18 anos',
-      objective:'Mapeamento coparental sistémico — adolescência tardia',
-      domains:['Estado_Temas','Negociação','Rotinas'], ageMin:180, ageMax:null},
   ];
   // Garantir que TODOS os defaults estão no catálogo, sempre
   // (funciona em RC novos e em RC existentes — nunca perde questionários)
@@ -1006,12 +976,17 @@ function initCatalog() {
       // ── FAD v12.0 ─────────────────────────────────────────
       'q_fad_gf': { link:'https://correiaricardina-ui.github.io/questionarios/FAD_GF_v2.html',  syncKey:'fad_gf' },
       'q_fad_60': { link:'https://correiaricardina-ui.github.io/questionarios/FAD_60_v1.html',  syncKey:'fad_60' },
-      // ── MAP Parental Sistémico — v14.0 ─────────────────────────────────────
-      'q_map_pi':   { link:'https://correiaricardina-ui.github.io/questionarios/MAP_ParentalAvaliacaoSistemica_PI_v1.html',   syncKey:'map_pi' },
-      'q_map_611':  { link:'https://correiaricardina-ui.github.io/questionarios/MAP_ParentalAvaliacaoSistemica_v1.html',       syncKey:'map' },
-      'q_map_1214': { link:'https://correiaricardina-ui.github.io/questionarios/MAP_ParentalAvaliacaoSistemica_1214_v1.html', syncKey:'map_1214' },
-      'q_map_1518': { link:'https://correiaricardina-ui.github.io/questionarios/MAP_ParentalAvaliacaoSistemica_1518_v1.html', syncKey:'map_1518' },
     };
+    // ── Re-store com chave correcta ('q_' + id) — corrige instalações anteriores ──
+    // Garante que Conners, FAD e MAP ficam acessíveis pelo META.forEach e getCatalog
+    (function() {
+      const toFix = ['q_conners3p_full', 'q_conners3t_full', 'q_conners3ps', 'q_conners3ts', 'q_fad_gf', 'q_fad_60', 'q_map_pi', 'q_map_611', 'q_map_1214', 'q_map_1518'];
+      toFix.forEach(function(qid) {
+        const d = defaults.find(x => x.id === qid);
+        if(d) store.set('q_' + d.id, d); // armazena em 'q_q_...' (chave correcta)
+      });
+    })();
+
     Object.entries(META).forEach(([id, meta]) => {
       const q = store.get('q_' + id);
       if(q) {
@@ -1128,49 +1103,32 @@ function initCatalog() {
     // Conners 3 v11.0 — Pais Completa
     if(!catalog.includes('q_conners3p_full')) {
       const d = defaults.find(x => x.id === 'q_conners3p_full');
-      if(d) { store.set(d.id, d); catalog.push('q_conners3p_full'); store.set('catalog', catalog); }
+      if(d) { store.set('q_' + d.id, d); catalog.push('q_conners3p_full'); store.set('catalog', catalog); }
     }
     // Conners 3 v11.0 — Professores Completa
     if(!catalog.includes('q_conners3t_full')) {
       const d = defaults.find(x => x.id === 'q_conners3t_full');
-      if(d) { store.set(d.id, d); catalog.push('q_conners3t_full'); store.set('catalog', catalog); }
+      if(d) { store.set('q_' + d.id, d); catalog.push('q_conners3t_full'); store.set('catalog', catalog); }
     }
     // Conners 3 v11.0 — Pais Curta
     if(!catalog.includes('q_conners3ps')) {
       const d = defaults.find(x => x.id === 'q_conners3ps');
-      if(d) { store.set(d.id, d); catalog.push('q_conners3ps'); store.set('catalog', catalog); }
+      if(d) { store.set('q_' + d.id, d); catalog.push('q_conners3ps'); store.set('catalog', catalog); }
     }
     // Conners 3 v11.0 — Professores Curta
     if(!catalog.includes('q_conners3ts')) {
       const d = defaults.find(x => x.id === 'q_conners3ts');
-      if(d) { store.set(d.id, d); catalog.push('q_conners3ts'); store.set('catalog', catalog); }
+      if(d) { store.set('q_' + d.id, d); catalog.push('q_conners3ts'); store.set('catalog', catalog); }
     }
     // FAD v12.0 — FAD-GF
     if(!catalog.includes('q_fad_gf')) {
       const d = defaults.find(x => x.id === 'q_fad_gf');
-      if(d) { store.set(d.id, d); catalog.push('q_fad_gf'); store.set('catalog', catalog); }
+      if(d) { store.set('q_' + d.id, d); catalog.push('q_fad_gf'); store.set('catalog', catalog); }
     }
     // FAD v12.0 — FAD-60
     if(!catalog.includes('q_fad_60')) {
       const d = defaults.find(x => x.id === 'q_fad_60');
-      if(d) { store.set(d.id, d); catalog.push('q_fad_60'); store.set('catalog', catalog); }
-    }
-    // MAP Parental Sistémico — v14.0
-    if(!catalog.includes('q_map_pi')) {
-      const d = defaults.find(x => x.id === 'q_map_pi');
-      if(d) { store.set(d.id, d); catalog.push('q_map_pi'); store.set('catalog', catalog); }
-    }
-    if(!catalog.includes('q_map_611')) {
-      const d = defaults.find(x => x.id === 'q_map_611');
-      if(d) { store.set(d.id, d); catalog.push('q_map_611'); store.set('catalog', catalog); }
-    }
-    if(!catalog.includes('q_map_1214')) {
-      const d = defaults.find(x => x.id === 'q_map_1214');
-      if(d) { store.set(d.id, d); catalog.push('q_map_1214'); store.set('catalog', catalog); }
-    }
-    if(!catalog.includes('q_map_1518')) {
-      const d = defaults.find(x => x.id === 'q_map_1518');
-      if(d) { store.set(d.id, d); catalog.push('q_map_1518'); store.set('catalog', catalog); }
+      if(d) { store.set('q_' + d.id, d); catalog.push('q_fad_60'); store.set('catalog', catalog); }
     }
     }
   }
