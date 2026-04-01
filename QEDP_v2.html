@@ -276,6 +276,7 @@ tr:hover td{background:var(--blue-xpale)}
         <button class="btn btn-secondary" style="padding:6px 14px;font-size:.82rem" onclick="window.print()">🖨 Imprimir</button>
         <button class="btn btn-secondary" style="padding:6px 14px;font-size:.82rem" onclick="exportarRespostasPDF(sessaoActual)">📋 Respostas PDF</button>
         <button class="btn btn-secondary" style="padding:6px 14px;font-size:.82rem" onclick="exportarInterpretacaoPDF(sessaoActual)">📊 Exportar Interpretação PDF</button>
+        <button class="btn btn-primary" style="padding:6px 14px;font-size:.82rem" onclick="exportarRelatorioCompleto(sessaoActual)">📄 Relatório Completo PDF</button>
         <input type="file" id="import-file-input" accept=".csv" style="display:none" onchange="processarFicheiroImportado(this)">
         <div style="margin-left:auto;display:flex;gap:8px;align-items:center">
           <input type="text" id="filtro-codigo" class="login-input" placeholder="Filtrar por código..." style="padding:6px 12px;font-size:.82rem;width:180px" oninput="filtrarTabela()">
@@ -1129,6 +1130,274 @@ function exportarInterpretacaoPDF(sessao) {
   if (!win) { alert('Pop-up bloqueado.'); return; }
   win.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>'+titulo+'</title><link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;600;700&display=swap" rel="stylesheet"><style>body{font-family:DM Sans,sans-serif;padding:28px;max-width:880px;margin:0 auto;color:#2C3E50;font-size:13px}h3,h4{color:#3B5A7A}table{width:100%;border-collapse:collapse}th,td{padding:6px 10px;border-bottom:1px solid #DDE3EA}th{background:#EBF2F8;text-align:left;color:#3B5A7A}.badge{border-radius:6px;padding:2px 9px;font-size:.75rem;font-weight:600}.badge-alto{background:#fdecea;color:#C0392B}.badge-medio{background:#fef3e2;color:#E67E22}.badge-baixo{background:#eafaf1;color:#27AE60}.no-print{margin-bottom:16px}@media print{.no-print{display:none}}</style></head><body><div class="no-print"><button onclick="window.print()">Imprimir / Guardar PDF</button></div><h3>QEDP — Questionario de Estilos e Dimensoes Parentais</h3><p style="font-size:.8rem;color:#6B7A8D;margin-bottom:20px">'+titulo+'<br>Ricardina Correia · Psicologa Clinica · Cedula n.º 8233</p>'+conteudo+'</body></html>');
   win.document.close(); win.focus();
+}
+
+
+// ── Relatório Completo PDF (gráficos + interpretação + respostas item a item) ──
+function exportarRelatorioCompleto(sessao) {
+  if (!sessao) { alert('Selecione primeiro uma sessão clicando em "Ver →".'); return; }
+
+  var resps = sessao.respostas ? sessao.respostas.split('|').map(Number) : null;
+  var res   = resps ? calcularResultados(resps.map(function(r){ return r||3; })) : null;
+
+  var infTipo = sessao.informante === 'mae' ? 'Mãe' : sessao.informante === 'pai' ? 'Pai' : (sessao.informante || 'Outro');
+  var nomeInf = sessao.nome_informante ? ' — ' + sessao.nome_informante : '';
+  var nomeCrianca = sessao.nome_crianca ? sessao.nome_crianca : sessao.codigo;
+
+  var hoje = new Date().toLocaleDateString('pt-PT');
+  var dataPreench = sessao.data || '—';
+
+  // ── CSS do relatório ──
+  var css = [
+    'body{font-family:"Segoe UI",Arial,sans-serif;padding:32px;max-width:860px;margin:0 auto;color:#2C3E50;font-size:13px;line-height:1.5}',
+    'h1{color:#3B5A7A;font-size:1.3rem;margin:0 0 4px}',
+    'h2{color:#3B5A7A;font-size:1rem;margin:20px 0 10px;padding-bottom:4px;border-bottom:2px solid #D6E4F0}',
+    'h3{color:#3B5A7A;font-size:.9rem;margin:14px 0 8px}',
+    '.header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;padding-bottom:16px;border-bottom:3px solid #3B5A7A}',
+    '.header-info{font-size:.8rem;color:#6B7A8D;text-align:right}',
+    '.logo-area{font-size:.75rem;color:#6B7A8D}',
+    '.cards{display:flex;gap:12px;margin-bottom:20px}',
+    '.card{flex:1;border-radius:10px;padding:14px;text-align:center;background:#EBF2F8}',
+    '.card-dem{border-top:4px solid #3B5A7A}',
+    '.card-aut{border-top:4px solid #C0392B}',
+    '.card-per{border-top:4px solid #E67E22}',
+    '.card-label{font-size:.75rem;font-weight:700;margin-bottom:4px}',
+    '.card-val{font-size:2rem;font-weight:700}',
+    '.card-sub{font-size:.72rem;color:#6B7A8D}',
+    '.card-t{font-size:.9rem;font-weight:600;margin-top:4px}',
+    '.badge{border-radius:5px;padding:2px 8px;font-size:.72rem;font-weight:700;display:inline-block;margin-top:4px}',
+    '.badge-alto{background:#fdecea;color:#C0392B}',
+    '.badge-medio{background:#fef3e2;color:#E67E22}',
+    '.badge-baixo{background:#eafaf1;color:#27AE60}',
+    'table{width:100%;border-collapse:collapse;font-size:.82rem;margin-bottom:12px}',
+    'th{background:#EBF2F8;color:#3B5A7A;padding:7px 10px;text-align:left;font-weight:600}',
+    'td{padding:6px 10px;border-bottom:1px solid #DDE3EA;vertical-align:middle}',
+    '.bar-wrap{background:#DDE3EA;border-radius:4px;height:10px;min-width:120px}',
+    '.bar-fill{border-radius:4px;height:100%}',
+    '.interp{background:#EBF2F8;border-radius:8px;padding:14px 16px;font-size:.84rem;line-height:1.7;margin-bottom:16px}',
+    '.nota{font-size:.75rem;color:#6B7A8D;font-style:italic;margin-top:8px}',
+    '.ref-box{background:#F4F6F9;border-radius:6px;padding:10px 14px;font-size:.75rem;color:#6B7A8D;margin-top:12px}',
+    '.itens-table td:first-child{color:#6B7A8D;width:32px;text-align:center}',
+    '.itens-table td:last-child{text-align:center;font-weight:600;width:100px}',
+    '.sem-respostas{color:#6B7A8D;font-style:italic;padding:12px 0}',
+    '@media print{.no-print{display:none!important}body{padding:16px}}'
+  ].join('\n');
+
+  // ── Secção 1: Cards dos 3 estilos ──
+  var cardsHtml = '';
+  if (res) {
+    var estilos = [
+      {key:'democratico', label:'Democrático', cls:'card-dem', cor:'#3B5A7A'},
+      {key:'autoritario', label:'Autoritário', cls:'card-aut', cor:'#C0392B'},
+      {key:'permissivo',  label:'Permissivo',  cls:'card-per', cor:'#E67E22'}
+    ];
+    cardsHtml = '<div class="cards">';
+    estilos.forEach(function(e) {
+      var r2 = res[e.key];
+      cardsHtml += '<div class="card '+e.cls+'">' +
+        '<div class="card-label" style="color:'+e.cor+'">'+e.label+'</div>' +
+        '<div class="card-val" style="color:'+e.cor+'">'+r2.media+'</div>' +
+        '<div class="card-sub">Média (1–5)</div>' +
+        '<div class="card-t">T = '+r2.t+'</div>' +
+        '<span class="badge '+r2.cls.cls+'">'+r2.cls.label+'</span>' +
+        '</div>';
+    });
+    cardsHtml += '</div>';
+  } else if (sessao.dem_media) {
+    // Usar dados do sheet directamente se não houver respostas recalculáveis
+    var demT = Number(sessao.dem_t||0), autT = Number(sessao.aut_t||0), perT = Number(sessao.per_t||0);
+    var estilosBase = [
+      {label:'Democrático', cls:'card-dem', cor:'#3B5A7A', media:sessao.dem_media, t:sessao.dem_t, clsBadge: demT>60?'badge-alto':demT<40?'badge-baixo':'badge-medio', clsLbl: demT>60?'Uso Alto':demT<40?'Uso Baixo':'Uso Moderado'},
+      {label:'Autoritário',  cls:'card-aut', cor:'#C0392B', media:sessao.aut_media, t:sessao.aut_t, clsBadge: autT>60?'badge-alto':autT<40?'badge-baixo':'badge-medio', clsLbl: autT>60?'Uso Alto':autT<40?'Uso Baixo':'Uso Moderado'},
+      {label:'Permissivo',   cls:'card-per', cor:'#E67E22', media:sessao.per_media, t:sessao.per_t, clsBadge: perT>60?'badge-alto':perT<40?'badge-baixo':'badge-medio', clsLbl: perT>60?'Uso Alto':perT<40?'Uso Baixo':'Uso Moderado'}
+    ];
+    cardsHtml = '<div class="cards">';
+    estilosBase.forEach(function(e) {
+      cardsHtml += '<div class="card '+e.cls+'">' +
+        '<div class="card-label" style="color:'+e.cor+'">'+e.label+'</div>' +
+        '<div class="card-val" style="color:'+e.cor+'">'+(e.media||'—')+'</div>' +
+        '<div class="card-sub">Média (1–5)</div>' +
+        '<div class="card-t">T = '+(e.t||'—')+'</div>' +
+        '<span class="badge '+e.clsBadge+'">'+e.clsLbl+'</span>' +
+        '</div>';
+    });
+    cardsHtml += '</div>';
+  }
+
+  // ── Secção 2: Perfil por dimensão (tabela com barras) ──
+  var perfilHtml = '';
+  if (res) {
+    var dimOrdem = [
+      {estilo:'democratico', key:'apoio_afeto',    cor:'#3B5A7A', sepLabel:''},
+      {estilo:'democratico', key:'regulacao',       cor:'#3B5A7A', sepLabel:''},
+      {estilo:'democratico', key:'autonomia',       cor:'#3B5A7A', sepLabel:''},
+      {estilo:'autoritario', key:'coercao_fisica',  cor:'#C0392B', sepLabel:'border-top:2px solid #D6E4F0'},
+      {estilo:'autoritario', key:'hostilidade',     cor:'#C0392B', sepLabel:''},
+      {estilo:'autoritario', key:'punicao',         cor:'#C0392B', sepLabel:''},
+      {estilo:'permissivo',  key:'indulgencia',     cor:'#E67E22', sepLabel:'border-top:2px solid #D6E4F0'}
+    ];
+    perfilHtml = '<table><thead><tr>' +
+      '<th>Estilo / Dimensão</th><th style="text-align:center">Média</th><th style="text-align:center">T</th>' +
+      '<th style="min-width:150px">Perfil visual</th><th style="text-align:center">Classificação</th>' +
+      '</tr></thead><tbody>';
+    dimOrdem.forEach(function(d) {
+      var dim = ESTRUTURA[d.estilo].dims[d.key];
+      if (!dim) return;
+      var rd = res[d.estilo].dims[d.key];
+      if (!rd) return;
+      var barW = Math.min(100, Math.max(0, Math.round(((Number(rd.t)-30)/40)*100)));
+      perfilHtml += '<tr style="'+d.sepLabel+'">' +
+        '<td>'+dim.label+'</td>' +
+        '<td style="text-align:center;font-weight:600">'+rd.media+'</td>' +
+        '<td style="text-align:center;font-weight:700">'+rd.t+'</td>' +
+        '<td><div class="bar-wrap"><div class="bar-fill" style="background:'+d.cor+';width:'+barW+'%"></div></div></td>' +
+        '<td style="text-align:center"><span class="badge '+rd.cls.cls+'">'+rd.cls.label+'</span></td>' +
+        '</tr>';
+    });
+    perfilHtml += '</tbody></table>';
+  }
+
+  // ── Secção 3: Interpretação automática ──
+  var interpHtml = '';
+  if (res) {
+    var demT = res.democratico.t, autT = res.autoritario.t, perT = res.permissivo.t;
+    var estiloPredom = (demT >= autT && demT >= perT) ? 'Democrático' : (autT >= perT ? 'Autoritário' : 'Permissivo');
+    interpHtml = '<div class="interp"><strong style="color:#3B5A7A">Interpretação automática</strong><br>';
+    interpHtml += 'Estilos (T): Democrático='+demT+' · Autoritário='+autT+' · Permissivo='+perT+'. ';
+    interpHtml += 'O estilo com T mais elevado é o <strong>'+estiloPredom+'</strong>. ';
+    if (demT > 60) interpHtml += 'O uso elevado do estilo Democrático (T='+demT+') é consistente com práticas parentais associadas a melhores resultados desenvolvimentais. ';
+    if (demT < 40) interpHtml += '<strong style="color:#E67E22">O estilo Democrático apresenta-se abaixo da média normativa (T='+demT+')</strong>, sugerindo menor uso de estratégias de suporte e comunicação. ';
+    if (autT > 60) interpHtml += '<strong style="color:#C0392B">⚠ O estilo Autoritário está acima da média normativa (T='+autT+')</strong>, sugerindo uso elevado de controlo coercivo — área a explorar clinicamente. ';
+    if (perT > 60) interpHtml += '<strong style="color:#E67E22">⚠ O estilo Permissivo está acima da média normativa (T='+perT+')</strong>, o que pode reflectir dificuldades em estabelecer limites consistentes. ';
+    // Dimensões específicas
+    var dimAlertas = [];
+    var dimDef = [
+      {est:'democratico',key:'apoio_afeto',  label:'Apoio e Afeto',     alto:'positivo',  baixo:'preocupante'},
+      {est:'democratico',key:'regulacao',    label:'Regulação',          alto:'positivo',  baixo:'preocupante'},
+      {est:'democratico',key:'autonomia',    label:'Autonomia',          alto:'positivo',  baixo:'preocupante'},
+      {est:'autoritario',key:'coercao_fisica',label:'Coerção Física',    alto:'alerta',    baixo:''},
+      {est:'autoritario',key:'hostilidade',  label:'Hostilidade Verbal', alto:'alerta',    baixo:''},
+      {est:'autoritario',key:'punicao',      label:'Punição',            alto:'alerta',    baixo:''},
+      {est:'permissivo', key:'indulgencia',  label:'Indulgência',        alto:'moderado',  baixo:''}
+    ];
+    dimDef.forEach(function(d) {
+      var rd = res[d.est].dims[d.key];
+      if (!rd) return;
+      var t2 = Number(rd.t);
+      if (t2 > 60 && d.alto === 'alerta')    dimAlertas.push('<em style="color:#C0392B">'+d.label+' T='+t2+'</em>');
+      if (t2 > 60 && d.alto === 'moderado')  dimAlertas.push('<em style="color:#E67E22">'+d.label+' T='+t2+'</em>');
+      if (t2 < 40 && d.baixo === 'preocupante') dimAlertas.push('<em style="color:#E67E22">'+d.label+' T='+t2+' (baixo)</em>');
+    });
+    if (dimAlertas.length > 0) interpHtml += '<br>Dimensões a considerar: ' + dimAlertas.join(' · ') + '. ';
+    if (resps) {
+      var semResp = resps.filter(function(r){ return !r||r<1||r>5; }).length;
+      if (semResp > 0) interpHtml += '<br><em style="color:#E67E22">⚠ '+semResp+' item(ns) sem resposta válida — substituídos por 3 (meio da escala).</em>';
+    }
+    interpHtml += '<div class="nota">Esta interpretação é automática e deve ser integrada no contexto clínico completo da avaliação.</div>';
+    interpHtml += '</div>';
+  } else {
+    interpHtml = '<p class="sem-respostas">Não foi possível gerar interpretação: respostas item a item não disponíveis nesta sessão.</p>';
+  }
+
+  // ── Secção 4: Respostas item a item ──
+  var respostasHtml = '';
+  if (resps) {
+    // Agrupar por estilo/dimensão
+    var grupos = [
+      {titulo:'🟢 Estilo Democrático / Autoritativo', subs:[
+        {label:'Apoio e Afeto',  itens:[1,7,12,14,27]},
+        {label:'Regulação',      itens:[5,11,25,29,31]},
+        {label:'Autonomia',      itens:[3,9,18,21,22]}
+      ]},
+      {titulo:'🔴 Estilo Autoritário', subs:[
+        {label:'Coerção Física',    itens:[2,6,19,32]},
+        {label:'Hostilidade Verbal',itens:[13,16,23,30]},
+        {label:'Punição',           itens:[4,10,26,28]}
+      ]},
+      {titulo:'🟡 Estilo Permissivo', subs:[
+        {label:'Indulgência', itens:[8,15,17,20,24]}
+      ]}
+    ];
+    respostasHtml = '<table class="itens-table"><thead><tr><th>#</th><th>Item</th><th>Dimensão</th><th style="text-align:center">Resposta</th></tr></thead><tbody>';
+    grupos.forEach(function(g) {
+      g.subs.forEach(function(sub) {
+        sub.itens.forEach(function(n, ii) {
+          var val = resps[n-1];
+          var lbl = OPCOES[val-1] || '—';
+          var cor = val >= 4 ? '#C0392B' : val <= 2 ? '#27AE60' : '#2C3E50';
+          if (ii === 0) {
+            respostasHtml += '<tr style="border-top:2px solid #D6E4F0">' +
+              '<td style="color:#6B7A8D">'+n+'</td>' +
+              '<td style="font-size:.8rem">'+ITENS[n-1]+'</td>' +
+              '<td style="font-size:.75rem;color:#6B7A8D">'+sub.label+'</td>' +
+              '<td style="text-align:center;font-weight:700;color:'+cor+'">'+lbl+'</td>' +
+              '</tr>';
+          } else {
+            respostasHtml += '<tr>' +
+              '<td style="color:#6B7A8D">'+n+'</td>' +
+              '<td style="font-size:.8rem">'+ITENS[n-1]+'</td>' +
+              '<td style="font-size:.75rem;color:#6B7A8D">'+sub.label+'</td>' +
+              '<td style="text-align:center;font-weight:700;color:'+cor+'">'+lbl+'</td>' +
+              '</tr>';
+          }
+        });
+      });
+    });
+    respostasHtml += '</tbody></table>';
+  } else {
+    respostasHtml = '<p class="sem-respostas">Respostas por item não disponíveis nesta sessão (dados importados sem coluna Respostas).</p>';
+  }
+
+  // ── Montar HTML final ──
+  var html = '<!DOCTYPE html><html lang="pt"><head><meta charset="UTF-8">' +
+    '<title>QEDP — Relatório — '+nomeCrianca+'</title>' +
+    '<style>'+css+'</style></head><body>' +
+
+    '<div class="no-print" style="margin-bottom:20px;display:flex;gap:10px">' +
+    '<button onclick="window.print()" style="padding:8px 20px;background:#3B5A7A;color:white;border:none;border-radius:6px;font-size:.9rem;cursor:pointer;font-weight:600">🖨 Imprimir / Guardar PDF</button>' +
+    '<button onclick="window.close()" style="padding:8px 16px;background:#EBF2F8;color:#3B5A7A;border:none;border-radius:6px;font-size:.9rem;cursor:pointer">Fechar</button>' +
+    '</div>' +
+
+    '<div class="header">' +
+    '<div>' +
+    '<h1>QEDP — Estilos e Dimensões Parentais</h1>' +
+    '<div class="logo-area">Oliveira et al., 2018 · Versão curta · 32 itens<br>Normas: Escore-T (Média=50, DP=10)</div>' +
+    '</div>' +
+    '<div class="header-info">' +
+    '<strong>Criança / Paciente:</strong> '+nomeCrianca+'<br>' +
+    '<strong>Código:</strong> '+(sessao.codigo||'—')+'<br>' +
+    '<strong>Respondente:</strong> '+infTipo+(sessao.nome_informante?' — '+sessao.nome_informante:'')+'<br>' +
+    '<strong>Data de preenchimento:</strong> '+dataPreench+'<br>' +
+    '<strong>Data do relatório:</strong> '+hoje+'<br>' +
+    '<strong>Ricardina Correia · Cédula 8233</strong>' +
+    '</div>' +
+    '</div>' +
+
+    '<h2>1. Resultados por Estilo Parental</h2>' +
+    cardsHtml +
+
+    '<h2>2. Perfil por Dimensão (Escore-T)</h2>' +
+    perfilHtml +
+
+    '<h2>3. Interpretação</h2>' +
+    interpHtml +
+
+    '<div class="ref-box">' +
+    '<strong>Referência de classificação (Escore-T):</strong> Uso Baixo: T &lt;40 · Uso Moderado: T 40–60 · Uso Alto: T &gt;60<br>' +
+    '⚠ Os percentis empíricos do QEDP seguem distribuições assimétricas (Oliveira et al., 2018) e não são comparáveis à curva normal. A classificação baseia-se no Escore-T (Média=50, DP=10).<br>' +
+    'Normas: Oliveira et al. (2018) · <em>Braz J Psychiatry</em> 40:410–419' +
+    '</div>' +
+
+    '<h2>4. Respostas por Item</h2>' +
+    respostasHtml +
+
+    '</body></html>';
+
+  var win = window.open('', '_blank');
+  if (!win) { alert('Pop-up bloqueado pelo browser. Permite pop-ups para este site.'); return; }
+  win.document.write(html);
+  win.document.close();
+  win.focus();
 }
 
 // Arranque — suportar ?clinico=RC2024 para auto-login directo ao painel
