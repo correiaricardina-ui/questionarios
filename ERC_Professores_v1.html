@@ -684,9 +684,9 @@ function verDetalhe(idx) {
   // ── Cards dos 2 scores principais ──
   html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px">';
   // L/N card — vermelho = elevado é preocupante
-  var lnM_num2 = ln > 0 ? ln/13 : 0;
+  var lnM_num = ln > 0 ? ln/13 : 0;
   var lnPct = Math.min(100, Math.max(0, Math.round(((ln-13)/(52-13))*100)));
-  var lnCor = lnM_num2 >= 3.0 ? '#C0392B' : lnM_num2 >= 2.4 ? '#E67E22' : lnM_num2 >= 1.5 ? '#27AE60' : '#3B5A7A';
+  var lnCor = lnM_num >= 3.0 ? '#C0392B' : lnM_num >= 2.4 ? '#E67E22' : lnM_num >= 1.5 ? '#27AE60' : '#3B5A7A';
   html += '<div style="background:var(--blue-xpale);border-radius:10px;padding:16px;text-align:center;border-top:4px solid ' + lnCor + '">' +
     '<div style="font-size:.78rem;font-weight:700;color:' + lnCor + ';margin-bottom:4px">Labilidade/Negatividade (L/N)</div>' +
     '<div style="font-size:2rem;font-weight:700;color:' + lnCor + '">' + ln + '</div>' +
@@ -695,9 +695,9 @@ function verDetalhe(idx) {
     '<div style="margin-top:8px">' + barHtml(ln,13,52,lnCor) + '</div>' +
     '</div>';
   // RE card — verde = elevado é positivo
-  var reM_num2 = re > 0 ? re/11 : 0;
+  var reM_num = re > 0 ? re/11 : 0;
   var rePct = Math.min(100, Math.max(0, Math.round(((re-10)/(40-10))*100)));
-  var reCor = reM_num2 >= 2.6 ? '#27AE60' : reM_num2 >= 2.0 ? '#E67E22' : '#C0392B';
+  var reCor = reM_num >= 2.6 ? '#27AE60' : reM_num >= 2.0 ? '#E67E22' : '#C0392B';
   html += '<div style="background:var(--blue-xpale);border-radius:10px;padding:16px;text-align:center;border-top:4px solid ' + reCor + '">' +
     '<div style="font-size:.78rem;font-weight:700;color:' + reCor + ';margin-bottom:4px">Regulação Emocional (RE)</div>' +
     '<div style="font-size:2rem;font-weight:700;color:' + reCor + '">' + re + '</div>' +
