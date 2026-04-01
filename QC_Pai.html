@@ -558,24 +558,27 @@ async function carregarDados(){
     rows.forEach(function(r){
       var code=(r['Código']||r.patientCode||'').trim().toUpperCase();
       if(!code)return;
-      // Filtrar por versão para não misturar dados de Mãe e Pai
-      var versaoRow=(r['Versao']||r['versao']||r['Respondente']||'').toLowerCase();
-      if(versaoRow && versaoRow!==VERSAO.toLowerCase() && !versaoRow.includes(VERSAO.toLowerCase())) return;
-      // Chave única por código + data (permite múltiplas sessões do mesmo código)
+      // Filtrar por versão - normalizar texto para comparação
+      var versaoRow=(r['Versao']||r['versao']||r['Respondente']||r['NomeInformante']||'')
+        .toLowerCase()
+        .normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+      var versaoLocal = VERSAO.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+      // Só filtrar se o campo versão tiver conteúdo E não corresponder
+      if(versaoRow && !versaoRow.includes(versaoLocal) && !versaoLocal.includes(versaoRow.split(' ')[0])) return;
+      // Chave única por código + data
       var date=r['Data']||r.date||'';
       var uid=code+'_'+(date||'sheet')+'_sheet';
-      if(!local[uid]){
-        local[uid]={
-          uid:uid,code:code,
-          nomeCrianca:r['NomeCriança']||r.nomeCrianca||'',
-          nomeInf:r['Respondente']||r.nome_informante||'',
-          date:date,
-          scores:{coop:r['Cooperacao_Raw']||0,triang:r['Triangulacao_Raw']||0,conf:r['Conflito_Raw']||0,
-            coopM:r['Cooperacao_Media']||'',triangM:r['Triangulacao_Media']||'',confM:r['Conflito_Media']||''},
-          answers:JSON.parse(r['Respostas']||'[]'),
-          versao:VERSAO,fromSheet:true
-        };
-      }
+      // Sempre actualizar
+      local[uid]={
+        uid:uid,code:code,
+        nomeCrianca:r['NomeCriança']||r.nomeCrianca||'',
+        nomeInf:r['Respondente']||r.nome_informante||'',
+        date:date,
+        scores:{coop:r['Cooperacao_Raw']||0,triang:r['Triangulacao_Raw']||0,conf:r['Conflito_Raw']||0,
+          coopM:r['Cooperacao_Media']||'',triangM:r['Triangulacao_Media']||'',confM:r['Conflito_Media']||''},
+        answers:JSON.parse(r['Respostas']||'[]'),
+        versao:VERSAO,fromSheet:true
+      };
     });
     store(SK,local);
     sessoes=Object.values(local);
@@ -602,7 +605,7 @@ function renderPanel(){
     '<th class="no-print">Ações</th>'+
     '</tr></thead><tbody>';
   sessoes.sort(function(a,b){return (b.date||'').localeCompare(a.date||'')});
-  sessoes.forEach(function(s){
+  sessoes.forEach(function(s,idx){
     var sc=s.scores||{};
     html+='<tr>'+
       '<td><strong>'+(s.code||'—')+'</strong>'+(s.nomeCrianca?'<br><span style="font-size:.75rem;color:var(--text-light)">'+s.nomeCrianca+'</span>':'')+
@@ -612,15 +615,15 @@ function renderPanel(){
       '<td><span class="badge badge-coop">'+(sc.coop||'—')+'</span><br><span style="font-size:.72rem;color:var(--text-light)">M='+(sc.coopM||'')+'</span></td>'+
       '<td><span class="badge badge-triang">'+(sc.triang||'—')+'</span><br><span style="font-size:.72rem;color:var(--text-light)">M='+(sc.triangM||'')+'</span></td>'+
       '<td><span class="badge badge-conf">'+(sc.conf||'—')+'</span><br><span style="font-size:.72rem;color:var(--text-light)">M='+(sc.confM||'')+'</span></td>'+
-      '<td class="no-print"><button class="btn btn-primary" style="padding:4px 12px;font-size:.78rem" onclick="verDetalhe('+JSON.stringify(s.uid)+')">Ver →</button></td>'+
+      '<td class="no-print"><button class="btn btn-primary" style="padding:4px 12px;font-size:.78rem" onclick="verDetalhe('+idx+')">Ver →</button></td>'+
       '</tr>';
   });
   html+='</tbody></table></div>';
   c.innerHTML=html;
 }
 
-function verDetalhe(uid){
-  var s=sessoes.find(function(x){return x.uid===uid});
+function verDetalhe(idx){
+  var s=sessoes[idx];
   if(!s)return;
   sessaoActual=s;
   var sc=s.scores||{};
