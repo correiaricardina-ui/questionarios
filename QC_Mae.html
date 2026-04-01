@@ -571,12 +571,18 @@ async function carregarDados(){
       // Sempre actualizar (para garantir dados frescos)
       local[uid]={
         uid:uid,code:code,
-        nomeCrianca:r['NomeCriança']||r.nomeCrianca||'',
+        nomeCrianca:r['NomeCriança']||r['NomeCrianca']||r.nomeCrianca||'',
         nomeInf:r['Respondente']||r.nome_informante||'',
         date:date,
-        scores:{coop:r['Cooperacao_Raw']||0,triang:r['Triangulacao_Raw']||0,conf:r['Conflito_Raw']||0,
-          coopM:r['Cooperacao_Media']||'',triangM:r['Triangulacao_Media']||'',confM:r['Conflito_Media']||''},
-        answers:JSON.parse(r['Respostas']||'[]'),
+        scores:{
+          coop:  Number(r['Cooperacao_Raw'] ||r['Coop_Raw'] ||r['coop_raw'] ||0),
+          triang:Number(r['Triangulacao_Raw']||r['Triang_Raw']||r['triang_raw']||0),
+          conf:  Number(r['Conflito_Raw']   ||r['Conf_Raw'] ||r['conf_raw'] ||0),
+          coopM: r['Cooperacao_Media']||r['Coop_Media']||r['coop_media']||'',
+          triangM:r['Triangulacao_Media']||r['Triang_Media']||r['triang_media']||'',
+          confM: r['Conflito_Media']||r['Conf_Media']||r['conf_media']||''
+        },
+        answers:JSON.parse(r['Respostas']||r['respostas']||'[]'),
         versao:VERSAO,fromSheet:true
       };
     });
@@ -709,7 +715,10 @@ function verDetalhe(idx){
     'Normas: α Cooperação=.83–.88 · α Triangulação=.77–.85 · α Conflito=.71–.76 (Pedro &amp; Ribeiro, 2015). '+
     'Limiar interpretativo baseado em médias por item (escala 1–5).'+
     '</div>'+
-    ansHtml;
+    ansHtml+
+    '<div style="margin-top:20px;padding-top:14px;border-top:1px solid var(--blue-pale)" class="no-print">'+
+    '<button class="btn btn-primary" style="padding:8px 20px;font-size:.85rem" onclick="exportarRelatorioModal()">📄 Relatório Completo PDF</button>'+
+    '</div>';
 
   document.getElementById('modal-body').innerHTML=html;
   document.getElementById('modal-overlay').classList.add('open');
@@ -758,6 +767,86 @@ function buildSumario(cM,tM,fM){
   else if(fM<=2.5) parts.push('O <strong>conflito coparental</strong> é <strong>moderado</strong> (M='+fM+'), com desacordos pontuais nas práticas parentais.');
   else parts.push('O <strong>conflito coparental</strong> é <strong>elevado</strong> (M='+fM+'), com frequentes desacordos e tensão na relação coparental.');
   return parts.join(' ');
+}
+
+function exportarRelatorioModal(){
+  var s = sessaoActual;
+  if(!s){ alert('Sem sessão seleccionada.'); return; }
+  var sc = s.scores||{};
+  var cM = parseFloat(sc.coopM)||0;
+  var tM = parseFloat(sc.triangM)||0;
+  var fM = parseFloat(sc.confM)||0;
+
+  function zona(label, m, inv){
+    if(!inv) return m>=4?'Elevada cooperação':m>=3?'Cooperação moderada':'Cooperação baixa';
+    return m<=1.5?'Ausente / muito baixo':m<=2.5?'Moderado':'Elevado';
+  }
+  function cor(label, m, inv){
+    if(!inv) return m>=4?'#27AE60':m>=3?'#E67E22':'#C0392B';
+    return m<=1.5?'#27AE60':m<=2.5?'#E67E22':'#C0392B';
+  }
+
+  // Tabela de perfil
+  var tableRows = [
+    {l:'Cooperação', raw:sc.coop, m:cM, max:25, inv:false},
+    {l:'Triangulação', raw:sc.triang, m:tM, max:20, inv:true},
+    {l:'Conflito', raw:sc.conf, m:fM, max:25, inv:true}
+  ].map(function(row){
+    var z = zona(row.l, row.m, row.inv);
+    var c = cor(row.l, row.m, row.inv);
+    var pct = row.inv ? Math.round(Math.max(0,Math.min(100,((5-(row.m||1))/4)*100))) :
+                       Math.round(Math.max(0,Math.min(100,((row.m||1)-1)/4*100)));
+    var bar = '<div style="background:#eee;border-radius:4px;height:10px;width:100px;display:inline-block;vertical-align:middle">'+
+      '<div style="background:'+c+';border-radius:4px;height:10px;width:'+pct+'%"></div></div>';
+    return '<tr><td style="padding:5px 8px;border-bottom:1px solid #eee">'+row.l+'</td>'+
+      '<td style="padding:5px 8px;border-bottom:1px solid #eee;text-align:center;font-weight:700">'+(row.raw||0)+'</td>'+
+      '<td style="padding:5px 8px;border-bottom:1px solid #eee;text-align:center">'+(row.m||0)+'</td>'+
+      '<td style="padding:5px 8px;border-bottom:1px solid #eee">'+bar+'</td>'+
+      '<td style="padding:5px 8px;border-bottom:1px solid #eee;color:'+c+';font-weight:600">'+z+'</td></tr>';
+  }).join('');
+
+  // Respostas por item
+  var itemRows = '';
+  if(s.answers && s.answers.length){
+    s.answers.forEach(function(r,i){
+      var lbl = r ? LABELS_LIKERT[r-1] : '—';
+      itemRows += '<tr><td style="padding:3px 6px;border-bottom:1px solid #f0f0f0;text-align:center;color:#999;font-size:10px">'+(i+1)+'</td>'+
+        '<td style="padding:3px 6px;border-bottom:1px solid #f0f0f0;font-size:10px;white-space:nowrap">'+SUBSCALAS[i]+'</td>'+
+        '<td style="padding:3px 6px;border-bottom:1px solid #f0f0f0;font-size:10px">'+PREFIXO+' '+(ITEMS[i]||'')+'</td>'+
+        '<td style="padding:3px 6px;border-bottom:1px solid #f0f0f0;text-align:center;font-weight:600;font-size:10px">'+(r||'—')+'<br><span style="font-weight:400;color:#6B7A8D">'+lbl+'</span></td></tr>';
+    });
+  }
+
+  var dateStr = s.date ? (s.date.length > 10 ? new Date(s.date).toLocaleDateString('pt-PT') : s.date) : '—';
+  var html = '<!DOCTYPE html><html><head><meta charset="UTF-8">'+
+    '<title>QC '+VERSAO+' — '+s.code+'</title>'+
+    '<style>body{font-family:sans-serif;font-size:11px;color:#2C3E50;padding:24px;max-width:800px;margin:0 auto}'+
+    'h1{color:#3B5A7A;font-size:14px;margin-bottom:2px}h2{color:#3B5A7A;font-size:12px;margin:14px 0 6px;border-bottom:2px solid #D6E4F0;padding-bottom:3px}'+
+    'p{color:#6B7A8D;font-size:10px;margin-bottom:12px}table{width:100%;border-collapse:collapse;margin-bottom:12px}'+
+    'th{background:#D6E4F0;padding:5px 8px;text-align:left;color:#3B5A7A;font-size:10px}'+
+    '.interp{background:#EBF2F8;border-radius:6px;padding:10px 12px;font-size:10.5px;line-height:1.65;margin-bottom:12px}'+
+    '.nota{font-size:9px;color:#6B7A8D;border-top:1px solid #eee;padding-top:6px}'+
+    '.np{margin-bottom:14px}@media print{.np{display:none}}</style></head><body>'+
+    '<div class="np"><button onclick="window.print()">🖨 Imprimir / Guardar PDF</button></div>'+
+    '<h1>Questionário de Coparentalidade ('+VERSAO+') — Relatório</h1>'+
+    '<p>Código: <strong>'+s.code+'</strong>'+(s.nomeCrianca?' · '+s.nomeCrianca:'')+
+    ' · Respondente: '+(s.nomeInf||VERSAO)+' · Data: '+dateStr+
+    ' · Ricardina Correia · Cédula 8233 · Psicologia Pediátrica</p>'+
+    '<h2>📊 Perfil de Resultados</h2>'+
+    '<table><thead><tr><th>Subescala</th><th style="text-align:center">Raw</th><th style="text-align:center">Média</th><th>Perfil</th><th>Classificação</th></tr></thead>'+
+    '<tbody>'+tableRows+'</tbody></table>'+
+    '<h2>🔍 Interpretação</h2>'+
+    '<div class="interp">'+buildSumario(cM,tM,fM)+
+    '<br><em style="font-size:.9em;color:#6B7A8D">Esta interpretação é automática e deve ser integrada no contexto clínico completo da avaliação.</em></div>'+
+    (itemRows ? '<h2>📝 Respostas por Item ('+ITEMS.length+' itens)</h2>'+
+    '<table><thead><tr><th style="text-align:center;width:24px">#</th><th>Subescala</th><th>Item</th><th style="text-align:center">R</th></tr></thead>'+
+    '<tbody>'+itemRows+'</tbody></table>' : '')+
+    '<div class="nota">Normas: α Cooperação=.83–.88 · α Triangulação=.77–.85 · α Conflito=.71–.76 (Pedro &amp; Ribeiro, 2015).</div>'+
+    '</body></html>';
+
+  var w = window.open('','_blank');
+  if(!w){ alert('Pop-up bloqueado. Permite pop-ups para este site.'); return; }
+  w.document.write(html); w.document.close();
 }
 
 function fecharModal(e){
