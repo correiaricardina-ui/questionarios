@@ -910,7 +910,31 @@ function exportarInterpretacaoPDF(sessao){
 if(location.protocol==='file:'){
   document.getElementById('file-warn').style.display='block';
 }
-showPage('page-home');
+
+// Limpar entradas antigas do localStorage (chave código_sheet sem data)
+(function(){
+  try{
+    var local = load(SK)||{};
+    var changed = false;
+    Object.keys(local).forEach(function(k){
+      // Entradas antigas tinham uid = "CODIGO_sheet" (sem data no meio)
+      if(/^[^_]+_sheet$/.test(k)){
+        delete local[k];
+        changed = true;
+      }
+    });
+    if(changed) store(SK, local);
+  }catch(e){}
+})();
+
+// Auto-login via ?clinico=RC2024
+var _params = new URLSearchParams(window.location.search);
+if(_params.get('clinico') === 'RC2024'){
+  showPage('page-clinico');
+  carregarDados();
+} else {
+  showPage('page-home');
+}
 </script>
 </body>
 </html>
