@@ -798,12 +798,12 @@ function initCatalog() {
       objective:'Avalia cooperação, triangulação e conflito coparental — versão pai',
       domains:['Cooperação','Triangulação','Conflito'] , ageMin:0, ageMax:null},
     { id:'q_erc_prof', name:'ERC — Professores', dest:['Professor(a)','Educador(a)'],
-      link:'https://correiaricardina-ui.github.io/questionarios/ERC_Professores_v1.html',
+      link:'https://correiaricardina-ui.github.io/questionarios/ERC_Professores_v2.html',
       syncKey:'erc_prof', area:'Regulação Emocional', ageRange:'3–18 anos',
       objective:'Avalia a regulação emocional da criança — versão professor/educador',
       domains:['Labilidade/Negatividade (L/N)','Regulação Emocional (RE)','Total ERC'] , ageMin:36, ageMax:215},
     { id:'q_erc_pais', name:'ERC — Pais/Cuidadores', dest:['Mãe','Pai','Enc. Educação'],
-      link:'https://correiaricardina-ui.github.io/questionarios/ERC_Pais_v1.html',
+      link:'https://correiaricardina-ui.github.io/questionarios/ERC_Pais_v2.html',
       syncKey:'erc_pais', area:'Regulação Emocional', ageRange:'3–18 anos',
       objective:'Avalia a regulação emocional da criança — versão pais/cuidadores',
       domains:['Labilidade/Negatividade (L/N)','Regulação Emocional (RE)','Total ERC'] , ageMin:36, ageMax:215},
@@ -909,6 +909,7 @@ function initCatalog() {
   defaults.forEach(function(q) {
     // Forçar sempre actualização dos metadados do catálogo central
     store.set(q.id, q);
+    store.set('q_' + q.id, q); // chave 'q_q_...' obrigatória para lookup em renderAssignments
     // Remover variantes antigas do mesmo id (sem prefixo 'q_') para evitar duplicados
     const shortId = q.id.startsWith('q_') ? q.id.slice(2) : null;
     const hasShort = shortId && catalog.includes(shortId);
@@ -939,7 +940,7 @@ function initCatalog() {
       'q_scared_r_pais':    { link:'https://correiaricardina-ui.github.io/questionarios/SCARED_R_Pais.html', syncKey:'scared_r_pais' },
       'q_qc_mae':           { link:'https://correiaricardina-ui.github.io/questionarios/QC_Mae.html', syncKey:'qc_mae' },
       'q_qc_pai':           { link:'https://correiaricardina-ui.github.io/questionarios/QC_Pai.html', syncKey:'qc_pai' },
-      'q_erc_prof':         { link:'https://correiaricardina-ui.github.io/questionarios/ERC_Professores_v1.html', syncKey:'erc_prof' },
+      'q_erc_prof':         { link:'https://correiaricardina-ui.github.io/questionarios/ERC_Professores_v2.html', syncKey:'erc_prof' },
       'q_ctrf_15': { link:'https://correiaricardina-ui.github.io/questionarios/CTRF_15_v2.html', syncKey:'ctrf15' },
       'q_brief_prof': { link:'https://correiaricardina-ui.github.io/questionarios/BRIEF_Professores_v3.html', syncKey:'brief_professores' },
       'q_brief_pais': { link:'https://correiaricardina-ui.github.io/questionarios/BRIEF_Pais_v5.html', syncKey:'brief_pais' },
@@ -957,7 +958,7 @@ function initCatalog() {
       'q_abas3_pais':  { link:'https://correiaricardina-ui.github.io/questionarios/ABAS3_Pais_v2.html',      syncKey:'abas3_pais'  },
       'q_abas3_prof':  { link:'https://correiaricardina-ui.github.io/questionarios/ABAS3_Professor_v2.html', syncKey:'abas3_prof'  },
       'q_abas3_adult': { link:'https://correiaricardina-ui.github.io/questionarios/ABAS3_Autorrelato_v1.html', syncKey:'abas3_adult' },
-      'q_erc_pais':         { link:'https://correiaricardina-ui.github.io/questionarios/ERC_Pais_v1.html', syncKey:'erc_pais' },
+      'q_erc_pais':         { link:'https://correiaricardina-ui.github.io/questionarios/ERC_Pais_v2.html', syncKey:'erc_pais' },
       'q_diva5':             { link:'https://correiaricardina-ui.github.io/questionarios/DIVA5_v1.html', syncKey:'diva5' },
       'q_eafe':              { link:'https://correiaricardina-ui.github.io/questionarios/EAFE_v2.html', syncKey:'eafe' },
       'q_ece_fea':           { link:'https://correiaricardina-ui.github.io/questionarios/ECE-FEA.html', syncKey:'ece_fea' },
@@ -1724,8 +1725,10 @@ function renderAssignments(patientId) {
                 'ABAS3_PAIS':['NomeCrianca','NomeInformante'],'ABAS3_PROF':['NomeCrianca','NomeInformante'],'ABAS3_ADULT':['NomeCrianca','NomeInformante'],'ABAS3_05':['Informante'],'ABAS3_05P':['Informante'],
                 'QEDP':['Informante','NomeInformante'],'QC_Coparentalidade':['NomeRespondente','Respondente'],
                 'FAD_GF':['Nome Respondente'],'FAD_60':['Nome Respondente'],
-                'CONNERS3P_FULL':['NomeInformante'],'CONNERS3T_FULL':['NomeInformante'],
-                'CONNERS3PS':['NomeInformante'],'CONNERS3TS':['NomeInformante']
+                'CONNERS3P_FULL':['NomeInformante','Relação'],'CONNERS3T_FULL':['NomeInformante','Relação'],
+                'CONNERS3PS':['NomeInformante','Relação'],'CONNERS3TS':['NomeInformante','Relação'],
+                'ERC_Pais':['NomeInformante','Relação'],'ERC_Professores':['NomeInformante','Relação'],
+                'QEDP':['Informante','NomeInformante']
               };
               const RC = {
                 'SWAN':['Relação'],'BRIEF_Pais':['Relação'],'SCARED_R_PAIS':['Relação'],
