@@ -532,14 +532,16 @@ var SUBTIPOS_FE={
   'Fobia Específica — Animais':[22,37,65]
 };
 
+// Limiares clínicos (high) arredondados de Muris et al. 1999.
+// Zona borderline = >= 80% do limiar clinico (sem limiar borderline formal no SCARED-R).
 var CUTOFFS={
-  'Perturbação de Pânico':{low:0,high:5.66},
-  'Ansiedade Generalizada':{low:3.87,high:10.43},
-  'Ansiedade de Separação':{low:2,high:8.3},
-  'Fobia Social':{low:1.23,high:8.15},
-  'Fobia Específica (total)':{low:1.53,high:11.15},
-  'Pert. Obsessivo-Compulsiva':{low:1.27,high:6.59},
-  'Pert. de Stress Pós-Traumático':{low:0.12,high:3.3}
+  'Perturbação de Pânico':{high:6, low:5},
+  'Ansiedade Generalizada':{high:10, low:8},
+  'Ansiedade de Separação':{high:8, low:7},
+  'Fobia Social':{high:8, low:7},
+  'Fobia Específica (total)':{high:11, low:9},
+  'Pert. Obsessivo-Compulsiva':{high:7, low:6},
+  'Pert. de Stress Pós-Traumático':{high:4, low:3}
 };
 var TOTAL_CUTOFF=51;
 
@@ -942,9 +944,28 @@ function verDetalhe(idx){
     '<div style="font-size:.74rem;color:var(--text-light);border-top:1px solid var(--gray-bdr);padding-top:8px;margin-bottom:16px;">'+
       'Limiares clínicos baseados em Muris et al. (1999). Score total ≥ 51 indica ansiedade clinicamente significativa. Versão portuguesa experimental: Pereira &amp; Barros (2010).'+
     '</div>'+
+    // Respostas item a item
+    (answers.length>0 ? (function(){
+      var labels=['Nunca','Algumas vezes','Muitas vezes'];
+      var itemRows='';
+      answers.forEach(function(r,i){
+        itemRows+='<tr style="border-bottom:1px solid var(--gray-bdr);">'+
+          '<td style="padding:5px 8px;text-align:center;font-weight:700;color:var(--text-light);font-size:.78rem;">'+(i+1)+'</td>'+
+          '<td style="padding:5px 8px;font-size:.82rem;">'+(ITEMS[i]||'Item '+(i+1))+'</td>'+
+          '<td style="padding:5px 8px;text-align:center;font-weight:600;font-size:.82rem;">'+(labels[r]||r)+'</td>'+
+        '</tr>';
+      });
+      return '<details style="margin-bottom:16px;"><summary style="cursor:pointer;font-weight:700;font-size:.93rem;color:var(--blue);border-bottom:2px solid var(--blue-pale);padding-bottom:6px;margin-bottom:10px;list-style:none;display:flex;align-items:center;gap:6px;">'+
+        '<span id="det-arrow-scared">▶</span> Respostas por item (69 itens)</summary>'+
+        '<div style="overflow-x:auto;margin-top:8px;">'+
+        '<table style="width:100%;border-collapse:collapse;font-size:.82rem;">'+
+        '<thead><tr style="background:var(--blue-xpale);"><th style="padding:6px 8px;text-align:center;color:var(--blue);width:36px;">#</th>'+
+        '<th style="padding:6px 8px;color:var(--blue);">Item</th>'+
+        '<th style="padding:6px 8px;text-align:center;color:var(--blue);">Resposta</th></tr></thead>'+
+        '<tbody>'+itemRows+'</tbody></table></div></details>';
+    })() : '') +
     '<div style="display:flex;gap:8px;flex-wrap:wrap;" class="no-print">'+
-      '<button class="btn btn-primary" style="padding:8px 20px;font-size:.85rem;" onclick="exportarInterpretacaoPDF('+idx+')">📄 Exportar Interpretação PDF</button>'+
-      '<button class="btn btn-secondary" style="padding:8px 20px;font-size:.85rem;" onclick="exportarRespostasPDF('+idx+')">📋 Respostas PDF</button>'+
+      '<button class="btn btn-primary" style="padding:8px 20px;font-size:.85rem;" onclick="exportarRelatorioCompletoPDF('+idx+')">📄 Relatório Completo PDF</button>'+
     '</div>';
 
   document.getElementById('modal-content').innerHTML=html;
@@ -1026,116 +1047,113 @@ function fecharModal(e){
   }
 }
 
-function exportarRespostasPDF(idx){
-  var s=sessoes[idx];
-  if(!s||!s.answers){alert('Sem respostas para exportar.');return;}
-  var answers=s.answers.split('|');
-  var labels=['Nunca ou quase nunca','Algumas vezes','Muitas vezes'];
-  var linhas=answers.map(function(r,i){
-    return '<tr><td style="padding:4px 8px;border-bottom:1px solid #eee;color:#6B7A8D;">'+(i+1)+'</td>'+
-      '<td style="padding:4px 8px;border-bottom:1px solid #eee;font-size:11px;">'+(ITEMS[i]||'Item '+(i+1))+'</td>'+
-      '<td style="padding:4px 8px;border-bottom:1px solid #eee;text-align:center;font-weight:600;">'+(labels[parseInt(r)]||r)+'</td></tr>';
-  }).join('');
-  var dateStr=s.date?new Date(s.date).toLocaleDateString('pt-PT'):'—';
-  var html='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Respostas — '+s.patientCode+'</title>'+
-    '<style>body{font-family:sans-serif;font-size:11px;color:#2C3E50;padding:24px;}h2{color:#3B5A7A;margin-bottom:4px;}p{color:#6B7A8D;margin-bottom:16px;}'+
-    'table{width:100%;border-collapse:collapse;}th{background:#D6E4F0;padding:6px 8px;text-align:left;color:#3B5A7A;}'+
-    '.no-print{margin-bottom:16px;}@media print{.no-print{display:none}}</style></head><body>'+
-    '<div class="no-print"><button onclick="window.print()">🖨 Imprimir / Guardar PDF</button></div>'+
-    '<h2>SCARED-R (Pais) — Respostas por Item</h2>'+
-    '<p>Paciente: <strong>'+s.patientCode+'</strong>'+(s.childName?' · '+s.childName:'')+
-    (s.respondentName?' · Preenchido por: '+s.respondentName+(s.respondentRelation?' ('+s.respondentRelation+')':''):'')+
-    ' · Data: '+dateStr+' · Ricardina Correia · Cédula 8233</p>'+
-    '<table><thead><tr><th>#</th><th>Item</th><th>Resposta</th></tr></thead><tbody>'+linhas+'</tbody></table>'+
-    '</body></html>';
-  var w=window.open('','_blank');
-  if(!w){alert('Pop-up bloqueado.');return;}
-  w.document.write(html);w.document.close();
-}
-
-function exportarInterpretacaoPDF(idx){
+function exportarRelatorioCompletoPDF(idx){
   var s=sessoes[idx];
   if(!s){alert('Sem dados para exportar.');return;}
   var answers=s.answers?s.answers.split('|').map(Number):[];
   var total=parseInt(s.totalScore)||0;
   var dateStr=s.date?new Date(s.date).toLocaleDateString('pt-PT'):'—';
   var totalZone=total>=TOTAL_CUTOFF?'Clinicamente significativo':'Sem indicação clínica';
+  var totalCor=total>=TOTAL_CUTOFF?'#C0392B':'#27AE60';
 
   var subsOrdem=['Perturbação de Pânico','Ansiedade Generalizada','Ansiedade de Separação','Fobia Social','Fobia Específica (total)','Pert. Obsessivo-Compulsiva','Pert. de Stress Pós-Traumático'];
   var scores={};
-  for(var sub in SUBSCALAS){
-    var itens=SUBSCALAS[sub]; var sc=0;
-    itens.forEach(function(i){sc+=answers[i-1]||0;});
-    scores[sub]=sc;
-  }
+  for(var sub in SUBSCALAS){var itens=SUBSCALAS[sub];var sc=0;itens.forEach(function(i){sc+=answers[i-1]||0;});scores[sub]=sc;}
   var scoresFE={};
-  for(var sub in SUBTIPOS_FE){
-    var itens=SUBTIPOS_FE[sub]; var sc=0;
-    itens.forEach(function(i){sc+=answers[i-1]||0;});
-    scoresFE[sub]=sc;
-  }
+  for(var sub in SUBTIPOS_FE){var itens=SUBTIPOS_FE[sub];var sc=0;itens.forEach(function(i){sc+=answers[i-1]||0;});scoresFE[sub]=sc;}
 
+  // Tabela de perfil
   var tableRows='';
   subsOrdem.forEach(function(sub){
-    var sc=scores[sub]; var co=CUTOFFS[sub]||{low:2,high:8};
+    var sc=scores[sub]; var co=CUTOFFS[sub]||{low:6,high:8};
     var zone=sc>=co.high?'Clínico':sc>=co.low?'Borderline':'Normativo';
     var maxSc=SUBSCALAS[sub].length*2;
+    var pct=maxSc>0?Math.round(sc/maxSc*100):0;
+    var barColor=sc>=co.high?'#C0392B':sc>=co.low?'#E67E22':'#27AE60';
     var rowStyle=sc>=co.high?'color:#C0392B;font-weight:600;':sc>=co.low?'color:#E67E22;font-weight:600;':'';
-    tableRows+='<tr><td style="padding:6px 10px;border-bottom:1px solid #eee;'+rowStyle+'">'+sub+'</td>'+
-      '<td style="padding:6px 10px;border-bottom:1px solid #eee;text-align:center;font-weight:700;'+rowStyle+'">'+sc+'</td>'+
-      '<td style="padding:6px 10px;border-bottom:1px solid #eee;text-align:center;">'+maxSc+'</td>'+
-      '<td style="padding:6px 10px;border-bottom:1px solid #eee;text-align:center;'+rowStyle+'">'+zone+'</td></tr>';
+    var barHtml='<div style="background:#eee;border-radius:4px;height:10px;width:120px;display:inline-block;vertical-align:middle;">'+
+      '<div style="background:'+barColor+';border-radius:4px;height:10px;width:'+pct+'%;"></div></div>';
+    tableRows+='<tr><td style="padding:5px 8px;border-bottom:1px solid #eee;'+rowStyle+'">'+sub+'</td>'+
+      '<td style="padding:5px 8px;border-bottom:1px solid #eee;text-align:center;font-weight:700;'+rowStyle+'">'+sc+' / '+maxSc+'</td>'+
+      '<td style="padding:5px 8px;border-bottom:1px solid #eee;">'+barHtml+'</td>'+
+      '<td style="padding:5px 8px;border-bottom:1px solid #eee;text-align:center;'+rowStyle+'">'+zone+'</td></tr>';
     if(sub==='Fobia Específica (total)'){
       for(var sub2 in SUBTIPOS_FE){
         var sc2=scoresFE[sub2]; var max2=SUBTIPOS_FE[sub2].length*2;
-        tableRows+='<tr style="color:#6B7A8D;font-size:.9em;"><td style="padding:4px 10px 4px 22px;border-bottom:1px solid #f0f0f0;">↳ '+sub2+'</td>'+
-          '<td style="padding:4px 10px;border-bottom:1px solid #f0f0f0;text-align:center;">'+sc2+'</td>'+
-          '<td style="padding:4px 10px;border-bottom:1px solid #f0f0f0;text-align:center;">'+max2+'</td>'+
-          '<td style="padding:4px 10px;border-bottom:1px solid #f0f0f0;text-align:center;font-style:italic;">informativo</td></tr>';
+        tableRows+='<tr style="color:#6B7A8D;font-size:.88em;"><td style="padding:3px 8px 3px 20px;border-bottom:1px solid #f5f5f5;">↳ '+sub2+'</td>'+
+          '<td style="padding:3px 8px;border-bottom:1px solid #f5f5f5;text-align:center;">'+sc2+' / '+max2+'</td>'+
+          '<td style="padding:3px 8px;border-bottom:1px solid #f5f5f5;"></td>'+
+          '<td style="padding:3px 8px;border-bottom:1px solid #f5f5f5;text-align:center;font-style:italic;">informativo</td></tr>';
       }
     }
   });
 
+  // Interpretação
   var emClinico=[],emBorderline=[];
   subsOrdem.forEach(function(sub){
-    var sc=scores[sub]; var co=CUTOFFS[sub]||{low:2,high:8};
-    if(sc>=co.high) emClinico.push(sub+' ('+sc+')');
-    else if(sc>=co.low) emBorderline.push(sub+' ('+sc+')');
+    var sc=scores[sub]; var co=CUTOFFS[sub]||{low:6,high:8};
+    if(sc>=co.high) emClinico.push('<strong>'+sub+'</strong> ('+sc+')');
+    else if(sc>=co.low) emBorderline.push('<strong>'+sub+'</strong> ('+sc+')');
   });
   var partes=[];
   partes.push('O score total é de <strong>'+total+' pontos</strong> (máx. 138), '+
-    (total>=TOTAL_CUTOFF?'situando-se acima do limiar clínico (≥ 51), sugerindo sintomatologia ansiosa clinicamente significativa.':
-    'situando-se abaixo do limiar clínico (< 51), sem evidência de perturbação de ansiedade clinicamente significativa.'));
-  if(emClinico.length>0) partes.push('Subescalas em zona clínica: '+emClinico.join(', ')+'.');
-  if(emBorderline.length>0) partes.push('Subescalas em zona borderline: '+emBorderline.join(', ')+'.');
+    (total>=TOTAL_CUTOFF?'situando-se <strong style="color:#C0392B">acima do limiar clínico</strong> (≥ 51), sugerindo sintomatologia ansiosa clinicamente significativa.':
+    'situando-se <strong style="color:#27AE60">abaixo do limiar clínico</strong> (< 51), sem evidência de perturbação de ansiedade clinicamente significativa.'));
+  if(emClinico.length>0) partes.push('Subescalas em <strong style="color:#C0392B">zona clínica</strong>: '+emClinico.join(', ')+'.');
+  if(emBorderline.length>0) partes.push('Subescalas em <strong style="color:#E67E22">zona borderline</strong> (requer monitorização): '+emBorderline.join(', ')+'.');
   if(emClinico.length===0&&emBorderline.length===0) partes.push('Todas as subescalas situam-se dentro dos limites normativos.');
-  partes.push('<em style="font-size:.85em;color:#6B7A8D;">Esta interpretação é automática e deve ser integrada no contexto clínico completo da avaliação.</em>');
+  partes.push('<em style="font-size:.9em;color:#6B7A8D;">Esta interpretação é automática e deve ser integrada no contexto clínico completo da avaliação.</em>');
 
-  var MODAL_LABEL='Pais';
-  var metaExtra=+(s.childName?' · '+s.childName:'')+(s.respondentName?' · Preenchido por: '+s.respondentName+(s.respondentRelation?' ('+s.respondentRelation+')':''):'');
+  // Respostas item a item
+  var labels=['Nunca ou quase nunca','Algumas vezes','Muitas vezes'];
+  var itemRows='';
+  if(answers.length>0){
+    answers.forEach(function(r,i){
+      itemRows+='<tr><td style="padding:3px 6px;border-bottom:1px solid #f0f0f0;text-align:center;color:#6B7A8D;font-size:10px;">'+(i+1)+'</td>'+
+        '<td style="padding:3px 6px;border-bottom:1px solid #f0f0f0;font-size:10px;">'+(ITEMS[i]||'Item '+(i+1))+'</td>'+
+        '<td style="padding:3px 6px;border-bottom:1px solid #f0f0f0;text-align:center;font-weight:600;font-size:10px;">'+(labels[r]||r)+'</td></tr>';
+    });
+  }
+
+  var metaInfo='Paciente: <strong>'+s.patientCode+'</strong>'+(s.childName?' · '+s.childName:'')+
+    (s.respondentName?' · Preenchido por: '+s.respondentName+(s.respondentRelation?' ('+s.respondentRelation+')':''):'')+
+    ' · Data: '+dateStr;
+
   var html='<!DOCTYPE html><html><head><meta charset="UTF-8">'+
-    '<title>Interpretação SCARED-R — '+s.patientCode+'</title>'+
-    '<style>body{font-family:sans-serif;font-size:12px;color:#2C3E50;padding:24px;max-width:780px;margin:0 auto;}'+
-    'h2{color:#3B5A7A;margin-bottom:4px;font-size:15px;}'+
-    'p.meta{color:#6B7A8D;margin-bottom:16px;font-size:11px;}'+
-    '.total-box{background:#EBF2F8;border-radius:8px;padding:10px 14px;margin-bottom:18px;display:flex;align-items:center;gap:14px;}'+
-    '.total-num{font-size:28px;font-weight:700;}'+
-    'table{width:100%;border-collapse:collapse;margin-bottom:16px;}'+
-    'th{background:#D6E4F0;padding:6px 10px;text-align:left;color:#3B5A7A;font-size:11px;}'+
-    'td{font-size:11px;}'+
-    '.interp{background:#EBF2F8;border:1px solid #D6E4F0;border-radius:6px;padding:12px;line-height:1.65;margin-bottom:14px;font-size:11.5px;}'+
-    '.nota{font-size:10px;color:#6B7A8D;border-top:1px solid #eee;padding-top:8px;margin-top:4px;}'+
-    '.no-print{margin-bottom:16px;}@media print{.no-print{display:none}}</style></head><body>'+
+    '<title>Relatório SCARED-R — '+s.patientCode+'</title>'+
+    '<style>'+
+    'body{font-family:sans-serif;font-size:11px;color:#2C3E50;padding:24px;max-width:800px;margin:0 auto;}'+
+    'h1{color:#3B5A7A;font-size:14px;margin-bottom:2px;}'+
+    'h2{color:#3B5A7A;font-size:12px;margin:16px 0 8px;border-bottom:2px solid #D6E4F0;padding-bottom:4px;}'+
+    'p.meta{color:#6B7A8D;font-size:10px;margin-bottom:12px;}'+
+    '.total-box{background:#EBF2F8;border-radius:6px;padding:10px 14px;margin-bottom:14px;display:flex;align-items:center;gap:14px;}'+
+    '.total-num{font-size:26px;font-weight:700;}'+
+    'table{width:100%;border-collapse:collapse;margin-bottom:12px;}'+
+    'th{background:#D6E4F0;padding:5px 8px;text-align:left;color:#3B5A7A;font-size:10px;}'+
+    '.interp{background:#EBF2F8;border:1px solid #D6E4F0;border-radius:6px;padding:10px 12px;line-height:1.65;margin-bottom:12px;font-size:10.5px;}'+
+    '.nota{font-size:9px;color:#6B7A8D;border-top:1px solid #eee;padding-top:6px;margin-top:4px;}'+
+    '.no-print{margin-bottom:14px;}@media print{.no-print{display:none}}'+
+    '</style></head><body>'+
     '<div class="no-print"><button onclick="window.print()">🖨 Imprimir / Guardar PDF</button></div>'+
-    '<h2>SCARED-R ('+MODAL_LABEL+') — Interpretação Clínica</h2>'+
-    '<p class="meta">Paciente: <strong>'+s.patientCode+'</strong>'+(s.childName?' · '+s.childName:'')+metaExtra+
-    ' · Data: '+dateStr+' · Score Total: <strong>'+total+'</strong> · '+totalZone+
-    '<br>Ricardina Correia · Cédula 8233 · Psicologia Pediátrica</p>'+
+    '<h1>SCARED-R (Pais) — Relatório Clínico Completo</h1>'+
+    '<p class="meta">'+metaInfo+' · Ricardina Correia · Cédula 8233 · Psicologia Pediátrica</p>'+
+    '<div class="total-box">'+
+      '<div class="total-num" style="color:'+totalCor+'">'+total+'</div>'+
+      '<div><div style="font-size:10px;color:#6B7A8D;">Score Total (máx. 138)</div>'+
+      '<div style="margin-top:3px;font-weight:700;font-size:11px;color:'+totalCor+'">'+totalZone+'</div>'+
+      '<div style="font-size:9px;color:#6B7A8D;margin-top:2px;">Limiar clínico: ≥ 51 pontos</div></div>'+
+    '</div>'+
+    '<h2>📋 Perfil por Subescala</h2>'+
     '<table><thead><tr>'+
-    '<th>Subescala</th><th style="text-align:center">Score</th>'+
-    '<th style="text-align:center">Máximo</th><th style="text-align:center">Zona</th>'+
+    '<th>Subescala</th><th style="text-align:center">Score / Máx.</th>'+
+    '<th>Perfil</th><th style="text-align:center">Zona</th>'+
     '</tr></thead><tbody>'+tableRows+'</tbody></table>'+
+    '<h2>🔍 Interpretação</h2>'+
     '<div class="interp">'+partes.join('<br><br>')+'</div>'+
+    (itemRows ? '<h2>📝 Respostas por Item (69 itens)</h2>'+
+    '<table><thead><tr>'+
+    '<th style="text-align:center;width:28px;">#</th><th>Item</th><th style="text-align:center">Resposta</th>'+
+    '</tr></thead><tbody>'+itemRows+'</tbody></table>' : '')+
     '<div class="nota">Limiares clínicos baseados em Muris et al. (1999). Score total ≥ 51 indica ansiedade clinicamente significativa. Versão portuguesa experimental: Pereira &amp; Barros (2010).</div>'+
     '</body></html>';
 
@@ -1144,6 +1162,12 @@ function exportarInterpretacaoPDF(idx){
   w.document.write(html);w.document.close();
 }
 
+function exportarRespostasPDF(idx){
+  exportarRelatorioCompletoPDF(idx);
+}
+function exportarInterpretacaoPDF(idx){
+  exportarRelatorioCompletoPDF(idx);
+}
 function exportarCSV(){
   if(!sessoes||sessoes.length===0){alert('Sem dados para exportar.');return;}
   var bom='\uFEFF';
