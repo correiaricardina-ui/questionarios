@@ -260,7 +260,7 @@ var ITEMS_FADGF = [
   {num:12, text:"Falamos uns com os outros sobre os nossos problemas pessoais.", inv:false}
 ];
 
-var SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx5rn4u4wISYdO5AR1Ajo8cVh4JBWTn14FMZba1yh2k90T9PmofW8k5-RKKF95uymk_wg/exec';
+var SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxX2_Ry7VRH6jr7eGBMmtmyZFXZc69blwdO5bqJK0j69HRSexpXXPuEfDC5OHQRMLLL/exec';
 var SHEET_TAB = 'FAD_GF';
 var PASSWORD = 'CNS2024';
 
@@ -430,7 +430,7 @@ function submeterFADGF(){
   var classif = score <= 2.0 ? 'Funcionamento Saudável' : score <= 2.5 ? 'Possível Disfunção' : 'Disfunção Familiar';
   var answers_str = ITEMS_FADGF.map(function(it){ return _answers[it.num]; }).join('|');
   var payload = {
-    tab: SHEET_TAB,
+    instrumento: SHEET_TAB,
     patientCode: code,
     childName: childName,
     respondent: resp,
@@ -472,9 +472,9 @@ function submeterFADGF(){
 function carregarDados(){
   var content = document.getElementById('painel-content');
   content.innerHTML='<p style="color:var(--text-light);text-align:center;padding:40px;">A carregar...</p>';
-  var url = SCRIPT_URL + '?tab='+SHEET_TAB+'&t='+Date.now();
+  var url = SCRIPT_URL + '?instrumento='+SHEET_TAB+'&t='+Date.now();
   fetch(url).then(function(r){ return r.json(); }).then(function(data){
-    var rows = Array.isArray(data) ? data : (Array.isArray(data.data) ? data.data : []);
+    var rows = Array.isArray(data) ? data : (Array.isArray(data.rows) ? data.rows : (Array.isArray(data.data) ? data.data : []));
     window._clinico_sessions = rows.map(function(row){
       if(Array.isArray(row)){
         return {date:row[0],patientCode:row[1],childName:row[2],respondent:row[3],respondentName:row[4],score:row[5],classification:row[6],answers:row[7]};

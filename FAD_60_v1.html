@@ -337,7 +337,7 @@ var ITEMS = [
   {num:60, sub:'GF', text:'Falamos uns com os outros sobre os nossos problemas pessoais.'}
 ];
 
-var SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx5rn4u4wISYdO5AR1Ajo8cVh4JBWTn14FMZba1yh2k90T9PmofW8k5-RKKF95uymk_wg/exec';
+var SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxX2_Ry7VRH6jr7eGBMmtmyZFXZc69blwdO5bqJK0j69HRSexpXXPuEfDC5OHQRMLLL/exec';
 var SHEET_TAB  = 'FAD_60';
 var PASSWORD   = 'CNS2024';
 
@@ -522,7 +522,7 @@ function submeterFAD60(){
   var scores=calcScores();
 
   // Build payload columns
-  var payload={tab:SHEET_TAB,patientCode:code,childName:childName,respondent:resp,respondentName:respName,date:new Date().toLocaleDateString('pt-PT')};
+  var payload={instrumento:SHEET_TAB,patientCode:code,childName:childName,respondent:resp,respondentName:respName,date:new Date().toLocaleDateString('pt-PT')};
   SUBSCALAS.forEach(function(ss){ payload['score_'+ss.code]=(scores[ss.code]!==null)?scores[ss.code].toFixed(3):''; });
   SUBSCALAS.forEach(function(ss){
     var s=scores[ss.code];
@@ -565,9 +565,9 @@ function submeterFAD60(){
 function carregarDados(){
   var content=document.getElementById('painel-content');
   content.innerHTML='<p style="color:var(--text-light);text-align:center;padding:40px;">A carregar...</p>';
-  var url=SCRIPT_URL+'?tab='+SHEET_TAB+'&t='+Date.now();
+  var url=SCRIPT_URL+'?instrumento='+SHEET_TAB+'&t='+Date.now();
   fetch(url).then(function(r){return r.json();}).then(function(data){
-    var rows = Array.isArray(data) ? data : (Array.isArray(data.data) ? data.data : []);
+    var rows = Array.isArray(data) ? data : (Array.isArray(data.rows) ? data.rows : (Array.isArray(data.data) ? data.data : []));
     window._clinico_sessions=rows.map(function(row){
       if(Array.isArray(row)){
         return {date:row[0],patientCode:row[1],childName:row[2],respondent:row[3],respondentName:row[4],
