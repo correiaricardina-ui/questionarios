@@ -556,8 +556,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--gray);color:var(--text);m
       <div style="font-size:3rem;margin-bottom:16px">✅</div>
       <h2 style="font-family:'DM Serif Display',serif;color:var(--blue);margin-bottom:12px">Questionário submetido</h2>
       <p style="color:var(--text-light);margin-bottom:24px;line-height:1.7">
-        As suas respostas foram guardadas.<br>
-        A Dra. Ricardina Correia irá analisar os resultados.
+        Obrigada pelo preenchimento do questionário. As suas respostas foram guardadas com sucesso.
       </p>
       <button class="btn btn-secondary" onclick="showPage('page-home')">← Início</button>
     </div>
@@ -615,7 +614,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--gray);color:var(--text);m
       <button class="btn btn-secondary btn-sm no-print" onclick="document.getElementById('modal-detalhe').style.display='none'">✕ Fechar</button>
     </div>
     <div id="modal-corpo"></div>
-    <div style="text-align:right;margin-top:20px" class="no-print">
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:20px;flex-wrap:wrap" class="no-print">
+      <button class="btn btn-secondary btn-sm" onclick="exportarRelatorioPDF()">📄 PDF Relatório Completo</button>
       <button class="btn btn-secondary btn-sm" onclick="window.print()">🖨 Imprimir</button>
     </div>
   </div>
@@ -627,6 +627,7 @@ const STORE_KEY = 'conners_Professores_Short';
 const ESCALAS = [{"code": "IN", "label": "Inaten\u00e7\u00e3o", "nk": "TS_IN", "max_raw": 15, "items": [1, 5, 17, 24, 26], "inv": []}, {"code": "HI", "label": "Hiperatividade/Impuls.", "nk": "TS_HI", "max_raw": 18, "items": [0, 4, 14, 16, 21, 22], "inv": []}, {"code": "LPEF", "label": "Aprendizagem/F.Exec.", "nk": "TS_LPEF", "max_raw": 18, "items": [8, 10, 12, 15, 19, 23], "inv": []}, {"code": "AG", "label": "Defiance/Agress\u00e3o", "nk": "TS_AG", "max_raw": 15, "items": [2, 3, 7, 9, 11], "inv": []}, {"code": "PR", "label": "Rela\u00e7\u00f5es com Pares", "nk": "TS_PR", "max_raw": 15, "items": [6, 13, 18, 20, 25], "inv": []}];
 const NORMS = {"TS_IN": {"6": {"0": 40, "1": 40, "2": 40, "3": 40, "4": 51, "5": 57, "6": 63, "7": 69, "8": 75, "9": 81, "10": 87, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "7": {"0": 40, "1": 40, "2": 40, "3": 40, "4": 51, "5": 57, "6": 63, "7": 68, "8": 74, "9": 80, "10": 86, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "8": {"0": 40, "1": 40, "2": 40, "3": 48, "4": 53, "5": 59, "6": 64, "7": 70, "8": 76, "9": 81, "10": 87, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "9": {"0": 40, "1": 40, "2": 40, "3": 48, "4": 53, "5": 59, "6": 64, "7": 70, "8": 75, "9": 81, "10": 86, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "10": {"0": 40, "1": 40, "2": 46, "3": 51, "4": 57, "5": 62, "6": 68, "7": 73, "8": 79, "9": 84, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "11": {"0": 40, "1": 40, "2": 46, "3": 51, "4": 56, "5": 61, "6": 67, "7": 72, "8": 77, "9": 83, "10": 88, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "12": {"0": 40, "1": 44, "2": 49, "3": 54, "4": 59, "5": 64, "6": 70, "7": 75, "8": 80, "9": 85, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "13": {"0": 40, "1": 44, "2": 49, "3": 54, "4": 59, "5": 64, "6": 69, "7": 74, "8": 80, "9": 85, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "14": {"0": 40, "1": 45, "2": 50, "3": 56, "4": 61, "5": 66, "6": 71, "7": 77, "8": 82, "9": 87, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "15": {"0": 40, "1": 45, "2": 50, "3": 55, "4": 60, "5": 65, "6": 71, "7": 76, "8": 81, "9": 86, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "16": {"0": 40, "1": 46, "2": 51, "3": 56, "4": 62, "5": 67, "6": 72, "7": 77, "8": 82, "9": 88, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "17": {"0": 40, "1": 46, "2": 51, "3": 56, "4": 62, "5": 67, "6": 72, "7": 77, "8": 82, "9": 88, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}}, "TS_HI": {"6": {"0": 40, "1": 40, "2": 40, "3": 40, "4": 40, "5": 40, "6": 56, "7": 63, "8": 69, "9": 75, "10": 82, "11": 88, "12": 90, "13": 90, "14": 90, "15": 90, "16": 90, "17": 90, "18": 90}, "7": {"0": 40, "1": 40, "2": 40, "3": 40, "4": 40, "5": 53, "6": 59, "7": 66, "8": 72, "9": 78, "10": 85, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90, "16": 90, "17": 90, "18": 90}, "8": {"0": 40, "1": 40, "2": 40, "3": 40, "4": 40, "5": 53, "6": 59, "7": 65, "8": 72, "9": 78, "10": 84, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90, "16": 90, "17": 90, "18": 90}, "9": {"0": 40, "1": 40, "2": 40, "3": 40, "4": 51, "5": 57, "6": 63, "7": 69, "8": 75, "9": 81, "10": 87, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90, "16": 90, "17": 90, "18": 90}, "10": {"0": 40, "1": 40, "2": 40, "3": 40, "4": 51, "5": 56, "6": 62, "7": 68, "8": 74, "9": 80, "10": 85, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90, "16": 90, "17": 90, "18": 90}, "11": {"0": 40, "1": 40, "2": 40, "3": 49, "4": 54, "5": 60, "6": 66, "7": 71, "8": 77, "9": 83, "10": 88, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90, "16": 90, "17": 90, "18": 90}, "12": {"0": 40, "1": 40, "2": 40, "3": 49, "4": 54, "5": 60, "6": 65, "7": 71, "8": 76, "9": 82, "10": 88, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90, "16": 90, "17": 90, "18": 90}, "13": {"0": 40, "1": 40, "2": 47, "3": 52, "4": 58, "5": 63, "6": 69, "7": 74, "8": 80, "9": 85, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90, "16": 90, "17": 90, "18": 90}, "14": {"0": 40, "1": 40, "2": 47, "3": 52, "4": 57, "5": 63, "6": 68, "7": 74, "8": 79, "9": 85, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90, "16": 90, "17": 90, "18": 90}, "15": {"0": 40, "1": 45, "2": 50, "3": 56, "4": 61, "5": 67, "6": 72, "7": 78, "8": 83, "9": 88, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90, "16": 90, "17": 90, "18": 90}, "16": {"0": 40, "1": 45, "2": 50, "3": 56, "4": 61, "5": 66, "6": 72, "7": 77, "8": 83, "9": 88, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90, "16": 90, "17": 90, "18": 90}, "17": {"0": 40, "1": 46, "2": 51, "3": 57, "4": 62, "5": 68, "6": 73, "7": 79, "8": 84, "9": 90, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90, "16": 90, "17": 90, "18": 90}}, "TS_LPEF": {"6": {"0": 40, "1": 40, "2": 40, "3": 40, "4": 40, "5": 51, "6": 56, "7": 62, "8": 67, "9": 72, "10": 78, "11": 83, "12": 88, "13": 90, "14": 90, "15": 90, "16": 90, "17": 90, "18": 90}, "7": {"0": 40, "1": 40, "2": 40, "3": 40, "4": 40, "5": 51, "6": 56, "7": 61, "8": 66, "9": 72, "10": 77, "11": 82, "12": 87, "13": 90, "14": 90, "15": 90, "16": 90, "17": 90, "18": 90}, "8": {"0": 40, "1": 40, "2": 40, "3": 40, "4": 49, "5": 53, "6": 58, "7": 63, "8": 68, "9": 73, "10": 78, "11": 83, "12": 88, "13": 90, "14": 90, "15": 90, "16": 90, "17": 90, "18": 90}, "9": {"0": 40, "1": 40, "2": 40, "3": 40, "4": 49, "5": 53, "6": 58, "7": 63, "8": 68, "9": 73, "10": 78, "11": 83, "12": 88, "13": 90, "14": 90, "15": 90, "16": 90, "17": 90, "18": 90}, "10": {"0": 40, "1": 40, "2": 40, "3": 47, "4": 51, "5": 56, "6": 61, "7": 66, "8": 70, "9": 75, "10": 80, "11": 85, "12": 89, "13": 90, "14": 90, "15": 90, "16": 90, "17": 90, "18": 90}, "11": {"0": 40, "1": 40, "2": 40, "3": 47, "4": 51, "5": 55, "6": 60, "7": 65, "8": 69, "9": 74, "10": 79, "11": 83, "12": 88, "13": 90, "14": 90, "15": 90, "16": 90, "17": 90, "18": 90}, "12": {"0": 40, "1": 40, "2": 45, "3": 49, "4": 54, "5": 58, "6": 63, "7": 67, "8": 72, "9": 76, "10": 81, "11": 85, "12": 90, "13": 90, "14": 90, "15": 90, "16": 90, "17": 90, "18": 90}, "13": {"0": 40, "1": 40, "2": 45, "3": 49, "4": 53, "5": 58, "6": 62, "7": 67, "8": 71, "9": 76, "10": 80, "11": 85, "12": 89, "13": 90, "14": 90, "15": 90, "16": 90, "17": 90, "18": 90}, "14": {"0": 40, "1": 43, "2": 47, "3": 52, "4": 56, "5": 60, "6": 65, "7": 69, "8": 74, "9": 78, "10": 83, "11": 87, "12": 90, "13": 90, "14": 90, "15": 90, "16": 90, "17": 90, "18": 90}, "15": {"0": 40, "1": 43, "2": 47, "3": 52, "4": 56, "5": 60, "6": 65, "7": 69, "8": 73, "9": 78, "10": 82, "11": 87, "12": 90, "13": 90, "14": 90, "15": 90, "16": 90, "17": 90, "18": 90}, "16": {"0": 40, "1": 44, "2": 48, "3": 53, "4": 57, "5": 62, "6": 66, "7": 71, "8": 75, "9": 79, "10": 84, "11": 88, "12": 90, "13": 90, "14": 90, "15": 90, "16": 90, "17": 90, "18": 90}, "17": {"0": 40, "1": 44, "2": 48, "3": 53, "4": 57, "5": 62, "6": 66, "7": 70, "8": 75, "9": 79, "10": 84, "11": 88, "12": 90, "13": 90, "14": 90, "15": 90, "16": 90, "17": 90, "18": 90}}, "TS_AG": {"6": {"0": 44, "1": 44, "2": 54, "3": 60, "4": 67, "5": 73, "6": 79, "7": 86, "8": 90, "9": 90, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "7": {"0": 44, "1": 44, "2": 54, "3": 60, "4": 66, "5": 72, "6": 78, "7": 84, "8": 90, "9": 90, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "8": {"0": 44, "1": 50, "2": 56, "3": 62, "4": 68, "5": 74, "6": 80, "7": 86, "8": 90, "9": 90, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "9": {"0": 44, "1": 50, "2": 56, "3": 61, "4": 67, "5": 73, "6": 79, "7": 85, "8": 90, "9": 90, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "10": {"0": 44, "1": 51, "2": 57, "3": 63, "4": 69, "5": 75, "6": 81, "7": 87, "8": 90, "9": 90, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "11": {"0": 44, "1": 51, "2": 57, "3": 63, "4": 68, "5": 74, "6": 80, "7": 86, "8": 90, "9": 90, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "12": {"0": 44, "1": 52, "2": 58, "3": 64, "4": 70, "5": 76, "6": 82, "7": 88, "8": 90, "9": 90, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "13": {"0": 44, "1": 52, "2": 58, "3": 64, "4": 70, "5": 76, "6": 82, "7": 88, "8": 90, "9": 90, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "14": {"0": 44, "1": 53, "2": 59, "3": 65, "4": 72, "5": 78, "6": 84, "7": 90, "8": 90, "9": 90, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "15": {"0": 44, "1": 53, "2": 59, "3": 65, "4": 71, "5": 78, "6": 84, "7": 90, "8": 90, "9": 90, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "16": {"0": 44, "1": 55, "2": 61, "3": 67, "4": 73, "5": 80, "6": 86, "7": 90, "8": 90, "9": 90, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "17": {"0": 44, "1": 55, "2": 61, "3": 67, "4": 73, "5": 79, "6": 86, "7": 90, "8": 90, "9": 90, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}}, "TS_PR": {"6": {"0": 44, "1": 44, "2": 44, "3": 44, "4": 44, "5": 72, "6": 79, "7": 85, "8": 90, "9": 90, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "7": {"0": 44, "1": 44, "2": 44, "3": 44, "4": 67, "5": 74, "6": 81, "7": 88, "8": 90, "9": 90, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "8": {"0": 44, "1": 44, "2": 44, "3": 44, "4": 67, "5": 73, "6": 80, "7": 87, "8": 90, "9": 90, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "9": {"0": 44, "1": 44, "2": 44, "3": 63, "4": 69, "5": 76, "6": 82, "7": 89, "8": 90, "9": 90, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "10": {"0": 44, "1": 44, "2": 44, "3": 63, "4": 69, "5": 75, "6": 82, "7": 88, "8": 90, "9": 90, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "11": {"0": 44, "1": 44, "2": 59, "3": 65, "4": 72, "5": 78, "6": 85, "7": 90, "8": 90, "9": 90, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "12": {"0": 44, "1": 44, "2": 59, "3": 65, "4": 71, "5": 77, "6": 84, "7": 90, "8": 90, "9": 90, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "13": {"0": 44, "1": 55, "2": 61, "3": 68, "4": 74, "5": 81, "6": 87, "7": 90, "8": 90, "9": 90, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "14": {"0": 44, "1": 55, "2": 61, "3": 67, "4": 74, "5": 80, "6": 87, "7": 90, "8": 90, "9": 90, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "15": {"0": 44, "1": 56, "2": 63, "3": 69, "4": 76, "5": 82, "6": 89, "7": 90, "8": 90, "9": 90, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "16": {"0": 44, "1": 56, "2": 62, "3": 69, "4": 75, "5": 82, "6": 88, "7": 90, "8": 90, "9": 90, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "17": {"0": 44, "1": 57, "2": 64, "3": 71, "4": 77, "5": 84, "6": 90, "7": 90, "8": 90, "9": 90, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}}};
 const N_ITENS = 27;
+const ITEMS_TEXTO = ["É irrequieto/a.","Não presta atenção aos detalhes.","Chateia os outros de propósito.","Faz raivas ou acessos de mau humor.","Bate, empurra ou pontapeia outros.","Danifica deliberadamente a propriedade.","Prefere estar sozinho/a.","Intimida, ameaça ou assusta outros.","Tem dificuldade em ler.","É cruel para os animais ou para as pessoas.","Tem dificuldade em escrever.","Opõe-se activamente a cumprir pedidos.","Tem dificuldade em aprender a soletrar.","É rejeitado/a pelos colegas.","Não para quieto/a.","Parece não estar a ouvir.","Tem dificuldade em esperar pela sua vez.","Age sem pensar.","Não é incluído/a nas actividades dos colegas.","Tem dificuldade em compreender o que lê.","Não é convidado/a para actividades dos pares.","Tem dificuldade em brincar calmamente.","Responde antes de a pergunta terminar.","Tem dificuldade em aprender matemática.","Não termina as tarefas.","É ignorado/a pelos colegas.","Não presta atenção; está facilmente distraído/a."];
 const IDADES_MAP = [6,7,8,9,10,11,12,13,14,15,16,17];
 
 let respostas = new Array(N_ITENS).fill(null);
@@ -830,6 +831,7 @@ function renderClinico() {
 function verDetalhe(id) {
   const s = sessoes.find(x => x.id===id);
   if (!s) return;
+  sessaoActual = s;
   document.getElementById('modal-titulo').textContent = s.nomeCrianca+' ('+s.code+')';
   document.getElementById('modal-subtitulo').textContent = s.data+' · '+s.nomeInf+(s.idade?' · '+s.idade+' anos':'');
 
@@ -879,9 +881,105 @@ function verDetalhe(id) {
   html += 'Avaliação realizada por Ricardina Correia · Cédula 8233 · Psicologia Pediátrica';
   html += '</div>';
 
+  // Respostas item-a-item
+  const resps = Array.isArray(s.respostas) ? s.respostas : (typeof s.respostas === 'string' ? (function(){try{return JSON.parse(s.respostas);}catch(e){return [];}}()) : []);
+  if (resps.length) {
+    html += '<div style="margin-top:24px"><div style="font-size:.85rem;font-weight:700;color:var(--blue);margin-bottom:10px">Respostas por Item</div>';
+    html += '<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:.78rem">';
+    html += '<thead><tr style="background:var(--blue-xpale)"><th style="padding:6px 8px;text-align:center">#</th><th style="padding:6px 8px;text-align:left">Item</th><th style="padding:6px 8px;text-align:center">Resposta</th></tr></thead><tbody>';
+    resps.forEach(function(r, i) {
+      const cor = r >= 2 ? 'var(--red)' : r === 1 ? 'var(--orange)' : 'var(--text-light)';
+      html += '<tr style="border-bottom:1px solid var(--gray-bdr)">';
+      html += '<td style="padding:5px 8px;text-align:center;color:var(--text-light);font-size:.72rem">'+(i+1)+'</td>';
+      html += '<td style="padding:5px 8px">'+(ITEMS_TEXTO[i]||'Item '+(i+1))+'</td>';
+      html += '<td style="padding:5px 8px;text-align:center;font-weight:700;color:'+cor+'">'+(r !== null && r !== undefined ? r : '—')+'</td>';
+      html += '</tr>';
+    });
+    html += '</tbody></table></div></div>';
+  }
+
   document.getElementById('modal-corpo').innerHTML = html;
   document.getElementById('modal-detalhe').style.display = 'flex';
 }
+
+function exportarRelatorioPDF() {
+  const s = sessaoActual;
+  if (!s) { alert('Seleccione primeiro uma sessão (clique em "Ver →").'); return; }
+  const dt = s.data || '—';
+  const nomeCrianca = s.nomeCrianca || '';
+  const nomeInf = s.nomeInf || '';
+  const idade = s.idade ? s.idade + ' anos' : '';
+
+  let tabelaEsc = '<table style="width:100%;border-collapse:collapse;font-size:12px;margin-bottom:16px">';
+  tabelaEsc += '<thead><tr style="background:#D6E4F0"><th style="padding:6px 8px;text-align:left">Escala</th><th style="padding:6px 8px;text-align:center">Score Bruto</th><th style="padding:6px 8px;text-align:center">T-Score</th><th style="padding:6px 8px;text-align:center">Zona</th></tr></thead><tbody>';
+  for (const esc of ESCALAS) {
+    const raw = s.scores[esc.code] ?? '—';
+    const t = s.tscores[esc.code];
+    const zona = !t ? '—' : t>=70 ? 'Clínica' : t>=65 ? 'Borderline' : 'Normativa';
+    const cor = !t ? '#555' : t>=70 ? '#c0392b' : t>=65 ? '#e67e22' : '#27AE60';
+    tabelaEsc += '<tr style="border-bottom:1px solid #eee"><td style="padding:6px 8px"><strong>'+esc.code+'</strong> <span style="color:#888;font-size:11px">'+esc.label+'</span></td>';
+    tabelaEsc += '<td style="padding:6px 8px;text-align:center">'+raw+'</td>';
+    tabelaEsc += '<td style="padding:6px 8px;text-align:center;font-weight:700;color:'+cor+'">'+(t||'—')+'</td>';
+    tabelaEsc += '<td style="padding:6px 8px;text-align:center;color:'+cor+';font-weight:600">'+zona+'</td></tr>';
+  }
+  tabelaEsc += '</tbody></table>';
+
+  let perfil = '<div style="margin-bottom:20px">';
+  for (const esc of ESCALAS) {
+    const t = s.tscores[esc.code];
+    if (!t) continue;
+    const pct = Math.min(Math.max((t-40)/50*100,0),100);
+    const cor = t>=70 ? '#c0392b' : t>=65 ? '#e67e22' : '#3B5A7A';
+    perfil += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:5px">';
+    perfil += '<div style="width:60px;font-size:11px;font-weight:700;text-align:right;color:#3B5A7A">'+esc.code+'</div>';
+    perfil += '<div style="flex:1;background:#eee;border-radius:4px;height:14px"><div style="width:'+pct+'%;background:'+cor+';height:14px;border-radius:4px"></div></div>';
+    perfil += '<div style="width:30px;font-size:11px;font-weight:700;color:'+cor+'">'+t+'</div>';
+    perfil += '</div>';
+  }
+  perfil += '<div style="font-size:10px;color:#888;margin-top:4px">● Vermelho: T≥70 (Clínica) · Laranja: T65–69 (Borderline) · Azul: T&lt;65 (Normativa)</div></div>';
+
+  const resps = Array.isArray(s.respostas) ? s.respostas : (typeof s.respostas === 'string' ? (function(){try{return JSON.parse(s.respostas);}catch(e){return [];}}()) : []);
+  let respostasHtml = '';
+  if (resps.length) {
+    respostasHtml = '<h2 style="color:#3B5A7A;font-size:13px;border-bottom:2px solid #D6E4F0;padding-bottom:4px;margin:20px 0 8px">Respostas por Item</h2>';
+    respostasHtml += '<table style="width:100%;border-collapse:collapse;font-size:11px"><thead><tr style="background:#D6E4F0"><th style="padding:5px 8px;text-align:center">#</th><th style="padding:5px 8px;text-align:left">Item</th><th style="padding:5px 8px;text-align:center">Resposta</th></tr></thead><tbody>';
+    resps.forEach(function(r, i) {
+      const cor = r >= 2 ? '#c0392b' : r === 1 ? '#e67e22' : '#888';
+      respostasHtml += '<tr style="border-bottom:1px solid #f0f0f0">';
+      respostasHtml += '<td style="padding:3px 8px;text-align:center;color:#aaa">'+(i+1)+'</td>';
+      respostasHtml += '<td style="padding:3px 8px">'+(ITEMS_TEXTO[i]||'Item '+(i+1))+'</td>';
+      respostasHtml += '<td style="padding:3px 8px;text-align:center;font-weight:700;color:'+cor+'">'+(r !== null && r !== undefined ? r : '—')+'</td>';
+      respostasHtml += '</tr>';
+    });
+    respostasHtml += '</tbody></table>';
+  }
+
+  const html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Conners-3 Short Professores — '+nomeCrianca+' ('+s.code+')</title>'+
+    '<style>body{font-family:Arial,sans-serif;font-size:12px;color:#2C3E50;padding:24px;max-width:900px;margin:0 auto}'+
+    'h1{color:#3B5A7A;font-size:16px;margin-bottom:4px}'+
+    'h2{color:#3B5A7A;font-size:13px;margin:18px 0 8px;border-bottom:2px solid #D6E4F0;padding-bottom:4px}'+
+    'p{color:#6B7A8D;margin-bottom:16px;font-size:11px}'+
+    '.no-print{margin-bottom:16px}'+
+    '@media print{.no-print{display:none}body{padding:12px}}</style></head><body>'+
+    '<div class="no-print"><button onclick="window.print()" style="padding:6px 14px;cursor:pointer">🖨 Imprimir / Guardar PDF</button></div>'+
+    '<h1>Conners-3 Short — Versão Professores — Relatório de Avaliação</h1>'+
+    '<p>Código: <strong>'+s.code+'</strong>'+(nomeCrianca?' &nbsp;|&nbsp; Criança: <strong>'+nomeCrianca+'</strong>':'')+
+    (nomeInf?' &nbsp;|&nbsp; Respondente: <strong>'+nomeInf+'</strong>':'')+
+    (idade?' &nbsp;|&nbsp; Idade: <strong>'+idade+'</strong>':'')+
+    ' &nbsp;|&nbsp; Data: <strong>'+dt+'</strong> &nbsp;|&nbsp; Ricardina Correia · Cédula 8233</p>'+
+    '<h2>Resultados por Escala</h2>'+tabelaEsc+
+    '<h2>Perfil Visual</h2>'+perfil+
+    '<div style="font-size:10px;color:#888;border-top:1px solid #eee;padding-top:8px">'+
+    'Normas: Appendix B Combined Gender — Conners 3rd Edition™, MHS Inc. © 2008/2009 · '+
+    'T≥70 = Clinicamente significativo · T65–69 = Borderline · T&lt;65 = Normativo</div>'+
+    respostasHtml+'</body></html>';
+
+  const w = window.open('','_blank');
+  if (!w) { alert('Pop-up bloqueado. Permite pop-ups para este site.'); return; }
+  w.document.write(html); w.document.close();
+}
+
+let sessaoActual = null;
 
 function fecharModal(e) {
   if (e.target.id==='modal-detalhe') document.getElementById('modal-detalhe').style.display='none';
