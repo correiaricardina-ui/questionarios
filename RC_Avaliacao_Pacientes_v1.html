@@ -647,7 +647,9 @@ const QID_TO_ABA = {
   'q_conners3ts':         'CONNERS3TS',
   // ── FAD v12.0 ─────────────────────────────────────────────
   'q_fad_gf':             'FAD_GF',
-  'q_fad_60':             'FAD_60'
+  'q_fad_60':             'FAD_60',
+  // ── Anamnese Complementar ─────────────────────────────────
+  'q_anamnese':           'Anamnese_Complementar'
 };
 
 
@@ -702,7 +704,9 @@ const SYNC_KEY_TO_ABA = {
   'conners3ts':         'CONNERS3TS',        // Professores Versão Curta
   // ── FAD v12.0 ─────────────────────────────────────────────
   'fad_gf':              'FAD_GF',
-  'fad_60':              'FAD_60'
+  'fad_60':              'FAD_60',
+  // ── Anamnese Complementar ─────────────────────────────────
+  'anamnese_complementar': 'Anamnese_Complementar'
 };
 
 // Cache em memória das respostas do Sheet (evita fetch repetidos na mesma sessão)
@@ -925,6 +929,16 @@ function initCatalog() {
       syncKey:'eat26', area:'Comportamento Alimentar', ageRange:'Adolescentes / Adultos',
       objective:'Rastreio de atitudes e comportamentos alimentares de risco (Garner et al., 1982)',
       domains:['D','B','OC','Total'], ageMin:132, ageMax:null},
+    // ── Anamnese Complementar ────────────────────────────────────────────
+    { id:'q_anamnese', name:'Anamnese Complementar',
+      dest:['Mãe','Pai','Enc. Educação'],
+      link:'https://correiaricardina-ui.github.io/questionarios/Anamnese_complementar_v2.html',
+      syncKey:'anamnese_complementar',
+      area:'História Clínica / Desenvolvimento',
+      ageRange:'0–18 anos',
+      objective:'Recolher história clínica, desenvolvimento e funcionamento quotidiano',
+      domains:['História Clínica','Desenvolvimento Precoce','Funcionamento Executivo','Regulação Emocional'],
+      ageMin:0, ageMax:999 },
   ];
   // Garantir que TODOS os defaults estão no catálogo, sempre
   // (funciona em RC novos e em RC existentes — nunca perde questionários)
@@ -1005,6 +1019,8 @@ function initCatalog() {
       // ── FAD v12.0 ─────────────────────────────────────────
       'q_fad_gf': { link:'https://correiaricardina-ui.github.io/questionarios/FAD_GF_v2.html',  syncKey:'fad_gf' },
       'q_fad_60': { link:'https://correiaricardina-ui.github.io/questionarios/FAD_60_v1.html',  syncKey:'fad_60' },
+      // ── Anamnese Complementar ────────────────────────────
+      'q_anamnese': { link:'https://correiaricardina-ui.github.io/questionarios/Anamnese_complementar_v2.html', syncKey:'anamnese_complementar' },
     };
     // ── Re-store com chave correcta ('q_' + id) — corrige instalações anteriores ──
     // Garante que Conners, FAD e MAP ficam acessíveis pelo META.forEach e getCatalog
@@ -1177,6 +1193,11 @@ function initCatalog() {
     if(!catalog.includes('q_fad_60')) {
       const d = defaults.find(x => x.id === 'q_fad_60');
       if(d) { store.set('q_' + d.id, d); catalog.push('q_fad_60'); store.set('catalog', catalog); }
+    }
+    // Anamnese Complementar
+    if(!catalog.includes('q_anamnese')) {
+      const d = defaults.find(x => x.id === 'q_anamnese');
+      if(d) { store.set('q_' + d.id, d); catalog.push('q_anamnese'); store.set('catalog', catalog); }
     }
     }
   }
@@ -1599,6 +1620,12 @@ function formatScoreSummary(scores, syncKey) {
       return `<span style="font-size:0.78rem;${cls}">IN=${inT||'—'} · HI=${hiT||'—'}${lpT ? ' · LP/EF='+lpT : ''}${agT ? ' · AG='+agT : ''}</span>`;
     }
   }
+  // Anamnese Complementar — sem scores numéricos, mostrar contagem de respostas
+  if(syncKey === 'anamnese_complementar') {
+    const resp = scores['Respondidas'] ?? scores['respondidas'] ?? null;
+    if(resp != null) return '<span style="font-size:0.78rem;color:var(--blue-mid);">&#128203; ' + resp + ' / 28 perguntas</span>';
+    return '<span style="font-size:0.78rem;color:var(--blue-mid);">&#128203; Anamnese</span>';
+  }
   // Genérico
   const entries = Object.entries(scores).filter(([,v]) => v != null).slice(0,3);
   if(entries.length > 0) return `<span style="font-size:0.78rem;color:var(--blue-dark);">${entries.map(([k,v])=>k+'='+v).join(' · ')}</span>`;
@@ -1789,7 +1816,8 @@ function renderAssignments(patientId) {
                 'MAP_Parental_PI':['NomeProgenitor','Relação'],
                 'MAP_1214':['NomeProgenitor','Relação'],'MAP_Parental_1214':['NomeProgenitor','Relação'],
                 'MAP_1518':['NomeProgenitor','Relação'],'MAP_Parental_1518':['NomeProgenitor','Relação'],
-                'QEDP':['Informante','NomeInformante']
+                'QEDP':['Informante','NomeInformante'],
+                'Anamnese_Complementar':['NomeRespondente']
               };
               const RC = {
                 'SWAN':['Relação'],'BRIEF_Pais':['Relação'],'SCARED_R_PAIS':['Relação'],
