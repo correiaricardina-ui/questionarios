@@ -798,12 +798,12 @@ function initCatalog() {
       objective:'Avalia cooperação, triangulação e conflito coparental — versão pai',
       domains:['Cooperação','Triangulação','Conflito'] , ageMin:0, ageMax:null},
     { id:'q_erc_prof', name:'ERC — Professores', dest:['Professor(a)','Educador(a)'],
-      link:'https://correiaricardina-ui.github.io/questionarios/ERC_Professores_v2.html',
+      link:'https://correiaricardina-ui.github.io/questionarios/ERC_Professores_v1.html',
       syncKey:'erc_prof', area:'Regulação Emocional', ageRange:'3–18 anos',
       objective:'Avalia a regulação emocional da criança — versão professor/educador',
       domains:['Labilidade/Negatividade (L/N)','Regulação Emocional (RE)','Total ERC'] , ageMin:36, ageMax:215},
     { id:'q_erc_pais', name:'ERC — Pais/Cuidadores', dest:['Mãe','Pai','Enc. Educação'],
-      link:'https://correiaricardina-ui.github.io/questionarios/ERC_Pais_v2.html',
+      link:'https://correiaricardina-ui.github.io/questionarios/ERC_Pais_v1.html',
       syncKey:'erc_pais', area:'Regulação Emocional', ageRange:'3–18 anos',
       objective:'Avalia a regulação emocional da criança — versão pais/cuidadores',
       domains:['Labilidade/Negatividade (L/N)','Regulação Emocional (RE)','Total ERC'] , ageMin:36, ageMax:215},
@@ -940,7 +940,7 @@ function initCatalog() {
       'q_scared_r_pais':    { link:'https://correiaricardina-ui.github.io/questionarios/SCARED_R_Pais.html', syncKey:'scared_r_pais' },
       'q_qc_mae':           { link:'https://correiaricardina-ui.github.io/questionarios/QC_Mae.html', syncKey:'qc_mae' },
       'q_qc_pai':           { link:'https://correiaricardina-ui.github.io/questionarios/QC_Pai.html', syncKey:'qc_pai' },
-      'q_erc_prof':         { link:'https://correiaricardina-ui.github.io/questionarios/ERC_Professores_v2.html', syncKey:'erc_prof' },
+      'q_erc_prof':         { link:'https://correiaricardina-ui.github.io/questionarios/ERC_Professores_v1.html', syncKey:'erc_prof' },
       'q_ctrf_15': { link:'https://correiaricardina-ui.github.io/questionarios/CTRF_15_v2.html', syncKey:'ctrf15' },
       'q_brief_prof': { link:'https://correiaricardina-ui.github.io/questionarios/BRIEF_Professores_v3.html', syncKey:'brief_professores' },
       'q_brief_pais': { link:'https://correiaricardina-ui.github.io/questionarios/BRIEF_Pais_v5.html', syncKey:'brief_pais' },
@@ -958,7 +958,7 @@ function initCatalog() {
       'q_abas3_pais':  { link:'https://correiaricardina-ui.github.io/questionarios/ABAS3_Pais_v2.html',      syncKey:'abas3_pais'  },
       'q_abas3_prof':  { link:'https://correiaricardina-ui.github.io/questionarios/ABAS3_Professor_v2.html', syncKey:'abas3_prof'  },
       'q_abas3_adult': { link:'https://correiaricardina-ui.github.io/questionarios/ABAS3_Autorrelato_v1.html', syncKey:'abas3_adult' },
-      'q_erc_pais':         { link:'https://correiaricardina-ui.github.io/questionarios/ERC_Pais_v2.html', syncKey:'erc_pais' },
+      'q_erc_pais':         { link:'https://correiaricardina-ui.github.io/questionarios/ERC_Pais_v1.html', syncKey:'erc_pais' },
       'q_diva5':             { link:'https://correiaricardina-ui.github.io/questionarios/DIVA5_v1.html', syncKey:'diva5' },
       'q_eafe':              { link:'https://correiaricardina-ui.github.io/questionarios/EAFE_v2.html', syncKey:'eafe' },
       'q_ece_fea':           { link:'https://correiaricardina-ui.github.io/questionarios/ECE-FEA.html', syncKey:'ece_fea' },
@@ -989,14 +989,17 @@ function initCatalog() {
     })();
 
     Object.entries(META).forEach(([id, meta]) => {
-      const q = store.get('q_' + id);
+      // Duplo fallback: tenta 'q_q_erc_pais' e 'q_erc_pais' (ambas as chaves possíveis)
+      const q = store.get('q_' + id) || store.get(id);
       if(q) {
         q.link = meta.link;
-        if(!q.syncKey) q.syncKey = meta.syncKey;
+        q.syncKey = meta.syncKey; // forçar sempre (não só se estiver vazio)
         // Propagar ageMin/ageMax retrocompatível — apenas se não definido
         if(meta.ageMin !== undefined && q.ageMin === undefined) q.ageMin = meta.ageMin;
         if(meta.ageMax !== undefined && q.ageMax === undefined) q.ageMax = meta.ageMax;
+        // Guardar em AMBAS as chaves para garantir consistência
         store.set('q_' + id, q);
+        store.set(id, q);
       }
     });
     // Adicionar q_cbcl_15 ao catálogo se ainda não existir
@@ -2443,6 +2446,17 @@ async function syncResults() {
 
 document.addEventListener('DOMContentLoaded', () => {
   store.del('pw');
+  // Forçar re-leitura do META em cada arranque — limpa chaves com prefixo errado
+  (function forceMetaRefresh() {
+    const META_VERSION = 'v24_abril2026';
+    if(localStorage.getItem('cns_meta_version') !== META_VERSION) {
+      // Limpar chaves de metadados de questionários para forçar recriação
+      Object.keys(localStorage)
+        .filter(k => k.startsWith('cns_q_'))
+        .forEach(k => localStorage.removeItem(k));
+      localStorage.setItem('cns_meta_version', META_VERSION);
+    }
+  })();
   initCatalog();
   checkReceivedQuestionnaires(); // dispara em background; resultado visível após login
 
