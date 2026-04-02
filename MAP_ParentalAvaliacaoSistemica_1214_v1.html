@@ -169,7 +169,7 @@ tr:last-child td{border-bottom:none}
     </div>
     <div class="grid2 mb16">
       <div>
-        <label class="field-label">Nome do progenitor</label>
+        <label class="field-label">Nome da criança <span style="font-weight:400;font-size:.78rem">(nome próprio)</span></label><input type="text" id="nome-crianca" placeholder="ex: Maria Silva" style="width:100%;padding:9px 13px;border:1.5px solid var(--gray-bdr);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.9rem;outline:none;background:white"></div></div><div class="grid2 mb16"><div><label class="field-label">Nome do progenitor</label>
         <input type="text" id="nome-progenitor" placeholder="Nome próprio">
       </div>
       <div>
@@ -466,7 +466,7 @@ function atualizarStepper(){var idx=SECAO_ORDER.indexOf(secaoAtual);for(var i=0;
 function avancarSecao(de){var prox={1:'s2',2:'s3',3:'s4',4:'s5',5:'s6',6:'s7'};if(de===1&&!validarId())return;if(de===7){submeterFormulario();return;}mostrarSecao(prox[de]);}
 function voltarSecao(de){var ant={2:'id',3:'s2',4:'s3',5:'s4',6:'s5',7:'s6'};mostrarSecao(ant[de]);}
 function iniciarQuestionario(){document.getElementById('data-preenchi').value=new Date().toISOString().split('T')[0];DOMINIOS_ESTADO={};ROTINAS_ESTADO={};CONSEQUENCIAS_ESTADO={};LIKERT_ESTADO={};renderLikert();renderDominios();renderRotinas();renderConsequencias();mostrarSecao('id');showPage('page-questionario');}
-function validarId(){var code=document.getElementById('patient-code').value.trim().toUpperCase();if(!code){alert('Por favor indique o código do paciente.');return false;}return true;}
+function validarId(){var code=document.getElementById('patient-code').value.trim().toUpperCase();if(!code){alert('Por favor indique o código do paciente.');return false;}var nc=document.getElementById('nome-crianca');if(nc&&!nc.value.trim()){alert('Por favor indique o nome da criança.');return false;}return true;}
 
 function renderLikert(){
   var c=document.getElementById('likert-container'),html='';
@@ -606,7 +606,7 @@ function renderConsequencias(){
 function recolherDados(){
   var likert={};LIKERT_ITEMS.forEach(function(item,i){likert[i]=LIKERT_ESTADO[i]||null;});
   return {
-    id:{patientCode:document.getElementById('patient-code').value.trim().toUpperCase(),nome:document.getElementById('nome-progenitor').value.trim(),relacao:document.getElementById('relacao-crianca').value,data:document.getElementById('data-preenchi').value,idadesFilhos:document.getElementById('idades-filhos').value.trim(),sitFamiliar:(document.querySelector('input[name=sit-familiar]:checked')||{value:''}).value,obs:document.getElementById('obs-id').value.trim()},
+    id:{patientCode:document.getElementById('patient-code').value.trim().toUpperCase(),nome:document.getElementById('nome-progenitor').value.trim(),relacao:document.getElementById('relacao-crianca').value,data:document.getElementById('data-preenchi').value,idadesFilhos:document.getElementById('idades-filhos').value.trim(),sitFamiliar:(document.querySelector('input[name=sit-familiar]:checked')||{value:''}).value,obs:document.getElementById('obs-id').value.trim(),nomeCrianca:(document.getElementById('nome-crianca')||{value:''}).value.trim()},
     s2:{likert:likert,principios:document.getElementById('principios-open').value.trim()},
     s3:JSON.parse(JSON.stringify(DOMINIOS_ESTADO)),
     s4:JSON.parse(JSON.stringify(ROTINAS_ESTADO)),
@@ -626,7 +626,7 @@ function submeterFormulario(){
   Object.values(dados.s3).forEach(function(d){if(d&&d.triagem==='melhorar')nMelh++;});
   Object.values(dados.s4).forEach(function(r){if(r&&r.triagem==='melhorar')nRotMelh++;});
   var sum=0,n=0;Object.values(dados.s2.likert).forEach(function(v){if(v){sum+=v;n++;}});
-  var payload={instrumento:'MAP_Parental_1214',patientCode:dados.id.patientCode,nomeProgenitor:dados.id.nome,relacao:dados.id.relacao,sitFamiliar:dados.id.sitFamiliar,idadesFilhos:dados.id.idadesFilhos,likert_media:n?Math.round(sum/n*100)/100:'',principios:dados.s2.principios,n_dominios_melhorias:nMelh,n_rotinas_melhorias:nRotMelh,s6_q1:dados.s6.q1,s6_q2:dados.s6.q2,s6_q3:dados.s6.q3,s7_urgentes:dados.s7.urgentes,s7_inadmissiveis:dados.s7.inadmissiveis,s7_rotinasFund:dados.s7.rotinasFund,s7_mudancas:dados.s7.mudancas,dados_completos:JSON.stringify(dados)};
+  var payload={instrumento:'MAP_Parental_1214',patientCode:dados.id.patientCode,nomeCrianca:dados.id.nomeCrianca||'',nomeProgenitor:dados.id.nome,relacao:dados.id.relacao,sitFamiliar:dados.id.sitFamiliar,idadesFilhos:dados.id.idadesFilhos,likert_media:n?Math.round(sum/n*100)/100:'',principios:dados.s2.principios,n_dominios_melhorias:nMelh,n_rotinas_melhorias:nRotMelh,s6_q1:dados.s6.q1,s6_q2:dados.s6.q2,s6_q3:dados.s6.q3,s7_urgentes:dados.s7.urgentes,s7_inadmissiveis:dados.s7.inadmissiveis,s7_rotinasFund:dados.s7.rotinasFund,s7_mudancas:dados.s7.mudancas,dados_completos:JSON.stringify(dados)};
   try{fetch(SCRIPT_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});}catch(e){}
   showPage('page-obrigado');
 }
