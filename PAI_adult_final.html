@@ -1,0 +1,974 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PAI | Ricardina Correia</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --blue:#3B5A7A;--blue-mid:#5B7FA6;--blue-light:#A8C4D8;
+  --blue-pale:#D6E4F0;--blue-xpale:#EBF2F8;
+  --gray:#F4F6F9;--gray-bdr:#DDE3EA;
+  --text:#2C3E50;--text-light:#6B7A8D;
+  --red:#C0392B;--green:#27AE60;--orange:#E67E22;
+}
+body{font-family:'DM Sans',sans-serif;background:var(--gray);color:var(--text);min-height:100vh}
+.page{display:none}
+.container{max-width:920px;margin:0 auto;padding:24px 16px}
+.app-header{background:var(--blue);color:white;padding:12px 28px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 8px rgba(0,0,0,.15)}
+.app-title{font-size:1.1rem;font-weight:700;letter-spacing:.3px}
+.app-subtitle{font-size:.78rem;opacity:.75;margin-top:2px}
+.header-logo{height:34px;filter:brightness(0) invert(1);opacity:.9}
+.card{background:white;border-radius:12px;padding:28px;box-shadow:0 2px 8px rgba(59,90,122,.08);border:1px solid var(--gray-bdr);margin-bottom:20px}
+.btn{border:none;border-radius:8px;padding:10px 20px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;font-size:.9rem;transition:opacity .15s}
+.btn:hover{opacity:.88}
+.btn-primary{background:var(--blue);color:white}
+.btn-secondary{background:var(--blue-pale);color:var(--blue)}
+.btn-xs{padding:4px 10px;font-size:.78rem}
+.btn-danger{background:#fdecea;color:var(--red);border:1px solid #f5b7b1}
+.badge{border-radius:6px;padding:2px 10px;font-size:.75rem;font-weight:600}
+.badge-clinical{background:#fdecea;color:var(--red)}
+.badge-high{background:#fdf0f0;color:#a93226}
+.badge-borderline{background:#fef3e2;color:var(--orange)}
+.badge-normative{background:#eafaf1;color:var(--green)}
+.badge-invalid{background:#fdecea;color:var(--red)}
+/* LANDING */
+.landing-card{max-width:560px;margin:60px auto;text-align:center}
+.landing-icon{font-size:2.8rem;margin-bottom:16px}
+.landing-title{font-family:'DM Serif Display',serif;font-size:1.8rem;color:var(--blue);margin-bottom:8px}
+.landing-sub{color:var(--text-light);margin-bottom:32px}
+.landing-btns{display:flex;gap:16px;justify-content:center;flex-wrap:wrap}
+.landing-btn{flex:1;min-width:200px;max-width:240px;padding:20px 16px;border-radius:12px;background:var(--blue-xpale);border:1.5px solid var(--blue-pale);cursor:pointer;transition:all .18s;text-align:center}
+.landing-btn:hover{background:var(--blue-pale);border-color:var(--blue-mid);transform:translateY(-2px);box-shadow:0 4px 12px rgba(59,90,122,.15)}
+.landing-btn-icon{font-size:1.8rem;margin-bottom:8px}
+.landing-btn-title{font-weight:700;color:var(--blue);font-size:.95rem;margin-bottom:4px}
+.landing-btn-sub{font-size:.78rem;color:var(--text-light)}
+/* LOGIN */
+.login-card{max-width:420px;margin:80px auto;text-align:center;padding:40px}
+.login-icon{font-size:2.4rem;margin-bottom:12px}
+.login-title{font-family:'DM Serif Display',serif;font-size:1.6rem;color:var(--blue);margin-bottom:4px}
+.login-sub{color:var(--text-light);font-size:.85rem;margin-bottom:24px}
+.login-field{text-align:left;margin-bottom:16px}
+.login-field label{display:block;font-size:.82rem;font-weight:600;color:var(--text-light);margin-bottom:4px}
+.login-input{width:100%;padding:10px 14px;border:1.5px solid var(--gray-bdr);border-radius:8px;font-size:.95rem;font-family:'DM Sans',sans-serif;color:var(--text);transition:border-color .15s}
+.login-input:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-xpale)}
+.login-error{color:var(--red);font-size:.82rem;margin-top:8px;display:none}
+.login-back{color:var(--blue-mid);font-size:.82rem;cursor:pointer;margin-top:16px;text-decoration:underline}
+/* SECTION INDICATORS */
+.section-indicator{display:flex;align-items:center;gap:8px;margin-bottom:16px}
+.step-dot{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.82rem;font-weight:700;flex-shrink:0}
+.step-done{background:var(--green);color:white}
+.step-active{background:var(--blue);color:white}
+.step-inactive{background:var(--gray-bdr);color:var(--text-light)}
+.step-line{flex:1;height:2px;background:var(--blue)}
+.step-line-inactive{flex:1;height:2px;background:var(--gray-bdr)}
+/* PROGRESS */
+.progress-bar-wrap{background:var(--gray-bdr);border-radius:20px;height:8px;overflow:hidden;margin:12px 0}
+.progress-bar-fill{height:100%;background:var(--blue);border-radius:20px;transition:width .3s ease;width:0%}
+.progress-label{font-size:.82rem;color:var(--text-light);margin-bottom:4px}
+/* FIELDS */
+.field-group{margin-bottom:14px}
+.field-group label{display:block;font-size:.82rem;font-weight:600;color:var(--text-light);margin-bottom:4px}
+.field-hint{font-size:.78rem;color:var(--text-light);margin-top:4px}
+/* ITEM TABLE */
+.item-table{width:100%;border-collapse:collapse;margin-bottom:0}
+.item-table thead th{background:var(--blue);color:white;padding:8px 10px;font-size:12px;font-weight:700;text-align:center;border:1px solid var(--blue)}
+.item-table thead th:nth-child(2){text-align:left}
+.item-table tbody tr:nth-child(odd){background:white}
+.item-table tbody tr:nth-child(even){background:var(--gray)}
+.item-table tbody tr:hover{background:var(--blue-xpale)}
+.item-table td{padding:7px 10px;border:1px solid var(--gray-bdr);font-size:13px;vertical-align:middle}
+.item-num{text-align:center;font-weight:700;color:var(--blue);width:44px}
+.item-text{line-height:1.4}
+.radio-td{text-align:center;width:52px}
+.item-table input[type=radio]{width:16px;height:16px;accent-color:var(--blue);cursor:pointer}
+/* PART SEPARATOR */
+.part-sep{text-align:center;padding:20px 0 8px;font-size:13px;font-weight:800;letter-spacing:.12em;color:var(--blue-mid);border-top:2px solid var(--gray-bdr);margin-top:24px}
+.part-sep:first-child{border-top:none;margin-top:0;padding-top:0}
+/* MISSING */
+.missing-alert{background:#fdecea;border:1px solid #f5b7b1;color:var(--red);padding:12px 16px;border-radius:8px;font-size:13px;font-weight:600;display:none;margin-bottom:16px}
+/* RESULTS */
+.rt{width:100%;border-collapse:collapse;font-size:13px}
+.rt th{background:var(--blue);color:white;padding:10px 12px;font-size:12px;border:1px solid var(--blue);text-align:center}
+.rt th:nth-child(2),.rt th:nth-child(3){text-align:left}
+.rt td{padding:9px 12px;border:1px solid var(--gray-bdr);vertical-align:middle}
+.rt tr:nth-child(odd) td{background:white}
+.rt tr:nth-child(even) td{background:var(--gray)}
+.rt .group-hdr td{background:var(--blue-mid);color:white;font-weight:700;font-size:11px;letter-spacing:.08em;padding:7px 12px}
+/* T-SCORE BAR */
+.ts-wrap{display:flex;align-items:center;gap:8px}
+.ts-val{font-size:14px;font-weight:800;min-width:40px;text-align:right}
+.ts-track{flex:1;height:10px;background:var(--gray-bdr);border-radius:5px;overflow:hidden}
+.ts-fill{height:100%;border-radius:5px;transition:width .5s ease}
+.fill-n{background:var(--green)}
+.fill-e{background:#e67e22}
+.fill-h{background:#c0392b}
+.fill-b{background:var(--orange)}
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:flex-start;justify-content:center;z-index:1000;padding:16px;overflow-y:auto}
+.modal-box{background:white;border-radius:16px;padding:28px;max-width:900px;width:100%;box-shadow:0 12px 48px rgba(0,0,0,.25);margin:0 auto}
+.modal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;padding-bottom:12px;border-bottom:2px solid var(--gray-bdr)}
+.modal-title{font-family:'DM Serif Display',serif;font-size:1.4rem;color:var(--blue)}
+.modal-close{background:none;border:none;font-size:1.5rem;cursor:pointer;color:var(--text-light);padding:4px 8px;border-radius:6px}
+.modal-close:hover{background:var(--gray)}
+/* PAINEL */
+.panel-actions{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px}
+.sessions-table{width:100%;border-collapse:collapse;font-size:.88rem}
+.sessions-table th{background:var(--blue);color:white;padding:10px 12px;text-align:left;font-size:.82rem;font-weight:600}
+.sessions-table td{padding:10px 12px;border-bottom:1px solid var(--gray-bdr)}
+.sessions-table tr:hover td{background:var(--blue-xpale)}
+/* SUI ALERT */
+.sui-alert{background:#fdecea;border:2px solid var(--red);border-radius:10px;padding:16px 20px;margin-bottom:16px;color:var(--red);font-weight:700;font-size:13px}
+.note-box{background:var(--blue-xpale);border-left:4px solid var(--blue);padding:14px 18px;border-radius:0 8px 8px 0;font-size:.82rem;line-height:1.6;margin-bottom:16px}
+.warn-box{background:#fef3e2;border-left:4px solid var(--orange);padding:12px 16px;border-radius:0 8px 8px 0;font-size:.78rem;color:#7D4E00;line-height:1.5}
+@media print{.no-print{display:none!important}.page{display:block!important}#page-questionario,#page-home,#page-login,#page-obrigado{display:none!important}.card{box-shadow:none;border:1px solid #ccc}}
+@media(max-width:640px){.landing-btns{flex-direction:column;align-items:center}.panel-actions{flex-direction:column}}
+</style>
+</head>
+<body>
+
+<header class="app-header">
+  <div style="display:flex;align-items:center;gap:14px">
+    <img src="data:image/png;base64,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" class="header-logo" alt="RC">
+    <div>
+      <div class="app-title">PAI — Personality Assessment Inventory | Versão Adulta</div>
+      <div class="app-subtitle">Adaptação para uso clínico · 344 itens · 22 escalas · Normas PT Paulino et al. (2024) · Ricardina Correia | Cédula 8233</div>
+    </div>
+  </div>
+  <div class="header-right no-print" style="font-size:.78rem;opacity:.75;text-align:right">
+    <span id="hdr-progress"></span>
+  </div>
+</header>
+
+<!-- ════ PAGE HOME ════ -->
+<div id="page-home" class="page">
+<div class="container">
+<div class="card landing-card">
+  <div class="landing-icon">🧠</div>
+  <div class="landing-title">PAI</div>
+  <p class="landing-sub">Personality Assessment Inventory — Versão Adulta<br>
+    <span style="font-size:.8rem">Adaptação para uso clínico · Morey (1991/2007) · 344 itens · 18+ anos</span>
+  </p>
+  <div class="landing-btns">
+    <div class="landing-btn" onclick="showPage('page-questionario');initQuestionnaire()">
+      <div class="landing-btn-icon">📝</div>
+      <div class="landing-btn-title">Preencher questionário</div>
+      <div class="landing-btn-sub">Para o(a) respondente</div>
+    </div>
+    <div class="landing-btn" onclick="showClinico()">
+      <div class="landing-btn-icon">🔒</div>
+      <div class="landing-btn-title">Painel Clínico</div>
+      <div class="landing-btn-sub">Acesso restrito · Ricardina Correia</div>
+    </div>
+  </div>
+</div>
+</div>
+</div>
+
+<!-- ════ PAGE QUESTIONÁRIO ════ -->
+<div id="page-questionario" class="page">
+<div class="container">
+
+  <div id="section-1">
+  <div class="card">
+    <div class="section-indicator">
+      <div class="step-dot step-active">1</div>
+      <span style="font-size:.82rem;font-weight:600;color:var(--blue)">Identificação</span>
+      <div class="step-line-inactive"></div>
+      <div class="step-dot step-inactive">2</div>
+      <span style="font-size:.82rem;color:var(--text-light)">Questionário (344 itens)</span>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px">
+      <div class="field-group">
+        <label>Código do paciente <span style="font-weight:400;font-size:.78rem;color:var(--text-light)">(fornecido pela psicóloga)</span></label>
+        <input type="text" id="patient-code" class="login-input" placeholder="ex: MV14061985"
+               style="text-transform:uppercase" oninput="this.value=this.value.toUpperCase()">
+        <div class="field-hint">Iniciais + data de nascimento (DDMMAAAA). Ex: <em>MV14061985</em></div>
+      </div>
+      <div class="field-group">
+        <label>Nome do respondente</label>
+        <input type="text" id="nome-respondente" class="login-input" placeholder="ex: Maria Silva">
+      </div>
+      <div class="field-group">
+        <label>Nome para o processo <span style="font-weight:400;font-size:.78rem;color:var(--text-light)">(nome próprio ou completo)</span></label>
+        <input type="text" id="nome-crianca" class="login-input" placeholder="ex: Maria Silva">
+      </div>
+      <div class="field-group">
+        <label>Sexo</label>
+        <select id="sexo" class="login-input">
+          <option value="">— Seleccionar —</option>
+          <option value="F">Feminino</option>
+          <option value="M">Masculino</option>
+        </select>
+      </div>
+      <div class="field-group">
+        <label>Data de nascimento</label>
+        <input type="date" id="dob" class="login-input">
+      </div>
+      <div class="field-group">
+        <label>Data de aplicação</label>
+        <input type="date" id="data-apl" class="login-input">
+      </div>
+    </div>
+    <div style="display:flex;justify-content:space-between" class="no-print">
+      <button class="btn btn-secondary" onclick="showPage('page-home')">← Voltar</button>
+      <button class="btn btn-primary" onclick="avancarParaQuestoes()">Avançar →</button>
+    </div>
+  </div>
+  </div>
+
+  <div id="section-2" style="display:none">
+    <div class="section-indicator no-print" style="margin-bottom:12px">
+      <div class="step-dot step-done">✓</div>
+      <span style="font-size:.82rem;color:var(--text-light)">Identificação</span>
+      <div class="step-line"></div>
+      <div class="step-dot step-active">2</div>
+      <span style="font-size:.82rem;font-weight:600;color:var(--blue)">Questionário (344 itens)</span>
+    </div>
+    <div class="no-print">
+      <div class="progress-label" id="prog-label">0 / 344 respondidas</div>
+      <div class="progress-bar-wrap"><div class="progress-bar-fill" id="prog-fill"></div></div>
+    </div>
+    <div id="missing-alert" class="missing-alert no-print">
+      ⚠ Existem itens sem resposta (assinalados a vermelho). Responde a todos os itens antes de terminar.
+    </div>
+    <div id="quest-body"></div>
+    <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-top:20px" class="no-print">
+      <button class="btn btn-secondary" onclick="voltarParaIdentificacao()">← Rever identificação</button>
+      <div style="display:flex;gap:10px">
+        <button class="btn btn-danger btn-xs" onclick="limparRespostas()">Limpar</button>
+        <button class="btn btn-primary" onclick="submeter()">Concluir e guardar →</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+</div>
+
+<!-- ════ PAGE OBRIGADO ════ -->
+<div id="page-obrigado" class="page">
+<div class="container">
+<div class="card" style="max-width:600px;margin:60px auto;text-align:center">
+  <div style="font-size:3rem;margin-bottom:16px">✅</div>
+  <div style="font-family:'DM Serif Display',serif;font-size:1.8rem;color:var(--blue);margin-bottom:12px">Obrigado pelo preenchimento!</div>
+  <div style="color:var(--text-light);line-height:1.6">As suas respostas foram registadas com sucesso.</div>
+  <div style="margin-top:28px">
+    <button class="btn btn-secondary" onclick="showPage('page-home');window.scrollTo(0,0)">← Página inicial</button>
+  </div>
+</div>
+</div>
+</div>
+
+<!-- ════ PAGE LOGIN ════ -->
+<div id="page-login" class="page">
+<div class="container">
+<div class="card login-card">
+  <div class="login-icon">🔒</div>
+  <div class="login-title">Painel Clínico</div>
+  <div class="login-sub">Acesso restrito · Ricardina Correia</div>
+  <div class="login-field">
+    <label>Palavra-passe</label>
+    <input type="password" id="login-pw" class="login-input" placeholder="••••••••"
+           onkeydown="if(event.key==='Enter') tentarLogin()">
+  </div>
+  <button class="btn btn-primary" style="width:100%" onclick="tentarLogin()">Entrar</button>
+  <div id="login-error" class="login-error">Palavra-passe incorrecta. Tente novamente.</div>
+  <div class="login-back" onclick="showPage('page-home')">← Voltar ao questionário</div>
+</div>
+</div>
+</div>
+
+<!-- ════ PAGE CLÍNICO ════ -->
+<div id="page-clinico" class="page">
+<div class="container">
+  <div class="card" style="padding:16px 20px;margin-bottom:16px">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+      <div>
+        <div style="font-family:'DM Serif Display',serif;font-size:1.3rem;color:var(--blue)">Painel Clínico — PAI Adultos</div>
+        <div style="font-size:.78rem;color:var(--text-light);margin-top:2px">Ricardina Correia · Cédula 8233 · Psicologia Pediátrica</div>
+      </div>
+      <div class="panel-actions no-print">
+        <button class="btn btn-secondary btn-xs" onclick="sincronizar()">↺ Sincronizar</button>
+        <button class="btn btn-secondary btn-xs" onclick="importarCSV()">⬆ Importar CSV</button>
+        <button class="btn btn-secondary btn-xs" onclick="exportarCSV()">⬇ Exportar CSV</button>
+        <button class="btn btn-secondary btn-xs" onclick="exportarPDF()">📄 Exportar PDF</button>
+        <button class="btn btn-secondary btn-xs" onclick="window.print()">🖨 Imprimir</button>
+        <input type="file" id="import-file" accept=".csv" style="display:none" onchange="processarImportacao(this)">
+      </div>
+    </div>
+  </div>
+  <div class="warn-box" style="margin-bottom:16px">
+    ⚠ <strong>Nota clínica:</strong> Instrumento de adaptação para uso clínico. Normas: Paulino, Moniz, Moura, Rijo, Morey & Simões (2024). <em>Frontiers in Psychology</em>, 15:1359793. Portugal, N=900, 18–75 anos. T≥70 = Elevado · T≥84 = Clinicamente Significativo · PIM: T≤57 = defensividade. Documentar como "adaptação" nos relatórios.
+  </div>
+  <div id="painel-body">
+    <div class="card" style="text-align:center;padding:40px;color:var(--text-light)">Sem sessões registadas.</div>
+  </div>
+</div>
+</div>
+
+<!-- ════ MODAL ════ -->
+<div id="modal-overlay" class="modal-overlay" onclick="fecharModal(event)" style="display:none">
+  <div class="modal-box" id="modal-box">
+    <div class="modal-header">
+      <div class="modal-title" id="modal-title">Detalhe</div>
+      <button class="modal-close no-print" onclick="document.getElementById('modal-overlay').style.display='none'">✕</button>
+    </div>
+    <div id="modal-body"></div>
+  </div>
+</div>
+
+<script>
+// ══ DATA — verified against PAI_Cotacao_PT_v2.xlsx ════════════
+// Normas: Paulino et al. (2024) Frontiers in Psychology 15:1359793 N=900
+// Fórmula: T = ROUND(50 + 10*(raw - M_PT) / DP_PT, 1)
+// Limiares: T≥70=Elevado · T≥84=Clinicamente Significativo
+// Itens invertidos: NON + RXR (score = 3 - resposta)
+// PIM: lógica invertida — T≤57 = defensividade
+
+var ITEMS_DATA   = {"1": "Tenho muitos problemas de saúde.", "2": "Sou uma pessoa muito ansiosa.", "3": "Tenho pensamentos que me perturbam e que não consigo parar.", "4": "Sinto-me triste com muita frequência.", "5": "Tenho mais energia do que a maioria das pessoas.", "6": "Suspeito que há pessoas que querem prejudicar-me.", "7": "Às vezes ouço coisas que os outros não conseguem ouvir.", "8": "Os meus sentimentos mudam muito rapidamente.", "9": "Às vezes sinto-me invulnerável.", "10": "O consumo de álcool tem criado problemas na minha vida.", "11": "Já usei drogas de forma excessiva.", "12": "Fico facilmente irritado com as pessoas.", "13": "Penso frequentemente em acabar com a minha vida.", "14": "Tenho tido muito stress na minha vida recentemente.", "15": "Estou a responder honestamente a este questionário.", "16": "Seria difícil para mim mudar.", "17": "Gosto de estar no controlo das situações.", "18": "Interesso-me genuinamente pelos outros.", "19": "Preocupo-me muito com a minha saúde.", "20": "Fico ansioso com muita facilidade.", "21": "Há certas coisas que me assustam muito.", "22": "Tenho pouca esperança no futuro.", "23": "Por vezes sinto-me extraordinariamente bem.", "24": "Sinto que os outros não me tratam de forma justa.", "25": "Tenho poucas amizades próximas.", "26": "A minha vida tem sido marcada por uma instabilidade crónica.", "27": "Tirei vantagem de outras pessoas para conseguir o que queria.", "28": "Costumo beber mais do que planeio.", "29": "Já fui aconselhado a reduzir o consumo de substâncias.", "30": "Quando estou zangado, tenho tendência para dizer coisas que magoa as pessoas.", "31": "Já pensei em métodos para acabar com a minha vida.", "32": "A minha vida está cheia de conflitos e dificuldades.", "33": "Há coisas sobre mim próprio que nunca revelaria a ninguém.", "34": "Não vejo necessidade de mudança na minha vida.", "35": "Prefiro ser eu a tomar as decisões.", "36": "Gosto de ajudar os outros quando estão com problemas.", "37": "Tenho frequentemente dores ou desconforto físico.", "38": "Tenho crises em que o meu coração dispara.", "39": "Tenho pensamentos repetitivos que não consigo controlar.", "40": "Tenho muito pouca energia.", "41": "Os meus pensamentos vão tão depressa que não os consigo acompanhar.", "42": "Sinto que as pessoas têm conspurado contra mim.", "43": "Às vezes vejo coisas que os outros não conseguem ver.", "44": "Sinto um vazio interior enorme.", "45": "As regras da sociedade não foram feitas para mim.", "46": "Bebo álcool para relaxar ou me sentir melhor.", "47": "O uso de drogas tem interferido com o meu funcionamento.", "48": "Quando me irrito, às vezes parto ou danisco coisas.", "49": "Pensei que seria melhor para todos se eu estivesse morto/a.", "50": "Tenho tido muitos acontecimentos stressantes recentemente.", "51": "Às vezes penso coisas más que me envergonham.", "52": "Não quero mudar a forma como faço as coisas.", "53": "Gosto de assumir a liderança.", "54": "Sinto empatia pelas pessoas que estão a sofrer.", "55": "Vou frequentemente ao médico por causa de sintomas físicos.", "56": "Fico preocupado com muita facilidade.", "57": "Há situações que me provocam um medo intenso e irracional.", "58": "Sinto-me infeliz com frequência.", "59": "Tenho muito mais energia e iniciativa do que a maior parte das pessoas.", "60": "Penso que as pessoas tentam tirar partido de mim.", "61": "Prefiro estar sozinho a estar com outras pessoas.", "62": "Faço coisas impulsivas que depois me arrependem.", "63": "Já manipulei pessoas para conseguir o que queria.", "64": "Já perdi o controlo do meu consumo de álcool.", "65": "Sinto-me dependente de substâncias.", "66": "Tenho uma personalidade explosiva.", "67": "Já fiz planos concretos para acabar com a minha vida.", "68": "Sinto que estou sob pressão constantemente.", "69": "Às vezes minto quando me convém.", "70": "Estou satisfeito com a forma como sou.", "71": "É difícil para mim deixar que outros tomem decisões.", "72": "Sinto-me próximo das pessoas que me rodeiam.", "73": "Tenho frequentemente náuseas ou problemas digestivos.", "74": "Fico tenso em muitas situações quotidianas.", "75": "Verifico repetidamente se fiz as coisas correctamente.", "76": "Sinto que o meu futuro é sombrio.", "77": "Sinto-me especial e com capacidades únicas.", "78": "Tenho a sensação de que estou a ser vigiado.", "79": "Por vezes os meus pensamentos são controlados por forças externas.", "80": "Os meus sentimentos passam de um extremo ao outro.", "81": "Sinto que posso fazer o que quiser sem consequências.", "82": "Tenho bebido mais álcool ultimamente.", "83": "Precisei de aumentar a quantidade de substâncias que uso para sentir o mesmo efeito.", "84": "Quando estou zangado digo palavrões com frequência.", "85": "Já tentei suicidar-me.", "86": "Tenho sofrido de grandes dificuldades recentemente.", "87": "Nunca quis magoar ninguém.", "88": "Não estou interessado em trabalhar os meus problemas.", "89": "As pessoas costumam seguir as minhas sugestões.", "90": "Fico triste quando algo mau acontece a outras pessoas.", "91": "Fico muito ansioso quando tenho sintomas físicos.", "92": "Tenho suores frios ou tremores em situações de ansiedade.", "93": "Evito certas situações por causa do medo que me causam.", "94": "Falta-me energia para fazer as coisas básicas.", "95": "A minha mente vai muito rápido e tenho muitas ideias ao mesmo tempo.", "96": "Sinto que os outros não me respeitam.", "97": "Tenho dificuldade em relacionar-me com as outras pessoas.", "98": "Sinto-me vazio por dentro.", "99": "Já enganei pessoas para conseguir o que queria.", "100": "O álcool tem afectado negativamente as minhas relações.", "101": "Já tive problemas com a lei relacionados com o uso de substâncias.", "102": "Tive confrontos físicos com pessoas.", "103": "Penso que estaria melhor morto/a.", "104": "Tenho lidado com muitas crises últimamente.", "105": "Nunca quebrei as regras.", "106": "Estou motivado para mudar.", "107": "Tendo a dominar as conversas.", "108": "As pessoas sabem que me podem contar.", "109": "Tenho muitas queixas físicas inexplicáveis.", "110": "Tenho dificuldade em parar de me preocupar.", "111": "Faço rituais para reduzir a minha ansiedade.", "112": "Sinto que a vida não vale a pena.", "113": "Às vezes sinto que posso fazer qualquer coisa.", "114": "Fico à guarda das intenções dos outros.", "115": "Tenho experiências que os outros achariam estranhas.", "116": "Ajo impulsivamente sem pensar nas consequências.", "117": "As leis são para as pessoas que não são suficientemente inteligentes para as contornar.", "118": "Bebo para me ajudar a lidar com o stress.", "119": "Uso substâncias para me sentir melhor quando estou em baixo.", "120": "Tenho um temperamento difícil.", "121": "Às vezes desejo não acordar.", "122": "Sinto que não consigo lidar com tudo o que está a acontecer.", "123": "Já me aproveitei de alguém.", "124": "Sinto que precisaria de fazer mudanças importantes.", "125": "Gosto de dizer às pessoas o que fazer.", "126": "Estou genuinamente preocupado com o bem-estar dos outros.", "127": "Estou sempre preocupado que algo esteja errado comigo fisicamente.", "128": "A ansiedade interfere com o meu funcionamento diário.", "129": "Tenho fobias específicas que limitam a minha vida.", "130": "Sinto que nunca vou melhorar.", "131": "Preciso de muito menos sono do que a maioria das pessoas.", "132": "Sinto que o mundo está contra mim.", "133": "Sinto-me mais confortável sozinho do que em grupo.", "134": "A minha vida emocional é muito instável.", "135": "Prefiro ganhar a qualquer custo do que perder honestamente.", "136": "Há coisas sobre o meu consumo de álcool que me envergonham.", "137": "Já precisei de ajuda para parar de usar substâncias.", "138": "Quando estou zangado, digo coisas que depois me arrependo.", "139": "Se eu me sentisse melhor, não pensaria em suicidar-me.", "140": "Parece que nunca tenho tempo de descansar.", "141": "Sempre fiz tudo o que foi certo fazer.", "142": "Não há muita coisa em mim que precise de mudar.", "143": "Sou visto como uma pessoa dominante.", "144": "Cuido das pessoas que me são próximas.", "145": "Tenho frequentemente cefaleias ou dores de cabeça.", "146": "Fico com o coração a bater muito depressa quando estou nervoso.", "147": "Preocupo-me com contaminação ou germes.", "148": "Não tenho motivação para fazer nada.", "149": "Os meus pensamentos são demasiado rápidos para os conseguir exprimir.", "150": "Tenho dificuldade em confiar nos outros.", "151": "Às vezes sinto que o meu corpo não é realmente meu.", "152": "Tenho uma sensação crónica de vazio e tédio.", "153": "Sinto que as regras dos outros não se aplicam a mim.", "154": "Já conduzi sob efeito do álcool.", "155": "As drogas têm afectado negativamente a minha saúde.", "156": "Já me envolvi em lutas físicas.", "157": "A ideia de acabar com a minha vida é apelativa.", "158": "Sinto que estou no limite do que consigo suportar.", "159": "Nunca fiquei com algo que não era meu.", "160": "Acredito que poderia beneficiar com tratamento.", "161": "Tenho dificuldade em deixar que outros assumam o controlo.", "162": "Gosto de passar tempo com outras pessoas.", "163": "Preocupo-me muito com doenças graves.", "164": "Tenho medo de perder o controlo.", "165": "Há situações que evito porque me causam ansiedade intensa.", "166": "Sinto-me muitas vezes desesperado.", "167": "Tenho talentos especiais que os outros não têm.", "168": "Suspeito que os outros estão a falar de mim.", "169": "Não tenho interesse em ter amigos próximos.", "170": "Tomo decisões por impulso sem pensar.", "171": "Não me preocupo com os sentimentos dos outros quando quero algo.", "172": "Estou preocupado com o meu consumo de álcool.", "173": "Sinto fissura por substâncias.", "174": "Fico facilmente frustrado.", "175": "Tenho planos de me suicidar em breve.", "176": "As exigências da minha vida são avassaladoras.", "177": "Nunca fiz algo de que me arrependi.", "178": "Sinto que tenho muito trabalho para fazer sobre mim mesmo.", "179": "Costumo definir o rumo nas situações de grupo.", "180": "Preocupo-me com o que acontece às pessoas que amo.", "181": "Tenho problemas de visão ou audição inexplicáveis.", "182": "Sinto-me constantemente tenso e apreensivo.", "183": "Fico perturbado se as coisas não estão no sítio certo.", "184": "Acredito que não há esperança para mim.", "185": "Ando tão activo que parece que tenho um motor.", "186": "As pessoas tentam enganar-me ou manipular-me.", "187": "Tenho crenças que os outros consideram excêntricas.", "188": "Tenho crises emocionais intensas e imprevisíveis.", "189": "Faço as minhas próprias regras.", "190": "O álcool ajuda-me a funcionar.", "191": "Comecei a usar substâncias mais cedo do que devia.", "192": "Ameaço as pessoas quando estou com raiva.", "193": "Tenho pensamentos recorrentes de suicídio.", "194": "Tenho sofrido perdas importantes recentemente.", "195": "Às vezes não digo a verdade.", "196": "Quero receber ajuda para os meus problemas.", "197": "Sou visto como um líder.", "198": "Tenho amizades próximas e significativas.", "199": "Tenho medo de ficar gravemente doente.", "200": "Tenho dificuldade em respirar quando estou ansioso.", "201": "Um medo específico tem um impacto significativo na minha vida.", "202": "Estou frequentemente cansado e sem forças.", "203": "Quando estou eufórico, o meu pensamento acelera muito.", "204": "Sinto que estou sempre a ser criticado.", "205": "Prefiro não ter muitos laços emocionais.", "206": "A minha vida parece sem sentido e sem propósito.", "207": "Já explorei a boa vontade dos outros em meu benefício.", "208": "Bebo para adormecer ou para dormir.", "209": "As drogas já interferiram com o meu trabalho ou estudos.", "210": "Já destruí propriedade de alguém quando estava furioso.", "211": "Desejo que algo me acontecesse para não ter de continuar a viver.", "212": "Tenho sofrido de problemas de saúde que me causam stress.", "213": "Às vezes sinto inveja de outras pessoas.", "214": "Estou disposto a trabalhar para melhorar.", "215": "Gosto que as coisas sejam feitas à minha maneira.", "216": "Sinto-me ligado emocionalmente às pessoas que me são próximas.", "217": "Tenho frequentemente fraqueza muscular ou paralisia.", "218": "A preocupação interfere com a minha capacidade de me concentrar.", "219": "Tenho pensamentos intrusivos desagradáveis que não consigo controlar.", "220": "Sinto que as coisas nunca vão melhorar.", "221": "Tenho poderes ou capacidades superiores às dos outros.", "222": "Não posso confiar em ninguém verdadeiramente.", "223": "Por vezes sinto que os outros conseguem ler os meus pensamentos.", "224": "Gasto dinheiro impulsivamente.", "225": "Não vejo problema em contornar as regras se isso me beneficiar.", "226": "Preciso de beber logo de manhã.", "227": "Já sofri sintomas de abstinência quando tentei parar de usar substâncias.", "228": "Fico com vontade de bater em alguém quando estou furioso.", "229": "Sinto que seria melhor para mim morrer.", "230": "Tenho sofrido problemas financeiros graves recentemente.", "231": "Nunca disse nada de mau sobre ninguém.", "232": "Acho que o tratamento psicológico poderia ajudar-me.", "233": "As pessoas seguem-me naturalmente.", "234": "Tenho facilidade em criar relações próximas.", "235": "Quando tenho um sintoma novo, fico logo preocupado que seja algo grave.", "236": "Sinto tensão no corpo a maior parte do tempo.", "237": "Tenho medos que sei que são irracionais mas que não consigo controlar.", "238": "Não vejo razão para continuar a viver.", "239": "Sinto que tenho uma energia inesgotável.", "240": "Sinto que nunca recebo o que mereço.", "241": "A solidão não me incomoda.", "242": "Tenho mudanças de humor frequentes e intensas.", "243": "Não me sinto culpado quando faço algo errado.", "244": "Tenho tentativas falhadas de controlar o consumo de álcool.", "245": "Tenho dificuldade em manter-me sóbrio/a por períodos prolongados.", "246": "Faço ameaças que não tenciono cumprir.", "247": "Se tivesse uma oportunidade de acabar com a minha vida sem dor, fá-lo-ia.", "248": "Tenho sofrido de problemas relacionais graves.", "249": "Nunca fiz nada que me envergonhasse.", "250": "Gostaria de aprender a gerir melhor os meus problemas.", "251": "Costumo tomar a iniciativa nas situações.", "252": "Importa-me o bem-estar das pessoas à minha volta.", "253": "Tenho frequentemente tonturas ou desmaios.", "254": "Tenho ataques de pânico com frequência.", "255": "Tenho comportamentos repetitivos que sinto que preciso de realizar.", "256": "Sinto-me completamente sem energia a maior parte do tempo.", "257": "As minhas ideias chegam tão depressa que fico sobrecarregado.", "258": "Guardo segredos porque temo que os outros me usem.", "259": "Tenho percepções que os outros não conseguem verificar.", "260": "Sinto que não tenho identidade.", "261": "Não me sinto ligado às normas sociais.", "262": "O álcool tem causado problemas no meu trabalho.", "263": "O uso de substâncias tem prejudicado as minhas relações.", "264": "Tenho comportamentos agressivos que asustam os outros.", "265": "Estou a pensar seriamente em suicidar-me.", "266": "Tenho sofrido de muito stress laboral recentemente.", "267": "Nunca senti raiva de forma intensa.", "268": "Preferia não mudar a minha situação actual.", "269": "Tenho dificuldade em partilhar o poder.", "270": "As pessoas sabem que podem contar comigo.", "271": "Os sintomas físicos ocupam muito do meu pensamento.", "272": "Mesmo quando estou em sítios seguros, sinto ansiedade.", "273": "O meu medo de certas coisas é excessivo e reconheço isso.", "274": "Sinto que sou um peso para os outros.", "275": "Sinto que tenho uma missão ou propósito especial.", "276": "Sinto que a vida me trata de forma injusta.", "277": "Tenho muita dificuldade em me aproximar emocionalmente das pessoas.", "278": "Envolvo-me em comportamentos de risco sem pensar.", "279": "Só me preocupo com os outros quando me beneficia.", "280": "O meu comportamento muda quando bebo.", "281": "Já perdi emprego ou relações por causa das substâncias.", "282": "Tenho muita dificuldade em controlar a raiva.", "283": "Tenho um plano específico de como me suicidar.", "284": "Tenho sofrido de conflitos familiares graves recentemente.", "285": "Nunca desejei o mal a ninguém.", "286": "Acredito que posso mudar se me esforçar.", "287": "Gosto de ter autoridade sobre os outros.", "288": "Sinto prazer em partilhar experiências com outros.", "289": "Tenho problemas de coordenação ou equilíbrio sem causa médica.", "290": "A ansiedade afecta o meu sono.", "291": "Sigo rotinas rígidas que me causam sofrimento se interrompidas.", "292": "Sinto que nada do que faço vai mudar o meu futuro.", "293": "Consigo funcionar com muito pouco sono sem me sentir cansado.", "294": "Não partilho informação pessoal porque os outros podem usá-la contra mim.", "295": "Tenho experiências perceptivas incomuns.", "296": "As minhas emoções são intensas e difíceis de controlar.", "297": "Tenho um historial de problemas com a lei.", "298": "Já fui a tratamento por problemas com o álcool.", "299": "Já fui a tratamento por problemas com substâncias.", "300": "Já ameacei matar alguém.", "301": "Estou a pensar agir sobre os meus pensamentos de suicídio em breve.", "302": "Tenho sofrido de luto ou perda recentemente.", "303": "Nunca tive um pensamento negativo sobre outra pessoa.", "304": "Sinto que o tratamento pode fazer a diferença.", "305": "As pessoas olham para mim para tomar a iniciativa.", "306": "Faço questão de apoiar os que me são próximos.", "307": "Tenho muitas consultas médicas por causa das minhas preocupações de saúde.", "308": "Já tive ataques súbitos de medo ou terror.", "309": "Evito certos locais ou situações por causa do medo.", "310": "Tenho dificuldade em levantar da cama de manhã.", "311": "Tenho tantas ideias ao mesmo tempo que me é difícil concentrar.", "312": "Sinto que recebo muito menos do que aquilo que mereço.", "313": "Evito situações sociais porque me sinto desconfortável.", "314": "Tenho um sentido de identidade frágil e inconsistente.", "315": "Já prejudiquei alguém deliberadamente sem me sentir mal.", "316": "O álcool tem afectado a minha saúde.", "317": "As substâncias têm afectado a minha saúde de forma significativa.", "318": "Já agredí fisicamente alguém.", "319": "Já escrevi uma nota de suicídio.", "320": "Tenho sofrido de dificuldades habitacionais recentemente.", "321": "Sou uma pessoa completamente honesta.", "322": "Estou comprometido a fazer mudanças positivas.", "323": "É difícil para mim submeter-me à autoridade dos outros.", "324": "Tenho relações de confiança com outras pessoas.", "325": "Tenho sensações físicas inexplicáveis.", "326": "Preocupo-me com coisas que provavelmente não vão acontecer.", "327": "Verifico repetidamente se portas e janelas estão fechadas.", "328": "Sinto que sou um fracasso.", "329": "Tenho uma visão especial ou missão.", "330": "Evito situações onde me possa sentir controlado pelos outros.", "331": "Às vezes sinto que o ambiente ao meu redor não é real.", "332": "Tenho relações intensas que começam e terminam de forma abrupta.", "333": "Já tive comportamentos criminosos.", "334": "Tenho dificuldade em imaginar a minha vida sem álcool.", "335": "Tenho dificuldade em imaginar a minha vida sem substâncias.", "336": "Às vezes perco completamente o controlo da minha raiva.", "337": "Já tentei comunicar com alguém sobre os meus pensamentos suicidas.", "338": "O stress que sinto é avassalador.", "339": "Respondo a este questionário da forma mais honesta possível.", "340": "Acredito que posso superar os meus problemas.", "341": "Tendo a dominar as relações que tenho.", "342": "Sinto-me confortável a ser próximo dos outros.", "343": "A minha saúde física é uma preocupação constante.", "344": "A minha ansiedade generalizada afecta a minha qualidade de vida."};
+var SCALE_NUMS   = {"SOM": [1, 19, 37, 55, 73, 91, 109, 127, 145, 163, 181, 199, 217, 235, 253, 271, 289, 307, 325, 343], "ANX": [2, 20, 38, 56, 74, 92, 110, 128, 146, 164, 182, 200, 218, 236, 254, 272, 290, 308, 326, 344], "ARD": [3, 21, 39, 57, 75, 93, 111, 129, 147, 165, 183, 201, 219, 237, 255, 273, 291, 309, 327], "DEP": [4, 22, 40, 58, 76, 94, 112, 130, 148, 166, 184, 202, 220, 238, 256, 274, 292, 310, 328], "MAN": [5, 23, 41, 59, 77, 95, 113, 131, 149, 167, 185, 203, 221, 239, 257, 275, 293, 311, 329], "PAR": [6, 24, 42, 60, 78, 96, 114, 132, 150, 168, 186, 204, 222, 240, 258, 276, 294, 312, 330], "SCZ": [7, 25, 43, 61, 79, 97, 115, 133, 151, 169, 187, 205, 223, 241, 259, 277, 295, 313, 331], "BOR": [8, 26, 44, 62, 80, 98, 116, 134, 152, 170, 188, 206, 224, 242, 260, 278, 296, 314, 332], "ANT": [9, 27, 45, 63, 81, 99, 117, 135, 153, 171, 189, 207, 225, 243, 261, 279, 297, 315, 333], "ALC": [10, 28, 46, 64, 82, 100, 118, 136, 154, 172, 190, 208, 226, 244, 262, 280, 298, 316, 334], "DRG": [11, 29, 47, 65, 83, 101, 119, 137, 155, 173, 191, 209, 227, 245, 263, 281, 299, 317, 335], "AGG": [12, 30, 48, 66, 84, 102, 120, 138, 156, 174, 192, 210, 228, 246, 264, 282, 300, 318], "SUI": [13, 31, 49, 67, 85, 103, 121, 139, 157, 175, 193, 211], "STR": [14, 32, 50, 68, 86, 104, 122, 140], "NON": [15, 33, 51, 69, 87, 105, 123, 141], "RXR": [16, 34, 52, 70, 88, 106, 124, 142], "DOM": [17, 35, 53, 71, 89, 107, 125, 143, 161, 179, 197, 215], "WRM": [18, 36, 54, 72, 90, 108, 126, 144, 162, 180, 198, 216]};
+var INVERTED     = [267, 268, 141, 142, 15, 16, 285, 286, 159, 160, 34, 303, 304, 177, 178, 52, 321, 322, 195, 196, 70, 339, 340, 213, 214, 87, 88, 231, 232, 105, 106, 249, 250, 123, 124];
+var NORMS        = {"ICN": {"m": 5.49, "sd": 2.38, "mf": 5.19, "sdf": 2.28, "mm": 5.66, "sdm": 2.5}, "INF": {"m": 3.4, "sd": 2.06, "mf": 3.24, "sdf": 2.08, "mm": 3.63, "sdm": 2.03}, "NIM": {"m": 2.02, "sd": 2.5, "mf": 2.08, "sdf": 2.54, "mm": 1.93, "sdm": 2.44}, "PIM": {"m": 15.68, "sd": 3.95, "mf": 15.6, "sdf": 3.93, "mm": 15.78, "sdm": 3.98}, "SOM": {"m": 13.29, "sd": 9.32, "mf": 14.1, "sdf": 9.85, "mm": 12.2, "sdm": 8.44}, "ANX": {"m": 23.33, "sd": 12.16, "mf": 25.01, "sdf": 12.54, "mm": 21.06, "sdm": 11.25}, "ARD": {"m": 21.89, "sd": 9.6, "mf": 23.09, "sdf": 8.71, "mm": 20.26, "sdm": 9.21}, "DEP": {"m": 19.65, "sd": 10.7, "mf": 20.24, "sdf": 10.66, "mm": 18.85, "sdm": 10.72}, "MAN": {"m": 21.23, "sd": 8.65, "mf": 20.59, "sdf": 8.39, "mm": 22.11, "sdm": 8.93}, "PAR": {"m": 24.51, "sd": 9.69, "mf": 23.82, "sdf": 9.45, "mm": 25.45, "sdm": 9.95}, "SCZ": {"m": 15.96, "sd": 8.29, "mf": 15.98, "sdf": 8.53, "mm": 15.94, "sdm": 7.97}, "BOR": {"m": 23.09, "sd": 10.39, "mf": 23.34, "sdf": 10.22, "mm": 22.74, "sdm": 10.52}, "ANT": {"m": 12.83, "sd": 6.67, "mf": 11.11, "sdf": 5.83, "mm": 15.16, "sdm": 7.04}, "ALC": {"m": 3.08, "sd": 3.79, "mf": 1.92, "sdf": 2.49, "mm": 4.65, "sdm": 4.59}, "DRG": {"m": 2.81, "sd": 3.41, "mf": 2.37, "sdf": 3.04, "mm": 3.41, "sdm": 3.78}, "AGG": {"m": 14.22, "sd": 7.14, "mf": 13.48, "sdf": 6.95, "mm": 15.23, "sdm": 7.28}, "SUI": {"m": 3.5, "sd": 5.73, "mf": 3.23, "sdf": 5.53, "mm": 3.88, "sdm": 5.97}, "STR": {"m": 6.96, "sd": 3.66, "mf": 6.98, "sdf": 3.6, "mm": 6.93, "sdm": 3.75}, "NON": {"m": 7.04, "sd": 3.99, "mf": 6.59, "sdf": 4.01, "mm": 7.65, "sdm": 3.9}, "RXR": {"m": 15.21, "sd": 4.21, "mf": 15.18, "sdf": 4.13, "mm": 15.26, "sdm": 4.33}, "DOM": {"m": 20.18, "sd": 5.15, "mf": 19.91, "sdf": 5.31, "mm": 20.54, "sdm": 4.9}, "WRM": {"m": 20.97, "sd": 5.57, "mf": 21.29, "sdf": 5.62, "mm": 20.54, "sdm": 5.47}};
+var SCALE_META   = {"ICN": {"name": "Inconsistência", "type": "validade", "desc": "Consistência interna das respostas"}, "INF": {"name": "Infrequência", "type": "validade", "desc": "Itens raramente endossados — detecta aleatoriedade ou simulação"}, "NIM": {"name": "Impressão Negativa", "type": "validade", "desc": "Tendência para apresentação excessivamente negativa"}, "PIM": {"name": "Impressão Positiva", "type": "validade", "desc": "Tendência para apresentação positiva — detecta defensividade"}, "SOM": {"name": "Queixas Somáticas", "type": "clinica", "desc": "Preocupações com saúde física [SOM-C · SOM-H · SOM-S]"}, "ANX": {"name": "Ansiedade", "type": "clinica", "desc": "Sintomas de ansiedade [ANX-C · ANX-A · ANX-P]"}, "ARD": {"name": "Pert. Rel. c/ Ansiedade", "type": "clinica", "desc": "Características OC, fobias e stress traumático [ARD-O · ARD-P · ARD-T]"}, "DEP": {"name": "Depressão", "type": "clinica", "desc": "Sintomas depressivos [DEP-C · DEP-A · DEP-P]"}, "MAN": {"name": "Mania", "type": "clinica", "desc": "Actividade, grandiosidade e irritabilidade [MAN-A · MAN-G · MAN-I]"}, "PAR": {"name": "Paranóia", "type": "clinica", "desc": "Hipervigilância, perseguição e ressentimento [PAR-H · PAR-P · PAR-R]"}, "SCZ": {"name": "Esquizofrenia", "type": "clinica", "desc": "Experiências psicóticas, isolamento e pensamento perturbado [SCZ-P · SCZ-S · SCZ-T]"}, "BOR": {"name": "Perturbação Borderline", "type": "clinica", "desc": "Instabilidade afectiva, identidade e relações [BOR-A · BOR-I · BOR-N · BOR-S]"}, "ANT": {"name": "Perturbação Anti-social", "type": "clinica", "desc": "Comportamentos antissociais e egocentrismo [ANT-A · ANT-E · ANT-S]"}, "ALC": {"name": "Problemas com Álcool", "type": "clinica", "desc": "Consequências problemáticas do consumo de álcool [ALC-E · ALC-P · ALC-T]"}, "DRG": {"name": "Problemas com Drogas", "type": "clinica", "desc": "Consequências problemáticas do uso de substâncias [DRG-E · DRG-P · DRG-T]"}, "AGG": {"name": "Agressividade", "type": "tratamento", "desc": "Atitude agressiva, agressão verbal e física [AGG-A · AGG-P · AGG-V]"}, "SUI": {"name": "Ideação Suicida", "type": "tratamento", "desc": "Ideação suicida — desde pensamentos vagos a planos concretos"}, "STR": {"name": "Stress", "type": "tratamento", "desc": "Impacto de acontecimentos stressantes recentes"}, "NON": {"name": "Falta de Suporte Social", "type": "tratamento", "desc": "Percepção de ausência de suporte social e de pertença"}, "RXR": {"name": "Rejeição ao Tratamento", "type": "tratamento", "desc": "Resistência à mudança e baixa motivação para tratamento"}, "DOM": {"name": "Dominância", "type": "interpessoal", "desc": "Grau de controlo e assertividade nas relações interpessoais"}, "WRM": {"name": "Afabilidade", "type": "interpessoal", "desc": "Grau de calor humano, empatia e interesse pelas relações"}};
+var INTERP       = {"ICN": ["Padrão de respostas consistente. Perfil válido.", "Inconsistência moderada. Avaliar atenção e motivação.", "Inconsistência elevada. Perfil possivelmente inválido. Considerar readministração."], "INF": ["Sem respostas atípicas. Perfil válido.", "Algumas respostas infrequentes. Avaliar compreensão.", "Respostas infrequentes elevadas. Possível aleatoriedade ou simulação."], "NIM": ["Sem indicadores de apresentação excessivamente negativa.", "Tendência para apresentação negativa. Contextualizar clinicamente.", "Impressão Negativa marcada. Avaliar validade do perfil."], "PIM": ["Apresentação positiva adequada.", "Possível negação de dificuldades. Interpretar com cautela.", "Impressão Positiva muito elevada — possível defensividade. Resultados podem estar subestimados."], "SOM": ["Queixas somáticas dentro do esperado.", "Queixas somáticas moderadas. Avaliar causa médica.", "Nível clínico de queixas somáticas. Articular com avaliação médica."], "ANX": ["Ansiedade dentro dos parâmetros normativos.", "Ansiedade moderada. Monitorizar sintomas.", "Nível clínico de ansiedade. Interferência funcional significativa. Intervenção indicada."], "ARD": ["Sem perturbações relacionadas com ansiedade significativas.", "Características OC ou fóbicas moderadas. Avaliar impacto funcional.", "Nível clínico de perturbações relacionadas com ansiedade. Avaliação aprofundada indicada."], "DEP": ["Humor dentro do esperado.", "Sintomas depressivos moderados. Avaliar impacto funcional.", "Nível clínico de depressão. Avaliação e intervenção urgentes. Avaliar risco."], "MAN": ["Sem características maníacas significativas.", "Actividade/grandiosidade moderadas. Monitorizar ciclos de humor.", "Nível clínico de características maníacas. Avaliação psiquiátrica indicada."], "PAR": ["Sem ideação paranóide significativa.", "Desconfiança moderada. Avaliar contexto relacional.", "Nível clínico de paranóia. Avaliação aprofundada indicada."], "SCZ": ["Sem experiências psicóticas significativas.", "Algumas experiências incomuns. Avaliar isolamento e pensamento.", "Nível clínico de sintomas esquizofrénicos. Avaliação psiquiátrica urgente."], "BOR": ["Sem características borderline clinicamente significativas.", "Instabilidade emocional moderada. Avaliar impulsividade.", "Nível clínico de características borderline. Avaliação de risco e tratamento especializado."], "ANT": ["Sem traços antissociais clinicamente significativos.", "Tendências antissociais moderadas. Avaliar comportamentos de risco.", "Nível clínico de traços antissociais. Avaliar risco para si e para outros."], "ALC": ["Sem indicadores de problemas com álcool.", "Padrão de consumo que requer avaliação.", "Nível clínico de problemas com álcool. Intervenção indicada."], "DRG": ["Sem indicadores de problemas com substâncias.", "Padrão de uso que requer avaliação.", "Nível clínico de problemas com substâncias. Intervenção indicada."], "AGG": ["Agressividade dentro dos parâmetros normativos.", "Tendências agressivas moderadas. Avaliar contexto e gatilhos.", "Nível clínico de agressividade. Avaliar risco para si e para outros."], "SUI": ["Sem indicadores significativos de ideação suicida.", "⚠ Ideação suicida moderada. Avaliação de risco necessária.", "⚠ ATENÇÃO — Nível clínico de ideação suicida. Avaliação de risco IMEDIATA. Protocolo de segurança."], "STR": ["Nível de stress dentro do esperado.", "Stress moderado. Avaliar recursos de coping.", "Nível clínico de stress. Intervenção de suporte indicada."], "NON": ["Suporte social percebido adequado.", "Suporte social percebido limitado. Avaliar rede de apoio.", "Isolamento percebido marcado. Amplifica risco clínico. Intervenção indicada."], "RXR": ["Abertura ao tratamento adequada.", "Motivação limitada. Trabalhar aliança terapêutica.", "Rejeição marcada ao tratamento. Psicoeducação e motivação são prioritárias."], "DOM": ["Nível de dominância interpessoal adequado.", "Tendência de controlo moderada. Avaliar padrões interpessoais.", "Dominância interpessoal elevada. Avaliar impacto nas relações."], "WRM": ["Nível de afabilidade adequado.", "Afabilidade moderada. Avaliar vinculação e relações.", "Afabilidade muito baixa. Avaliar isolamento e padrões de vinculação."]};
+
+var INVERTED_SET = {};
+INVERTED.forEach(function(n){ INVERTED_SET[n] = true; });
+
+var SCALE_ORDER_SCORED = ['SOM','ANX','ARD','DEP','MAN','PAR','SCZ','BOR','ANT','ALC','DRG','AGG','SUI','STR','NON','RXR','DOM','WRM'];
+var SCALE_ORDER_ALL    = ['ICN','INF','NIM','PIM','SOM','ANX','ARD','DEP','MAN','PAR','SCZ','BOR','ANT','ALC','DRG','AGG','SUI','STR','NON','RXR','DOM','WRM'];
+
+var GROUPS = [
+  {label:'ESCALAS DE VALIDADE',          abbrs:['ICN','INF','NIM','PIM']},
+  {label:'ESCALAS CLÍNICAS',             abbrs:['SOM','ANX','ARD','DEP','MAN','PAR','SCZ','BOR','ANT','ALC','DRG']},
+  {label:'ESCALAS DE TRATAMENTO',        abbrs:['AGG','SUI','STR','NON','RXR']},
+  {label:'ESCALAS INTERPESSOAIS',        abbrs:['DOM','WRM']},
+];
+
+var PARTS = [
+  {label:'PARTE 1 — Itens 1 a 100',    start:1,   end:100},
+  {label:'PARTE 2 — Itens 101 a 200',  start:101, end:200},
+  {label:'PARTE 3 — Itens 201 a 300',  start:201, end:300},
+  {label:'PARTE 4 — Itens 301 a 344',  start:301, end:344},
+];
+
+var PASSWORD   = 'CNS2024';
+var SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxX2_Ry7VRH6jr7eGBMmtmyZFXZc69blwdO5bqJK0j69HRSexpXXPuEfDC5OHQRMLLL/exec';
+var SHEET_ABA  = 'PAI';
+var SYNC_KEY   = 'pai';
+var SK_PREFIX  = 'pai_adult_';
+
+var responses   = {};
+var questBuilt  = false;
+
+// ══ NAV ══════════════════════════════════════════════════════
+function showPage(id){
+  document.querySelectorAll('.page').forEach(function(p){ p.style.display='none'; });
+  document.getElementById(id).style.display='block';
+  window.scrollTo(0,0);
+}
+function showClinico(){
+  showPage('page-login');
+  setTimeout(function(){ var el=document.getElementById('login-pw'); if(el) el.focus(); },100);
+}
+function voltarParaIdentificacao(){
+  document.getElementById('section-2').style.display='none';
+  document.getElementById('section-1').style.display='block';
+}
+
+// ══ QUESTIONNAIRE BUILD ══════════════════════════════════════
+function initQuestionnaire(){
+  if(questBuilt) return;
+  questBuilt = true;
+  var html = '';
+  PARTS.forEach(function(part){
+    html += '<div class="part-sep">' + part.label + '</div>';
+    html += '<table class="item-table"><thead><tr>';
+    html += '<th style="width:44px">N.º</th><th style="text-align:left">Afirmação</th>';
+    html += '<th style="width:52px">F<br><small>(0)</small></th>';
+    html += '<th style="width:52px">L<br><small>(1)</small></th>';
+    html += '<th style="width:52px">M<br><small>(2)</small></th>';
+    html += '<th style="width:52px">T<br><small>(3)</small></th>';
+    html += '</tr></thead><tbody>';
+    for(var n=part.start; n<=part.end; n++){
+      var txt = ITEMS_DATA[String(n)] || '—';
+      html += '<tr id="row-' + n + '">';
+      html += '<td class="item-num">' + n + '</td>';
+      html += '<td class="item-text">' + txt + '</td>';
+      for(var v=0;v<4;v++){
+        html += '<td class="radio-td"><input type="radio" name="item' + n + '" value="' + v + '" onchange="recordResp(' + n + ',' + v + ')"></td>';
+      }
+      html += '</tr>';
+    }
+    html += '</tbody></table>';
+  });
+  document.getElementById('quest-body').innerHTML = html;
+  updateProgress();
+}
+
+function recordResp(num, val){
+  responses[num] = val;
+  var row = document.getElementById('row-' + num);
+  if(row) row.style.background = '';
+  updateProgress();
+  document.getElementById('missing-alert').style.display = 'none';
+}
+
+function updateProgress(){
+  var n = Object.keys(responses).length;
+  var pct = (n/344)*100;
+  document.getElementById('prog-fill').style.width = pct + '%';
+  document.getElementById('prog-label').textContent = n + ' / 344 respondidas';
+  var hdr = document.getElementById('hdr-progress');
+  if(hdr) hdr.textContent = n + ' / 344';
+}
+
+function limparRespostas(){
+  if(!confirm('Limpar todas as respostas?')) return;
+  responses = {};
+  document.querySelectorAll('input[type=radio]').forEach(function(r){ r.checked=false; });
+  document.querySelectorAll('.item-table tbody tr').forEach(function(r){ r.style.background=''; });
+  updateProgress();
+}
+
+function avancarParaQuestoes(){
+  var code  = document.getElementById('patient-code').value.trim().toUpperCase();
+  var nomer = document.getElementById('nome-respondente').value.trim();
+  var nomec = document.getElementById('nome-crianca').value.trim();
+  if(!code){ alert('Por favor indique o código do paciente.'); return; }
+  if(!/^[A-Z]{2,3}[0-9]{8}$/.test(code)){
+    alert('Código inválido. Devem ser 2 ou 3 iniciais + data de nascimento (DDMMAAAA). Exemplo: MV14061985'); return;
+  }
+  if(!nomer){ alert('Por favor indique o nome do respondente.'); return; }
+  if(!nomec){ alert('Por favor indique o nome para o processo.'); return; }
+  document.getElementById('section-1').style.display='none';
+  document.getElementById('section-2').style.display='block';
+  initQuestionnaire();
+}
+
+// ══ SCORING ENGINE — mirrors Excel exactly ══════════════════
+// T = ROUND(50 + 10*(raw - M_PT) / DP_PT, 1)
+// Inverted items: score = 3 - response
+// PIM: classified inversely (high T = defensive)
+// Thresholds: T≥70 = Elevated, T≥84 = Clinically Significant
+
+function calcT(raw, m, sd){
+  return Math.round((50 + 10*(raw - m)/sd)*10)/10;
+}
+
+function scoreSession(resp, sexo){
+  var results = {};
+  SCALE_ORDER_SCORED.forEach(function(abbr){
+    var nums = SCALE_NUMS[abbr] || [];
+    var raw = 0;
+    nums.forEach(function(n){
+      var v = resp[n] !== undefined ? parseInt(resp[n]) : 0;
+      if(INVERTED_SET[n]) v = 3 - v;
+      raw += v;
+    });
+    var nm = NORMS[abbr];
+    var m = nm.m, sd = nm.sd;
+    if(sexo === 'F' && nm.mf){ m = nm.mf; sd = nm.sdf; }
+    if(sexo === 'M' && nm.mm){ m = nm.mm; sd = nm.sdm; }
+    var t = calcT(raw, m, sd);
+    results[abbr] = {raw: raw, t: t, n: nums.length};
+  });
+  // ICN/INF/NIM/PIM: raw=0, T computed from norms (same as Excel)
+  ['ICN','INF','NIM','PIM'].forEach(function(abbr){
+    var nm = NORMS[abbr];
+    var t = calcT(0, nm.m, nm.sd);
+    results[abbr] = {raw: null, t: t, n: null, validity_note: true};
+  });
+  return results;
+}
+
+function classifyT(abbr, t){
+  if(t === null || t === undefined) return {cls:'—', label:'—', badge:''};
+  // PIM: high T = defensive (inverted logic)
+  if(abbr === 'PIM'){
+    if(t >= 57) return {cls:'invalid', label:'Elevada (defensividade)', badge:'badge-invalid'};
+    if(t >= 50) return {cls:'border',  label:'Moderada',               badge:'badge-borderline'};
+    return {cls:'norm', label:'Normativa', badge:'badge-normative'};
+  }
+  // Standard thresholds — T≥84 = clinically significant, T≥70 = elevated
+  if(t >= 84) return {cls:'high',   label:'Clinicamente Significativo', badge:'badge-high'};
+  if(t >= 70) return {cls:'elev',   label:'Elevado',                    badge:'badge-clinical'};
+  return {cls:'norm', label:'Normativo', badge:'badge-normative'};
+}
+
+function getInterp(abbr, cls){
+  var arr = INTERP[abbr] || ['—','—','—'];
+  if(cls === 'norm')                  return arr[0];
+  if(cls === 'border' || cls === 'elev') return arr[1];
+  if(cls === 'high'   || cls === 'invalid') return arr[2];
+  return arr[1];
+}
+
+// ══ SUBMIT ═══════════════════════════════════════════════════
+function submeter(){
+  var missing = [];
+  for(var n=1;n<=344;n++){
+    if(responses[n] === undefined) missing.push(n);
+  }
+  if(missing.length > 0){
+    document.getElementById('missing-alert').style.display = 'block';
+    document.querySelectorAll('.item-table tbody tr').forEach(function(r){ r.style.background=''; });
+    missing.forEach(function(n){
+      var row = document.getElementById('row-' + n);
+      if(row) row.style.background = '#fdecea';
+    });
+    window.scrollTo(0,0);
+    return;
+  }
+
+  var code  = document.getElementById('patient-code').value.trim().toUpperCase();
+  var nomer = document.getElementById('nome-respondente').value.trim();
+  var nomec = document.getElementById('nome-crianca').value.trim();
+  var sexo  = document.getElementById('sexo').value;
+  var dob   = document.getElementById('dob').value;
+  var dataApl = document.getElementById('data-apl').value;
+  var now   = new Date();
+  var ts    = now.toISOString();
+  var dateStr = dataApl || now.toLocaleDateString('pt-PT');
+
+  var scores = scoreSession(responses, sexo);
+  var respostasObj = {};
+  Object.keys(responses).forEach(function(k){ respostasObj[parseInt(k)] = responses[k]; });
+
+  var session = {
+    codigo: code, nome_crianca: nomec, nome_preenche: nomer,
+    sexo: sexo, dob: dob,
+    data_preenche: dateStr, timestamp: ts,
+    scores: scores, respostas: respostasObj,
+    instrumento: 'PAI Adultos'
+  };
+
+  var key = SK_PREFIX + code + '_' + ts;
+  try{ localStorage.setItem(key, JSON.stringify(session)); }catch(e){}
+
+  // Payload for Sheet
+  var payload = { instrumento: SHEET_ABA, syncKey: SYNC_KEY,
+    Código: code, NomePaciente: nomec, NomeRespondente: nomer,
+    Sexo: sexo, DataNasc: dob, Data: dateStr, Timestamp: ts };
+  SCALE_ORDER_SCORED.forEach(function(a){
+    payload['T_'+a] = scores[a] ? scores[a].t : '';
+    payload['Raw_'+a] = scores[a] ? scores[a].raw : '';
+  });
+  payload.Respostas = JSON.stringify(respostasObj);
+
+  var isFile = window.location.protocol === 'file:';
+  if(!isFile){
+    fetch(SCRIPT_URL, { method:'POST', mode:'no-cors',
+      headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) }).catch(function(){});
+  } else {
+    var cols = ['Código','NomePaciente','NomeRespondente','Sexo','DataNasc','Data'];
+    SCALE_ORDER_SCORED.forEach(function(a){ cols.push('T_'+a); cols.push('Raw_'+a); });
+    var row = cols.map(function(c){ return payload[c]||''; });
+    var csv = '\uFEFF' + cols.join(';') + '\n' + row.join(';');
+    var a2 = document.createElement('a');
+    a2.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+    a2.download = 'PAI_' + code + '_' + dateStr.replace(/\//g,'-') + '.csv';
+    a2.click();
+  }
+  showPage('page-obrigado');
+}
+
+// ══ LOGIN ════════════════════════════════════════════════════
+function tentarLogin(){
+  var pw = document.getElementById('login-pw').value;
+  if(pw === PASSWORD){
+    document.getElementById('login-error').style.display='none';
+    document.getElementById('login-pw').value='';
+    showPage('page-clinico'); carregarDados();
+  } else {
+    document.getElementById('login-error').style.display='block';
+    document.getElementById('login-pw').value='';
+    document.getElementById('login-pw').focus();
+  }
+}
+
+// ══ PAINEL ═══════════════════════════════════════════════════
+function carregarDados(){
+  var sessions = [];
+  for(var i=0;i<localStorage.length;i++){
+    var k = localStorage.key(i);
+    if(k && k.indexOf(SK_PREFIX)===0){
+      try{ var s=JSON.parse(localStorage.getItem(k)); if(s&&s.codigo) sessions.push(s); }catch(e){}
+    }
+  }
+  sessions.sort(function(a,b){ return (b.timestamp||'').localeCompare(a.timestamp||''); });
+  window._sessions = sessions;
+  renderPainel(sessions);
+}
+
+function sincronizar(){
+  fetch(SCRIPT_URL + '?instrumento=' + SHEET_ABA + '&t=' + Date.now())
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      var rows = data && data.rows ? data.rows : [];
+      rows.forEach(function(row){
+        var code = row['Código']||row.codigo||'';
+        var ts   = row['Timestamp']||row.timestamp||'';
+        if(!code) return;
+        var k = SK_PREFIX+code+'_'+ts;
+        if(localStorage.getItem(k)) return;
+        var s = { codigo:code, nome_crianca:row['NomePaciente']||'',
+          nome_preenche:row['NomeRespondente']||'',
+          sexo:row['Sexo']||'', data_preenche:row['Data']||'', timestamp:ts, scores:{}, respostas:{} };
+        SCALE_ORDER_SCORED.forEach(function(a){
+          s.scores[a] = { t: parseFloat(row['T_'+a])||null, raw: parseInt(row['Raw_'+a])||0, n: (SCALE_NUMS[a]||[]).length };
+        });
+        ['ICN','INF','NIM','PIM'].forEach(function(a){ s.scores[a]={raw:null,t:null,validity_note:true}; });
+        try{
+          var raw=row['Respostas']||'';
+          if(raw&&typeof raw==='string'&&raw.startsWith('{')) s.respostas=JSON.parse(raw);
+          else if(raw&&typeof raw==='object') s.respostas=raw;
+        }catch(e){}
+        localStorage.setItem(k, JSON.stringify(s));
+      });
+      carregarDados();
+    }).catch(function(){ alert('Erro a sincronizar.'); });
+}
+
+function renderPainel(sessions){
+  if(!sessions||!sessions.length){
+    document.getElementById('painel-body').innerHTML='<div class="card" style="text-align:center;padding:40px;color:var(--text-light)">Sem sessões registadas.</div>';
+    return;
+  }
+  var html='<div class="card" style="padding:0;overflow:hidden"><table class="sessions-table">';
+  html+='<thead><tr><th>Data</th><th>Código</th><th>Nome</th><th>Sexo</th><th>DEP</th><th>ANX</th><th>SUI</th><th>Ações</th></tr></thead><tbody>';
+  sessions.forEach(function(s,i){
+    function badge(abbr){ var sc=s.scores&&s.scores[abbr]; if(!sc||!sc.t) return '—';
+      var c=classifyT(abbr,sc.t); return '<span class="badge '+c.badge+'">'+sc.t+'</span>'; }
+    html+='<tr>';
+    html+='<td>'+(s.data_preenche||'—')+'</td>';
+    html+='<td><strong>'+(s.codigo||'—')+'</strong>'+(s.nome_crianca?'<br><span style="font-size:.75rem;color:var(--text-light)">'+s.nome_crianca+'</span>':'')+'</td>';
+    html+='<td>'+(s.nome_preenche||'—')+'</td>';
+    html+='<td>'+(s.sexo||'—')+'</td>';
+    html+='<td>'+badge('DEP')+'</td><td>'+badge('ANX')+'</td><td>'+badge('SUI')+'</td>';
+    html+='<td style="white-space:nowrap"><button class="btn btn-secondary btn-xs" onclick="verDetalhe('+i+')">Ver →</button> ';
+    html+='<button class="btn btn-xs" style="background:#fdecea;color:var(--red)" onclick="eliminar('+i+')">✕</button></td>';
+    html+='</tr>';
+  });
+  html+='</tbody></table></div>';
+  document.getElementById('painel-body').innerHTML=html;
+}
+
+// ══ VER DETALHE ══════════════════════════════════════════════
+function verDetalhe(idx){
+  var s = window._sessions[idx];
+  if(!s) return;
+  var hasResp = s.respostas && Object.keys(s.respostas).length > 0;
+  var scores = s.scores || {};
+
+  // Recalculate from responses if available
+  if(hasResp){
+    var freshScores = scoreSession(s.respostas, s.sexo);
+    Object.assign(scores, freshScores);
+  }
+
+  var html='';
+  // Header
+  html+='<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px;font-size:.82rem;background:var(--gray);padding:12px;border-radius:8px">';
+  html+='<span><strong>Código:</strong> '+(s.codigo||'—')+'</span>';
+  html+='<span><strong>Nome:</strong> '+(s.nome_crianca||'—')+'</span>';
+  html+='<span><strong>Sexo:</strong> '+(s.sexo||'—')+'</span>';
+  html+='<span><strong>Data:</strong> '+(s.data_preenche||'—')+'</span>';
+  html+='<span><strong>Respondente:</strong> '+(s.nome_preenche||'—')+'</span>';
+  html+='<span><strong>Normas:</strong> Paulino et al. (2024) PT'+(s.sexo?' • por género':'')+'</span>';
+  html+='</div>';
+
+  // SUI alert
+  var sui = scores['SUI'];
+  if(sui && sui.t >= 70){
+    html+='<div class="sui-alert">';
+    if(sui.t>=84) html+='⚠ ATENÇÃO — Ideação Suicida clinicamente significativa (T='+sui.t+'). Avaliação de risco IMEDIATA. Protocolo de segurança urgente.';
+    else html+='⚠ Ideação Suicida elevada (T='+sui.t+'). Avaliação de risco necessária.';
+    html+='</div>';
+  }
+
+  // Profile chart
+  html += buildProfileChart(scores);
+
+  // Results table
+  html+='<div style="overflow-x:auto"><table class="rt"><thead><tr><th>Sigla</th><th>Escala</th><th>N</th><th>Raw</th><th>T-Score</th><th>Nível</th><th>Interpretação</th></tr></thead><tbody>';
+  GROUPS.forEach(function(grp){
+    html+='<tr class="group-hdr"><td colspan="7">'+grp.label+'</td></tr>';
+    grp.abbrs.forEach(function(abbr,ri){
+      var sc = scores[abbr];
+      var t  = sc ? sc.t   : null;
+      var raw = sc ? sc.raw : null;
+      var n   = sc ? sc.n  : null;
+      var cls = classifyT(abbr, t);
+      var interp = getInterp(abbr, cls.cls);
+      var maxRaw = n ? n*3 : '—';
+      var pct = t ? Math.min(100,(t/130)*100) : 0;
+      var fillCls = cls.cls==='norm'?'fill-n':cls.cls==='elev'?'fill-e':'fill-h';
+      var valColor = cls.cls==='norm'?'var(--green)':cls.cls==='elev'?'var(--orange)':'var(--red)';
+      var bg = ri%2===0?'white':'var(--gray)';
+      var isValidity = ['ICN','INF','NIM','PIM'].includes(abbr);
+      html+='<tr style="background:'+bg+'">';
+      html+='<td style="font-weight:700;color:var(--blue)">'+abbr+'</td>';
+      html+='<td style="font-size:.85rem">'+SCALE_META[abbr].name+'</td>';
+      html+='<td style="text-align:center;font-size:.82rem">'+(n!==null?n:isValidity?'<span style="color:#aaa">—</span>':'—')+'</td>';
+      html+='<td style="text-align:center">'+(raw!==null?raw+'<small style="color:#aaa">/'+maxRaw+'</small>':isValidity?'<span style="font-size:.75rem;color:#aaa;font-style:italic">ver nota</span>':'—')+'</td>';
+      html+='<td><div class="ts-wrap">';
+      html+='<span class="ts-val" style="color:'+valColor+'">'+(t!==null?t.toFixed(1):'—')+'</span>';
+      html+='<div class="ts-track"><div class="ts-fill '+fillCls+'" style="width:'+pct+'%"></div></div>';
+      html+='</div></td>';
+      html+='<td><span class="badge '+cls.badge+'">'+(cls.label||'—')+'</span></td>';
+      html+='<td style="font-size:.78rem;color:#555">'+interp+'</td>';
+      html+='</tr>';
+    });
+  });
+  html+='</tbody></table></div>';
+
+  // Validity note
+  html+='<div class="note-box" style="margin-top:12px;font-size:.75rem">Escalas de validade (ICN/INF/NIM/PIM): nesta adaptação a pontuação é calculada com raw=0 como referência base, tal como no Excel. Para cotação completa das escalas de validade, usar o Excel PAI_Cotacao_PT_v2.xlsx com inserção manual das respostas.</div>';
+
+  html += buildSummaryParagraph(scores);
+
+  // Responses detail
+  if(hasResp){
+    html+='<div style="margin-top:20px" class="no-print"><button class="btn btn-secondary btn-xs" onclick="toggleRespostas(this)">▼ Ver respostas item a item</button>';
+    html+='<div id="resp-detail" style="display:none;margin-top:12px;overflow-x:auto"><table class="rt"><thead><tr><th>#</th><th>Item</th><th>Resposta</th><th>Score</th></tr></thead><tbody>';
+    for(var n=1;n<=344;n++){
+      var rval = s.respostas[n];
+      var labels=['F(0)','L(1)','M(2)','T(3)'];
+      var inv = INVERTED_SET[n];
+      var scored = rval!==undefined?(inv?3-rval:rval):'—';
+      var bg2 = n%2===0?'var(--gray)':'white';
+      html+='<tr style="background:'+bg2+'"><td style="text-align:center;color:var(--text-light)">'+n+'</td>';
+      html+='<td style="font-size:.8rem">'+(ITEMS_DATA[String(n)]||'—')+'</td>';
+      html+='<td style="text-align:center;font-weight:600">'+(rval!==undefined?labels[rval]:'—')+'</td>';
+      html+='<td style="text-align:center;color:'+(inv?'var(--orange)':'inherit')+'">'+scored+(inv?' ↺':'')+'</td>';
+      html+='</tr>';
+    }
+    html+='</tbody></table></div></div>';
+  }
+
+  // Action buttons
+  html+='<div class="no-print" style="display:flex;gap:10px;flex-wrap:wrap;margin-top:20px;padding-top:16px;border-top:1px solid var(--gray-bdr)">';
+  html+='<button class="btn btn-secondary btn-xs" onclick="exportarRespostasPDF('+idx+')">📋 Respostas PDF</button>';
+  html+='<button class="btn btn-secondary btn-xs" onclick="exportarInterpretacaoPDF('+idx+')">📊 Interpretação PDF</button>';
+  html+='</div>';
+
+  html+='<p style="font-size:.72rem;color:var(--text-light);margin-top:16px;font-style:italic">Interpretação gerada automaticamente. Não substitui avaliação clínica aprofundada. Normas: Paulino et al. (2024), N=900, Portugal. T≥70=Elevado · T≥84=Clinicamente Significativo · PIM: T≤57=defensividade. Ricardina Correia · Cédula 8233.</p>';
+
+  document.getElementById('modal-title').textContent = 'PAI — '+(s.nome_crianca||s.codigo||'Detalhe');
+  document.getElementById('modal-body').innerHTML = html;
+  document.getElementById('modal-overlay').style.display = 'flex';
+}
+
+function fecharModal(e){
+  if(e.target===document.getElementById('modal-overlay'))
+    document.getElementById('modal-overlay').style.display='none';
+}
+function toggleRespostas(btn){
+  var d=document.getElementById('resp-detail');
+  if(!d)return;
+  if(d.style.display==='none'){d.style.display='block';btn.textContent='▲ Ocultar respostas';}
+  else{d.style.display='none';btn.textContent='▼ Ver respostas item a item';}
+}
+
+// ══ PROFILE CHART ════════════════════════════════════════════
+function buildProfileChart(scores){
+  var abbrs = ['SOM','ANX','ARD','DEP','MAN','PAR','SCZ','BOR','ANT','ALC','DRG','AGG','SUI','STR','NON','RXR','DOM','WRM'];
+  var W=860,H=260,PL=55,PR=15,PT=25,PB=55;
+  var cW=W-PL-PR, cH=H-PT-PB, n=abbrs.length, cw=cW/n;
+  var T_MIN=30, T_MAX=110;
+  function yS(t){ return PT+cH-((t-T_MIN)/(T_MAX-T_MIN))*cH; }
+
+  var svg='<div style="overflow-x:auto"><svg viewBox="0 0 '+W+' '+H+'" style="width:100%;min-width:500px;font-family:DM Sans,sans-serif">';
+  svg+='<rect x="'+PL+'" y="'+PT+'" width="'+cW+'" height="'+cH+'" fill="#f8fafc"/>';
+  // T≥84 zone
+  svg+='<rect x="'+PL+'" y="'+yS(T_MAX)+'" width="'+cW+'" height="'+(yS(84)-yS(T_MAX))+'" fill="#fdecea" opacity=".3"/>';
+  // T≥70 zone
+  svg+='<rect x="'+PL+'" y="'+yS(84)+'" width="'+cW+'" height="'+(yS(70)-yS(84))+'" fill="#fef3e2" opacity=".4"/>';
+  // Grid
+  [40,50,60,70,80,84,90,100].forEach(function(t){
+    var y=yS(t);
+    svg+='<line x1="'+PL+'" y1="'+y+'" x2="'+(PL+cW)+'" y2="'+y+'" stroke="'+(t===84?'#c0392b':t===70?'#e67e22':'#dde3ea')+'" stroke-width="'+(t===84||t===70?1.5:.7)+'" stroke-dasharray="'+(t===84||t===70?'4,3':'')+'" />';
+    svg+='<text x="'+(PL-6)+'" y="'+(y+4)+'" text-anchor="end" font-size="9.5" fill="#888">'+t+'</text>';
+  });
+  // Bars
+  abbrs.forEach(function(abbr,i){
+    var sc=scores[abbr];
+    var t=sc&&sc.t?sc.t:50;
+    var x=PL+i*cw+cw*.1, bw=cw*.8;
+    var ty=yS(Math.min(t,T_MAX)), by=yS(50);
+    var barH=Math.abs(by-ty), clampY=Math.min(ty,by);
+    var col=classifyT(abbr,t).cls==='norm'?'#27AE60':classifyT(abbr,t).cls==='elev'?'#E67E22':'#C0392B';
+    svg+='<rect x="'+x+'" y="'+clampY+'" width="'+bw+'" height="'+Math.max(barH,2)+'" fill="'+col+'" opacity=".82" rx="2"/>';
+    svg+='<text x="'+(x+bw/2)+'" y="'+(clampY-3)+'" text-anchor="middle" font-size="9" font-weight="700" fill="'+col+'">'+t.toFixed(0)+'</text>';
+    svg+='<text x="'+(x+bw/2)+'" y="'+(H-PB+14)+'" text-anchor="middle" font-size="9.5" font-weight="700" fill="var(--blue)">'+abbr+'</text>';
+  });
+  svg+='<rect x="'+PL+'" y="'+PT+'" width="'+cW+'" height="'+cH+'" fill="none" stroke="#dde3ea" stroke-width="1"/>';
+  svg+='</svg></div>';
+  svg+='<div style="font-size:.72rem;color:#888;text-align:center;margin:4px 0 16px"><span style="color:#27AE60">■</span> Normativo &nbsp;<span style="color:#e67e22">■</span> Elevado T≥70 &nbsp;<span style="color:#c0392b">■</span> Clinicamente Significativo T≥84</div>';
+  return '<div style="background:white;border-radius:8px;padding:16px;margin-bottom:16px;border:1px solid var(--gray-bdr)">'+svg+'</div>';
+}
+
+function buildSummaryParagraph(scores){
+  var high=[], elev=[];
+  SCALE_ORDER_SCORED.forEach(function(abbr){
+    if(['ICN','INF','NIM','PIM'].includes(abbr)) return;
+    var sc=scores[abbr]; if(!sc||!sc.t) return;
+    var cls=classifyT(abbr,sc.t);
+    if(cls.cls==='high') high.push(abbr+' ('+SCALE_META[abbr].name+')');
+    else if(cls.cls==='elev') elev.push(abbr+' ('+SCALE_META[abbr].name+')');
+  });
+  var html='<div style="background:var(--blue-xpale);border-radius:8px;padding:16px;margin-top:16px;font-size:.85rem;line-height:1.65;border-left:4px solid var(--blue)">';
+  html+='<strong>Síntese interpretativa automática</strong><br><br>';
+  if(!high.length && !elev.length){
+    html+='O perfil não apresenta escalas em nível elevado ou clinicamente significativo. Os resultados encontram-se dentro dos parâmetros normativos para a população portuguesa (Paulino et al., 2024).';
+  } else {
+    if(high.length) html+='<strong>Clinicamente Significativo (T≥84):</strong> '+high.join(', ')+'. Requerem avaliação clínica aprofundada e intervenção. ';
+    if(elev.length) html+='<strong>Elevado (T≥70):</strong> '+elev.join(', ')+'. Merecem atenção clínica e monitorização. ';
+    if(scores['SUI']&&scores['SUI'].t>=70) html+='<strong>Nota de risco:</strong> Ideação Suicida elevada — avaliação de risco imediata indicada. ';
+  }
+  html+='<br><em style="font-size:.75rem;color:var(--text-light)">Interpretação gerada automaticamente. Não substitui avaliação clínica. Normas: Paulino et al. (2024), Portugal.</em>';
+  html+='</div>';
+  return html;
+}
+
+// ══ PDF EXPORTS ══════════════════════════════════════════════
+function exportarRespostasPDF(idx){
+  var s=window._sessions[idx];
+  if(!s||!s.respostas){alert('Sem respostas disponíveis.');return;}
+  var linhas='';
+  for(var n=1;n<=344;n++){
+    var v=s.respostas[n];
+    var labels=['F(0)','L(1)','M(2)','T(3)'];
+    var inv=INVERTED_SET[n];
+    var scored=v!==undefined?(inv?3-v:v):'—';
+    var bg2=n%2===0?'#F4F6F9':'white';
+    linhas+='<tr style="background:'+bg2+'"><td style="padding:3px 8px;color:#888;width:36px">'+n+'</td><td style="padding:3px 8px;font-size:11px">'+(ITEMS_DATA[String(n)]||'—')+'</td><td style="padding:3px 8px;text-align:center;font-weight:700;width:60px">'+(v!==undefined?labels[v]:'—')+'</td><td style="padding:3px 8px;text-align:center;width:50px;color:'+(inv?'#E67E22':'inherit')+'">'+scored+(inv?' ↺':'')+'</td></tr>';
+  }
+  var h='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>PAI Respostas — '+s.codigo+'</title><style>body{font-family:sans-serif;font-size:11px;color:#2C3E50;padding:16px}h2{color:#3B5A7A}table{width:100%;border-collapse:collapse}th{background:#3B5A7A;color:white;padding:5px 8px}p{color:#888;margin:3px 0 12px}.no-print{margin-bottom:12px}@media print{.no-print{display:none}}</style></head><body>';
+  h+='<div class="no-print"><button onclick="window.print()">🖨 Imprimir / PDF</button></div>';
+  h+='<h2>PAI — Respostas por Item</h2>';
+  h+='<p>Paciente: <strong>'+(s.nome_crianca||s.codigo||'—')+'</strong> | Código: '+s.codigo+' | Sexo: '+(s.sexo||'—')+' | Data: '+(s.data_preenche||'—')+' | Ricardina Correia · Cédula 8233 | ↺ = item invertido</p>';
+  h+='<table><thead><tr><th>#</th><th>Item</th><th>Resposta</th><th>Score</th></tr></thead><tbody>'+linhas+'</tbody></table></body></html>';
+  var w=window.open('','_blank');
+  if(!w){alert('Pop-up bloqueado.');return;}
+  w.document.write(h);w.document.close();
+}
+
+function exportarInterpretacaoPDF(idx){
+  var s=window._sessions[idx];
+  if(!s){alert('Sessão não encontrada.');return;}
+  var hasResp=s.respostas&&Object.keys(s.respostas).length>0;
+  var scores=hasResp?scoreSession(s.respostas,s.sexo):(s.scores||{});
+  var linhas='';
+  GROUPS.forEach(function(grp){
+    linhas+='<tr><td colspan="5" style="background:#3B5A7A;color:white;font-weight:700;font-size:11px;padding:5px 10px">'+grp.label+'</td></tr>';
+    grp.abbrs.forEach(function(abbr,ri){
+      var sc=scores[abbr];
+      var t=sc?sc.t:null, raw=sc?sc.raw:null, n=sc?sc.n:null;
+      var cls=classifyT(abbr,t);
+      var col=cls.cls==='norm'?'#27AE60':cls.cls==='elev'?'#E67E22':'#C0392B';
+      var pct=t?Math.min(100,(t/120)*100):0;
+      var bar='<div style="background:#eee;border-radius:3px;height:8px;width:100px"><div style="background:'+col+';border-radius:3px;height:8px;width:'+pct+'%"></div></div>';
+      var bg2=ri%2===0?'white':'#F4F6F9';
+      var interp=getInterp(abbr,cls.cls);
+      linhas+='<tr style="background:'+bg2+'"><td style="padding:4px 8px;font-weight:700;color:#3B5A7A">'+abbr+'</td>';
+      linhas+='<td style="padding:4px 8px;font-size:11px">'+SCALE_META[abbr].name+'</td>';
+      linhas+='<td style="padding:4px 8px;text-align:center">'+(raw!==null?raw:'—')+'</td>';
+      linhas+='<td style="padding:4px 8px;text-align:center;font-weight:700;color:'+col+'">'+(t!==null?t.toFixed(1):'—')+'<br>'+bar+'</td>';
+      linhas+='<td style="padding:4px 8px;color:'+col+';font-weight:600;font-size:11px">'+cls.label+'<br><span style="color:#555;font-weight:400;font-style:italic;font-size:10px">'+interp+'</span></td>';
+      linhas+='</tr>';
+    });
+  });
+  var h='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>PAI Interpretação — '+s.codigo+'</title><style>body{font-family:sans-serif;font-size:12px;color:#2C3E50;padding:20px}h2{color:#3B5A7A}table{width:100%;border-collapse:collapse}th{background:#3B5A7A;color:white;padding:7px}p{color:#888;margin:3px 0 14px}.no-print{margin-bottom:12px}.note{font-style:italic;font-size:10px;color:#888;margin-top:16px}@media print{.no-print{display:none}}</style></head><body>';
+  h+='<div class="no-print"><button onclick="window.print()">🖨 Imprimir / PDF</button></div>';
+  h+='<h2>PAI — Perfil de T-Scores</h2>';
+  h+='<p>Paciente: <strong>'+(s.nome_crianca||'—')+'</strong> | Código: '+(s.codigo||'—')+' | Sexo: '+(s.sexo||'—')+' | Data: '+(s.data_preenche||'—')+'</p>';
+  h+='<p>Normas: Paulino et al. (2024), <em>Frontiers in Psychology</em> 15:1359793, Portugal, N=900 | T≥70=Elevado · T≥84=Clinicamente Significativo</p>';
+  h+='<table><thead><tr><th>Sigla</th><th>Escala</th><th>Raw</th><th>T-Score</th><th>Classificação</th></tr></thead><tbody>'+linhas+'</tbody></table>';
+  h+='<p class="note">Interpretação gerada automaticamente. Não substitui avaliação clínica aprofundada. Ricardina Correia · Cédula 8233 · Psicologia Pediátrica.</p>';
+  h+='</body></html>';
+  var w=window.open('','_blank');
+  if(!w){alert('Pop-up bloqueado.');return;}
+  w.document.write(h);w.document.close();
+}
+
+// ══ CSV EXPORT/IMPORT ════════════════════════════════════════
+function exportarCSV(){
+  var sessions=window._sessions||[];
+  if(!sessions.length){alert('Sem dados para exportar.');return;}
+  var cols=['Código','NomePaciente','NomeRespondente','Sexo','DataNasc','Data'];
+  SCALE_ORDER_SCORED.forEach(function(a){cols.push('T_'+a);cols.push('Raw_'+a);});
+  var csv='\uFEFF'+cols.join(';')+'\n';
+  sessions.forEach(function(s){
+    var row=[s.codigo||'',s.nome_crianca||'',s.nome_preenche||'',s.sexo||'',s.dob||'',s.data_preenche||''];
+    SCALE_ORDER_SCORED.forEach(function(a){
+      var sc=s.scores&&s.scores[a];
+      row.push(sc?sc.t||'':'');row.push(sc?sc.raw||'':'');
+    });
+    csv+=row.join(';')+'\n';
+  });
+  var a=document.createElement('a');
+  a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
+  a.download='PAI_'+new Date().toLocaleDateString('pt-PT').replace(/\//g,'-')+'.csv';
+  a.click();
+}
+function exportarPDF(){window.print();}
+function importarCSV(){document.getElementById('import-file').click();}
+function processarImportacao(input){
+  var file=input.files[0];if(!file)return;
+  var reader=new FileReader();
+  reader.onload=function(e){
+    var text=e.target.result.replace(/^\uFEFF/,'');
+    var sep=text.indexOf(';')!==-1?';':',';
+    var rows=text.split(/\r?\n/).filter(Boolean);
+    if(rows.length<2){alert('Ficheiro vazio.');return;}
+    var headers=rows[0].split(sep);
+    var imported=0;
+    rows.slice(1).forEach(function(line){
+      var vals=line.split(sep);
+      var obj={};headers.forEach(function(h,i){obj[h.trim()]=(vals[i]||'').trim();});
+      var code=obj['Código']||'';var ts=obj['Timestamp']||new Date().toISOString();
+      if(!code)return;
+      var k=SK_PREFIX+code+'_'+ts;
+      if(localStorage.getItem(k))return;
+      var s={codigo:code,nome_crianca:obj['NomePaciente']||'',nome_preenche:obj['NomeRespondente']||'',
+             sexo:obj['Sexo']||'',data_preenche:obj['Data']||'',timestamp:ts,scores:{}};
+      SCALE_ORDER_SCORED.forEach(function(a){
+        var t=parseFloat(obj['T_'+a]||''),raw=parseInt(obj['Raw_'+a]||'');
+        s.scores[a]={t:isNaN(t)?null:t,raw:isNaN(raw)?0:raw};
+      });
+      localStorage.setItem(k,JSON.stringify(s));imported++;
+    });
+    alert(imported+' registo(s) importado(s).');carregarDados();
+  };
+  reader.readAsText(file,'UTF-8');
+}
+function eliminar(idx){
+  var s=window._sessions[idx];if(!s)return;
+  if(!confirm('Eliminar registo de '+(s.nome_crianca||s.codigo)+'?'))return;
+  for(var i=0;i<localStorage.length;i++){
+    var k=localStorage.key(i);
+    if(k&&k.indexOf(SK_PREFIX)===0){
+      try{var st=JSON.parse(localStorage.getItem(k));
+        if(st&&st.codigo===s.codigo&&st.timestamp===s.timestamp){localStorage.removeItem(k);break;}
+      }catch(e){}
+    }
+  }
+  carregarDados();
+}
+
+// ══ INIT ═════════════════════════════════════════════════════
+(function(){
+  var p=new URLSearchParams(window.location.search);
+  if(p.get('clinico')===PASSWORD){showPage('page-clinico');carregarDados();return;}
+  // Set today's date
+  var today=new Date().toISOString().split('T')[0];
+  document.getElementById('data-apl').value=today;
+  showPage('page-home');
+})();
+</script>
+</body>
+</html>
