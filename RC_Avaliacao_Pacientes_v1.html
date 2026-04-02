@@ -671,6 +671,10 @@ const SYNC_KEY_TO_ABA = {
   'qc_mae':            'QC_Coparentalidade',
   'qc_pai':            'QC_Coparentalidade',
   'erc_prof':          'ERC_Professores',
+  'map_parental':      'MAP_Parental',
+  'map_pi':            'MAP_PI',
+  'map_1214':          'MAP_1214',
+  'map_1518':          'MAP_1518',
   'erc_pais':          'ERC_Pais',
   'brief_pe_pais': 'BRIEF_PreEscolar_Pais',
   'brief_pe_prof': 'BRIEF_PreEscolar_Professores',
@@ -789,14 +793,34 @@ function initCatalog() {
     { id:'q_scared_r_pais',    name:'SCARED-R — Pais/Cuid.', dest:['Mãe','Pai','Enc. Educação'], link:'https://correiaricardina-ui.github.io/questionarios/SCARED_R_Pais.html', syncKey:'scared_r_pais', area:'Ansiedade', ageRange:'8–18 anos', objective:'Avaliação de perturbações de ansiedade — versão pais/cuidadores', domains:['Pânico','Ansiedade Generalizada','Separação','Fobia Social','Fobia Específica','Obsessivo-Compulsiva','Stress Pós-Traumático','Total'] , ageMin:96, ageMax:215},
     { id:'q_qc_mae', name:'QC Coparentalidade — Mãe', dest:['Mãe'],
       link:'https://correiaricardina-ui.github.io/questionarios/QC_Mae.html',
-      syncKey:'qc_mae', area:'Família / Parentalidade', ageRange:'Adultos',
+      syncKey:'qc_mae', area:'Parentalidade', ageRange:'Adultos',
       objective:'Avalia cooperação, triangulação e conflito coparental — versão mãe',
       domains:['Cooperação','Triangulação','Conflito'] , ageMin:0, ageMax:null},
     { id:'q_qc_pai', name:'QC Coparentalidade — Pai', dest:['Pai'],
       link:'https://correiaricardina-ui.github.io/questionarios/QC_Pai.html',
-      syncKey:'qc_pai', area:'Família / Parentalidade', ageRange:'Adultos',
+      syncKey:'qc_pai', area:'Parentalidade', ageRange:'Adultos',
       objective:'Avalia cooperação, triangulação e conflito coparental — versão pai',
       domains:['Cooperação','Triangulação','Conflito'] , ageMin:0, ageMax:null},
+    { id:'q_map_parental', name:'MAP — Mapeamento Parental Sistémico', dest:['Mãe','Pai','Enc. Educação'],
+      link:'https://correiaricardina-ui.github.io/questionarios/MAP_ParentalAvaliacaoSistemica_v1.html',
+      syncKey:'map_parental', area:'Funcionamento/Dinâmica Familiar', ageRange:'Todas as idades',
+      objective:'Mapeamento sistémico do funcionamento parental',
+      domains:['Funcionamento Parental','Rotinas','Práticas Educativas'] },
+    { id:'q_map_pi', name:'MAP — Primeira Infância', dest:['Mãe','Pai','Enc. Educação'],
+      link:'https://correiaricardina-ui.github.io/questionarios/MAP_ParentalAvaliacaoSistemica_PI_v1.html',
+      syncKey:'map_pi', area:'Funcionamento/Dinâmica Familiar', ageRange:'0–5 anos',
+      objective:'Mapeamento parental sistémico — Primeira Infância',
+      domains:['Funcionamento Parental','Rotinas','Práticas Educativas'] },
+    { id:'q_map_1214', name:'MAP — Adolescência 12–14 anos', dest:['Mãe','Pai','Enc. Educação'],
+      link:'https://correiaricardina-ui.github.io/questionarios/MAP_ParentalAvaliacaoSistemica_1214_v1.html',
+      syncKey:'map_1214', area:'Funcionamento/Dinâmica Familiar', ageRange:'12–14 anos',
+      objective:'Mapeamento parental sistémico — Adolescência 12–14 anos',
+      domains:['Funcionamento Parental','Rotinas','Práticas Educativas'] },
+    { id:'q_map_1518', name:'MAP — Adolescência 15–18 anos', dest:['Mãe','Pai','Enc. Educação'],
+      link:'https://correiaricardina-ui.github.io/questionarios/MAP_ParentalAvaliacaoSistemica_1518_v1.html',
+      syncKey:'map_1518', area:'Funcionamento/Dinâmica Familiar', ageRange:'15–18 anos',
+      objective:'Mapeamento parental sistémico — Adolescência 15–18 anos',
+      domains:['Funcionamento Parental','Rotinas','Práticas Educativas'] },
     { id:'q_erc_prof', name:'ERC — Professores', dest:['Professor(a)','Educador(a)'],
       link:'https://correiaricardina-ui.github.io/questionarios/ERC_Professores_v1.html',
       syncKey:'erc_prof', area:'Regulação Emocional', ageRange:'3–18 anos',
@@ -883,14 +907,14 @@ function initCatalog() {
     { id:'q_fad_gf', name:'FAD-GF — Funcionamento Geral da Família',
       dest:['Mãe','Pai','Enc. Educação','Outro familiar'],
       link:'https://correiaricardina-ui.github.io/questionarios/FAD_GF_v2.html',
-      syncKey:'fad_gf', area:'Funcionamento Familiar', ageRange:'Família',
+      syncKey:'fad_gf', area:'Funcionamento/Dinâmica Familiar', ageRange:'Família',
       objective:'Avaliação do funcionamento familiar global — 12 itens (Epstein et al., 1983)',
       domains:['Score FAD-GF','Classificação'],
       ageMin:0, ageMax:999 },
     { id:'q_fad_60', name:'FAD-60 — Family Assessment Device',
       dest:['Mãe','Pai','Enc. Educação','Outro familiar'],
       link:'https://correiaricardina-ui.github.io/questionarios/FAD_60_v1.html',
-      syncKey:'fad_60', area:'Funcionamento Familiar', ageRange:'Família',
+      syncKey:'fad_60', area:'Funcionamento/Dinâmica Familiar', ageRange:'Família',
       objective:'Avaliação do funcionamento familiar em 7 subescalas — 60 itens (Epstein et al., 1983)',
       domains:['PS','CO','RO','AR','AI','BC','GF'],
       ageMin:0, ageMax:999 },
@@ -940,6 +964,10 @@ function initCatalog() {
       'q_scared_r_pais':    { link:'https://correiaricardina-ui.github.io/questionarios/SCARED_R_Pais.html', syncKey:'scared_r_pais' },
       'q_qc_mae':           { link:'https://correiaricardina-ui.github.io/questionarios/QC_Mae.html', syncKey:'qc_mae' },
       'q_qc_pai':           { link:'https://correiaricardina-ui.github.io/questionarios/QC_Pai.html', syncKey:'qc_pai' },
+      'q_map_parental': { link:'https://correiaricardina-ui.github.io/questionarios/MAP_ParentalAvaliacaoSistemica_v1.html', syncKey:'map_parental' },
+      'q_map_pi':       { link:'https://correiaricardina-ui.github.io/questionarios/MAP_ParentalAvaliacaoSistemica_PI_v1.html', syncKey:'map_pi' },
+      'q_map_1214':     { link:'https://correiaricardina-ui.github.io/questionarios/MAP_ParentalAvaliacaoSistemica_1214_v1.html', syncKey:'map_1214' },
+      'q_map_1518':     { link:'https://correiaricardina-ui.github.io/questionarios/MAP_ParentalAvaliacaoSistemica_1518_v1.html', syncKey:'map_1518' },
       'q_erc_prof':         { link:'https://correiaricardina-ui.github.io/questionarios/ERC_Professores_v1.html', syncKey:'erc_prof' },
       'q_ctrf_15': { link:'https://correiaricardina-ui.github.io/questionarios/CTRF_15_v2.html', syncKey:'ctrf15' },
       'q_brief_prof': { link:'https://correiaricardina-ui.github.io/questionarios/BRIEF_Professores_v3.html', syncKey:'brief_professores' },
@@ -1044,6 +1072,22 @@ function initCatalog() {
       if(!catalog.includes('q_qc_pai')) { catalog.push('q_qc_pai'); store.set('catalog', catalog); }
     }
     // ERC Professores
+    if(!catalog.includes('q_map_parental')) {
+      const dMP = defaults.find(d => d.id === 'q_map_parental');
+      if(dMP) { store.set('q_map_parental', dMP); store.set('q_' + dMP.id, dMP); catalog.push(dMP.id); store.set('catalog', catalog); }
+    }
+    if(!catalog.includes('q_map_pi')) {
+      const dMPI = defaults.find(d => d.id === 'q_map_pi');
+      if(dMPI) { store.set('q_map_pi', dMPI); store.set('q_' + dMPI.id, dMPI); catalog.push(dMPI.id); store.set('catalog', catalog); }
+    }
+    if(!catalog.includes('q_map_1214')) {
+      const dM14 = defaults.find(d => d.id === 'q_map_1214');
+      if(dM14) { store.set('q_map_1214', dM14); store.set('q_' + dM14.id, dM14); catalog.push(dM14.id); store.set('catalog', catalog); }
+    }
+    if(!catalog.includes('q_map_1518')) {
+      const dM18 = defaults.find(d => d.id === 'q_map_1518');
+      if(dM18) { store.set('q_map_1518', dM18); store.set('q_' + dM18.id, dM18); catalog.push(dM18.id); store.set('catalog', catalog); }
+    }
     if(!catalog.includes('q_erc_prof')) {
       const d4 = defaults.find(d => d.id === 'q_erc_prof');
       if(d4) { store.set('q_' + d4.id, d4); catalog.push(d4.id); store.set('catalog', catalog); }
@@ -1376,6 +1420,16 @@ function formatScoreSummary(scores, syncKey) {
       : 'color:var(--green);font-weight:600;';
     return `<span style="font-size:0.78rem;${cls}">${versLabel} · ${diag || '—'}` +
       `${dA !== '' ? ' · Des='+dA : ''}${hA !== '' ? ' H/I='+hA : ''}</span>`;
+  }
+  if(syncKey === 'map_parental' || syncKey === 'map_pi' ||
+     syncKey === 'map_1214'    || syncKey === 'map_1518') {
+    const media = scores['likert_media'] ?? scores['media'];
+    if(media != null) {
+      const v = parseFloat(media);
+      const cor = v >= 3.5 ? '#C0392B' : v >= 2.5 ? '#E67E22' : '#27AE60';
+      return '<span style="font-size:0.78rem;color:' + cor + ';font-weight:700">Média=' + v.toFixed(2) + '</span>';
+    }
+    return '<span style="font-size:0.78rem;color:var(--text-light)">MAP</span>';
   }
   if(syncKey === 'erc_prof' || syncKey === 'erc_pais') {
     const ln  = scores.ln  ?? scores.ln_score  ?? scores['L/N'] ?? '—';
@@ -1731,6 +1785,8 @@ function renderAssignments(patientId) {
                 'CONNERS3P_FULL':['NomeInformante','Relação'],'CONNERS3T_FULL':['NomeInformante','Relação'],
                 'CONNERS3PS':['NomeInformante','Relação'],'CONNERS3TS':['NomeInformante','Relação'],
                 'ERC_Pais':['NomeInformante','Relação'],'ERC_Professores':['NomeInformante','Relação'],
+                'MAP_Parental':['nomeProgenitor','relacao'],'MAP_PI':['nomeProgenitor','relacao'],
+                'MAP_1214':['nomeProgenitor','relacao'],'MAP_1518':['nomeProgenitor','relacao'],
                 'QEDP':['Informante','NomeInformante']
               };
               const RC = {
