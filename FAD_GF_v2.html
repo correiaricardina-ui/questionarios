@@ -474,7 +474,8 @@ function carregarDados(){
   content.innerHTML='<p style="color:var(--text-light);text-align:center;padding:40px;">A carregar...</p>';
   var url = SCRIPT_URL + '?tab='+SHEET_TAB+'&t='+Date.now();
   fetch(url).then(function(r){ return r.json(); }).then(function(data){
-    window._clinico_sessions = data.map(function(row){
+    var rows = Array.isArray(data) ? data : (Array.isArray(data.data) ? data.data : []);
+    window._clinico_sessions = rows.map(function(row){
       if(Array.isArray(row)){
         return {date:row[0],patientCode:row[1],childName:row[2],respondent:row[3],respondentName:row[4],score:row[5],classification:row[6],answers:row[7]};
       } else {

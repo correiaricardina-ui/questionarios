@@ -453,7 +453,7 @@ function renderQuestions(){
       var ss=SUBSCALAS.filter(function(s){return s.code===curSub;})[0];
       var h=document.createElement('div');
       h.className='subscala-header';
-      h.textContent=curSub+' — '+ss.name+' (corte: ≥ '+ss.cut+')';
+      h.textContent=ss.name;
       container.appendChild(h);
     }
     var div=document.createElement('div');
@@ -567,7 +567,8 @@ function carregarDados(){
   content.innerHTML='<p style="color:var(--text-light);text-align:center;padding:40px;">A carregar...</p>';
   var url=SCRIPT_URL+'?tab='+SHEET_TAB+'&t='+Date.now();
   fetch(url).then(function(r){return r.json();}).then(function(data){
-    window._clinico_sessions=data.map(function(row){
+    var rows = Array.isArray(data) ? data : (Array.isArray(data.data) ? data.data : []);
+    window._clinico_sessions=rows.map(function(row){
       if(Array.isArray(row)){
         return {date:row[0],patientCode:row[1],childName:row[2],respondent:row[3],respondentName:row[4],
                 score_PS:row[5]||'',score_CO:row[6]||'',score_RO:row[7]||'',score_AR:row[8]||'',
