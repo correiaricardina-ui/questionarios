@@ -710,7 +710,9 @@ const SYNC_KEY_TO_ABA = {
   // ── Anamnese Complementar ─────────────────────────────────
   'anamnese_complementar': 'Anamnese_Complementar',
   'paia':        'PAIA',
-  'pai':         'PAI'
+  'pai':         'PAI',
+  // ── MBI-SS v1.0 ─────────────────────────────────────────────────
+  'mbiss':         'MBI_SS'
 };
 
 // Cache em memória das respostas do Sheet (evita fetch repetidos na mesma sessão)
@@ -949,6 +951,15 @@ function initCatalog() {
       domains:['SOM','ANX','ARD','DEP','MAN','PAR','SCZ','BOR','ANT','ALC','DRG','AGG','SUI','STR','NON','RXR','DOM','WRM'],
       ageMin:216, ageMax:null },
     // ── Anamnese Complementar ────────────────────────────────────────────
+    { id:'q_mbiss', name:'MBI-SS — Escala de Burnout para Estudantes',
+      dest:['Paciente'],
+      link:'https://correiaricardina-ui.github.io/questionarios/MBI-SS_v1.html',
+      syncKey:'mbiss',
+      area:'Burnout / Saúde Mental',
+      ageRange:'17+ anos',
+      objective:'Avaliar burnout académico: exaustão emocional, descrença e eficácia (Maroco & Tecedeiro, 2009)',
+      domains:['Exaustão Emocional','Descrença','Eficácia Académica'],
+      ageMin:204, ageMax:null },
     { id:'q_anamnese', name:'Anamnese Complementar',
       dest:['Mãe','Pai','Enc. Educação'],
       link:'https://correiaricardina-ui.github.io/questionarios/Anamnese_complementar_v2.html',
@@ -988,6 +999,7 @@ function initCatalog() {
     // Forçar links e syncKeys actualizados
     const META = {
       'q_tas20':      { link:'https://correiaricardina-ui.github.io/questionarios/TAS20_v7.html', syncKey:'tas20' },
+      'q_mbiss':      { link:'https://correiaricardina-ui.github.io/questionarios/MBI-SS_v1.html', syncKey:'mbiss' },
       'q_aseba_cbcl': { link:'https://correiaricardina-ui.github.io/questionarios/CBCL_618_v1.html', syncKey:'cbcl' },
       'q_aseba_trf':  { link:'https://correiaricardina-ui.github.io/questionarios/TRF_618_v1.html', syncKey:'trf' },
       'q_aseba_ysr':  { link:'https://correiaricardina-ui.github.io/questionarios/YSR_1118_v1.html', syncKey:'ysr' },
@@ -1214,6 +1226,10 @@ function initCatalog() {
       if(d) { store.set('q_' + d.id, d); catalog.push('q_fad_60'); store.set('catalog', catalog); }
     }
     // Anamnese Complementar
+    if(!catalog.includes('q_mbiss')) {
+      const d = defaults.find(x => x.id === 'q_mbiss');
+      if(d) { store.set('q_' + d.id, d); catalog.push('q_mbiss'); store.set('catalog', catalog); }
+    }
     if(!catalog.includes('q_anamnese')) {
       const d = defaults.find(x => x.id === 'q_anamnese');
       if(d) { store.set('q_' + d.id, d); catalog.push('q_anamnese'); store.set('catalog', catalog); }
@@ -1687,6 +1703,20 @@ function formatScoreSummary(scores, syncKey) {
       const num = parseFloat(gf);
       const col = num >= 2.0 ? 'color:#C0392B;font-weight:700;' : 'color:var(--green);font-weight:600;';
       return `<span style="font-size:0.78rem;${col}">GF = ${parseFloat(gf).toFixed(2)}${cls ? ' · ' + cls : ''}</span>`;
+    }
+  }
+  // MBI-SS — Escala de Burnout para Estudantes
+  if(syncKey === 'mbiss') {
+    const ex = scores['EX'] ?? scores['ex'];
+    const dc = scores['DC'] ?? scores['dc'];
+    const diag = scores['Diagnostico'] ?? scores['diag'] ?? '';
+    if(ex != null && dc != null) {
+      const isBurnout = diag === 'burnout' || (Number(ex) >= 14 && Number(dc) >= 6);
+      const isRisco   = !isBurnout && (diag === 'risco' || (Number(ex) >= 10 && Number(dc) >= 2));
+      const cls = isBurnout ? 'color:#C0392B;font-weight:700;'
+                : isRisco   ? 'color:#E67E22;font-weight:600;'
+                : 'color:var(--green);font-weight:600;';
+      return '<span style="font-size:0.78rem;' + cls + '">EX=' + ex + ' · DC=' + dc + (isBurnout ? ' · ⚠ Burnout' : isRisco ? ' · Risco' : '') + '</span>';
     }
   }
   return null;
