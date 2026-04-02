@@ -649,7 +649,9 @@ const QID_TO_ABA = {
   'q_fad_gf':             'FAD_GF',
   'q_fad_60':             'FAD_60',
   // ── Anamnese Complementar ─────────────────────────────────
-  'q_anamnese':           'Anamnese_Complementar'
+  'q_anamnese':           'Anamnese_Complementar',
+  'q_pai_a':               'PAIA',
+  'q_pai_adult':           'PAI'
 };
 
 
@@ -706,7 +708,9 @@ const SYNC_KEY_TO_ABA = {
   'fad_gf':              'FAD_GF',
   'fad_60':              'FAD_60',
   // ── Anamnese Complementar ─────────────────────────────────
-  'anamnese_complementar': 'Anamnese_Complementar'
+  'anamnese_complementar': 'Anamnese_Complementar',
+  'paia':        'PAIA',
+  'pai':         'PAI'
 };
 
 // Cache em memória das respostas do Sheet (evita fetch repetidos na mesma sessão)
@@ -929,6 +933,21 @@ function initCatalog() {
       syncKey:'eat26', area:'Comportamento Alimentar', ageRange:'Adolescentes / Adultos',
       objective:'Rastreio de atitudes e comportamentos alimentares de risco (Garner et al., 1982)',
       domains:['D','B','OC','Total'], ageMin:132, ageMax:null},
+    // ── Personalidade ────────────────────────────────────────────────────
+    { id:'q_pai_a', name:'PAI-A',
+      dest:['Paciente'],
+      link:'https://correiaricardina-ui.github.io/questionarios/PAI_A_final.html',
+      syncKey:'paia', area:'Personalidade', ageRange:'12–18 anos',
+      objective:'Inventário de Avaliação da Personalidade — Adolescente (316 itens, 19 escalas, Morey 2007)',
+      domains:['ICN','INF','NIM','PIM','SOM','ANS','DEP','MAN','PAR','ESQ','BPD','ANT','ALC','DRG','AGR','SUI','STR','NON','RXR'],
+      ageMin:144, ageMax:215 },
+    { id:'q_pai_adult', name:'PAI — Adultos',
+      dest:['Paciente'],
+      link:'https://correiaricardina-ui.github.io/questionarios/PAI_adult_final.html',
+      syncKey:'pai', area:'Personalidade', ageRange:'18+ anos',
+      objective:'Inventário de Avaliação da Personalidade — Adultos (344 itens, 22 escalas, normas PT Paulino et al. 2024)',
+      domains:['SOM','ANX','ARD','DEP','MAN','PAR','SCZ','BOR','ANT','ALC','DRG','AGG','SUI','STR','NON','RXR','DOM','WRM'],
+      ageMin:216, ageMax:null },
     // ── Anamnese Complementar ────────────────────────────────────────────
     { id:'q_anamnese', name:'Anamnese Complementar',
       dest:['Mãe','Pai','Enc. Educação'],
@@ -1621,6 +1640,28 @@ function formatScoreSummary(scores, syncKey) {
     }
   }
   // Anamnese Complementar — sem scores numéricos, mostrar contagem de respostas
+  if(syncKey === 'paia') {
+    // PAI-A: mostra SUI + DEP + BPD (escalas de risco prioritário)
+    const sui = scores['T_SUI'] ?? scores['SUI']?.t ?? scores['SUI'] ?? null;
+    const dep = scores['T_DEP'] ?? scores['DEP']?.t ?? scores['DEP'] ?? null;
+    const bpd = scores['T_BPD'] ?? scores['BPD']?.t ?? scores['BPD'] ?? null;
+    if(sui != null || dep != null) {
+      const maxT = Math.max(sui||0, dep||0, bpd||0);
+      const cls = maxT >= 70 ? 'color:#C0392B;font-weight:700;' : maxT >= 65 ? 'color:#E67E22;font-weight:600;' : 'color:var(--green);font-weight:600;';
+      return '<span style="font-size:0.78rem;' + cls + '">SUI=' + (sui!=null?sui.toFixed(1):'—') + ' · DEP=' + (dep!=null?dep.toFixed(1):'—') + (bpd!=null?' · BPD='+bpd.toFixed(1):'') + '</span>';
+    }
+  }
+  if(syncKey === 'pai') {
+    // PAI Adultos: mostra DEP + ANX + SUI
+    const dep = scores['T_DEP'] ?? scores['DEP']?.t ?? scores['DEP'] ?? null;
+    const anx = scores['T_ANX'] ?? scores['ANX']?.t ?? scores['ANX'] ?? null;
+    const sui = scores['T_SUI'] ?? scores['SUI']?.t ?? scores['SUI'] ?? null;
+    if(dep != null || anx != null) {
+      const maxT = Math.max(dep||0, anx||0, sui||0);
+      const cls = maxT >= 84 ? 'color:#C0392B;font-weight:700;' : maxT >= 70 ? 'color:#E67E22;font-weight:600;' : 'color:var(--green);font-weight:600;';
+      return '<span style="font-size:0.78rem;' + cls + '">DEP=' + (dep!=null?dep.toFixed(1):'—') + ' · ANX=' + (anx!=null?anx.toFixed(1):'—') + (sui!=null?' · SUI='+sui.toFixed(1):'') + '</span>';
+    }
+  }
   if(syncKey === 'anamnese_complementar') {
     const resp = scores['Respondidas'] ?? scores['respondidas'] ?? null;
     if(resp != null) return '<span style="font-size:0.78rem;color:var(--blue-mid);">&#128203; ' + resp + ' / 28 perguntas</span>';
@@ -1817,7 +1858,9 @@ function renderAssignments(patientId) {
                 'MAP_1214':['NomeProgenitor','Relação'],'MAP_Parental_1214':['NomeProgenitor','Relação'],
                 'MAP_1518':['NomeProgenitor','Relação'],'MAP_Parental_1518':['NomeProgenitor','Relação'],
                 'QEDP':['Informante','NomeInformante'],
-                'Anamnese_Complementar':['NomeRespondente']
+                'Anamnese_Complementar':['NomeRespondente'],
+                'PAIA':['NomeRespondente'],
+                'PAI':['NomeRespondente']
               };
               const RC = {
                 'SWAN':['Relação'],'BRIEF_Pais':['Relação'],'SCARED_R_PAIS':['Relação'],
