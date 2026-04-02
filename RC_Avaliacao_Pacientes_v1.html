@@ -1809,7 +1809,7 @@ function renderAssignments(patientId) {
               return false;
             }
             const recipientRaw = (a.recipient || '').toLowerCase().trim();
-            const found = patCode.length >= 4 && sheetData[aba].some(row => {
+            const found = patCode.length >= 4 && (sheetData[aba]||[]).some(row => {
               const rowCod = String(row['Código'] || row['codigo'] || row['Código Paciente'] || row['patientCode'] || '').trim().toUpperCase();
               if(rowCod.length < 4 || rowCod !== patCode) return false;
               return matchRespondent(row, aba, recipientRaw);
