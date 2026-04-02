@@ -225,7 +225,7 @@
       <div class="landing-title">Anamnese Complementar</div>
       <p class="landing-sub">
         Questionário de história clínica e desenvolvimento<br>
-        <span style="font-size:.8rem">Ricardina Correia, 2026 · 28 perguntas · Para pais / encarregados de educação</span>
+        <span style="font-size:.8rem">Ricardina Correia, 2026 · 30 perguntas · Para pais / encarregados de educação</span>
       </p>
       <div class="landing-btns">
         <div class="landing-btn" onclick="iniciarQuestionario()">
@@ -411,6 +411,7 @@
       <button class="btn btn-secondary" style="padding:6px 14px;font-size:.82rem;" onclick="window.print()">🖨 Imprimir</button>
       <button class="btn btn-secondary" style="padding:6px 14px;font-size:.82rem;" onclick="exportarRespostasPDF(sessaoActual)">📋 Respostas PDF</button>
       <button class="btn btn-secondary" style="padding:6px 14px;font-size:.82rem;" onclick="exportarInterpretacaoPDF(sessaoActual)">📊 Exportar Detalhe PDF</button>
+      <button class="btn btn-secondary" style="padding:6px 14px;font-size:.82rem;" onclick="testarLigacao()">🔗 Testar ligação</button>
       <input type="file" id="import-file-input" accept=".csv" style="display:none;" onchange="processarFicheiroImportado(this)">
     </div>
     <div id="import-feedback" style="margin-bottom:12px;display:none;"></div>
@@ -558,7 +559,7 @@ GRUPOS.forEach(function(g, gi){
     PERGUNTA_GRUPO.push(gi);
   });
 });
-var N_ITENS = PERGUNTAS_PLANAS.length; // 28
+var N_ITENS = PERGUNTAS_PLANAS.length; // 30
 
 // Offsets de cada grupo no array plano
 var GRUPO_OFFSET = [];
@@ -745,7 +746,8 @@ function submeter() {
     nomeCrianca: nomeCrianca,
     nome_informante: nomeInformante,
     respondidas: respondidas,
-    respostas: JSON.stringify(respostasActuais)
+    respostas: JSON.stringify(respostasActuais),
+    answers:   JSON.stringify(respostasActuais)
   };
 
   var sessaoLocal = {
@@ -757,22 +759,37 @@ function submeter() {
   stored.push(sessaoLocal);
   localStorage.setItem('anamnese_sessions', JSON.stringify(stored));
 
+  // Enviar ao Sheet
   try {
-    fetch(SCRIPT_URL, { method:'POST', mode:'no-cors', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) });
-  } catch(e){}
+    fetch(SCRIPT_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    }).then(function() {
+      console.log('[Anamnese] POST enviado.');
+    }).catch(function(err) {
+      console.warn('[Anamnese] Erro POST:', err);
+    });
+  } catch(e) { console.warn('[Anamnese] Excepcao fetch:', e); }
 
+  // Download CSV sempre (salvaguarda obrigatória — independente do Sheet)
   try {
-    if (location.protocol === 'file:' || !navigator.onLine) {
-      var bom = '\uFEFF';
-      var linhas = [['Data','Código','NomeCriança','NomeRespondente','Respondidas','Respostas'].join(';')];
-      linhas.push([new Date().toLocaleDateString('pt-PT'), code, nomeCrianca, nomeInformante, respondidas,
-        '"' + JSON.stringify(respostasActuais).replace(/"/g,'""') + '"'].join(';'));
-      var blob = new Blob([bom + linhas.join('\r\n')], {type:'text/csv;charset=utf-8;'});
-      var a = document.createElement('a'); a.href = URL.createObjectURL(blob);
-      a.download = 'Anamnese_' + code + '_' + new Date().toISOString().slice(0,10) + '.csv';
-      document.body.appendChild(a); a.click(); document.body.removeChild(a);
-    }
-  } catch(e){}
+    var bom = '\uFEFF';
+    var linhas = [['Data','Código','NomeCriança','NomeRespondente','Respondidas','Respostas'].join(';')];
+    linhas.push([
+      new Date().toLocaleDateString('pt-PT'),
+      '"' + code + '"',
+      '"' + nomeCrianca.replace(/"/g,'""') + '"',
+      '"' + nomeInformante.replace(/"/g,'""') + '"',
+      respondidas,
+      '"' + JSON.stringify(respostasActuais).replace(/"/g,'""') + '"'
+    ].join(';'));
+    var blob = new Blob([bom + linhas.join('\r\n')], {type:'text/csv;charset=utf-8;'});
+    var a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+    a.download = 'Anamnese_' + code + '_' + new Date().toISOString().slice(0,10) + '.csv';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  } catch(e) { console.warn('[Anamnese] Erro CSV:', e); }
 
   showPage('page-obrigado');
 }
@@ -959,6 +976,35 @@ function exportarInterpretacaoPDF(s) { exportarRespostasPDF(s); }
 
 function escapeHtml(t) {
   return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ──────────── TESTE DE LIGAÇÃO ────────────
+function testarLigacao() {
+  var fb = document.getElementById('import-feedback');
+  fb.style.display = 'block';
+  fb.style.color = 'var(--text-light)';
+  fb.style.fontWeight = '400';
+  fb.textContent = 'A testar ligação ao servidor...';
+  fetch(SCRIPT_URL + '?instrumento=' + NOME_ABA + '&t=' + Date.now())
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      var rows = Array.isArray(data) ? data : (data && data.rows ? data.rows : null);
+      if (rows !== null) {
+        fb.style.color = 'var(--green)'; fb.style.fontWeight = '600';
+        fb.textContent = 'Ligacao OK — aba acessivel. ' + rows.length + ' registo(s) no Sheet.';
+      } else if (data && data.status === 'error') {
+        fb.style.color = 'var(--red)'; fb.style.fontWeight = '700';
+        fb.textContent = 'Erro do script: ' + (data.message || JSON.stringify(data));
+      } else {
+        fb.style.color = 'var(--orange)'; fb.style.fontWeight = '600';
+        fb.textContent = 'Resposta inesperada: ' + JSON.stringify(data).slice(0, 120);
+      }
+      setTimeout(function(){ fb.style.display='none'; }, 8000);
+    })
+    .catch(function(err) {
+      fb.style.color = 'var(--red)'; fb.style.fontWeight = '700';
+      fb.textContent = 'Sem ligacao. Verifique se o Apps Script esta deployado. (' + err + ')';
+    });
 }
 
 // ──────────── ARRANQUE ────────────
