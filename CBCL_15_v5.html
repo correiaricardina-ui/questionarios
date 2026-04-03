@@ -774,8 +774,15 @@ function verDetalhe(id) {
   function barra(label, sc, limiar) {
     if (!sc) return '';
     var cor = sc.zona === 'Cl\u00ednica' ? '#E74C3C' : sc.zona === 'Aten\u00e7\u00e3o' ? '#F39C12' : '#2ECC71';
-    return '<div style="margin-bottom:14px">';
-    }
+    return '<div style="margin-bottom:14px">' +
+      '<div style="display:flex;justify-content:space-between;font-size:0.83rem;margin-bottom:4px">' +
+      '<span>' + label + '</span>' +
+      '<span style="font-weight:700;color:' + cor + '">T=' + sc.tscore + ' <span style="font-weight:400;color:#9AA5B1;font-size:0.75rem">(bruto: ' + sc.sum + ')</span></span></div>' +
+      '<div style="position:relative;height:12px;background:#E8ECF0;border-radius:6px">' +
+      '<div style="height:100%;width:' + Math.min(sc.tscore,100) + '%;background:' + cor + ';border-radius:6px"></div>' +
+      '<div style="position:absolute;top:-3px;bottom:-3px;left:' + limiar + '%;width:2px;background:#2C3E50;opacity:0.3"></div>' +
+      '</div></div>';
+  }
 
   function barraOk(label, sc, limiar) {
     if (!sc) return '';
@@ -850,8 +857,127 @@ function verDetalhe(id) {
     '<table style="margin-bottom:20px"><thead><tr><th>\u00cdndice</th><th>Resultado</th><th>Zona</th><th>Recomenda\u00e7\u00e3o</th></tr></thead><tbody>' + broadHTML + '</tbody></table>' +
     '<div style="font-size:0.75rem;color:var(--text-light);border-top:1px solid var(--gray);padding-top:12px;margin-bottom:12px">Normas: Achenbach &amp; Rescorla (2000). ASEBA CBCL 1\u00bd-5. Burlington, VT: ASEBA. Limiares T-score: S\u00edndromes &mdash; Cl\u00ednico &ge;70, Borderline 65&ndash;69; \u00cdndices compostos &mdash; Cl\u00ednico &ge;65, Borderline 60&ndash;64.</div>' +
     respHTML + addHTML +
+    '<div style="border-top:1px solid var(--gray);margin-top:20px;padding-top:16px;display:flex;justify-content:flex-end;gap:10px">' +
+    '<button class="btn btn-secondary btn-xs" onclick="document.body.removeChild(document.querySelector(\'.modal-overlay\'))">&#10005; Fechar</button>' +
+    '<button class="btn btn-primary" onclick="imprimirRelatorio()" style="font-size:0.85rem;padding:8px 18px">&#128438; Relatório Completo (PDF)</button>' +
+    '</div>' +
     '</div>';
   document.body.appendChild(overlay);
+}
+
+function imprimirRelatorio() {
+  var sessao = sessaoActual;
+  if (!sessao) return;
+  var dt = sessao.data || '';
+  var nomeCrianca = sessao.nome || '';
+  var nomeInformante = sessao.informante || '';
+  var codigo = sessao.codigo || '';
+
+  var syndromeNames = ['Reatividade Emocional','Ansiedade/Depress\u00e3o','Queixas Som\u00e1ticas','Isolamento','Problemas de Sono','Problemas de Aten\u00e7\u00e3o','Comportamento Agressivo'];
+  var linhasSindromes = '';
+  syndromeNames.forEach(function(n) {
+    var sc = sessao.scores[n];
+    if (!sc || !sc.tscore) return;
+    var zona = sc.zona || (sc.tscore >= 70 ? 'Cl\u00ednica' : sc.tscore >= 65 ? 'Aten\u00e7\u00e3o' : 'Normativo');
+    var cor = zona === 'Cl\u00ednica' ? '#C0392B' : zona === 'Aten\u00e7\u00e3o' ? '#E67E22' : '#27AE60';
+    var pct = Math.min(100, Math.round(((sc.tscore - 40) / 60) * 100));
+    linhasSindromes += '<tr>' +
+      '<td style="padding:5px 8px;border-bottom:1px solid #eee;">' + n + '</td>' +
+      '<td style="padding:5px 8px;border-bottom:1px solid #eee;text-align:center;">' + (sc.sum || '-') + '</td>' +
+      '<td style="padding:5px 8px;border-bottom:1px solid #eee;text-align:center;font-weight:700;color:' + cor + ';">T=' + sc.tscore + '</td>' +
+      '<td style="padding:5px 8px;border-bottom:1px solid #eee;">' +
+        '<div style="background:#eee;border-radius:3px;height:8px;width:120px;display:inline-block;vertical-align:middle">' +
+          '<div style="background:' + cor + ';border-radius:3px;height:8px;width:' + pct + '%;"></div>' +
+        '</div></td>' +
+      '<td style="padding:5px 8px;border-bottom:1px solid #eee;color:' + cor + ';font-weight:600;">' + zona + '</td>' +
+      '</tr>';
+  });
+
+  var broadNames = ['Internalizante','Externalizante','Total'];
+  var linhasCompostos = '';
+  broadNames.forEach(function(n) {
+    var sc = sessao.scores[n];
+    if (!sc || !sc.tscore) return;
+    var zona = sc.zona || (sc.tscore >= 65 ? 'Cl\u00ednica' : sc.tscore >= 60 ? 'Aten\u00e7\u00e3o' : 'Normativo');
+    var cor = zona === 'Cl\u00ednica' ? '#C0392B' : zona === 'Aten\u00e7\u00e3o' ? '#E67E22' : '#27AE60';
+    linhasCompostos += '<tr>' +
+      '<td style="padding:5px 8px;border-bottom:1px solid #eee;font-weight:' + (n==='Total'?'700':'400') + ';">' + n + '</td>' +
+      '<td style="padding:5px 8px;border-bottom:1px solid #eee;text-align:center;">' + (sc.sum || '-') + '</td>' +
+      '<td style="padding:5px 8px;border-bottom:1px solid #eee;text-align:center;font-weight:700;color:' + cor + ';">T=' + sc.tscore + '</td>' +
+      '<td style="padding:5px 8px;border-bottom:1px solid #eee;color:' + cor + ';font-weight:600;">' + zona + '</td>' +
+      '</tr>';
+  });
+
+  var st = sessao.scores['Total'];
+  var si2 = sessao.scores['Internalizante'];
+  var se = sessao.scores['Externalizante'];
+  var interp = '';
+  if (st) {
+    if (st.zona === 'Cl\u00ednica') interp = 'O perfil total situa-se na zona cl\u00ednica, sugerindo dificuldades comportamentais e emocionais com relev\u00e2ncia cl\u00ednica significativa. ';
+    else if (st.zona === 'Aten\u00e7\u00e3o') interp = 'O perfil total situa-se na zona borderline, requerendo vigil\u00e2ncia cl\u00ednica. ';
+    else interp = 'O perfil total encontra-se dentro dos valores normativos. ';
+  }
+  if (si2 && si2.zona === 'Cl\u00ednica') interp += 'Destaca-se eleva\u00e7\u00e3o no \u00edndice Internalizante, sugestiva de sintomatologia emocional significativa. ';
+  if (se && se.zona === 'Cl\u00ednica') interp += 'Destaca-se eleva\u00e7\u00e3o no \u00edndice Externalizante, sugestiva de problemas de comportamento. ';
+  interp += 'Integrar no contexto cl\u00ednico e desenvolvimental global.';
+
+  var respostasHTML = '';
+  if (sessao.respostas && sessao.respostas.length) {
+    var itensHTML = '';
+    for (var ri = 0; ri < sessao.respostas.length; ri++) {
+      var v = sessao.respostas[ri];
+      var corR = v === 2 ? '#C0392B' : v === 1 ? '#E67E22' : '#27AE60';
+      var itemLabel = (typeof ITEMS !== 'undefined' && ITEMS[ri]) ? ITEMS[ri] : 'Item ' + (ri+1);
+      itensHTML += '<tr>' +
+        '<td style="padding:4px 8px;border-bottom:1px solid #eee;text-align:center;color:#999;">' + (ri+1) + '</td>' +
+        '<td style="padding:4px 8px;border-bottom:1px solid #eee;font-size:0.85rem;">' + itemLabel + '</td>' +
+        '<td style="padding:4px 8px;border-bottom:1px solid #eee;text-align:center;font-weight:700;color:' + corR + ';">' + v + '</td>' +
+        '</tr>';
+    }
+    respostasHTML = '<h2 style="font-size:1rem;color:#1a4a8a;margin:24px 0 10px;padding-bottom:4px;border-bottom:2px solid #e0e8f0;">Respostas por Item</h2>' +
+      '<table style="width:100%;border-collapse:collapse;font-size:0.85rem;">' +
+      '<thead><tr><th style="padding:5px 8px;text-align:center;background:#f0f4f8;">#</th>' +
+      '<th style="padding:5px 8px;text-align:left;background:#f0f4f8;">Item</th>' +
+      '<th style="padding:5px 8px;text-align:center;background:#f0f4f8;">Resp.</th></tr></thead>' +
+      '<tbody>' + itensHTML + '</tbody></table>';
+  }
+
+  var html = '<!DOCTYPE html><html lang="pt"><head><meta charset="UTF-8">' +
+    '<title>CBCL 1\u00bd-5 \u2014 Relat\u00f3rio \u2014 ' + codigo + '</title>' +
+    '<style>body{font-family:Arial,sans-serif;font-size:13px;color:#222;margin:30px 40px;line-height:1.5}' +
+    'h1{font-size:1.3rem;color:#1a4a8a;margin-bottom:4px}' +
+    'h2{font-size:1rem;color:#1a4a8a;margin:20px 0 8px;padding-bottom:4px;border-bottom:2px solid #e0e8f0}' +
+    'table{width:100%;border-collapse:collapse;margin-bottom:16px;font-size:0.85rem}' +
+    'th{background:#f0f4f8;padding:6px 8px;text-align:left;border-bottom:2px solid #dce5f0}' +
+    '.interp{background:#f0f5fc;border-left:4px solid #1a4a8a;padding:12px 16px;margin:16px 0;font-size:0.88rem;line-height:1.6;border-radius:0 6px 6px 0}' +
+    '.footer{margin-top:30px;font-size:0.75rem;color:#999;border-top:1px solid #eee;padding-top:10px;font-style:italic}' +
+    '@media print{body{margin:15px 20px}}</style></head><body>' +
+    '<h1>CBCL 1\u00bd-5 \u2014 Relat\u00f3rio de Avalia\u00e7\u00e3o</h1>' +
+    '<p style="margin:4px 0 16px;color:#666;font-size:0.88rem;">' +
+    'C\u00f3digo: <strong>' + codigo + '</strong>' +
+    (nomeCrianca ? ' &nbsp;|&nbsp; Crian\u00e7a: <strong>' + nomeCrianca + '</strong>' : '') +
+    (nomeInformante ? ' &nbsp;|&nbsp; Respondente: <strong>' + nomeInformante + '</strong>' : '') +
+    ' &nbsp;|&nbsp; Data: ' + dt +
+    ' &nbsp;|&nbsp; Ricardina Correia &middot; C\u00e9dula 8233' +
+    '</p>' +
+    '<div class="interp">' + interp + '</div>' +
+    '<h2>S\u00edndromes (T-scores)</h2>' +
+    '<table><thead><tr><th>S\u00edndrome</th><th style="text-align:center">Bruto</th><th style="text-align:center">T-score</th><th>Perfil</th><th>Zona</th></tr></thead>' +
+    '<tbody>' + linhasSindromes + '</tbody></table>' +
+    '<h2>\u00cdndices Compostos</h2>' +
+    '<table><thead><tr><th>\u00cdndice</th><th style="text-align:center">Bruto</th><th style="text-align:center">T-score</th><th>Zona</th></tr></thead>' +
+    '<tbody>' + linhasCompostos + '</tbody></table>' +
+    respostasHTML +
+    '<div class="footer">Normas: Achenbach &amp; Rescorla (2000). ASEBA CBCL 1\u00bd-5. Burlington, VT: ASEBA. ' +
+    'Limiares T-score: S\u00edndromes \u2014 Cl\u00ednico \u226570, Borderline 65\u201369; \u00cdndices compostos \u2014 Cl\u00ednico \u226565, Borderline 60\u201364.<br>' +
+    'Interpreta\u00e7\u00e3o autom\u00e1tica \u2014 integrar sempre no contexto cl\u00ednico completo da avalia\u00e7\u00e3o.</div>' +
+    '</body></html>';
+
+  var w = window.open('', '_blank');
+  if (!w) { alert('Pop-up bloqueado. Permite pop-ups para este site e tenta novamente.'); return; }
+  w.document.write(html);
+  w.document.close();
+  setTimeout(function(){ w.print(); }, 600);
 }
 
 // ====== CSV ======

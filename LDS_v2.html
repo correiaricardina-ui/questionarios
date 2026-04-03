@@ -1270,6 +1270,7 @@ function verDetalhe(idx){
   inner += '<div style="font-size:0.8rem;color:var(--text-light);margin-top:3px">Data: '+dataFmt+' &middot; '+idade+' meses &middot; '+(sexo==='F'?'Rapariga':'Rapaz')+'</div></div>';
   inner += '<div style="display:flex;gap:8px;align-items:center">'
   inner += '<button onclick="exportarRespostasPDF_LDS('+idx+')" style="background:var(--blue-pale);color:var(--blue);border:none;border-radius:8px;padding:6px 14px;cursor:pointer;font-weight:600;font-size:0.82rem">📋 Respostas PDF</button>';
+  inner += '<button onclick="exportarRelatorioCompleto_LDS('+idx+')" style="background:var(--blue);color:white;border:none;border-radius:8px;padding:6px 14px;cursor:pointer;font-weight:600;font-size:0.82rem">📄 Relatório Completo</button>';
   inner += '<button onclick="this.closest(\'.modal-overlay\').remove()" style="background:var(--blue);color:white;border:none;border-radius:8px;padding:6px 14px;cursor:pointer;font-weight:600">\u2715 Fechar</button>';
   inner += '</div>';
   inner += '</div>';
@@ -1618,12 +1619,155 @@ function voltarParaIdentificacao() {
   window.scrollTo(0,0);
 }
 
+function exportarRelatorioCompleto_LDS(idx) {
+  var rows = document.getElementById('painel-content')._rows;
+  if (!rows) return;
+  var row = rows[idx];
+  var d = Array.isArray(row) ? {
+    data:row[0], patientCode:row[1], idadeMeses:row[2], sexo:row[3],
+    prem:row[4], premSemanas:row[5], pesoNasc:row[6], otite:row[7],
+    bilingue:row[8], linguas:row[9], histFam:row[10], histFamRelacao:row[11],
+    preocup:row[12], preocupMotivo:row[13], dizPalavras:row[14],
+    combinaFrases:row[15], frases:row[16], mlu:row[17], vocabScore:row[18], vocabItems:''
+  } : {
+    data: row['Data']||row.data||'',
+    patientCode: row['C\u00f3digo']||row.patientCode||row.codigo||'',
+    idadeMeses: row['Idade (meses)']||row.idadeMeses||'',
+    sexo: row['Sexo']||row.sexo||'',
+    prem: row['Prematuro']||row.prem||'',
+    premSemanas: row['Semanas Prem']||row.premSemanas||'',
+    pesoNasc: row['Peso Nasc']||row.pesoNasc||'',
+    otite: row['Otite']||row.otite||'',
+    bilingue: row['Bilingue']||row.bilingue||'',
+    linguas: row['L\u00ednguas']||row.linguas||'',
+    histFam: row['Hist Familiar']||row.histFam||'',
+    histFamRelacao: row['Rela\u00e7\u00e3o Hist Fam']||row.histFamRelacao||'',
+    preocup: row['Preocupa\u00e7\u00e3o']||row.preocup||'',
+    preocupMotivo: row['Motivo Preocupa\u00e7\u00e3o']||row.preocupMotivo||'',
+    dizPalavras: row['Diz Palavras']||row.dizPalavras||'',
+    combinaFrases: row['Combina Frases']||row.combinaFrases||'',
+    frases: row['Frases Exemplo']||row.frases||'',
+    mlu: row['MLU']||row.mlu||'',
+    vocabScore: row['Vocab Score']||row.vocabScore||'',
+    vocabItems: row['Palavras']||row.vocabItems||'',
+    nomeCrianca: row['Nome Crian\u00e7a']||row.nomeCrianca||''
+  };
+
+  var mlu = parseFloat(d.mlu||0);
+  var vocab = parseInt(d.vocabScore||0);
+  var idade = parseInt(d.idadeMeses||0);
+  var sexo = (d.sexo||'').toLowerCase();
+  if(sexo==='masculino'||sexo==='m'||sexo==='rapaz') sexo='M';
+  else if(sexo==='feminino'||sexo==='f'||sexo==='rapariga') sexo='F';
+  else sexo='';
+  var g = getGrupoIdade ? getGrupoIdade(idade) : null;
+  var zV = (vocab && idade && sexo && typeof classificarVocab !== 'undefined') ? classificarVocab(vocab,idade,sexo) : {cls:'',txt:'\u2014'};
+  var zM = (mlu && idade && typeof classificarMLU !== 'undefined') ? classificarMLU(mlu,idade) : {cls:'',txt:'\u2014'};
+
+  function corZona(cls){ return cls==='zone-atraso'?'#C0392B':cls==='zone-borderline'?'#E67E22':'#27AE60'; }
+  function txtZona(cls){ return cls==='zone-atraso'?'Atraso de linguagem':cls==='zone-borderline'?'Aten\u00e7\u00e3o':'Dentro do esperado'; }
+
+  // Barra de percentil vocabulário
+  var pctV = 0;
+  if(g && sexo && typeof NORMAS_VOCAB !== 'undefined' && NORMAS_VOCAB[g] && NORMAS_VOCAB[g][sexo==='F'?'F':'M']) {
+    NORMAS_VOCAB[g][sexo==='F'?'F':'M'].forEach(function(r){ if(vocab>=r.v) pctV=parseInt(r.pct.replace('<=','')); });
+  }
+  var pctM = mlu ? Math.min(100,Math.max(0,Math.round(((mlu-1.0)/(5.5-1.0))*100))) : 0;
+
+  var barraV = vocab ? (
+    '<div style="background:#EBF2F8;border-radius:4px;height:14px;position:relative;margin:4px 0">' +
+    '<div style="position:absolute;left:0;top:0;width:15%;height:100%;background:#fdecea;opacity:.7"></div>' +
+    '<div style="position:absolute;left:15%;top:0;width:10%;height:100%;background:#fef3e2;opacity:.7"></div>' +
+    '<div style="position:absolute;left:0;top:0;height:100%;width:'+pctV+'%;background:'+corZona(zV.cls)+';border-radius:4px;opacity:.85"></div>' +
+    '<span style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:10px;font-weight:700;color:#2C3E50">p\u2248'+pctV+'</span>' +
+    '</div>'
+  ) : '';
+  var barraM = (mlu && g && g!=='18-23') ? (
+    '<div style="background:#EBF2F8;border-radius:4px;height:14px;position:relative;margin:4px 0">' +
+    '<div style="position:absolute;left:0;top:0;width:20%;height:100%;background:#fdecea;opacity:.7"></div>' +
+    '<div style="position:absolute;left:0;top:0;height:100%;width:'+pctM+'%;background:'+corZona(zM.cls)+';border-radius:4px;opacity:.85"></div>' +
+    '<span style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:10px;font-weight:700;color:#2C3E50">'+mlu+'w</span>' +
+    '</div>'
+  ) : '';
+
+  // Palavras assinaladas
+  var palavrasHtml = '';
+  if(d.vocabItems) {
+    var palavras = (typeof d.vocabItems === 'string') ? d.vocabItems.split(',') : d.vocabItems;
+    palavrasHtml = '<h2>Palavras Assinaladas ('+vocab+')</h2><p style="font-size:11px;line-height:1.6">' + palavras.map(function(p){return p.trim();}).filter(Boolean).join(' &bull; ') + '</p>';
+  }
+
+  // Frases MLU
+  var frasesHtml = '';
+  if(d.frases) {
+    var frs = d.frases.split('\n').filter(function(f){return f.trim();});
+    frasesHtml = '<h2>Frases Registadas (MLU)</h2>' + frs.map(function(f,i){return '<p style="font-size:11px;margin:2px 0">'+(i+1)+'. '+f.trim()+'</p>';}).join('');
+  }
+
+  var dataFmt = d.data ? new Date(d.data).toLocaleDateString('pt-PT') : (d.data||'\u2014');
+  var html = '<!DOCTYPE html><html lang="pt"><head><meta charset="UTF-8">' +
+    '<title>LDS \u2014 Relat\u00f3rio \u2014 '+(d.patientCode||'')+'</title>' +
+    '<style>body{font-family:Arial,sans-serif;font-size:12px;color:#222;margin:28px 36px;line-height:1.5}' +
+    'h1{font-size:1.2rem;color:#1a4a8a;margin-bottom:4px}' +
+    'h2{font-size:.95rem;color:#1a4a8a;margin:18px 0 6px;border-bottom:2px solid #D6E4F0;padding-bottom:3px}' +
+    'table{width:100%;border-collapse:collapse;margin-bottom:12px;font-size:.82rem}' +
+    'th{background:#D6E4F0;padding:5px 8px;text-align:left;color:#1a4a8a}' +
+    'td{padding:4px 8px;border-bottom:1px solid #eee}' +
+    '.res-card{display:inline-block;background:#f0f5fc;border-radius:8px;padding:10px 16px;margin:0 10px 10px 0;min-width:120px;vertical-align:top}' +
+    '.res-val{font-size:1.6rem;font-weight:700;color:#1a4a8a}' +
+    '.res-lbl{font-size:.72rem;color:#6B7A8D;text-transform:uppercase;letter-spacing:.05em}' +
+    '.zona-badge{display:inline-block;border-radius:4px;padding:2px 10px;font-size:.78rem;font-weight:700}' +
+    '.interp{background:#EBF2F8;border-radius:6px;padding:10px 14px;font-size:.84rem;line-height:1.65;margin:10px 0}' +
+    '.footer{margin-top:24px;font-size:.7rem;color:#999;border-top:1px solid #eee;padding-top:8px;font-style:italic}' +
+    '@media print{body{margin:12px 16px}.no-print{display:none}}</style></head><body>' +
+    '<div class="no-print" style="margin-bottom:14px"><button onclick="window.print()" style="padding:6px 14px;cursor:pointer;background:#1a4a8a;color:white;border:none;border-radius:6px">&#128424; Imprimir / PDF</button></div>' +
+    '<h1>LDS 1\u00bd\u20135 \u2014 Relat\u00f3rio de Avalia\u00e7\u00e3o da Linguagem</h1>' +
+    '<p style="color:#666;font-size:.82rem;margin:4px 0 14px">' +
+      'C\u00f3digo: <strong>'+(d.patientCode||'\u2014')+'</strong>' +
+      (d.nomeCrianca?' &nbsp;|&nbsp; Crian\u00e7a: <strong>'+d.nomeCrianca+'</strong>':'') +
+      ' &nbsp;|&nbsp; Idade: <strong>'+idade+'</strong> meses' +
+      ' &nbsp;|&nbsp; Data: '+dataFmt +
+      ' &nbsp;|&nbsp; Ricardina Correia &middot; C\u00e9dula 8233' +
+    '</p>' +
+    '<h2>Resultados</h2>' +
+    '<div>' +
+      '<div class="res-card"><div class="res-lbl">Vocabul\u00e1rio</div><div class="res-val">'+(vocab||'\u2014')+'</div><div style="font-size:.72rem;color:#6B7A8D">palavras</div>' +
+      (vocab ? '<span class="zona-badge" style="background:'+(zV.cls==='zone-atraso'?'#fdecea':zV.cls==='zone-borderline'?'#fef3e2':'#eafaf1')+';color:'+corZona(zV.cls)+'">'+txtZona(zV.cls)+'</span><div style="margin-top:6px">'+barraV+'</div>' : '') +
+      '</div>' +
+      '<div class="res-card"><div class="res-lbl">MLU</div><div class="res-val">'+(mlu||'\u2014')+'</div><div style="font-size:.72rem;color:#6B7A8D">palavras/enunciado</div>' +
+      (mlu && g && g!=='18-23' ? '<span class="zona-badge" style="background:'+(zM.cls==='zone-atraso'?'#fdecea':'#eafaf1')+';color:'+corZona(zM.cls)+'">'+txtZona(zM.cls)+'</span><div style="margin-top:6px">'+barraM+'</div>' : (g==='18-23'?'<span style="font-size:.72rem;color:#6B7A8D">n.a. (&lt;24m)</span>':'')) +
+      '</div>' +
+    '</div>' +
+    '<div class="interp">' +
+      (vocab ? '<p style="margin:0 0 4px">O vocabul\u00e1rio de <strong>'+vocab+' palavras</strong> situa-se no <strong style="color:'+corZona(zV.cls)+'">percentil \u2248'+pctV+' \u2014 '+txtZona(zV.cls)+'</strong> ('+idade+' meses, '+(sexo==='F'?'rapariga':'rapaz')+').</p>' : '') +
+      (mlu && g && g!=='18-23' ? '<p style="margin:0 0 4px">O MLU de <strong>'+mlu+'</strong> encontra-se <strong style="color:'+corZona(zM.cls)+'">'+txtZona(zM.cls)+'</strong>.</p>' : '') +
+      (!g ? '<p style="margin:0;font-size:.8rem;color:#6B7A8D">Idade fora do intervalo normativo (18\u201335 meses).</p>' : '') +
+      '<p style="margin:4px 0 0;font-size:.76rem;color:#6B7A8D;font-style:italic">Interpreta\u00e7\u00e3o autom\u00e1tica \u2014 integrar sempre no contexto cl\u00ednico completo.</p>' +
+    '</div>' +
+    '<h2>Antecedentes</h2>' +
+    '<table><tbody>' +
+      (d.prem ? '<tr><td style="width:160px;font-weight:600;color:#6B7A8D">Prematuro</td><td>'+d.prem+(d.premSemanas?' ('+d.premSemanas+' sem. mais cedo)':'')+'</td></tr>' : '') +
+      (d.pesoNasc ? '<tr><td style="font-weight:600;color:#6B7A8D">Peso ao nascer</td><td>'+d.pesoNasc+' g</td></tr>' : '') +
+      (d.otite ? '<tr><td style="font-weight:600;color:#6B7A8D">Otites</td><td>'+d.otite+'</td></tr>' : '') +
+      (d.bilingue ? '<tr><td style="font-weight:600;color:#6B7A8D">Bil\u00edngue</td><td>'+d.bilingue+(d.linguas?' ('+d.linguas+')':'')+'</td></tr>' : '') +
+      (d.histFam ? '<tr><td style="font-weight:600;color:#6B7A8D">Hist. familiar</td><td>'+d.histFam+(d.histFamRelacao?' \u2014 '+d.histFamRelacao:'')+'</td></tr>' : '') +
+      (d.preocup ? '<tr><td style="font-weight:600;color:#6B7A8D">Preocupa\u00e7\u00e3o</td><td>'+d.preocup+(d.preocupMotivo?' \u2014 '+d.preocupMotivo:'')+'</td></tr>' : '') +
+      (d.dizPalavras ? '<tr><td style="font-weight:600;color:#6B7A8D">Diz palavras</td><td>'+d.dizPalavras+'</td></tr>' : '') +
+      (d.combinaFrases ? '<tr><td style="font-weight:600;color:#6B7A8D">Combina frases</td><td>'+d.combinaFrases+'</td></tr>' : '') +
+    '</tbody></table>' +
+    frasesHtml +
+    palavrasHtml +
+    '<div class="footer">Normas: MacArthur-Bates CDI adaptado (LDS 1\u00bd\u20135). Interpreta\u00e7\u00e3o autom\u00e1tica \u2014 integrar sempre no contexto cl\u00ednico completo da avalia\u00e7\u00e3o.</div>' +
+    '</body></html>';
+
+  var w = window.open('','_blank');
+  if(!w){ alert('Pop-up bloqueado. Permite pop-ups para este site.'); return; }
+  w.document.write(html);
+  w.document.close();
+  setTimeout(function(){ w.print(); }, 600);
+}
+
 function exportarRespostasPDF(sessao) {
-  if (!sessao) { alert('Seleccione primeiro uma sess\u00e3o (clique em "Ver \u2192").'); return; }
-  var dt = sessao.data || '\u2014';
-  var nome = sessao.nomeCrianca || sessao.nome || '\u2014';
-  var cod  = sessao.patientCode || sessao.codigo || '';
-  var inf  = sessao.nome_informante || sessao.nome_preenche || '\u2014';
 
   var rows = [
     ['Campo','Valor'],
