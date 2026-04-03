@@ -1052,7 +1052,10 @@ async function carregarDados() {
           respostas: (function(){
             try {
               var r = row['Respostas'] || row['respostas'] || '';
-              if (r && typeof r === 'string' && (r.startsWith('{') || r.startsWith('['))) return JSON.parse(r);
+              if (r && typeof r === 'string' && (r.startsWith('{') || r.startsWith('['))) {
+                var parsed = JSON.parse(r);
+                return Array.isArray(parsed) ? parsed : [];
+              }
             } catch(e) {}
             return [];
           })(),
@@ -1096,7 +1099,7 @@ async function syncToSheets() {
           sexo: s.sexo || '',
           informante: s.informante || '',
           scores: s.scores,
-          respostas: JSON.stringify(s.respostas || {})
+          respostas: JSON.stringify(Array.isArray(s.respostas) ? s.respostas : [])
         })
       });
       enviados++;
