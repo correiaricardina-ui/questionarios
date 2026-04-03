@@ -742,8 +742,8 @@ function renderTabela() {
     html += '<td>' + badgeT(s.scores['Internalizante']) + '</td>';
     html += '<td>' + badgeT(s.scores['Externalizante']) + '</td>';
     html += '<td>' + badgeT(s.scores['Total']) + '</td>';
-    html += '<td><button class="btn btn-primary btn-xs" onclick="verDetalhe(' + s.id + ')">Ver &#8594;</button>';
-    html += ' <button class="btn btn-xs" onclick="apagarSessao(' + s.id + ')" style="background:#fdecea;color:var(--red)">&#10005;</button></td>';
+    html += '<td><button class="btn btn-primary btn-xs" onclick="verDetalhe(' + i + ')">Ver &#8594;</button>';
+    html += ' <button class="btn btn-xs" onclick="apagarSessao(' + i + ')" style="background:#fdecea;color:var(--red)">&#10005;</button></td>';
     html += '</tr>';
   }
   html += '</tbody></table>';
@@ -756,18 +756,19 @@ function badgeT(sc) {
   return '<span class="badge ' + cls + '">T=' + sc.tscore + '</span>';
 }
 
-function apagarSessao(id) {
+function apagarSessao(idx) {
   if (!confirm('Apagar esta sess\u00e3o?')) return;
-  saveSessions(getSessions().filter(function(s){ return s.id !== id; }));
+  var sessions = getSessions();
+  sessions.splice(idx, 1);
+  saveSessions(sessions);
   renderTabela();
 }
 
 // ====== MODAL ======
 var sessaoActual = null;
-function verDetalhe(id) {
-  var sessao = null;
+function verDetalhe(idx) {
   var sessions = getSessions();
-  for (var i = 0; i < sessions.length; i++) { if (sessions[i].id === id) { sessao = sessions[i]; break; } }
+  var sessao = sessions[idx];
   if (!sessao) return;
   sessaoActual = sessao;
 
@@ -824,13 +825,16 @@ function verDetalhe(id) {
   if (se && se.zona === 'Cl\u00ednica') interp += 'Destaca-se eleva\u00e7\u00e3o no \u00edndice Externalizante, sugestiva de problemas de comportamento. ';
   interp += 'Integrar no contexto cl\u00ednico e desenvolvimental global.';
 
-  var respHTML = '<details style="margin-top:16px"><summary style="cursor:pointer;font-weight:600;color:var(--blue);padding:8px 0">Ver respostas por item</summary><div style="margin-top:12px">';
+  var respHTML = '';
+  if (sessao.respostas && sessao.respostas.length) {
+  respHTML = '<details style="margin-top:16px"><summary style="cursor:pointer;font-weight:600;color:var(--blue);padding:8px 0">Ver respostas por item</summary><div style="margin-top:12px">';
   for (var ri = 0; ri < sessao.respostas.length; ri++) {
     var v = sessao.respostas[ri];
     var cor = v === 2 ? '#C0392B' : v === 1 ? '#E67E22' : '#27AE60';
     respHTML += '<div style="display:grid;grid-template-columns:28px 1fr 24px;gap:8px;padding:5px 0;border-bottom:1px solid var(--gray);font-size:0.82rem"><span style="color:var(--text-light)">' + (ri+1) + '</span><span>' + ITEMS[ri] + '</span><span style="font-weight:700;color:' + cor + '">' + v + '</span></div>';
   }
   respHTML += '</div></details>';
+  } // end if respostas
 
   var addHTML = '';
   if (sessao.doenca || sessao.preocupa || sessao.melhor) {
@@ -1019,23 +1023,39 @@ async function carregarDados() {
       var date = row['Data'] || row['data'] || '';
       if (!code) return;
       if (!all.find(function(s){ return s.codigo === code && s.data === date; })) {
+        function mkScore(t, isBroad) {
+          var v = parseFloat(t);
+          if (isNaN(v) || t === '') return null;
+          var zona = isBroad
+            ? (v >= 65 ? 'Clínica' : v >= 60 ? 'Atenção' : 'Normal')
+            : (v >= 70 ? 'Clínica' : v >= 65 ? 'Atenção' : 'Normal');
+          return { tscore: v, sum: '', zona: zona };
+        }
         all.push({
+          id: Date.now() + added,
           codigo: code,
           data: date,
           nome: row['Nome'] || row['nome'] || '',
           sexo: row['Sexo'] || row['sexo'] || '',
           informante: row['Informante'] || row['informante'] || '',
+          respostas: (function(){
+            try {
+              var r = row['Respostas'] || row['respostas'] || '';
+              if (r && typeof r === 'string' && (r.startsWith('{') || r.startsWith('['))) return JSON.parse(r);
+            } catch(e) {}
+            return [];
+          })(),
           scores: {
-            'Reatividade Emocional': { tscore: row['T_Reatividade'] || '' },
-            'Ansiedade/Depressão':   { tscore: row['T_Ansiedade']  || '' },
-            'Queixas Somáticas':     { tscore: row['T_Somaticas']  || '' },
-            'Retraimento':           { tscore: row['T_Retraimento']|| '' },
-            'Problemas de Sono':     { tscore: row['T_Sono']       || '' },
-            'Problemas de Atenção':  { tscore: row['T_Atencao']    || '' },
-            'Comportamento Agressivo':{ tscore: row['T_Agressivo'] || '' },
-            'Internalizante':        { tscore: row['T_Internalizante'] || '' },
-            'Externalizante':        { tscore: row['T_Externalizante'] || '' },
-            'Total':                 { tscore: row['T_Total']      || '' }
+            'Reatividade Emocional': mkScore(row['T_Reatividade'], false),
+            'Ansiedade/Depressão':   mkScore(row['T_Ansiedade'],   false),
+            'Queixas Somáticas':     mkScore(row['T_Somaticas'],   false),
+            'Isolamento':            mkScore(row['T_Retraimento'],  false),
+            'Problemas de Sono':     mkScore(row['T_Sono'],        false),
+            'Problemas de Atenção':  mkScore(row['T_Atencao'],     false),
+            'Comportamento Agressivo': mkScore(row['T_Agressivo'], false),
+            'Internalizante':        mkScore(row['T_Internalizante'], true),
+            'Externalizante':        mkScore(row['T_Externalizante'], true),
+            'Total':                 mkScore(row['T_Total'],          true)
           }
         });
         added++;
