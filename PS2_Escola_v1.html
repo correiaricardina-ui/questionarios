@@ -253,9 +253,13 @@ body{font-family:'DM Sans',sans-serif;background:var(--gray);color:var(--text);m
 <!-- MODAL -->
 <div id="modal-overlay" class="modal-overlay" style="display:none" onclick="if(event.target===this) fecharModal()">
   <div class="modal-box">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
       <h2 style="font-family:'DM Serif Display',serif;color:var(--blue);font-size:1.2rem" id="modal-title">Detalhe</h2>
       <button class="btn btn-secondary btn-xs" onclick="fecharModal()">✕ Fechar</button>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px">
+      <button class="btn btn-secondary btn-xs" onclick="exportarRespostasPDF(sessaoActual)">📋 Respostas PDF</button>
+      <button class="btn btn-secondary btn-xs" onclick="exportarInterpretacaoPDF(sessaoActual)">📊 Relatório Completo</button>
     </div>
     <div id="modal-body"></div>
   </div>
@@ -561,9 +565,17 @@ function carregarDados(){
     .then(function(data){
       var rows=data&&data.rows?data.rows:[];
       rows.forEach(function(row){
-        var code=String(row['Código']||row.patientCode||'').trim().toUpperCase();
+        var code=String(row['Código']||row['Codigo']||row.patientCode||'').trim().toUpperCase();
         var dt=row['Data']||row.data||'';
-        var exists=sessions.some(function(s){return s.patientCode===code&&(s.date===dt||s.date===new Date(dt).toISOString());});
+        // Normalizar data para comparação robusta
+        var dtNorm='';
+        try{var d=new Date(dt);if(!isNaN(d))dtNorm=d.toISOString();}catch(e){}
+        var exists=sessions.some(function(s){
+          if(s.patientCode!==code)return false;
+          if(s.date===dt)return true;
+          try{var sd=new Date(s.date);var dd=new Date(dt);
+            return !isNaN(sd)&&!isNaN(dd)&&Math.abs(sd-dd)<60000;}catch(e){return false;}
+        });
         if(!exists&&code){
           var sc={
             Procura:+row['Procura']||0, Evitamento:+row['Evitamento']||0,
@@ -574,12 +586,17 @@ function carregarDados(){
             FatorEscolar1:+row['FatorEscolar1']||0, FatorEscolar2:+row['FatorEscolar2']||0,
             FatorEscolar3:+row['FatorEscolar3']||0, FatorEscolar4:+row['FatorEscolar4']||0
           };
-          var resps=null;try{resps=JSON.parse(row['Respostas']||'null');}catch(e){}
-          sessions.push({id:dt||Date.now()+'',date:dt,patientCode:code,
-            nomeCrianca:row['NomeCrianca']||row['nomeCrianca']||'',
+          var resps=null;
+          try{
+            var rawResp=row['Respostas']||row['respostas']||'';
+            if(rawResp&&typeof rawResp==='string'&&rawResp.startsWith('['))resps=JSON.parse(rawResp);
+            else if(rawResp&&typeof rawResp==='object'&&Array.isArray(rawResp))resps=rawResp;
+          }catch(e){}
+          sessions.push({id:dtNorm||dt||Date.now()+'',date:dtNorm||dt,patientCode:code,
+            nomeCrianca:row['NomeCrianca']||row['NomeCriança']||row['nomeCrianca']||'',
             nomeInformante:row['NomeInformante']||row['nomeInformante']||'',
-            anoEscolar:row['AnoEscolar']||'', frequencia:row['Frequencia']||'',
-            scores:sc,respostas:resps,answers:resps?resps.join('|'):(row['Respostas']||'')});
+            anoEscolar:row['AnoEscolar']||'', frequencia:row['Frequencia']||row['Frequência']||'',
+            scores:sc,respostas:resps,answers:resps?resps.join('|'):(row['Respostas']||row['respostas']||'')});
         }
       });
       try{localStorage.setItem('PS2_Escola_sessions',JSON.stringify(sessions));}catch(e){}
@@ -664,7 +681,13 @@ function buildDetalheHTML(s){
 
   var respostasHtml='';
   if(s.respostas||s.answers){
-    var arr=s.respostas||(s.answers?s.answers.split('|'):[]);
+    var arr=s.respostas;
+    if(!arr){
+      var aw=s.answers||'';
+      // pode ser JSON array ou pipe-separated
+      if(aw.startsWith('[')){try{arr=JSON.parse(aw);}catch(e){arr=[];}}
+      else{arr=aw.split('|');}
+    }
     var labels=['N/A','Q.nunca','Ocasional','Metade','Frequent.','Q.sempre'];
     var allItens=[];
     SECOES.forEach(function(sec){sec.itens.forEach(function(it){allItens.push({n:it.n,sec:sec.nome,txt:it.txt});});});
