@@ -712,7 +712,10 @@ const SYNC_KEY_TO_ABA = {
   'paia':        'PAIA',
   'pai':         'PAI',
   // ── MBI-SS v1.0 ─────────────────────────────────────────────────
-  'mbiss':         'MBI_SS'
+  'mbiss':         'MBI_SS',
+  // ── Perfil Sensorial 2 v1.0 ──────────────────────────────────────────
+  'ps2pais':       'PS2_Cuidador',
+  'ps2escola':     'PS2_Professor'
 };
 
 // Cache em memória das respostas do Sheet (evita fetch repetidos na mesma sessão)
@@ -969,6 +972,21 @@ function initCatalog() {
       objective:'Recolher história clínica, desenvolvimento e funcionamento quotidiano',
       domains:['História Clínica','Desenvolvimento Precoce','Funcionamento Executivo','Regulação Emocional'],
       ageMin:0, ageMax:999 },
+    // ── Perfil Sensorial 2 v1.0 ──────────────────────────────────────────
+    { id:'q_ps2pais', name:'PS2 — Questionário do Cuidador',
+      dest:['Mãe','Pai','Enc. Educação','Cuidador(a)'],
+      link:'https://correiaricardina-ui.github.io/questionarios/PS2_Pais_v1.html',
+      syncKey:'ps2pais', area:'Processamento Sensorial', ageRange:'3–14:11 anos',
+      objective:'Avalia padrões de processamento sensorial em casa — versão cuidadores',
+      domains:['Procura','Evitamento','Sensibilidade','Registo','Auditivo','Visual','Tátil','Movimento','Posição Corporal','Oral','Conduta','Socioemocional','Atenção'],
+      ageMin:36, ageMax:179 },
+    { id:'q_ps2escola', name:'PS2 — Acompanhamento Escolar',
+      dest:['Professor(a)','Educador(a)'],
+      link:'https://correiaricardina-ui.github.io/questionarios/PS2_Escola_v1.html',
+      syncKey:'ps2escola', area:'Processamento Sensorial', ageRange:'3–14:11 anos',
+      objective:'Avalia padrões de processamento sensorial em contexto escolar — versão professor',
+      domains:['Procura','Evitamento','Sensibilidade','Registo','Auditivo','Visual','Tátil','Movimento','Comportamento','Fator Escolar 1','Fator Escolar 2','Fator Escolar 3','Fator Escolar 4'],
+      ageMin:36, ageMax:179 },
   ];
   // Garantir que TODOS os defaults estão no catálogo, sempre
   // (funciona em RC novos e em RC existentes — nunca perde questionários)
@@ -1052,6 +1070,9 @@ function initCatalog() {
       'q_fad_60': { link:'https://correiaricardina-ui.github.io/questionarios/FAD_60_v1.html',  syncKey:'fad_60' },
       // ── Anamnese Complementar ────────────────────────────
       'q_anamnese': { link:'https://correiaricardina-ui.github.io/questionarios/Anamnese_complementar_v2.html', syncKey:'anamnese_complementar' },
+      // ── Perfil Sensorial 2 v1.0 ──────────────────────────────────────────
+      'q_ps2pais':   { link:'https://correiaricardina-ui.github.io/questionarios/PS2_Pais_v1.html',   syncKey:'ps2pais' },
+      'q_ps2escola': { link:'https://correiaricardina-ui.github.io/questionarios/PS2_Escola_v1.html', syncKey:'ps2escola' },
     };
     // ── Re-store com chave correcta ('q_' + id) — corrige instalações anteriores ──
     // Garante que Conners, FAD e MAP ficam acessíveis pelo META.forEach e getCatalog
@@ -1233,6 +1254,14 @@ function initCatalog() {
     if(!catalog.includes('q_anamnese')) {
       const d = defaults.find(x => x.id === 'q_anamnese');
       if(d) { store.set('q_' + d.id, d); catalog.push('q_anamnese'); store.set('catalog', catalog); }
+    }
+    if(!catalog.includes('q_ps2pais')) {
+      const d = defaults.find(x => x.id === 'q_ps2pais');
+      if(d) { store.set('q_' + d.id, d); catalog.push('q_ps2pais'); store.set('catalog', catalog); }
+    }
+    if(!catalog.includes('q_ps2escola')) {
+      const d = defaults.find(x => x.id === 'q_ps2escola');
+      if(d) { store.set('q_' + d.id, d); catalog.push('q_ps2escola'); store.set('catalog', catalog); }
     }
     }
   }
@@ -1683,6 +1712,35 @@ function formatScoreSummary(scores, syncKey) {
     if(resp != null) return '<span style="font-size:0.78rem;color:var(--blue-mid);">&#128203; ' + resp + ' / 28 perguntas</span>';
     return '<span style="font-size:0.78rem;color:var(--blue-mid);">&#128203; Anamnese</span>';
   }
+  // PS2 — Perfil Sensorial 2 (Cuidador e Escola)
+  if(syncKey === 'ps2pais') {
+    const pr = scores['Procura'] ?? scores['procura'] ?? null;
+    const ev = scores['Evitamento'] ?? scores['evitamento'] ?? null;
+    const sn = scores['Sensibilidade'] ?? scores['sensibilidade'] ?? null;
+    const rg = scores['Registo'] ?? scores['registo'] ?? null;
+    if(pr != null || ev != null) {
+      const parts = [];
+      if(pr != null) parts.push('PC=' + pr);
+      if(ev != null) parts.push('EV=' + ev);
+      if(sn != null) parts.push('SN=' + sn);
+      if(rg != null) parts.push('RG=' + rg);
+      return '<span style="font-size:0.78rem;color:var(--blue)">' + parts.join(' · ') + '</span>';
+    }
+  }
+  if(syncKey === 'ps2escola') {
+    const pr = scores['Procura'] ?? scores['procura'] ?? null;
+    const ev = scores['Evitamento'] ?? scores['evitamento'] ?? null;
+    const fe1 = scores['FatorEscolar1'] ?? null;
+    const fe2 = scores['FatorEscolar2'] ?? null;
+    if(pr != null || ev != null) {
+      const parts = [];
+      if(pr != null) parts.push('PC=' + pr);
+      if(ev != null) parts.push('EV=' + ev);
+      if(fe1 != null) parts.push('FE1=' + fe1);
+      if(fe2 != null) parts.push('FE2=' + fe2);
+      return '<span style="font-size:0.78rem;color:var(--blue)">' + parts.join(' · ') + '</span>';
+    }
+  }
   // Genérico
   const entries = Object.entries(scores).filter(([,v]) => v != null).slice(0,3);
   if(entries.length > 0) return `<span style="font-size:0.78rem;color:var(--blue-dark);">${entries.map(([k,v])=>k+'='+v).join(' · ')}</span>`;
@@ -1883,6 +1941,7 @@ function renderAssignments(patientId) {
                 'CONNERS3P_FULL':['Relação','NomeInformante'],'CONNERS3T_FULL':['Relação','NomeInformante'],
                 'CONNERS3PS':['Relação','NomeInformante'],'CONNERS3TS':['Relação','NomeInformante'],
                 'ERC_Pais':['NomeInformante','Relação'],'ERC_Professores':['NomeInformante','Relação'],
+                'PS2_Cuidador':['NomeInformante','Relacao'],'PS2_Professor':['NomeInformante'],
                 'MAP_Parental':['NomeProgenitor','Relação'],'MAP_PI':['NomeProgenitor','Relação'],
                 'MAP_Parental_PI':['NomeProgenitor','Relação'],
                 'MAP_1214':['NomeProgenitor','Relação'],'MAP_Parental_1214':['NomeProgenitor','Relação'],
