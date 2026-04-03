@@ -772,30 +772,38 @@ function verDetalhe(idx) {
   if (!sessao) return;
   sessaoActual = sessao;
 
-  function barra(label, sc, limiar) {
+  // Normaliza score: garante zona calculada e sum tratado
+  function normSc(sc, isBroad) {
+    if (!sc) return null;
+    var t = parseFloat(sc.tscore);
+    if (isNaN(t)) return null;
+    var zona = sc.zona;
+    if (!zona || zona === 'Normal') {
+      zona = isBroad
+        ? (t >= 65 ? 'Cl\u00ednica' : t >= 60 ? 'Aten\u00e7\u00e3o' : 'Normal')
+        : (t >= 70 ? 'Cl\u00ednica' : t >= 65 ? 'Aten\u00e7\u00e3o' : 'Normal');
+    }
+    return { tscore: t, sum: sc.sum, zona: zona };
+  }
+
+  function barra(label, scRaw, limiar, isBroad) {
+    var sc = normSc(scRaw, isBroad);
     if (!sc) return '';
     var cor = sc.zona === 'Cl\u00ednica' ? '#E74C3C' : sc.zona === 'Aten\u00e7\u00e3o' ? '#F39C12' : '#2ECC71';
+    var brutoTxt = (sc.sum !== '' && sc.sum !== undefined && sc.sum !== null)
+      ? ' <span style="font-weight:400;color:#9AA5B1;font-size:0.75rem">(bruto: ' + sc.sum + ')</span>' : '';
     return '<div style="margin-bottom:14px">' +
       '<div style="display:flex;justify-content:space-between;font-size:0.83rem;margin-bottom:4px">' +
       '<span>' + label + '</span>' +
-      '<span style="font-weight:700;color:' + cor + '">T=' + sc.tscore + ' <span style="font-weight:400;color:#9AA5B1;font-size:0.75rem">(bruto: ' + sc.sum + ')</span></span></div>' +
+      '<span style="font-weight:700;color:' + cor + '">T=' + sc.tscore + brutoTxt + '</span></div>' +
       '<div style="position:relative;height:12px;background:#E8ECF0;border-radius:6px">' +
       '<div style="height:100%;width:' + Math.min(sc.tscore,100) + '%;background:' + cor + ';border-radius:6px"></div>' +
       '<div style="position:absolute;top:-3px;bottom:-3px;left:' + limiar + '%;width:2px;background:#2C3E50;opacity:0.3"></div>' +
       '</div></div>';
   }
 
-  function barraOk(label, sc, limiar) {
-    if (!sc) return '';
-    var cor = sc.zona === 'Cl\u00ednica' ? '#E74C3C' : sc.zona === 'Aten\u00e7\u00e3o' ? '#F39C12' : '#2ECC71';
-    return '<div style="margin-bottom:14px">' +
-      '<div style="display:flex;justify-content:space-between;font-size:0.83rem;margin-bottom:4px">' +
-      '<span>' + label + '</span>' +
-      '<span style="font-weight:700;color:' + cor + '">T=' + sc.tscore + ' <span style="font-weight:400;color:#9AA5B1;font-size:0.75rem">(bruto: ' + sc.sum + ')</span></span></div>' +
-      '<div style="position:relative;height:12px;background:#E8ECF0;border-radius:6px">' +
-      '<div style="height:100%;width:' + Math.min(sc.tscore,100) + '%;background:' + cor + ';border-radius:6px"></div>' +
-      '<div style="position:absolute;top:-3px;bottom:-3px;left:' + limiar + '%;width:2px;background:#2C3E50;opacity:0.3"></div>' +
-      '</div></div>';
+  function barraOk(label, scRaw, limiar) {
+    return barra(label, scRaw, limiar, false);
   }
 
   var syndromeNames = ['Reatividade Emocional','Ansiedade/Depress\u00e3o','Queixas Som\u00e1ticas','Isolamento','Problemas de Sono','Problemas de Aten\u00e7\u00e3o','Comportamento Agressivo'];
@@ -807,22 +815,25 @@ function verDetalhe(idx) {
   for (var bi = 0; bi < broadNames.length; bi++) {
     var sc = sessao.scores[broadNames[bi]];
     if (!sc) continue;
-    var cls = sc.zona === 'Cl\u00ednica' ? 'badge-clinical' : sc.zona === 'Aten\u00e7\u00e3o' ? 'badge-borderline' : 'badge-normative';
-    var rec = sc.zona === 'Cl\u00ednica' ? 'Interven\u00e7\u00e3o recomendada. Integrar no plano terap\u00eautico.' : sc.zona === 'Aten\u00e7\u00e3o' ? 'Vigil\u00e2ncia cl\u00ednica. Reavaliar em pr\u00f3xima consulta.' : 'Sem necessidade de interven\u00e7\u00e3o espec\u00edfica neste momento.';
-    broadHTML += '<tr><td style="font-weight:600">' + broadNames[bi] + '</td><td>T=' + sc.tscore + ' (bruto: ' + sc.sum + ')</td><td><span class="badge ' + cls + '">' + sc.zona + '</span></td><td style="font-size:0.82rem;color:var(--text-light)">' + rec + '</td></tr>';
+    var scN = normSc(sc, true);
+    if (!scN) continue;
+    var cls = scN.zona === 'Cl\u00ednica' ? 'badge-clinical' : scN.zona === 'Aten\u00e7\u00e3o' ? 'badge-borderline' : 'badge-normative';
+    var rec = scN.zona === 'Cl\u00ednica' ? 'Interven\u00e7\u00e3o recomendada. Integrar no plano terap\u00eautico.' : scN.zona === 'Aten\u00e7\u00e3o' ? 'Vigil\u00e2ncia cl\u00ednica. Reavaliar em pr\u00f3xima consulta.' : 'Sem necessidade de interven\u00e7\u00e3o espec\u00edfica neste momento.';
+    var brutoCell = (scN.sum !== '' && scN.sum !== undefined && scN.sum !== null) ? ' (bruto: ' + scN.sum + ')' : '';
+    broadHTML += '<tr><td style="font-weight:600">' + broadNames[bi] + '</td><td>T=' + scN.tscore + brutoCell + '</td><td><span class="badge ' + cls + '">' + scN.zona + '</span></td><td style="font-size:0.82rem;color:var(--text-light)">' + rec + '</td></tr>';
   }
 
-  var st = sessao.scores['Total'];
-  var si2 = sessao.scores['Internalizante'];
-  var se = sessao.scores['Externalizante'];
+  var stN  = normSc(sessao.scores['Total'], true);
+  var si2N = normSc(sessao.scores['Internalizante'], true);
+  var seN  = normSc(sessao.scores['Externalizante'], true);
   var interp = '';
-  if (st) {
-    if (st.zona === 'Cl\u00ednica') interp = 'O perfil total situa-se na zona cl\u00ednica, sugerindo dificuldades comportamentais e emocionais com relev\u00e2ncia cl\u00ednica significativa. ';
-    else if (st.zona === 'Aten\u00e7\u00e3o') interp = 'O perfil total situa-se na zona borderline, requerendo vigil\u00e2ncia cl\u00ednica. ';
+  if (stN) {
+    if (stN.zona === 'Cl\u00ednica') interp = 'O perfil total situa-se na zona cl\u00ednica, sugerindo dificuldades comportamentais e emocionais com relev\u00e2ncia cl\u00ednica significativa. ';
+    else if (stN.zona === 'Aten\u00e7\u00e3o') interp = 'O perfil total situa-se na zona borderline, requerendo vigil\u00e2ncia cl\u00ednica. ';
     else interp = 'O perfil total encontra-se dentro dos valores normativos. ';
   }
-  if (si2 && si2.zona === 'Cl\u00ednica') interp += 'Destaca-se eleva\u00e7\u00e3o no \u00edndice Internalizante, sugestiva de sintomatologia emocional significativa. ';
-  if (se && se.zona === 'Cl\u00ednica') interp += 'Destaca-se eleva\u00e7\u00e3o no \u00edndice Externalizante, sugestiva de problemas de comportamento. ';
+  if (si2N && si2N.zona === 'Cl\u00ednica') interp += 'Destaca-se eleva\u00e7\u00e3o no \u00edndice Internalizante, sugestiva de sintomatologia emocional significativa. ';
+  if (seN  && seN.zona  === 'Cl\u00ednica') interp += 'Destaca-se eleva\u00e7\u00e3o no \u00edndice Externalizante, sugestiva de problemas de comportamento. ';
   interp += 'Integrar no contexto cl\u00ednico e desenvolvimental global.';
 
   var respHTML = '';
