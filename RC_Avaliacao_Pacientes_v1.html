@@ -725,7 +725,13 @@ const SYNC_KEY_TO_ABA = {
   // IVP de Super — v23.0
   'ivp_super':       'IVP_Super',
   'IVP_Super':       'IVP_Super',
-  'IVP-Super':       'IVP_Super'
+  'IVP-Super':       'IVP_Super',
+  // SDS — Self-Directed Search — v24.0
+  'sds_holland':     'SDS_Holland',
+  'SDS_Holland':     'SDS_Holland',
+  'SDS-Holland':     'SDS_Holland',
+  'sds':             'SDS_Holland',
+  'SDS':             'SDS_Holland'
 };
 
 // Cache em memória das respostas do Sheet (evita fetch repetidos na mesma sessão)
@@ -832,6 +838,14 @@ function initCatalog() {
       objective:'Avaliar os valores profissionais em 15 dimensões: Criatividade, Altruísmo, Estético, Estimulação Intelectual, Êxito, Independência, Prestígio, Direcção, Económico, Segurança, Ambiente, Rel. Superiores, Rel. Colegas, Variedade, Género de Vida',
       domains:['Criatividade','Altruísmo','Estético','Estimulação Intelectual','Êxito','Independência','Prestígio','Direcção','Económico','Segurança','Ambiente','Relação com os Superiores','Relação com os Colegas','Variedade','Género de Vida'],
       ageMin:168, ageMax:null },
+    // SDS — Self-Directed Search — v24.0
+    { id:'q_sds_holland', name:'SDS — Self-Directed Search (Holland)',
+      dest:['Jovem avaliado','Paciente'],
+      link:'https://correiaricardina-ui.github.io/questionarios/SDS_Holland.html',
+      syncKey:'sds_holland', area:'Orientação Escolar e Vocacional', ageRange:'≥13 anos',
+      objective:'Avaliar interesses profissionais RIASEC e gerar Código de Holland para orientação vocacional',
+      domains:['Realista (R)','Investigador (I)','Artístico (A)','Social (S)','Empreendedor (E)','Convencional (C)','Código Holland'],
+      ageMin:156, ageMax:null },
     { id:'q_tas20',      name:'TAS-20',               dest:['Paciente'],                  link:'https://correiaricardina-ui.github.io/questionarios/TAS20_v7.html',      syncKey:'tas20',  area:'Emocional / Alexitimia', ageRange:'Adultos', objective:'Avaliar alexitimia (dificuldade em identificar e descrever emoções)', domains:['Dificuldade em Identificar Sentimentos (F1)','Dificuldade em Descrever Sentimentos (F2)','Pensamento Orientado para o Exterior (F3)','Total'] , ageMin:192, ageMax:null},
     { id:'q_swan',       name:'SWAN',                  dest:['Pais','Mãe','Pai','Enc. Educação','Professor(a)'], link:'https://correiaricardina-ui.github.io/questionarios/SWAN_v1.html', syncKey:'swan', area:'PHDA', ageRange:'6–18 anos', objective:'Avaliar sintomas de PHDA em contexto dimensional', domains:['Desatenção','Hiperatividade-Impulsividade'] , ageMin:72, ageMax:215},
     { id:'q_scared_r_crianca', name:'SCARED-R — Criança',    dest:['Paciente'], link:'https://correiaricardina-ui.github.io/questionarios/SCARED_R_Crianca.html', syncKey:'scared_r_crianca', area:'Ansiedade', ageRange:'8–18 anos', objective:'Avaliação de perturbações de ansiedade — versão autorrelato', domains:['Pânico','Ansiedade Generalizada','Separação','Fobia Social','Fobia Específica','Obsessivo-Compulsiva','Stress Pós-Traumático','Total'] , ageMin:96, ageMax:215},
@@ -1054,6 +1068,8 @@ function initCatalog() {
     'q_imc_c':      { link:'https://correiaricardina-ui.github.io/questionarios/IMC_C.html', syncKey:'imc_c' },
     // IVP de Super — v23.0
     'q_ivp_super':  { link:'https://correiaricardina-ui.github.io/questionarios/IVP_Super_v1.html', syncKey:'ivp_super' },
+    // SDS — Self-Directed Search — v24.0
+    'q_sds_holland': { link:'https://correiaricardina-ui.github.io/questionarios/SDS_Holland.html', syncKey:'sds_holland' },
       'q_mbiss':      { link:'https://correiaricardina-ui.github.io/questionarios/MBI-SS_v1.html', syncKey:'mbiss' },
       'q_aseba_cbcl': { link:'https://correiaricardina-ui.github.io/questionarios/CBCL_618_v1.html', syncKey:'cbcl' },
       'q_aseba_trf':  { link:'https://correiaricardina-ui.github.io/questionarios/TRF_618_v1.html', syncKey:'trf' },
@@ -1312,6 +1328,10 @@ function initCatalog() {
     if(!catalog.includes('q_ivp_super')) {
       const d = defaults.find(x => x.id === 'q_ivp_super');
       if(d) { store.set('q_' + d.id, d); catalog.push('q_ivp_super'); store.set('catalog', catalog); }
+    }
+    if(!catalog.includes('q_sds_holland')) {
+      const d = defaults.find(x => x.id === 'q_sds_holland');
+      if(d) { store.set('q_' + d.id, d); catalog.push('q_sds_holland'); store.set('catalog', catalog); }
     }
     }
   }
@@ -1843,6 +1863,19 @@ function formatScoreSummary(scores, syncKey) {
       return top3;
     }
   }
+  if(syncKey === 'sds_holland') {
+    const code = scores['Código_Holland'] ?? scores['codigo_holland'] ?? scores['codigoHolland'] ?? '';
+    const types = ['R','I','A','S','E','C'];
+    const typeNames = {R:'Realista',I:'Investigador',A:'Artístico',S:'Social',E:'Empreendedor',C:'Convencional'};
+    const totals = types.map(t => ({ t, v: scores[t+'_total'] ?? scores['total_'+t] ?? null })).filter(x => x.v !== null);
+    if(code || totals.length > 0) {
+      const codeHtml = code ? '<span style="font-size:1rem;font-weight:700;letter-spacing:4px;color:#3B5A7A;">' + code + '</span> ' : '';
+      const top = totals.sort((a,b) => b.v - a.v).slice(0,3).map(x =>
+        '<span style="background:#EBF2F8;color:#3B5A7A;border-radius:4px;padding:1px 6px;font-size:0.75rem;font-weight:600;">' + typeNames[x.t] + ' (' + x.v + ')</span>'
+      ).join(' ');
+      return codeHtml + top;
+    }
+  }
   if(syncKey === 'mbiss') {
     const ex = scores['EX'] ?? scores['ex'];
     const dc = scores['DC'] ?? scores['dc'];
@@ -2029,7 +2062,8 @@ function renderAssignments(patientId) {
                 'Anamnese_Complementar':['NomeRespondente'],
                 'PAIA':['NomeRespondente'],
                 'PAI':['NomeRespondente'],
-                'IPP_R':['NomeRespondente']
+                'IPP_R':['NomeRespondente'],
+                'SDS_Holland':['NomeCriança']
               };
               const RC = {
                 'SWAN':['Relação'],'BRIEF_Pais':['Relação'],'SCARED_R_PAIS':['Relação'],
@@ -2304,7 +2338,8 @@ async function syncAndMark(patientId, idx) {
           'SPAS_Pais':['NomeInformante'],'SPAS_Prof':['NomeInformante'],
           'ABAS3_PAIS':['NomeCrianca','NomeInformante'],'ABAS3_PROF':['NomeCrianca','NomeInformante'],'ABAS3_ADULT':['NomeCrianca','NomeInformante'],'ABAS3_05':['Informante'],'ABAS3_05P':['Informante'],'QEDP':['Informante','NomeInformante'],
           'QC_Coparentalidade':['NomeRespondente','Respondente'],
-          'IPP_R':['NomeRespondente']
+          'IPP_R':['NomeRespondente'],
+          'SDS_Holland':['NomeCriança']
         };
         const RC2 = {
           'SWAN':['Relação'],'BRIEF_Pais':['Relação'],'SCARED_R_PAIS':['Relação'],
@@ -2747,7 +2782,7 @@ document.addEventListener('DOMContentLoaded', () => {
   store.del('pw');
   // Forçar re-leitura do META em cada arranque — limpa chaves com prefixo errado
   (function forceMetaRefresh() {
-    const META_VERSION = 'v24_abril2026';
+    const META_VERSION = 'v25_abril2026';
     if(localStorage.getItem('cns_meta_version') !== META_VERSION) {
       // Limpar chaves de metadados de questionários para forçar recriação
       Object.keys(localStorage)
