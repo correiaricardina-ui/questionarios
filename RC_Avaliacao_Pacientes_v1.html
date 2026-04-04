@@ -731,7 +731,13 @@ const SYNC_KEY_TO_ABA = {
   'SDS_Holland':     'SDS_Holland',
   'SDS-Holland':     'SDS_Holland',
   'sds':             'SDS_Holland',
-  'SDS':             'SDS_Holland'
+  'SDS':             'SDS_Holland',
+  // ── JTCI — v25.0 ─────────────────────────────────────────
+  'jtci92':          'JTCI_92',
+  'JTCI_92':         'JTCI_92',
+  'JTCI-92':         'JTCI_92',
+  'jtci':            'JTCI_92',
+  'JTCI':            'JTCI_92'
 };
 
 // Cache em memória das respostas do Sheet (evita fetch repetidos na mesma sessão)
@@ -985,6 +991,13 @@ function initCatalog() {
       objective:'Rastreio de atitudes e comportamentos alimentares de risco (Garner et al., 1982)',
       domains:['D','B','OC','Total'], ageMin:132, ageMax:null},
     // ── Personalidade ────────────────────────────────────────────────────
+    { id:'q_jtci92', name:'JTCI — Inventário Júnior de Temperamento e Caráter',
+      dest:['Paciente'],
+      link:'https://correiaricardina-ui.github.io/questionarios/JTCI_92.html',
+      syncKey:'jtci92', area:'Personalidade', ageRange:'9–18 anos',
+      objective:'Avalia temperamento (NS, HA, RD, P) e caráter (SD, CO) — 92 itens, autorrelato (Mondoni 2010 · Moreira et al. 2012)',
+      domains:['NS','HA','RD','P','SD','CO'],
+      ageMin:108, ageMax:215 },
     { id:'q_pai_a', name:'PAI-A',
       dest:['Paciente'],
       link:'https://correiaricardina-ui.github.io/questionarios/PAI_A_final.html',
@@ -1889,6 +1902,21 @@ function formatScoreSummary(scores, syncKey) {
       return '<span style="font-size:0.78rem;' + cls + '">EX=' + ex + ' · DC=' + dc + (isBurnout ? ' · ⚠ Burnout' : isRisco ? ' · Risco' : '') + '</span>';
     }
   }
+  // ── JTCI — Inventário Júnior de Temperamento e Caráter ──────────────
+  if(syncKey === 'jtci92') {
+    const ns = scores['NS'] ?? scores['ns'] ?? null;
+    const ha = scores['HA'] ?? scores['ha'] ?? null;
+    const p  = scores['P']  ?? scores['p']  ?? null;
+    const sd = scores['SD'] ?? scores['sd'] ?? null;
+    if(ns != null || p != null) {
+      const parts = [];
+      if(ns != null) parts.push('NS=' + ns);
+      if(ha != null) parts.push('HA=' + ha);
+      if(p  != null) parts.push('P='  + p);
+      if(sd != null) parts.push('SD=' + sd);
+      return '<span style="font-size:0.78rem;color:var(--blue)">' + parts.join(' · ') + '</span>';
+    }
+  }
   return null;
 }
 
@@ -2063,7 +2091,8 @@ function renderAssignments(patientId) {
                 'PAIA':['NomeRespondente'],
                 'PAI':['NomeRespondente'],
                 'IPP_R':['NomeRespondente'],
-                'SDS_Holland':['NomeCriança']
+                'SDS_Holland':['NomeCriança'],
+                'JTCI_92':['NomeInformante']
               };
               const RC = {
                 'SWAN':['Relação'],'BRIEF_Pais':['Relação'],'SCARED_R_PAIS':['Relação'],
