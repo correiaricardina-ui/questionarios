@@ -766,6 +766,13 @@ function verDetalhe(idx){
   html+="<p style=\"color:var(--text-light);font-size:.82rem;margin:0\">"+dt+"</p></div>";
   html+="<button style=\"background:var(--blue);color:white;border:none;border-radius:6px;padding:5px 14px;font-size:0.8rem;font-weight:600;cursor:pointer;font-family:DM Sans,sans-serif\" onclick=\"imprimirDetalhe_ABAS()\">&#128438; Imprimir / PDF</button>";
   html+="</div>";
+  // Nota de cotação fora do intervalo normativo (0–5 anos = 0–71 meses)
+  var idadeMesesModal = parseInt(s.idade_meses) || 0;
+  if(idadeMesesModal > 71){
+    html+='<div style="margin-bottom:12px;padding:10px 14px;background:#FEF9E7;border-left:3px solid #E67E22;border-radius:0 8px 8px 0;font-size:0.82rem;color:#7D6608">' +
+      '<strong>\u26a0 Nota de cota\u00e7\u00e3o:</strong> A crian\u00e7a tem '+idadeMesesModal+' meses (fora do intervalo normativo do ABAS-3 Pr\u00e9-Escolar: 0\u201371 meses). ' +
+      'A cota\u00e7\u00e3o foi comparada com as normas do grupo 60\u201371 meses \u2014 limite m\u00e1ximo da escala. Interpretar com cautela cl\u00ednica.</div>';
+  }
   html+="<h4 style=\"color:var(--blue);font-size:.9rem;margin-bottom:8px\">Scores por Dom&iacute;nio</h4>";
   html+="<div style=\"overflow-x:auto\"><table class=\"interp-table\">";
   html+="<thead><tr><th>Dom&iacute;nio</th><th>SB</th><th>SS</th><th>Pct.</th><th>Classif.</th><th>Zona</th><th>Perfil</th></tr></thead><tbody>";
