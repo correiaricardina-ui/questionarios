@@ -717,7 +717,11 @@ const SYNC_KEY_TO_ABA = {
   'ps2pais':       'PS2_Cuidador',
   'ps2escola':     'PS2_Professor',
   // ── IPP-R v1.0 ───────────────────────────────────────────
-  'ippr':            'IPP_R'
+  'ippr':            'IPP_R',
+  // IMC-C — v22.0
+  'imc_c':           'IMC_C',
+  'IMC_C':           'IMC_C',
+  'IMC-C':           'IMC_C'
 };
 
 // Cache em memória das respostas do Sheet (evita fetch repetidos na mesma sessão)
@@ -808,6 +812,14 @@ function initCatalog() {
       syncKey:'ippr', area:'Orientação Escolar e Vocacional', ageRange:'≥14 anos',
       objective:'Avaliar interesses e preferências profissionais em 15 campos vocacionais',
       domains:['CIE','TEC','SAU','CSH','CSJ','CPA','EDU','FAC','INF','APA','BMA','MDR','FSP','DES','THR'],
+      ageMin:168, ageMax:null },
+    // IMC-C — v22.0
+    { id:'q_imc_c', name:'IMC-C — Inventário de Maturidade na Carreira (Forma C)',
+      dest:['Jovem avaliado','Paciente'],
+      link:'https://correiaricardina-ui.github.io/questionarios/IMC_C.html',
+      syncKey:'imc_c', area:'Orientação Escolar e Vocacional', ageRange:'Ensino Secundário',
+      objective:'Avaliar a maturidade/adaptabilidade vocacional: prontidão para decisões de carreira',
+      domains:['Preocupação','Curiosidade','Confiança','Consulta/Controlo','Escala Total'],
       ageMin:168, ageMax:null },
     { id:'q_tas20',      name:'TAS-20',               dest:['Paciente'],                  link:'https://correiaricardina-ui.github.io/questionarios/TAS20_v7.html',      syncKey:'tas20',  area:'Emocional / Alexitimia', ageRange:'Adultos', objective:'Avaliar alexitimia (dificuldade em identificar e descrever emoções)', domains:['Dificuldade em Identificar Sentimentos (F1)','Dificuldade em Descrever Sentimentos (F2)','Pensamento Orientado para o Exterior (F3)','Total'] , ageMin:192, ageMax:null},
     { id:'q_swan',       name:'SWAN',                  dest:['Pais','Mãe','Pai','Enc. Educação','Professor(a)'], link:'https://correiaricardina-ui.github.io/questionarios/SWAN_v1.html', syncKey:'swan', area:'PHDA', ageRange:'6–18 anos', objective:'Avaliar sintomas de PHDA em contexto dimensional', domains:['Desatenção','Hiperatividade-Impulsividade'] , ageMin:72, ageMax:215},
@@ -1027,6 +1039,8 @@ function initCatalog() {
     const META = {
       'q_tas20':      { link:'https://correiaricardina-ui.github.io/questionarios/TAS20_v7.html', syncKey:'tas20' },
       'q_ippr':       { link:'https://correiaricardina-ui.github.io/questionarios/IPP-R_v1.html', syncKey:'ippr' },
+    // IMC-C — v22.0
+    'q_imc_c':      { link:'https://correiaricardina-ui.github.io/questionarios/IMC_C.html', syncKey:'imc_c' },
       'q_mbiss':      { link:'https://correiaricardina-ui.github.io/questionarios/MBI-SS_v1.html', syncKey:'mbiss' },
       'q_aseba_cbcl': { link:'https://correiaricardina-ui.github.io/questionarios/CBCL_618_v1.html', syncKey:'cbcl' },
       'q_aseba_trf':  { link:'https://correiaricardina-ui.github.io/questionarios/TRF_618_v1.html', syncKey:'trf' },
@@ -1276,6 +1290,11 @@ function initCatalog() {
     if(!catalog.includes('q_ippr')) {
       const d = defaults.find(x => x.id === 'q_ippr');
       if(d) { store.set('q_' + d.id, d); catalog.push('q_ippr'); store.set('catalog', catalog); }
+    }
+    // IMC-C — v22.0
+    if(!catalog.includes('q_imc_c')) {
+      const d = defaults.find(x => x.id === 'q_imc_c');
+      if(d) { store.set('q_' + d.id, d); catalog.push('q_imc_c'); store.set('catalog', catalog); }
     }
     }
   }
@@ -1785,6 +1804,15 @@ function formatScoreSummary(scores, syncKey) {
     const tD = scores['TotalD'] ?? scores['totalD'];
     if(tA != null) {
       return '<span style="font-size:0.78rem;color:var(--blue);font-weight:600;">A:' + tA + ' B:' + (tB||0) + ' C:' + (tC||0) + ' D:' + (tD||0) + '</span>';
+    }
+  }
+  // IMC-C — v22.0
+  if(syncKey === 'imc_c') {
+    const total = scores['Total'] ?? scores['total'];
+    if(total != null) {
+      const cls = total >= 14 ? 'color:var(--green);font-weight:700;' : total >= 7 ? 'color:#E67E22;font-weight:600;' : 'color:#C0392B;font-weight:600;';
+      const nivel = total >= 14 ? 'Elevado' : total >= 7 ? 'Médio' : 'Baixo';
+      return '<span style="font-size:0.78rem;' + cls + '">Total=' + total + '/18 · ' + nivel + '</span>';
     }
   }
   if(syncKey === 'mbiss') {
