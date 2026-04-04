@@ -619,6 +619,18 @@ function getAgeGroup(dobStr,gender){
   var ageGroup=(months>=48)?'4_5':'2_3';
   return gender+'_'+ageGroup;
 }
+// Devolve grupo + flag se a idade está fora do intervalo 2-5 anos
+function getAgeGroupInfo(dobStr,gender){
+  if(!dobStr)return{group:null,months:null,aprox:false,limiteRef:null};
+  var dob=new Date(dobStr);
+  var now=new Date();
+  var months=(now.getFullYear()-dob.getFullYear())*12+(now.getMonth()-dob.getMonth());
+  var ageGroup=(months>=48)?'4_5':'2_3';
+  // Fora do intervalo normativo (24–71 meses = 2–5 anos)
+  var aprox=months<24||months>71;
+  var limiteRef=months<24?'2–3 anos':months>71?'4–5 anos':null;
+  return{group:gender+'_'+ageGroup,months:months,aprox:aprox,limiteRef:limiteRef};
+}
 
 function getNorm(group,scale,raw){
   if(!NORMS[group]||!NORMS[group][scale])return null;
@@ -646,7 +658,8 @@ function submeter(){
   var fillDate=document.getElementById('fill-date').value||new Date().toISOString().slice(0,10);
 
   var sc=computeScores();
-  var ageGroup=getAgeGroup(dob,gen);
+  var ageInfo=getAgeGroupInfo(dob,gen);
+  var ageGroup=ageInfo.group;
   var norms={};
   if(ageGroup){
     ['INHIB','SHIFT','ECON','WM','PO','ISCI','FI','EMI','GEC'].forEach(function(s){
@@ -782,7 +795,8 @@ function calcAge(dobStr){
 
 function verDetalhe(idx){
   var r=(window._clinico_sessions||[])[idx];if(!r)return;
-  var ag=getAgeGroup(r.dob,r.gender);
+  var agInfo=getAgeGroupInfo(r.dob,r.gender);
+  var ag=agInfo.group;
   var ciData=ag&&CI[ag]?CI[ag]:{};
   var scales=[{key:'INHIB',label:'Inib\u00e3o (INHIB)'},{key:'SHIFT',label:'Mudan\u00e7a (SHIFT)'},{key:'ECON',label:'Controlo Emocional (ECON)'},{key:'WM',label:'Mem\u00f3ria de Trabalho (WM)'},{key:'PO',label:'Planifica\u00e7\u00e3o/Organiza\u00e7\u00e3o (P/O)'}];
   var indexes=[{key:'ISCI',label:'ISCI (Inib\u00e3o+CE)'},{key:'FI',label:'IF (Mudan\u00e7a+CE)'},{key:'EMI',label:'IME (MT+P/O)'},{key:'GEC',label:'GEF (Global)'}];
@@ -807,7 +821,7 @@ function verDetalhe(idx){
     '<div style="font-size:0.82rem;color:var(--text-light);">Data: '+(r.date?new Date(r.date).toLocaleDateString('pt-PT'):'')+' &middot; Professor: '+(r.teacher||'--')+' &middot; Escola: '+(r.school||'--')+'</div>'+
     '<div style="font-size:0.78rem;color:var(--text-light);margin-top:2px;">Grupo normativo: '+(ag||'N/D')+' &middot; Teacher Sample (Gioia et al., 2003)</div></div>'+
     '<button onclick="document.getElementById(&quot;modal-detalhe&quot;).remove()" style="background:none;border:none;font-size:1.4rem;cursor:pointer;color:var(--text-light);">&#10005;</button></div>'+
-    warnHtml+
+    (agInfo.aprox?'<div style="margin-bottom:12px;padding:10px 14px;background:#FEF9E7;border-left:3px solid #E67E22;border-radius:0 8px 8px 0;font-size:0.82rem;color:#7D6608"><strong>\u26a0 Nota de cota\u00e7\u00e3o:</strong> A crian\u00e7a tem '+agInfo.months+' meses (fora do intervalo normativo do BRIEF Pr\u00e9-Escolar: 24\u201371 meses). A cota\u00e7\u00e3o foi comparada com as normas do grupo <strong>'+agInfo.limiteRef+'</strong> \u2014 limite m\u00e1ximo da escala. Interpretar com cautela cl\u00ednica.</div>':'')+warnHtml+
     '<h4 style="color:var(--blue);font-size:0.9rem;margin:16px 0 8px;">Escalas Cl\u00ednicas</h4>'+
     '<table style="width:100%;border-collapse:collapse;font-size:0.85rem;margin-bottom:16px;">'+
     '<thead><tr style="background:var(--blue-xpale);"><th style="padding:8px 10px;text-align:left;color:var(--blue);">Escala</th>'+
