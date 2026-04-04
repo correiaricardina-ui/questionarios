@@ -737,7 +737,12 @@ const SYNC_KEY_TO_ABA = {
   'JTCI_92':         'JTCI_92',
   'JTCI-92':         'JTCI_92',
   'jtci':            'JTCI_92',
-  'JTCI':            'JTCI_92'
+  'JTCI':            'JTCI_92',
+  // ── NEO PI-R — v26.0 ─────────────────────────────────────
+  'neopir':          'NEOPIR',
+  'NEOPIR':          'NEOPIR',
+  'NEO_PIR':         'NEOPIR',
+  'NEO-PI-R':        'NEOPIR'
 };
 
 // Cache em memória das respostas do Sheet (evita fetch repetidos na mesma sessão)
@@ -991,6 +996,13 @@ function initCatalog() {
       objective:'Rastreio de atitudes e comportamentos alimentares de risco (Garner et al., 1982)',
       domains:['D','B','OC','Total'], ageMin:132, ageMax:null},
     // ── Personalidade ────────────────────────────────────────────────────
+    { id:'q_neopir', name:'NEO PI-R — Inventário de Personalidade NEO Revisto',
+      dest:['Paciente'],
+      link:'https://correiaricardina-ui.github.io/questionarios/NEO_PIR_v1.html',
+      syncKey:'neopir', area:'Personalidade', ageRange:'17+ anos',
+      objective:'Avaliação dos 5 grandes domínios de personalidade (N, E, O, A, C) e 30 facetas — 240 itens (Costa & McCrae 1992 · Lima & Simões 1997)',
+      domains:['Neuroticismo','Extroversão','Abertura à Experiência','Amabilidade','Conscienciosidade'],
+      ageMin:204, ageMax:null },
     { id:'q_jtci92', name:'JTCI — Inventário Júnior de Temperamento e Caráter',
       dest:['Paciente'],
       link:'https://correiaricardina-ui.github.io/questionarios/JTCI_92.html',
@@ -1139,6 +1151,8 @@ function initCatalog() {
       // ── Perfil Sensorial 2 v1.0 ──────────────────────────────────────────
       'q_ps2pais':   { link:'https://correiaricardina-ui.github.io/questionarios/PS2_Pais_v1.html',   syncKey:'ps2pais' },
       'q_ps2escola': { link:'https://correiaricardina-ui.github.io/questionarios/PS2_Escola_v1.html', syncKey:'ps2escola' },
+      // ── NEO PI-R — v26.0 ─────────────────────────────────────
+      'q_neopir': { link:'https://correiaricardina-ui.github.io/questionarios/NEO_PIR_v1.html', syncKey:'neopir' },
     };
     // ── Re-store com chave correcta ('q_' + id) — corrige instalações anteriores ──
     // Garante que Conners, FAD e MAP ficam acessíveis pelo META.forEach e getCatalog
@@ -1345,6 +1359,11 @@ function initCatalog() {
     if(!catalog.includes('q_sds_holland')) {
       const d = defaults.find(x => x.id === 'q_sds_holland');
       if(d) { store.set('q_' + d.id, d); catalog.push('q_sds_holland'); store.set('catalog', catalog); }
+    }
+    // NEO PI-R — v26.0
+    if(!catalog.includes('q_neopir')) {
+      const d = defaults.find(x => x.id === 'q_neopir');
+      if(d) { store.set('q_' + d.id, d); catalog.push('q_neopir'); store.set('catalog', catalog); }
     }
     }
   }
@@ -1917,6 +1936,23 @@ function formatScoreSummary(scores, syncKey) {
       return '<span style="font-size:0.78rem;color:var(--blue)">' + parts.join(' · ') + '</span>';
     }
   }
+  // ── NEO PI-R — v26.0 ─────────────────────────────────────────────────────
+  if(syncKey === 'neopir') {
+    const pcN = scores['PC_N'] ?? scores['pc_n'] ?? null;
+    const pcE = scores['PC_E'] ?? scores['pc_e'] ?? null;
+    const pcO = scores['PC_O'] ?? scores['pc_o'] ?? null;
+    const pcA = scores['PC_A'] ?? scores['pc_a'] ?? null;
+    const pcC = scores['PC_C'] ?? scores['pc_c'] ?? null;
+    if(pcN != null || pcE != null) {
+      const parts = [];
+      if(pcN != null) parts.push('N=PC' + pcN);
+      if(pcE != null) parts.push('E=PC' + pcE);
+      if(pcO != null) parts.push('O=PC' + pcO);
+      if(pcA != null) parts.push('A=PC' + pcA);
+      if(pcC != null) parts.push('C=PC' + pcC);
+      return '<span style="font-size:0.78rem;color:var(--blue)">' + parts.join(' · ') + '</span>';
+    }
+  }
   return null;
 }
 
@@ -2092,7 +2128,8 @@ function renderAssignments(patientId) {
                 'PAI':['NomeRespondente'],
                 'IPP_R':['NomeRespondente'],
                 'SDS_Holland':['NomeCriança'],
-                'JTCI_92':['NomeInformante']
+                'JTCI_92':['NomeInformante'],
+                'NEOPIR':['NomeInformante']
               };
               const RC = {
                 'SWAN':['Relação'],'BRIEF_Pais':['Relação'],'SCARED_R_PAIS':['Relação'],
@@ -2368,7 +2405,8 @@ async function syncAndMark(patientId, idx) {
           'ABAS3_PAIS':['NomeCrianca','NomeInformante'],'ABAS3_PROF':['NomeCrianca','NomeInformante'],'ABAS3_ADULT':['NomeCrianca','NomeInformante'],'ABAS3_05':['Informante'],'ABAS3_05P':['Informante'],'QEDP':['Informante','NomeInformante'],
           'QC_Coparentalidade':['NomeRespondente','Respondente'],
           'IPP_R':['NomeRespondente'],
-          'SDS_Holland':['NomeCriança']
+          'SDS_Holland':['NomeCriança'],
+          'NEOPIR':['NomeInformante']
         };
         const RC2 = {
           'SWAN':['Relação'],'BRIEF_Pais':['Relação'],'SCARED_R_PAIS':['Relação'],
@@ -2514,7 +2552,7 @@ function renderCatalog() {
     groups[area].push(q);
   });
 
-  const areaOrder = ['Ansiedade','Autismo / Comportamento Social','Comportamento','Comportamento Adaptativo','Emocional / Alexitimia','Família / Parentalidade','Funções Executivas','Linguagem','PHDA','Regulação Emocional'];
+  const areaOrder = ['Ansiedade','Autismo / Comportamento Social','Comportamento','Comportamento Adaptativo','Emocional / Alexitimia','Família / Parentalidade','Funções Executivas','Linguagem','Personalidade','PHDA','Regulação Emocional'];
   const sortedAreas = Object.keys(groups).sort((a,b) => {
     const ia = areaOrder.indexOf(a), ib = areaOrder.indexOf(b);
     if(ia===-1 && ib===-1) return a.localeCompare(b);
