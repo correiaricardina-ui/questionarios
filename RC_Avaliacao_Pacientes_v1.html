@@ -721,7 +721,11 @@ const SYNC_KEY_TO_ABA = {
   // IMC-C — v22.0
   'imc_c':           'IMC_C',
   'IMC_C':           'IMC_C',
-  'IMC-C':           'IMC_C'
+  'IMC-C':           'IMC_C',
+  // IVP de Super — v23.0
+  'ivp_super':       'IVP_Super',
+  'IVP_Super':       'IVP_Super',
+  'IVP-Super':       'IVP_Super'
 };
 
 // Cache em memória das respostas do Sheet (evita fetch repetidos na mesma sessão)
@@ -820,6 +824,13 @@ function initCatalog() {
       syncKey:'imc_c', area:'Orientação Escolar e Vocacional', ageRange:'Ensino Secundário',
       objective:'Avaliar a maturidade/adaptabilidade vocacional: prontidão para decisões de carreira',
       domains:['Preocupação','Curiosidade','Confiança','Consulta/Controlo','Escala Total'],
+      ageMin:168, ageMax:null },
+    { id:'q_ivp_super', name:'IVP de Super — Inventário de Valores Profissionais',
+      dest:['Jovem avaliado','Paciente'],
+      link:'https://correiaricardina-ui.github.io/questionarios/IVP_Super_v1.html',
+      syncKey:'ivp_super', area:'Orientação Escolar e Vocacional', ageRange:'Ensino Secundário / Adultos',
+      objective:'Avaliar os valores profissionais em 15 dimensões: Criatividade, Altruísmo, Estético, Estimulação Intelectual, Êxito, Independência, Prestígio, Direcção, Económico, Segurança, Ambiente, Rel. Superiores, Rel. Colegas, Variedade, Género de Vida',
+      domains:['Criatividade','Altruísmo','Estético','Estimulação Intelectual','Êxito','Independência','Prestígio','Direcção','Económico','Segurança','Ambiente','Relação com os Superiores','Relação com os Colegas','Variedade','Género de Vida'],
       ageMin:168, ageMax:null },
     { id:'q_tas20',      name:'TAS-20',               dest:['Paciente'],                  link:'https://correiaricardina-ui.github.io/questionarios/TAS20_v7.html',      syncKey:'tas20',  area:'Emocional / Alexitimia', ageRange:'Adultos', objective:'Avaliar alexitimia (dificuldade em identificar e descrever emoções)', domains:['Dificuldade em Identificar Sentimentos (F1)','Dificuldade em Descrever Sentimentos (F2)','Pensamento Orientado para o Exterior (F3)','Total'] , ageMin:192, ageMax:null},
     { id:'q_swan',       name:'SWAN',                  dest:['Pais','Mãe','Pai','Enc. Educação','Professor(a)'], link:'https://correiaricardina-ui.github.io/questionarios/SWAN_v1.html', syncKey:'swan', area:'PHDA', ageRange:'6–18 anos', objective:'Avaliar sintomas de PHDA em contexto dimensional', domains:['Desatenção','Hiperatividade-Impulsividade'] , ageMin:72, ageMax:215},
@@ -1041,6 +1052,8 @@ function initCatalog() {
       'q_ippr':       { link:'https://correiaricardina-ui.github.io/questionarios/IPP-R_v1.html', syncKey:'ippr' },
     // IMC-C — v22.0
     'q_imc_c':      { link:'https://correiaricardina-ui.github.io/questionarios/IMC_C.html', syncKey:'imc_c' },
+    // IVP de Super — v23.0
+    'q_ivp_super':  { link:'https://correiaricardina-ui.github.io/questionarios/IVP_Super_v1.html', syncKey:'ivp_super' },
       'q_mbiss':      { link:'https://correiaricardina-ui.github.io/questionarios/MBI-SS_v1.html', syncKey:'mbiss' },
       'q_aseba_cbcl': { link:'https://correiaricardina-ui.github.io/questionarios/CBCL_618_v1.html', syncKey:'cbcl' },
       'q_aseba_trf':  { link:'https://correiaricardina-ui.github.io/questionarios/TRF_618_v1.html', syncKey:'trf' },
@@ -1295,6 +1308,10 @@ function initCatalog() {
     if(!catalog.includes('q_imc_c')) {
       const d = defaults.find(x => x.id === 'q_imc_c');
       if(d) { store.set('q_' + d.id, d); catalog.push('q_imc_c'); store.set('catalog', catalog); }
+    }
+    if(!catalog.includes('q_ivp_super')) {
+      const d = defaults.find(x => x.id === 'q_ivp_super');
+      if(d) { store.set('q_' + d.id, d); catalog.push('q_ivp_super'); store.set('catalog', catalog); }
     }
     }
   }
@@ -1813,6 +1830,17 @@ function formatScoreSummary(scores, syncKey) {
       const cls = total >= 14 ? 'color:var(--green);font-weight:700;' : total >= 7 ? 'color:#E67E22;font-weight:600;' : 'color:#C0392B;font-weight:600;';
       const nivel = total >= 14 ? 'Elevado' : total >= 7 ? 'Médio' : 'Baixo';
       return '<span style="font-size:0.78rem;' + cls + '">Total=' + total + '/18 · ' + nivel + '</span>';
+    }
+  }
+  // IVP de Super — v23.0
+  if(syncKey === 'ivp_super') {
+    const subs = ['Criatividade','Altruísmo','Estético','Estimulação Intelectual','Êxito','Independência','Prestígio','Direcção','Económico','Segurança','Ambiente','Relação com os Superiores','Relação com os Colegas','Variedade','Género de Vida'];
+    const jsKeys = ['Criatividade','Altrusmo','Esttico','Estimulao_Intelectual','xito','Independncia','Prestgio','Direco','Econmico','Segurana','Ambiente','Relao_com_os_Superiores','Relao_com_os_Colegas','Variedade','Gnero_de_Vida'];
+    const vals = subs.map((s, i) => ({ name: s, score: scores[s] ?? scores[jsKeys[i]] ?? null })).filter(x => x.score !== null);
+    if(vals.length > 0) {
+      const sorted = vals.slice().sort((a, b) => b.score - a.score);
+      const top3 = sorted.slice(0, 3).map(x => '<span style="background:#eafaf1;color:#27AE60;border-radius:4px;padding:1px 6px;font-size:0.75rem;font-weight:600;">' + x.name + ' (' + x.score + ')</span>').join(' ');
+      return top3;
     }
   }
   if(syncKey === 'mbiss') {
