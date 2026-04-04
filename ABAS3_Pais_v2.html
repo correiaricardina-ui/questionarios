@@ -875,7 +875,7 @@ function parseSessao(row) {
     nomeInformante: row.nomeInformante || '',
     parentesco: row.parentesco || '—',
     idade: row.idade || '—',
-    answers: row.answers || '',
+    answers: row.answers || row.Answers || row.Respostas || row.respostas || '',
     sb:{}, ss:{}, cc:0, sc:0, pc:0, cag:0
   };
   // Calcular scores se não vierem do sheet
@@ -1004,6 +1004,41 @@ function verDetalhe(idx) {
   html += '<strong>Limiares de refer&ecirc;ncia:</strong> SS &#8805; 8 = Normativo &middot; SS 6&ndash;7 = Borderline &middot; SS &#8804; 5 = Cl&iacute;nico &nbsp;|&nbsp; ';
   html += 'CAG &#8805; 90 = Normativo &middot; CAG 80&ndash;89 = Borderline &middot; CAG &#8804; 79 = Cl&iacute;nico';
   html += '</div>';
+
+  // ── Respostas item a item ──────────────────────────────────────────
+  var arr = s.answers ? (typeof s.answers === 'string' ? s.answers.split('|') : s.answers) : [];
+  if (arr.length > 0) {
+    var allItems = [];
+    DOMAINS.forEach(function(d){ d.items.forEach(function(item){ allItems.push({dom:d.code, text:item}); }); });
+    var respLinhas = arr.map(function(v, i) {
+      var val = parseInt(v);
+      var it = allItems[i] || {};
+      var lbl = val === 3 ? '3 — Sempre ou quase sempre'
+              : val === 2 ? '2 — Às vezes'
+              : val === 1 ? '1 — Nunca ou quase nunca'
+              : val === 0 ? '0 — Não sabe / N/A'
+              : v;
+      var cor = val === 3 ? 'var(--green)' : val === 2 ? 'var(--orange)' : val === 1 ? 'var(--red)' : 'var(--text-light)';
+      return '<tr style="border-bottom:1px solid var(--gray-bdr)">' +
+        '<td style="padding:4px 8px;color:var(--text-light);font-size:.76rem;text-align:center">'+(i+1)+'</td>' +
+        '<td style="padding:4px 8px;font-size:.76rem;text-align:center;color:var(--blue);font-weight:600">'+(it.dom||'')+'</td>' +
+        '<td style="padding:4px 8px;font-size:.79rem">'+(it.text||'Item '+(i+1))+'</td>' +
+        '<td style="padding:4px 8px;font-weight:700;color:'+cor+';font-size:.79rem;text-align:center">'+lbl+'</td>' +
+        '</tr>';
+    }).join('');
+    html += '<details style="margin-top:16px">' +
+      '<summary style="cursor:pointer;font-weight:600;color:var(--blue);padding:8px 0;font-size:.88rem">&#128221; Ver respostas por item ('+arr.length+' itens)</summary>' +
+      '<div style="overflow-x:auto;margin-top:8px">' +
+      '<table style="width:100%;border-collapse:collapse;font-size:.82rem">' +
+      '<thead><tr style="background:var(--blue-xpale)">' +
+        '<th style="padding:5px 8px;text-align:center;color:var(--blue)">#</th>' +
+        '<th style="padding:5px 8px;text-align:center;color:var(--blue)">Dom.</th>' +
+        '<th style="padding:5px 8px;text-align:left;color:var(--blue)">Item</th>' +
+        '<th style="padding:5px 8px;text-align:center;color:var(--blue)">Resposta</th>' +
+      '</tr></thead>' +
+      '<tbody>'+respLinhas+'</tbody></table></div></details>';
+  }
+  // ──────────────────────────────────────────────────────────────────
 
   document.getElementById('modal-content').innerHTML = html;
   document.getElementById('modal-overlay').classList.add('open');
