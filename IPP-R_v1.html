@@ -119,14 +119,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--gray);color:var(--text);m
           <input type="text" id="patient-code" class="field-input" placeholder="ex: MV14062013" style="text-transform:uppercase" oninput="this.value=this.value.toUpperCase()">
           <div style="font-size:.75rem;color:var(--text-light);margin-top:4px">Iniciais + data nasc. (DDMMAAAA). Ex: <em>MV14062013</em></div>
         </div>
-        <div style="margin-bottom:16px">
-          <label class="field-label">Nome do jovem avaliado <span style="font-weight:400">(nome próprio ou completo)</span></label>
-          <input type="text" id="nome-crianca" class="field-input" placeholder="ex: Maria Silva">
-        </div>
-        <div style="margin-bottom:16px">
-          <label class="field-label">O questionário é preenchido por <span style="font-weight:400">(nome próprio)</span></label>
-          <input type="text" id="nome_informante" class="field-input" placeholder="ex: João Silva (o próprio jovem)">
-        </div>
         <div style="margin-bottom:4px">
           <label class="field-label">Ano de escolaridade</label>
           <select id="ano-escolar" class="field-input">
@@ -289,10 +281,6 @@ function avancarParaQuestoes(){
   var code=document.getElementById('patient-code').value.trim().toUpperCase();
   if(!code){alert('Por favor indique o código do paciente.');return;}
   if(!/^[A-Z][A-Z][A-Z]?[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]$/.test(code)){alert("Código inválido. Devem ser 2 ou 3 iniciais + data de nascimento (DDMMAAAA). Exemplo: MV14062013");return;}
-  var nomeCrianca=document.getElementById('nome-crianca').value.trim();
-  if(!nomeCrianca){alert('Por favor indique o nome do jovem avaliado.');return;}
-  var nomeInformante=document.getElementById('nome_informante').value.trim();
-  if(!nomeInformante){alert('Por favor indique o nome de quem preenche o questionário.');return;}
   var ano=document.getElementById('ano-escolar').value;
   if(!ano){alert('Por favor selecione o ano de escolaridade.');return;}
   document.getElementById('section-1').style.display='none';
@@ -334,7 +322,7 @@ function renderBloco(idx){
     ];
     optsData.forEach(function(o){
       var sel=r===o.op?"opt-btn sel-"+o.op:"opt-btn";
-      html+='<button class="'+sel+'" onclick="responder('+i+',"'+ o.op +'")">'+escHtml(o.lbl)+'</button>';
+      html+='<button class="'+sel+'" onclick="responder('+i+',\''+o.op+'\')">'+escHtml(o.lbl)+'</button>';
     });
     html+="</div></div></div>";
   }
@@ -374,17 +362,15 @@ function submeter(){
   for(var i=0;i<N_ITENS;i++){if(respostasActuais[i]===null||respostasActuais[i]===undefined)naoResp.push(i+1);}
   if(naoResp.length>0){alert('Itens sem resposta: '+naoResp.join(', ')+'. Por favor volte atrás e complete.');return;}
   var code=document.getElementById('patient-code').value.trim().toUpperCase();
-  var nomeCrianca=document.getElementById('nome-crianca').value.trim();
-  var nomeInformante=document.getElementById('nome_informante').value.trim();
   var ano=document.getElementById('ano-escolar').value;
   var countA=0,countB=0,countC=0,countD=0;
   respostasActuais.forEach(function(r){if(r==='A')countA++;else if(r==='B')countB++;else if(r==='C')countC++;else if(r==='D')countD++;});
-  var payload={instrumento:NOME_ABA,patientCode:code,nomeCrianca:nomeCrianca,nome_informante:nomeInformante,anoEscolar:ano,totalA:countA,totalB:countB,totalC:countC,totalD:countD,Respostas:JSON.stringify(respostasActuais),dataHora:new Date().toISOString()};
+  var payload={instrumento:NOME_ABA,patientCode:code,anoEscolar:ano,totalA:countA,totalB:countB,totalC:countC,totalD:countD,Respostas:JSON.stringify(respostasActuais),dataHora:new Date().toISOString()};
   try{
     if(location.protocol==='file:'||!navigator.onLine){
       var bom='\uFEFF';
-      var cabecalho='Data;Codigo;NomeCrianca;NomeRespondente;Ano;TotalA;TotalB;TotalC;TotalD;Respostas';
-      var linha=[new Date().toLocaleDateString("pt-PT"),code,nomeCrianca,nomeInformante,ano,countA,countB,countC,countD,JSON.stringify(respostasActuais)].map(function(v){return'"'+String(v).replace(/"/g,'""')+'"';}).join(";");
+      var cabecalho='Data;Codigo;Ano;TotalA;TotalB;TotalC;TotalD;Respostas';
+      var linha=[new Date().toLocaleDateString("pt-PT"),code,ano,countA,countB,countC,countD,JSON.stringify(respostasActuais)].map(function(v){return'"'+String(v).replace(/"/g,'""')+'"';}).join(";");
       var blob=new Blob([bom+cabecalho+'\r\n'+linha],{type:'text/csv;charset=utf-8;'});
       var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='IPPR_'+code+'_'+new Date().toISOString().slice(0,10)+'.csv';document.body.appendChild(a);a.click();document.body.removeChild(a);
     }
