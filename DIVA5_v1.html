@@ -1155,61 +1155,167 @@ function exportarRespostasPDF(sessao){
   w.document.write(htmlPDF);w.document.close();
 }
 
-// ── EXPORTAR INTERPRETAÇÃO PDF ────────────────────────────────
+// ── EXPORTAR RELATÓRIO COMPLETO PDF ───────────────────────────
 function exportarInterpretacaoPDF(sessao){
   if(!sessao){alert('Seleccione primeiro uma sessão (clique em "Ver →").');return;}
   var sc=sessao.scores||{};
   var v=sessao.versao||'adultos';
   var dt=sessao.date?(sessao.date.includes('T')?new Date(sessao.date).toLocaleDateString('pt-PT'):sessao.date):'—';
   var thr=sc.thr||5;
+  var versaoNome={adultos:'DIVA-5 Adultos',young:'Young DIVA-5 (5–17a)',id:'DIVA-5 ID'}[v]||v;
 
-  function linhaTabela(label,val,thr){
-    var ok=val>=thr;
-    var cor=ok?'#C0392B':'#27AE60';
-    var pct=Math.min(100,Math.round((val/9)*100));
-    return '<tr><td style="padding:5px 8px;border-bottom:1px solid #eee">'+label+'</td>'+
-      '<td style="padding:5px 8px;border-bottom:1px solid #eee;text-align:center;font-weight:700;color:'+cor+'">'+val+'/9</td>'+
-      '<td style="padding:5px 8px;border-bottom:1px solid #eee;text-align:center">≥ '+thr+'</td>'+
-      '<td style="padding:5px 8px;border-bottom:1px solid #eee"><div style="background:#eee;border-radius:3px;height:8px;width:120px;display:inline-block"><div style="background:'+cor+';border-radius:3px;height:8px;width:'+pct+'%"></div></div></td>'+
-      '<td style="padding:5px 8px;border-bottom:1px solid #eee;color:'+cor+';font-weight:600">'+(ok?'Atinge threshold':'Abaixo')+'</td></tr>';
+  // ── Gráfico SVG ──
+  var barras=[];
+  if(v==='young'){
+    barras=[
+      {label:'Desatenção — Jovem (actual)',val:sc.desatJ||0,thrVal:thr},
+      {label:'Desatenção — Pais/EE (infância)',val:sc.desatP||0,thrVal:thr},
+      {label:'H/I — Jovem (actual)',val:sc.hiJ||0,thrVal:thr},
+      {label:'H/I — Pais/EE (infância)',val:sc.hiP||0,thrVal:thr}
+    ];
+  } else {
+    barras=[
+      {label:'Desatenção — Adultez',val:sc.desatAdult||0,thrVal:thr},
+      {label:'Desatenção — Infância (5–12a)',val:sc.desatInf||0,thrVal:6},
+      {label:'H/I — Adultez',val:sc.hiAdult||0,thrVal:thr},
+      {label:'H/I — Infância (5–12a)',val:sc.hiInf||0,thrVal:6}
+    ];
   }
+  var chartW=700,barH=28,labelW=230,gap=10,chartH=barras.length*(barH+gap)+10;
+  var svgBars=barras.map(function(b,i){
+    var y=10+i*(barH+gap);
+    var avail=chartW-labelW-60;
+    var ok=b.val>=b.thrVal;
+    var cor=ok?'#C0392B':'#27AE60';
+    var barW=Math.round((b.val/9)*avail);
+    var thrX=Math.round((b.thrVal/9)*avail);
+    return '<g transform="translate(0,'+y+')">'+
+      '<text x="'+(labelW-6)+'" y="'+(barH/2+5)+'" text-anchor="end" font-size="11" fill="#6B7A8D" font-family="Arial">'+b.label+'</text>'+
+      '<rect x="'+labelW+'" y="0" width="'+avail+'" height="'+barH+'" rx="4" fill="#DDE3EA"/>'+
+      '<rect x="'+labelW+'" y="0" width="'+barW+'" height="'+barH+'" rx="4" fill="'+cor+'"/>'+
+      '<line x1="'+(labelW+thrX)+'" y1="0" x2="'+(labelW+thrX)+'" y2="'+barH+'" stroke="#2C3E50" stroke-width="2" stroke-dasharray="4,2"/>'+
+      '<text x="'+(labelW+thrX+3)+'" y="10" font-size="9" fill="#2C3E50" font-family="Arial">≥'+b.thrVal+'</text>'+
+      '<text x="'+(labelW+avail+6)+'" y="'+(barH/2+5)+'" font-size="12" font-weight="bold" fill="'+cor+'" font-family="Arial">'+b.val+'/9</text>'+
+    '</g>';
+  }).join('');
+  var svgGrafico='<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"100%\" viewBox=\"0 0 '+chartW+' '+chartH+'\">'+svgBars+'</svg>';
 
+  // ── Tabela de scores ──
+  function linhaTabela(label,val,thrV){
+    var ok=val>=thrV;
+    var cor=ok?'#C0392B':'#27AE60';
+    return '<tr><td style=\"padding:5px 8px;border-bottom:1px solid #eee\">'+label+'</td>'+
+      '<td style=\"padding:5px 8px;border-bottom:1px solid #eee;text-align:center;font-weight:700;color:'+cor+'\">'+val+'/9</td>'+
+      '<td style=\"padding:5px 8px;border-bottom:1px solid #eee;text-align:center\">≥ '+thrV+'</td>'+
+      '<td style=\"padding:5px 8px;border-bottom:1px solid #eee;color:'+cor+';font-weight:600\">'+(ok?'Atinge threshold':'Abaixo do threshold')+'</td></tr>';
+  }
   var tabela='';
   if(v==='young'){
-    tabela+=linhaTabela('Desatenção (A) — Jovem',sc.desatJ||0,thr);
-    tabela+=linhaTabela('Desatenção (A) — Pais/EE',sc.desatP||0,thr);
-    tabela+=linhaTabela('H/I (B) — Jovem',sc.hiJ||0,thr);
-    tabela+=linhaTabela('H/I (B) — Pais/EE',sc.hiP||0,thr);
+    tabela+=linhaTabela('Desatenção (A) — Jovem (actual)',sc.desatJ||0,thr);
+    tabela+=linhaTabela('Desatenção (A) — Pais/EE (infância)',sc.desatP||0,thr);
+    tabela+=linhaTabela('H/I (B) — Jovem (actual)',sc.hiJ||0,thr);
+    tabela+=linhaTabela('H/I (B) — Pais/EE (infância)',sc.hiP||0,thr);
   } else {
     tabela+=linhaTabela('Desatenção (A) — Adultez',sc.desatAdult||0,thr);
-    tabela+=linhaTabela('Desatenção (A) — Infância',sc.desatInf||0,6);
+    tabela+=linhaTabela('Desatenção (A) — Infância (5–12a)',sc.desatInf||0,6);
     tabela+=linhaTabela('H/I (B) — Adultez',sc.hiAdult||0,thr);
-    tabela+=linhaTabela('H/I (B) — Infância',sc.hiInf||0,6);
+    tabela+=linhaTabela('H/I (B) — Infância (5–12a)',sc.hiInf||0,6);
   }
 
+  // ── Interpretação ──
   var diag=sc.diag||'—';
-  var htmlPDF='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>DIVA-5 Interpretação — '+sessao.patientCode+'</title>'+
-    '<style>body{font-family:Arial,sans-serif;font-size:12px;color:#2C3E50;padding:24px;max-width:900px;margin:0 auto}h1{color:#3B5A7A;font-size:16px;margin-bottom:4px}h2{color:#3B5A7A;font-size:13px;margin:18px 0 8px;border-bottom:2px solid #D6E4F0;padding-bottom:4px}p{color:#6B7A8D;font-size:11px;margin-bottom:16px}table{width:100%;border-collapse:collapse;margin-bottom:16px}th{background:#D6E4F0;padding:6px 8px;text-align:left;color:#3B5A7A;font-size:11px}.no-print{margin-bottom:16px}@media print{.no-print{display:none}body{padding:12px}}</style></head><body>'+
-    '<div class="no-print"><button onclick="window.print()" style="padding:6px 14px;cursor:pointer">🖨 Imprimir / Guardar PDF</button></div>'+
+  var notas=[];
+  if(v==='young'){
+    var dJ=sc.desatJ||0,dP=sc.desatP||0,hJ=sc.hiJ||0,hP=sc.hiP||0;
+    if(dJ>=thr) notas.push('Desatenção presente actualmente no jovem ('+dJ+'/9 ≥ '+thr+').');
+    if(dP>=thr) notas.push('Desatenção com evidência na infância reportada pelos pais/EE ('+dP+'/9 ≥ '+thr+') — suporta critério de início antes dos 12 anos.');
+    else if(dJ>=thr) notas.push('Sem evidência de Desatenção na infância pelos pais/EE ('+dP+'/9) — questionar critério de início antes dos 12 anos.');
+    if(hJ>=thr) notas.push('H/I presente actualmente no jovem ('+hJ+'/9 ≥ '+thr+').');
+    if(hP>=thr) notas.push('H/I com evidência na infância reportada pelos pais/EE ('+hP+'/9 ≥ '+thr+') — suporta critério de início antes dos 12 anos.');
+    else if(hJ>=thr) notas.push('Sem evidência de H/I na infância pelos pais/EE ('+hP+'/9) — questionar critério de início antes dos 12 anos.');
+    if(!notas.length) notas.push('Nenhum domínio atinge o threshold diagnóstico.');
+  } else {
+    var dA=sc.desatAdult||0,dI=sc.desatInf||0,hA=sc.hiAdult||0;
+    if(dA>=thr&&dI>=6) notas.push('Desatenção presente na adultez e com evidência na infância — suporta critério de início antes dos 12 anos.');
+    else if(dA>=thr) notas.push('Desatenção presente na adultez mas sem critério claro na infância — verificar início antes dos 12 anos.');
+    if(hA>=thr) notas.push('H/I presente na adultez.');
+    if(diag.includes('Não preenche')) notas.push('Os sintomas actuais não atingem o threshold. Considerar diagnóstico diferencial.');
+    if(!notas.length) notas.push('Nenhum domínio atinge o threshold diagnóstico.');
+  }
+  var limiares=v==='young'
+    ? '≥ 6 sintomas crianças &lt;17a · ≥ 5 sintomas adolescentes ≥17a · Início antes dos 12 anos · Comprometimento ≥ 2 contextos'
+    : v==='id'
+      ? '≥ 5 sintomas vs. pares DI equiv. · Início antes dos 12 anos · Comprometimento ≥ 2 domínios'
+      : '≥ 5 sintomas adultez · ≥ 6 sintomas infância · Início antes dos 12 anos · Comprometimento ≥ 2 domínios';
+
+  // ── Respostas item a item ──
+  var respostasHTML='';
+  if(sessao.answers&&sessao.answers.length){
+    var col1=v==='young'?'Jovem (actual)':'Adultez';
+    var col2=v==='young'?'Pais/EE (infância)':'Infância (5–12a)';
+    var domA='',domB='';
+    var linhasResp=sessao.answers.map(function(ans,i){
+      var c=CRITERIOS[i];if(!c)return'';
+      var parts=typeof ans==='string'?ans.split('|'):[ans,''];
+      var v1=parts[0]||'?',v2=parts[1]||'?';
+      var cor1=v1==='Sim'?'#27AE60':v1==='Não'?'#C0392B':'#888';
+      var cor2=v2==='Sim'?'#27AE60':v2==='Não'?'#C0392B':'#888';
+      var domLabel='';
+      if(c.dom==='A'&&domA===''){domLabel='<tr><td colspan=\"4\" style=\"padding:6px 8px;background:#EBF2F8;font-weight:700;color:#3B5A7A;font-size:11px\">DOMÍNIO A — DESATENÇÃO</td></tr>';domA='done';}
+      if(c.dom==='B'&&domB===''){domLabel+='<tr><td colspan=\"4\" style=\"padding:6px 8px;background:#EBF2F8;font-weight:700;color:#3B5A7A;font-size:11px\">DOMÍNIO B — HIPERATIVIDADE / IMPULSIVIDADE</td></tr>';domB='done';}
+      return domLabel+'<tr>'+
+        '<td style=\"padding:4px 8px;border-bottom:1px solid #eee;color:#6B7A8D;text-align:center;font-size:11px\">'+c.cod+'</td>'+
+        '<td style=\"padding:4px 8px;border-bottom:1px solid #eee;font-size:11px\">'+c.txt+'</td>'+
+        '<td style=\"padding:4px 8px;border-bottom:1px solid #eee;text-align:center;font-weight:700;color:'+cor1+';font-size:11px\">'+v1+'</td>'+
+        '<td style=\"padding:4px 8px;border-bottom:1px solid #eee;text-align:center;font-weight:700;color:'+cor2+';font-size:11px\">'+v2+'</td></tr>';
+    }).join('');
+    respostasHTML='<h2>Respostas por Critério DSM-5</h2>'+
+      '<table><thead><tr>'+
+        '<th style=\"width:40px\">#</th><th>Critério</th>'+
+        '<th style=\"text-align:center;width:90px\">'+col1+'</th>'+
+        '<th style=\"text-align:center;width:110px\">'+col2+'</th>'+
+      '</tr></thead><tbody>'+linhasResp+'</tbody></table>';
+  } else {
+    respostasHTML='<p style=\"color:#888;font-style:italic\">Respostas item a item não disponíveis para esta sessão (importada via CSV ou sincronizada do Sheet).</p>';
+  }
+
+  var htmlPDF='<!DOCTYPE html><html><head><meta charset=\"UTF-8\"><title>DIVA-5 Relatório — '+sessao.patientCode+'</title>'+
+    '<style>'+
+    'body{font-family:Arial,sans-serif;font-size:12px;color:#2C3E50;padding:24px;max-width:900px;margin:0 auto}'+
+    'h1{color:#3B5A7A;font-size:16px;margin-bottom:4px}'+
+    'h2{color:#3B5A7A;font-size:13px;margin:20px 0 8px;border-bottom:2px solid #D6E4F0;padding-bottom:4px}'+
+    'p{color:#6B7A8D;font-size:11px;margin-bottom:12px;line-height:1.6}'+
+    'table{width:100%;border-collapse:collapse;margin-bottom:16px}'+
+    'th{background:#D6E4F0;padding:6px 8px;text-align:left;color:#3B5A7A;font-size:11px}'+
+    '.diag-box{background:#EBF2F8;border-radius:6px;padding:12px 16px;margin-bottom:16px}'+
+    '.diag-label{font-size:10px;color:#6B7A8D;margin-bottom:4px}'+
+    '.diag-val{font-size:15px;font-weight:700;color:#3B5A7A}'+
+    '.notas{background:#F4F6F9;border-radius:6px;padding:10px 14px;font-size:11px;line-height:1.9;color:#2C3E50}'+
+    '.limiares{background:#F4F6F9;border-radius:6px;padding:8px 12px;font-size:10px;color:#6B7A8D;margin-top:8px}'+
+    '.no-print{margin-bottom:16px}'+
+    '@media print{.no-print{display:none}body{padding:12px}}'+
+    '</style></head><body>'+
+    '<div class=\"no-print\"><button onclick=\"window.print()\" style=\"padding:6px 16px;cursor:pointer;background:#3B5A7A;color:white;border:none;border-radius:6px;font-size:13px\">🖨 Imprimir / Guardar PDF</button></div>'+
     '<h1>DIVA-5 — Relatório de Avaliação</h1>'+
     '<p>Código: <strong>'+sessao.patientCode+'</strong>'+
-      (sessao.nomeCrianca?' &nbsp;|&nbsp; Paciente: <strong>'+sessao.nomeCrianca+'</strong>':'')+
-      (sessao.nome_informante?' &nbsp;|&nbsp; Respondente: <strong>'+sessao.nome_informante+'</strong>':'')+
-      ' &nbsp;|&nbsp; Data: '+dt+' &nbsp;|&nbsp; Ricardina Correia · Cédula 8233</p>'+
-    '<h2>Scores por Domínio</h2>'+
-    '<table><thead><tr><th>Domínio / Período</th><th style="text-align:center">Sintomas</th><th style="text-align:center">Threshold</th><th>Perfil</th><th>Resultado</th></tr></thead><tbody>'+tabela+'</tbody></table>'+
+      (sessao.nomeCrianca?' &nbsp;·&nbsp; Paciente: <strong>'+sessao.nomeCrianca+'</strong>':'')+
+      (sessao.nome_informante?' &nbsp;·&nbsp; Respondente: <strong>'+sessao.nome_informante+'</strong>'+(sessao.relacao?' ('+sessao.relacao+')':''):'')+
+      ' &nbsp;·&nbsp; Data: '+dt+' &nbsp;·&nbsp; Versão: '+versaoNome+
+      ' &nbsp;·&nbsp; Ricardina Correia · Cédula 8233</p>'+
+    '<h2>Perfil de Scores</h2>'+
+    svgGrafico+
+    '<table><thead><tr><th>Domínio / Período</th><th style=\"text-align:center\">Sintomas</th><th style=\"text-align:center\">Threshold</th><th>Resultado</th></tr></thead><tbody>'+tabela+'</tbody></table>'+
     '<h2>Apresentação Diagnóstica</h2>'+
-    '<p style="font-size:14px;font-weight:700;color:#3B5A7A">'+diag+'</p>'+
-    '<h2>Notas de Interpretação</h2>'+
-    '<p>Versão aplicada: <strong>'+({adultos:'DIVA-5 Adultos',young:'Young DIVA-5 (5–17a)',id:'DIVA-5 ID'}[v]||v)+'</strong>. '+
-    (v==='id'?'Sintomas comparados com pares de nível de DI equivalente — não com a população geral. ':'')+ 
-    'Diagnóstico requer comprometimento em ≥ 2 domínios de vida e início antes dos 12 anos.</p>'+
-    '<p style="margin-top:24px;font-style:italic;color:#999">Interpretação automática — integrar sempre no contexto clínico completo da avaliação.</p>'+
+    '<div class=\"diag-box\"><div class=\"diag-label\">Apresentação Diagnóstica</div><div class=\"diag-val\">'+diag+'</div></div>'+
+    '<h2>Interpretação Clínica</h2>'+
+    '<div class=\"notas\">'+notas.map(function(n){return '• '+n;}).join('<br>')+'</div>'+
+    '<div class=\"limiares\"><strong>Limiares DSM-5:</strong> '+limiares+'<br><em>Interpretação automática — integrar sempre no contexto clínico completo da avaliação.</em></div>'+
+    respostasHTML+
     '</body></html>';
+
   var w=window.open('','_blank');if(!w){alert('Pop-up bloqueado. Permite pop-ups para este site.');return;}
   w.document.write(htmlPDF);w.document.close();
 }
-
 // ── ARRANQUE ──────────────────────────────────────────────────
 actualizarVersao();
 showPage('page-home');
