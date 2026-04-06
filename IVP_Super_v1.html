@@ -299,15 +299,15 @@ tr:last-child td{border-bottom:none}
         <button class="btn btn-secondary" onclick="showPage('page-home')">&#8592; Sair</button>
       </div>
 
-      <!-- 7 botões obrigatórios -->
+      <!-- 8 botões -->
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px" class="no-print">
         <button class="btn btn-secondary" style="padding:6px 14px;font-size:0.82rem" onclick="carregarDados()">&#8635; Sincronizar</button>
         <button class="btn btn-secondary" style="padding:6px 14px;font-size:0.82rem" onclick="importarCSV()">&#11014; Importar</button>
         <button class="btn btn-secondary" style="padding:6px 14px;font-size:0.82rem" onclick="exportarCSV()">&#11015; Exportar CSV</button>
-        <button class="btn btn-secondary" style="padding:6px 14px;font-size:0.82rem" onclick="exportarPDF()">&#128196; Exportar PDF</button>
         <button class="btn btn-secondary" style="padding:6px 14px;font-size:0.82rem" onclick="window.print()">&#128424; Imprimir</button>
         <button class="btn btn-secondary" style="padding:6px 14px;font-size:0.82rem" onclick="exportarRespostasPDF(sessaoActual)">&#128203; Respostas PDF</button>
-        <button class="btn btn-secondary" style="padding:6px 14px;font-size:0.82rem" onclick="exportarInterpretacaoPDF(sessaoActual)">&#128202; Exportar Interpretação PDF</button>
+        <button class="btn btn-secondary" style="padding:6px 14px;font-size:0.82rem" onclick="exportarInterpretacaoPDF(sessaoActual)">&#128202; Interpretação PDF</button>
+        <button class="btn btn-primary" style="padding:6px 14px;font-size:0.82rem;font-weight:700" onclick="exportarRelatorioCompleto(sessaoActual)">&#128196; Relatório Completo PDF</button>
         <input type="file" id="import-file-input" accept=".csv" style="display:none" onchange="processarFicheiroImportado(this)">
       </div>
       <div id="import-feedback" style="margin-bottom:12px;display:none"></div>
@@ -771,17 +771,49 @@ function verDetalhe(idx) {
       '<tbody>' + rows + '</tbody>' +
     '</table></div>' +
 
-    '<h4 style="color:var(--blue);margin-bottom:10px;font-size:0.9rem">Interpretação</h4>' +
+    '<h4 style="color:var(--blue);margin-bottom:12px;font-size:0.9rem">&#127942; Top 3 — Valores Mais Importantes</h4>' +
+    (function() {
+      var medals = ['&#129351;', '&#129352;', '&#129353;'];
+      var medalColors = ['#C9A227', '#9E9E9E', '#8B5E3C'];
+      var medalBg = ['#FFF9E6', '#F5F5F5', '#FDF0E8'];
+      var top3cards = sorted.slice(0, 3).map(function(sub, rank) {
+        var sc = s.scores[sub.key] || 0;
+        var pct = Math.round(((sc - 3) / 12) * 100);
+        var barW = Math.max(5, pct);
+        return '<div style="display:flex;align-items:center;gap:12px;background:' + medalBg[rank] + ';border:2px solid ' + medalColors[rank] + ';border-radius:10px;padding:12px 16px;margin-bottom:8px">' +
+          '<div style="font-size:1.8rem;flex-shrink:0">' + medals[rank] + '</div>' +
+          '<div style="flex:1;min-width:0">' +
+            '<div style="font-weight:700;color:var(--text);font-size:0.95rem;margin-bottom:4px">' + sub.key + '</div>' +
+            '<div style="font-size:0.78rem;color:var(--text-light);margin-bottom:6px;line-height:1.3">' + sub.desc + '</div>' +
+            '<div style="display:flex;align-items:center;gap:8px">' +
+              '<div style="flex:1;background:#e0e0e0;border-radius:4px;height:10px">' +
+                '<div style="background:' + medalColors[rank] + ';border-radius:4px;height:100%;width:' + barW + '%"></div>' +
+              '</div>' +
+              '<span style="font-weight:700;color:' + medalColors[rank] + ';font-size:0.9rem;white-space:nowrap">' + sc + '/15</span>' +
+            '</div>' +
+          '</div>' +
+        '</div>';
+      }).join('');
+      return top3cards;
+    })() +
+
+    '<h4 style="color:var(--blue);margin-top:20px;margin-bottom:10px;font-size:0.9rem">Interpretação</h4>' +
     '<div style="background:var(--blue-xpale);border-radius:10px;padding:14px 18px;margin-bottom:16px;font-size:0.88rem;line-height:1.7">' +
-      '<p>Os valores mais importantes para este jovem são: <strong>' + top3.join(', ') + '</strong>. ' +
-      'Estas áreas representam as principais fontes de satisfação e motivação que procura numa futura carreira profissional.</p>' +
-      (low3.length > 0 ? '<p style="margin-top:8px">Os valores com menor importância atribuída são: <strong>' + low3.join(', ') + '</strong>.</p>' : '') +
+      '<p>Os valores mais importantes para este jovem s\u00e3o: <strong>' + top3.join(', ') + '</strong>. ' +
+      'Estas \u00e1reas representam as principais fontes de satisfa\u00e7\u00e3o e motiva\u00e7\u00e3o que procura numa futura carreira profissional.</p>' +
+      (low3.length > 0 ? '<p style="margin-top:8px">Os valores com menor import\u00e2ncia atribu\u00edda s\u00e3o: <strong>' + low3.join(', ') + '</strong>.</p>' : '') +
+    '</div>' +
+
+    '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px" class="no-print">' +
+      '<button class="btn btn-primary" style="padding:6px 14px;font-size:0.82rem;font-weight:700" onclick="exportarRelatorioCompleto(sessaoActual)">&#128196; Relat\u00f3rio Completo PDF</button>' +
+      '<button class="btn btn-secondary" style="padding:6px 14px;font-size:0.82rem" onclick="exportarInterpretacaoPDF(sessaoActual)">&#128202; Interpreta\u00e7\u00e3o PDF</button>' +
+      '<button class="btn btn-secondary" style="padding:6px 14px;font-size:0.82rem" onclick="exportarRespostasPDF(sessaoActual)">&#128203; Respostas PDF</button>' +
     '</div>' +
 
     '<p style="font-size:0.78rem;color:var(--text-light);font-style:italic">' +
-      'Interpretação automática — integrar sempre no contexto clínico completo da avaliação. ' +
-      'IVP de Super · Adapt. portuguesa: Alexandre Areosa. ' +
-      'Níveis: Baixo 3–7 · Médio 8–11 · Elevado 12–15.' +
+      'Interpreta\u00e7\u00e3o autom\u00e1tica \u2014 integrar sempre no contexto cl\u00ednico completo da avalia\u00e7\u00e3o. ' +
+      'IVP de Super \u00b7 Adapt. portuguesa: Alexandre Areosa. ' +
+      'N\u00edveis: Baixo 3\u20137 \u00b7 M\u00e9dio 8\u201311 \u00b7 Elevado 12\u201315.' +
     '</p>';
 
   document.getElementById('modal-content').innerHTML = html;
@@ -931,6 +963,153 @@ function exportarInterpretacaoPDF(sessao) {
   var w = window.open('', '_blank');
   if (!w) { alert('Pop-up bloqueado.'); return; }
   w.document.write(html); w.document.close();
+}
+
+// ── Relatório Completo PDF ────────────────────────────────────────────────────
+function exportarRelatorioCompleto(sessao) {
+  if (!sessao) { alert('Seleccione primeiro uma sess\u00e3o (clique em "Ver \u2192").'); return; }
+  var s = sessao;
+  var sorted = SUBSCALAS.slice().sort(function(a,b){ return s.scores[b.key] - s.scores[a.key]; });
+  var top3 = sorted.slice(0, 3);
+  var low3 = sorted.slice(-3).reverse();
+
+  // ── Gráfico SVG de barras horizontais ──
+  var svgH = SUBSCALAS.length * 28 + 20;
+  var svgW = 520;
+  var maxScore = 15;
+  var barMaxW = 320;
+  var svgBars = sorted.map(function(sub, i) {
+    var sc = s.scores[sub.key] || 0;
+    var nivel = nivelScore(sc);
+    var cor = nivel === 'Elevado' ? '#27AE60' : nivel === 'M\u00e9dio' ? '#E67E22' : '#C0392B';
+    var barW = Math.round((sc / maxScore) * barMaxW);
+    var y = 10 + i * 28;
+    var isTop = i < 3;
+    var labelStyle = 'font-size:10px;fill:' + (isTop ? '#1a3a5c' : '#555') + ';font-weight:' + (isTop ? '700' : '400') + ';font-family:Arial,sans-serif';
+    return '<g>' +
+      '<text x="0" y="' + (y + 13) + '" style="' + labelStyle + '">' + sub.key + '</text>' +
+      '<rect x="175" y="' + y + '" width="' + barMaxW + '" height="16" rx="3" fill="#eee"/>' +
+      '<rect x="175" y="' + y + '" width="' + barW + '" height="16" rx="3" fill="' + cor + '" opacity="' + (isTop ? '1' : '0.7') + '"/>' +
+      '<text x="' + (175 + barMaxW + 6) + '" y="' + (y + 13) + '" style="font-size:10px;fill:' + cor + ';font-weight:700;font-family:Arial,sans-serif">' + sc + '/15</text>' +
+    '</g>';
+  }).join('');
+
+  // ── Top 3 cards em HTML ──
+  var medalEmoji = ['\ud83e\udd47', '\ud83e\udd48', '\ud83e\udd49'];
+  var medalColors = ['#C9A227', '#9E9E9E', '#8B5E3C'];
+  var medalBg = ['#FFF9E6', '#F5F5F5', '#FDF0E8'];
+  var top3html = top3.map(function(sub, rank) {
+    var sc = s.scores[sub.key] || 0;
+    var pct = Math.max(5, Math.round(((sc - 3) / 12) * 100));
+    return '<div style="display:flex;align-items:center;gap:12px;background:' + medalBg[rank] + ';border:2px solid ' + medalColors[rank] + ';border-radius:10px;padding:10px 14px;margin-bottom:8px;page-break-inside:avoid">' +
+      '<div style="font-size:1.6rem;flex-shrink:0">' + medalEmoji[rank] + '</div>' +
+      '<div style="flex:1">' +
+        '<div style="font-weight:700;font-size:12px;color:#2C3E50;margin-bottom:3px">' + sub.key + '</div>' +
+        '<div style="font-size:10px;color:#6B7A8D;margin-bottom:5px;line-height:1.3">' + sub.desc + '</div>' +
+        '<div style="display:flex;align-items:center;gap:8px">' +
+          '<div style="flex:1;background:#e0e0e0;border-radius:3px;height:8px"><div style="background:' + medalColors[rank] + ';border-radius:3px;height:8px;width:' + pct + '%"></div></div>' +
+          '<span style="font-weight:700;color:' + medalColors[rank] + ';font-size:11px">' + sc + '/15</span>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+
+  // ── Tabela de todos os scores ──
+  var tablaScores = sorted.map(function(sub, i) {
+    var sc = s.scores[sub.key] || 0;
+    var nivel = nivelScore(sc);
+    var cor = nivel === 'Elevado' ? '#27AE60' : nivel === 'M\u00e9dio' ? '#E67E22' : '#C0392B';
+    var pct = Math.max(2, Math.round(((sc - 3) / 12) * 100));
+    var bg = i % 2 === 0 ? '#f9f9f9' : '#fff';
+    return '<tr style="background:' + bg + '">' +
+      '<td style="padding:5px 8px;font-size:11px;font-weight:' + (i < 3 ? '700' : '400') + ';color:' + (i < 3 ? '#1a3a5c' : '#2C3E50') + '">' + (i < 3 ? ['1\u00ba','2\u00ba','3\u00ba'][i] + ' ' : '') + sub.key + '</td>' +
+      '<td style="padding:5px 8px;text-align:center;font-weight:700;color:' + cor + ';font-size:12px">' + sc + '/15</td>' +
+      '<td style="padding:5px 8px"><div style="background:#eee;border-radius:3px;height:8px;width:120px"><div style="background:' + cor + ';border-radius:3px;height:8px;width:' + pct + '%"></div></div></td>' +
+      '<td style="padding:5px 8px;color:' + cor + ';font-weight:600;font-size:11px">' + nivel + '</td>' +
+      '<td style="padding:5px 8px;font-size:10px;color:#6B7A8D">' + sub.desc + '</td>' +
+    '</tr>';
+  }).join('');
+
+  // ── Respostas item a item ──
+  var respostasHtml = '';
+  if (s.answers) {
+    var arr = typeof s.answers === 'string' ? s.answers.split('|') : s.answers;
+    respostasHtml = arr.map(function(r, i) {
+      var sub = SUBSCALAS.find(function(su){ return su.itens.indexOf(i + 1) >= 0; });
+      var nivel = nivelScore(s.scores[sub ? sub.key : ''] || 0);
+      var cor = nivel === 'Elevado' ? '#27AE60' : nivel === 'M\u00e9dio' ? '#E67E22' : '#C0392B';
+      var isHighItem = sub && top3.some(function(t){ return t.key === sub.key; });
+      return '<tr style="background:' + (i % 2 === 0 ? '#f9f9f9' : '#fff') + (isHighItem ? ';border-left:3px solid ' + cor : '') + '">' +
+        '<td style="padding:3px 6px;text-align:center;color:#999;font-size:10px">' + (i + 1) + '</td>' +
+        '<td style="padding:3px 6px;font-size:10px;color:#5B7FA6;white-space:nowrap;font-weight:' + (isHighItem ? '700' : '400') + '">' + (sub ? sub.key : '') + '</td>' +
+        '<td style="padding:3px 6px;font-size:10px">' + (ITEMS[i] || '') + '</td>' +
+        '<td style="padding:3px 6px;text-align:center;font-weight:700;font-size:12px">' + (r || '\u2014') + '</td>' +
+      '</tr>';
+    }).join('');
+  }
+
+  var html = '<!DOCTYPE html><html><head><meta charset="UTF-8">' +
+    '<title>Relat\u00f3rio IVP \u2014 ' + s.patientCode + '</title>' +
+    '<style>' +
+    'body{font-family:Arial,sans-serif;font-size:12px;color:#2C3E50;padding:24px;max-width:900px;margin:0 auto}' +
+    'h1{color:#3B5A7A;font-size:16px;margin-bottom:4px;border-bottom:3px solid #3B5A7A;padding-bottom:6px}' +
+    'h2{color:#3B5A7A;font-size:13px;margin:20px 0 8px;border-bottom:2px solid #D6E4F0;padding-bottom:4px}' +
+    'p{color:#6B7A8D;margin-bottom:12px;font-size:11px;line-height:1.6}' +
+    'table{width:100%;border-collapse:collapse;margin-bottom:16px}' +
+    'th{background:#D6E4F0;padding:6px 8px;text-align:left;color:#3B5A7A;font-size:11px}' +
+    '.no-print{margin-bottom:20px}' +
+    '@media print{.no-print{display:none!important};body{padding:12px};h2{margin-top:14px}}' +
+    '</style></head><body>' +
+
+    '<div class="no-print" style="display:flex;gap:8px;margin-bottom:20px;align-items:center">' +
+      '<button onclick="window.print()" style="padding:8px 16px;background:#3B5A7A;color:white;border:none;border-radius:6px;cursor:pointer;font-weight:700;font-size:13px">&#128424; Imprimir / Guardar PDF</button>' +
+      '<span style="font-size:11px;color:#888">Ctrl+P ou \u2318P para imprimir / guardar como PDF</span>' +
+    '</div>' +
+
+    '<h1>IVP de Super \u2014 Invent\u00e1rio de Valores Profissionais &nbsp; Relat\u00f3rio Completo</h1>' +
+    '<p><strong>C\u00f3digo:</strong> ' + s.patientCode + '' +
+    (s.nomeCrianca ? ' &nbsp;\u00b7&nbsp; <strong>Nome:</strong> ' + s.nomeCrianca : '') +
+    ' &nbsp;\u00b7&nbsp; <strong>Respondente:</strong> ' + (s.nomeResp || '\u2014') +
+    ' &nbsp;\u00b7&nbsp; <strong>Ano:</strong> ' + (s.anoEscolar || '\u2014') +
+    ' &nbsp;\u00b7&nbsp; <strong>Data:</strong> ' + s.date +
+    ' &nbsp;\u00b7&nbsp; Ricardina Correia \u00b7 C\u00e9dula 8233</p>' +
+
+    '<h2>&#127942; Top 3 \u2014 Valores Mais Importantes</h2>' +
+    top3html +
+
+    '<h2>&#128202; Perfil Visual \u2014 Todas as Subscalas (ordenado por score)</h2>' +
+    '<div style="overflow:hidden;margin-bottom:8px">' +
+    '<svg width="' + svgW + '" height="' + svgH + '" xmlns="http://www.w3.org/2000/svg">' +
+    svgBars +
+    '</svg></div>' +
+    '<p style="font-size:10px;color:#999;margin-bottom:0">Escala: 1=Sem import\u00e2ncia \u00b7 2=Pouca \u00b7 3=M\u00e9dia \u00b7 4=Importante \u00b7 5=Muito importante &nbsp;\u00b7&nbsp; Score m\u00ednimo 3 \u00b7 m\u00e1ximo 15</p>' +
+
+    '<h2>&#128203; Tabela Detalhada de Scores</h2>' +
+    '<table><thead><tr><th>Valor / Subscala</th><th style="text-align:center">Score</th><th>Perfil</th><th>N\u00edvel</th><th>Descri\u00e7\u00e3o</th></tr></thead>' +
+    '<tbody>' + tablaScores + '</tbody></table>' +
+
+    '<h2>&#128221; Interpreta\u00e7\u00e3o</h2>' +
+    '<div style="background:#EBF2F8;border-radius:8px;padding:14px 18px;margin-bottom:16px;font-size:11px;line-height:1.7">' +
+      '<p style="margin-bottom:6px">Os <strong>valores mais importantes</strong> para este jovem s\u00e3o: <strong>' + top3.map(function(s){return s.key;}).join(', ') + '</strong>. ' +
+      'Estas \u00e1reas representam as principais fontes de satisfa\u00e7\u00e3o e motiva\u00e7\u00e3o que procura numa futura carreira profissional.</p>' +
+      (low3.length > 0 ? '<p style="margin-bottom:0">Os valores com <strong>menor import\u00e2ncia</strong> atribu\u00edda s\u00e3o: <strong>' + low3.map(function(s){return s.key;}).join(', ') + '</strong>.</p>' : '') +
+    '</div>' +
+    '<p style="font-size:10px;color:#999">N\u00edveis: Baixo 3\u20137 \u00b7 M\u00e9dio 8\u201311 \u00b7 Elevado 12\u201315</p>' +
+
+    (respostasHtml ? '<h2 style="page-break-before:always">&#128203; Respostas por Item</h2>' +
+    '<table><thead><tr><th style="text-align:center">#</th><th>Subscala</th><th>Afirma\u00e7\u00e3o</th><th style="text-align:center">Resp.</th></tr></thead>' +
+    '<tbody>' + respostasHtml + '</tbody></table>' : '') +
+
+    '<p style="margin-top:24px;font-style:italic;color:#bbb;font-size:10px">' +
+    'Interpreta\u00e7\u00e3o autom\u00e1tica \u2014 integrar sempre no contexto cl\u00ednico completo da avalia\u00e7\u00e3o. ' +
+    'IVP de Super \u00b7 Adapt. portuguesa: Alexandre Areosa. ' +
+    'Ricardina Correia \u00b7 C\u00e9dula n.\u00ba 8233 \u00b7 Ordem dos Psic\u00f3logos Portugueses.' +
+    '</p></body></html>';
+
+  var w = window.open('', '_blank');
+  if (!w) { alert('Pop-up bloqueado. Permite pop-ups para este site e tenta novamente.'); return; }
+  w.document.write(html);
+  w.document.close();
 }
 
 // ── Arranque ──────────────────────────────────────────────────────────────────

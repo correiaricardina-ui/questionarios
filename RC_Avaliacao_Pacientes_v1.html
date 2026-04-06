@@ -742,7 +742,16 @@ const SYNC_KEY_TO_ABA = {
   'neopir':          'NEOPIR',
   'NEOPIR':          'NEOPIR',
   'NEO_PIR':         'NEOPIR',
-  'NEO-PI-R':        'NEOPIR'
+  'NEO-PI-R':        'NEOPIR',
+  // ── C-SSRS — v28.0 ───────────────────────────────────────
+  'cssrs':           'CSSRS',
+  'CSSRS':           'CSSRS',
+  'C-SSRS':          'CSSRS',
+  'cssrs_criancas':  'CSSRS',
+  'cssrs_adolescentes': 'CSSRS',
+  // ── BSI — v29.0 ────────────────────────────────────────────
+  'bsi':   'BSI',
+  'BSI':   'BSI'
 };
 
 // Cache em memória das respostas do Sheet (evita fetch repetidos na mesma sessão)
@@ -1058,6 +1067,22 @@ function initCatalog() {
       objective:'Avalia padrões de processamento sensorial em contexto escolar — versão professor',
       domains:['Procura','Evitamento','Sensibilidade','Registo','Auditivo','Visual','Tátil','Movimento','Comportamento','Fator Escolar 1','Fator Escolar 2','Fator Escolar 3','Fator Escolar 4'],
       ageMin:36, ageMax:179 },
+    // ── C-SSRS — v28.0 ────────────────────────────────────────────────────
+    { id:'q_cssrs', name:'C-SSRS — Columbia-Suicide Severity Rating Scale',
+      dest:['Clínico'],
+      link:'https://correiaricardina-ui.github.io/questionarios/CSSRS_v1.html',
+      syncKey:'cssrs', area:'Avaliação de Risco', ageRange:'Crianças / Adolescentes / Adultos',
+      objective:'Avaliação clínica estruturada de ideação e comportamentos suicidas (Posner et al. 2008) — versões Crianças e Adolescentes/JA',
+      domains:['Ideação (Tipo 1–5)','Tentativa Real','Tentativa Interrompida','Tentativa Abortada','Actos Preparatórios','Nível de Risco'],
+      ageMin:null, ageMax:null },
+    // ── BSI — v29.0 ────────────────────────────────────────────────────
+    { id:'q_bsi', name:'BSI — Inventário de Sintomas Psicopatológicos',
+      dest:['Próprio/a','Familiar','Técnico/a'],
+      link:'https://correiaricardina-ui.github.io/questionarios/BSI_v1.html',
+      syncKey:'bsi', area:'Saúde Mental', ageRange:'≥ 13 anos',
+      objective:'Rastreio de sintomatologia psicopatológica em 9 dimensões e 3 índices globais (Derogatis 1982; Canavarro 1999)',
+      domains:['Somatização','Obsessões-Compulsões','Sensibilidade Interpessoal','Depressão','Ansiedade','Hostilidade','Ansiedade Fóbica','Ideação Paranóide','Psicoticismo','IGS','TSP','ISP'],
+      ageMin:13, ageMax:null },
   ];
   // Garantir que TODOS os defaults estão no catálogo, sempre
   // (funciona em RC novos e em RC existentes — nunca perde questionários)
@@ -1153,6 +1178,10 @@ function initCatalog() {
       'q_ps2escola': { link:'https://correiaricardina-ui.github.io/questionarios/PS2_Escola_v1.html', syncKey:'ps2escola' },
       // ── NEO PI-R — v26.0 ─────────────────────────────────────
       'q_neopir': { link:'https://correiaricardina-ui.github.io/questionarios/NEO_PIR_v1.html', syncKey:'neopir' },
+      // ── C-SSRS — v28.0 ───────────────────────────────────────
+      'q_cssrs':  { link:'https://correiaricardina-ui.github.io/questionarios/CSSRS_v1.html', syncKey:'cssrs' },
+      // ── BSI — v29.0 ─────────────────────────────────────────
+      'q_bsi':   { link:'https://correiaricardina-ui.github.io/questionarios/BSI_v1.html', syncKey:'bsi' },
     };
     // ── Re-store com chave correcta ('q_' + id) — corrige instalações anteriores ──
     // Garante que Conners, FAD e MAP ficam acessíveis pelo META.forEach e getCatalog
@@ -1364,6 +1393,16 @@ function initCatalog() {
     if(!catalog.includes('q_neopir')) {
       const d = defaults.find(x => x.id === 'q_neopir');
       if(d) { store.set('q_' + d.id, d); catalog.push('q_neopir'); store.set('catalog', catalog); }
+    }
+    // C-SSRS — v28.0
+    if(!catalog.includes('q_cssrs')) {
+      const d = defaults.find(x => x.id === 'q_cssrs');
+      if(d) { store.set('q_' + d.id, d); catalog.push('q_cssrs'); store.set('catalog', catalog); }
+    }
+    // ── BSI — v29.0
+    if(!catalog.includes('q_bsi')) {
+      const d = defaults.find(x => x.id === 'q_bsi');
+      if(d) { store.set('q_' + d.id, d); catalog.push('q_bsi'); store.set('catalog', catalog); }
     }
     }
   }
@@ -1953,6 +1992,37 @@ function formatScoreSummary(scores, syncKey) {
       return '<span style="font-size:0.78rem;color:var(--blue)">' + parts.join(' · ') + '</span>';
     }
   }
+
+  if(syncKey === 'cssrs') {
+    const nivel = scores['NivelRisco'] ?? scores['nivelRisco'] ?? null;
+    const tipo  = scores['IdeacaoMaxTipo'] ?? scores['ideacaoMaxTipo'] ?? null;
+    const tent  = scores['TentativaReal'] ?? scores['tentativaReal'] ?? null;
+    if(nivel != null || tipo != null) {
+      const corMap = ['#27AE60','#1E8449','#B7950B','#D35400','#922B21','#C0392B'];
+      const cor = nivel != null && nivel >= 0 && nivel <= 5 ? corMap[nivel] : '#6B7A8D';
+      const tipoTxt = tipo ? 'Tipo ' + tipo : '—';
+      const tentTxt = tent == 1 ? ' · Tent.Real' : '';
+      return '<span style="font-size:0.78rem;font-weight:700;color:' + cor + '">Risco ' +
+        (['—','Baixo','Baixo-Mod','Moderado','Mod-Alto','Elevado'][nivel] || nivel) +
+        ' · ' + tipoTxt + tentTxt + '</span>';
+    }
+  }
+
+  // ── BSI — v29.0 ─────────────────────────────────────────────
+  if(syncKey === 'bsi') {
+    const isp = scores['ISP'] ?? scores['isp'] ?? null;
+    const igs = scores['IGS'] ?? scores['igs'] ?? null;
+    if(isp != null) {
+      const perturbado = parseFloat(isp) >= 1.7;
+      const cor  = perturbado ? '#C0392B' : '#27AE60';
+      const peso = perturbado ? '700' : '600';
+      const igsStr = igs != null ? ' · IGS=' + parseFloat(igs).toFixed(2) : '';
+      return '<span style="font-size:0.78rem;font-weight:' + peso + ';color:' + cor + '">' +
+        'ISP=' + parseFloat(isp).toFixed(3) + (perturbado ? ' ⚠ Pert. provável' : ' ✓ Normal') +
+        igsStr + '</span>';
+    }
+  }
+
   return null;
 }
 
@@ -2129,7 +2199,10 @@ function renderAssignments(patientId) {
                 'IPP_R':['NomeRespondente'],
                 'SDS_Holland':['NomeCriança'],
                 'JTCI_92':['NomeInformante'],
-                'NEOPIR':['NomeInformante']
+                'NEOPIR':['NomeInformante'],
+                'CSSRS':[],
+                // ── BSI — respondente único, basta código ──
+                'BSI':['NomeRespondente']
               };
               const RC = {
                 'SWAN':['Relação'],'BRIEF_Pais':['Relação'],'SCARED_R_PAIS':['Relação'],
