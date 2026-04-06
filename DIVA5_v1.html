@@ -776,6 +776,19 @@ function carregarDados(){
           if(!code) return;
           var sid=code+'_sheet_'+String(row['Data']||'').replace(/[^0-9]/g,'');
           if(sessions[sid]) return;
+          // Evitar duplicar sessões já guardadas localmente (mesmo código + mesmo dia)
+          var rowDateStr=(function(){
+            var d=String(row['Data']||'');
+            if(d.includes('T')){var dt=new Date(d);return isNaN(dt)?d.slice(0,10):dt.toLocaleDateString('pt-PT');}
+            return d.slice(0,10);
+          })();
+          var jaExiste=Object.values(sessions).some(function(s){
+            if(s.fromSheet) return false;
+            if((s.patientCode||'').toUpperCase()!==code.toUpperCase()) return false;
+            var sd=s.date?(s.date.includes('T')?new Date(s.date).toLocaleDateString('pt-PT'):s.date.slice(0,10)):'';
+            return sd===rowDateStr;
+          });
+          if(jaExiste) return;
           var vd=row['Versão']||row.versao||'adultos';
           sessions[sid]={
             id:sid,patientCode:code,
@@ -893,6 +906,47 @@ function verDetalhe(sid){
   var thr=sc.thr||5;
   var html='';
 
+  // ── Botões de acção no topo do modal ──
+  html+='<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px">'+
+    '<button class="btn btn-secondary" style="padding:5px 12px;font-size:.8rem" onclick="exportarInterpretacaoPDF(sessaoActual)">📊 Relatório PDF</button>'+
+    (s.answers&&s.answers.length?'<button class="btn btn-secondary" style="padding:5px 12px;font-size:.8rem" onclick="exportarRespostasPDF(sessaoActual)">📋 Respostas PDF</button>':'')+
+  '</div>';
+
+  // ── Gráfico SVG de barras ──
+  var barras=[];
+  if(v==='young'){
+    barras=[
+      {label:'Desatenção — Jovem',val:sc.desatJ||0,thr:thr,cor:((sc.desatJ||0)>=thr?'var(--red)':'var(--green)')},
+      {label:'Desatenção — Pais/EE (infância)',val:sc.desatP||0,thr:thr,cor:((sc.desatP||0)>=thr?'var(--red)':'var(--green)')},
+      {label:'H/I — Jovem',val:sc.hiJ||0,thr:thr,cor:((sc.hiJ||0)>=thr?'var(--red)':'var(--green)')},
+      {label:'H/I — Pais/EE (infância)',val:sc.hiP||0,thr:thr,cor:((sc.hiP||0)>=thr?'var(--red)':'var(--green)')}
+    ];
+  } else {
+    var thrInf=6;
+    barras=[
+      {label:'Desatenção — Adultez',val:sc.desatAdult||0,thr:thr,cor:((sc.desatAdult||0)>=thr?'var(--red)':'var(--green)')},
+      {label:'Desatenção — Infância (5–12a)',val:sc.desatInf||0,thr:thrInf,cor:((sc.desatInf||0)>=thrInf?'var(--red)':'var(--green)')},
+      {label:'H/I — Adultez',val:sc.hiAdult||0,thr:thr,cor:((sc.hiAdult||0)>=thr?'var(--red)':'var(--green)')},
+      {label:'H/I — Infância (5–12a)',val:sc.hiInf||0,thr:thrInf,cor:((sc.hiInf||0)>=thrInf?'var(--red)':'var(--green)')}
+    ];
+  }
+  var chartW=560,barH=26,labelW=220,gap=8,chartH=barras.length*(barH+gap);
+  var svgBars=barras.map(function(b,i){
+    var y=i*(barH+gap);
+    var barAvail=chartW-labelW-60;
+    var barW=Math.round((b.val/9)*barAvail);
+    var thrX=Math.round((b.thr/9)*barAvail);
+    return '<g transform="translate(0,'+y+')">' +
+      '<text x="'+(labelW-6)+'" y="'+(barH/2+5)+'" text-anchor="end" font-size="11" fill="#6B7A8D">'+b.label+'</text>'+
+      '<rect x="'+labelW+'" y="0" width="'+barAvail+'" height="'+barH+'" rx="4" fill="#DDE3EA"/>'+
+      '<rect x="'+labelW+'" y="0" width="'+barW+'" height="'+barH+'" rx="4" fill="'+b.cor+'"/>'+
+      '<line x1="'+(labelW+thrX)+'" y1="0" x2="'+(labelW+thrX)+'" y2="'+barH+'" stroke="#2C3E50" stroke-width="2" stroke-dasharray="4,2"/>'+
+      '<text x="'+(labelW+thrX+4)+'" y="10" font-size="9" fill="#2C3E50">≥'+b.thr+'</text>'+
+      '<text x="'+(labelW+barAvail+6)+'" y="'+(barH/2+5)+'" font-size="12" font-weight="700" fill="'+b.cor+'">'+b.val+'/9</text>'+
+    '</g>';
+  }).join('');
+  html+='<svg xmlns="http://www.w3.org/2000/svg" width="100%" viewBox="0 0 '+chartW+' '+chartH+'" style="font-family:DM Sans,sans-serif;display:block;margin-bottom:16px">'+svgBars+'</svg>';
+
   // ── Tabela de scores ──
   html+='<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:.86rem;margin-bottom:16px">';
   html+='<thead><tr style="background:var(--blue-xpale)"><th style="padding:8px 12px;text-align:left;color:var(--blue)">Domínio / Período</th><th style="padding:8px 12px;text-align:center;color:var(--blue)">Sintomas</th><th style="padding:8px 12px;text-align:center;color:var(--blue)">Threshold</th><th style="padding:8px 12px;text-align:center;color:var(--blue)">Resultado</th></tr></thead><tbody>';
@@ -942,15 +996,16 @@ function verDetalhe(sid){
   var notasTexto='';
   if(v==='young'){
     var dJ=sc.desatJ||0,dP=sc.desatP||0,hJ=sc.hiJ||0,hP=sc.hiP||0;
-    var divDes=Math.abs(dJ-dP),divHI=Math.abs(hJ-hP);
-    if(divDes>0||divHI>0){
-      notasTexto+='<strong style="color:var(--orange)">⚠️ Divergência detectada:</strong> ';
-      if(divDes>0) notasTexto+='Desatenção — jovem: '+dJ+', pais/EE: '+dP+' (diferença: '+divDes+'). ';
-      if(divHI>0) notasTexto+='H/I — jovem: '+hJ+', pais/EE: '+hP+' (diferença: '+divHI+'). ';
-      notasTexto+='Explorar em consulta o significado desta divergência (ver aba Gráficos do Excel).';
-    } else {
-      notasTexto='Jovem e pais/EE concordam nas cotações. ';
-    }
+    // Col.1 = Jovem (comportamento actual); Col.2 = Pais/EE (comportamento na infância — período diferente)
+    var notas=[];
+    if(dJ>=thr) notas.push('Desatenção presente actualmente no jovem ('+dJ+'/9 ≥ '+thr+').');
+    if(dP>=thr) notas.push('Desatenção com evidência na infância reportada pelos pais/EE ('+dP+'/9 ≥ '+thr+') — suporta critério de início antes dos 12 anos.');
+    else if(dJ>=thr) notas.push('Sem evidência de Desatenção na infância pelos pais/EE ('+dP+'/9) — questionar critério de início antes dos 12 anos.');
+    if(hJ>=thr) notas.push('H/I presente actualmente no jovem ('+hJ+'/9 ≥ '+thr+').');
+    if(hP>=thr) notas.push('H/I com evidência na infância reportada pelos pais/EE ('+hP+'/9 ≥ '+thr+') — suporta critério de início antes dos 12 anos.');
+    else if(hJ>=thr) notas.push('Sem evidência de H/I na infância pelos pais/EE ('+hP+'/9) — questionar critério de início antes dos 12 anos.');
+    if(!notas.length) notas.push('Nenhum domínio atinge o threshold diagnóstico.');
+    notasTexto=notas.join('<br>');
   } else {
     var dA=sc.desatAdult||0,dI=sc.desatInf||0;
     if(dA>=thr&&dI>=6) notasTexto+='Desatenção presente na adultez e com evidência na infância (antes dos 12 anos). ';
@@ -979,7 +1034,7 @@ function verDetalhe(sid){
     html+='<div style="margin-top:18px">';
     html+='<h4 style="color:var(--blue);font-size:.9rem;margin-bottom:10px">Respostas por Critério</h4>';
     html+='<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:.82rem">';
-    html+='<thead><tr style="background:var(--blue-xpale)"><th style="padding:6px 10px;text-align:left;color:var(--blue)">#</th><th style="padding:6px 10px;text-align:left;color:var(--blue)">Critério</th><th style="padding:6px 10px;text-align:center;color:var(--blue)">Col. 1</th><th style="padding:6px 10px;text-align:center;color:var(--blue)">Col. 2</th></tr></thead><tbody>';
+    html+='<thead><tr style="background:var(--blue-xpale)"><th style="padding:6px 10px;text-align:left;color:var(--blue)">#</th><th style="padding:6px 10px;text-align:left;color:var(--blue)">Critério</th><th style="padding:6px 10px;text-align:center;color:var(--blue)">'+(v==='young'?'Jovem (actual)':'Adultez')+'</th><th style="padding:6px 10px;text-align:center;color:var(--blue)">'+(v==='young'?'Pais/EE (infância)':'Infância (5–12a)')+'</th></tr></thead><tbody>';
     var col1Label=v==='young'?'Jovem':'Adultez';
     var col2Label=v==='young'?'Pais/EE':'Infância';
     s.answers.forEach(function(ans,i){
