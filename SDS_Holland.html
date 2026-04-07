@@ -695,140 +695,199 @@ function verDetalhe(idx) {
     (s.aspiracoes&&s.aspiracoes.length ? '<br><strong>Aspirações:</strong> '+s.aspiracoes.join(', ') : '') +
     '</div>';
 
-  document.getElementById('modal-body').innerHTML = infoHtml + codeHtml +
-    buildHexagonSVG(s) +
-    buildSubescalaChart(s) +
-    partsHtml +
-    buildInterpretacao(s);
+  // botoes de accao
+  var hasAns = s.answers && Object.keys(s.answers).length > 0;
+  var btns = '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px">'
+    + '<button class="btn btn-secondary btn-sm" onclick="exportarInterpretacaoPDF(sessaoActual)">'
+    + '&#x1F4CA; Relatório completo PDF</button>';
+  if (hasAns) {
+    btns += '<button class="btn btn-secondary btn-sm" id="btn-toggle-resp" onclick="toggleRespostasModal()">'
+      + '&#x1F4CB; Ver respostas item a item</button>';
+  }
+  btns += '</div>';
+
+  document.getElementById('modal-body').innerHTML =
+    btns + infoHtml + codeHtml
+    + buildHexagonSVG(s)
+    + buildSubescalaChart(s)
+    + partsHtml
+    + buildInterpretacao(s)
+    + (hasAns ? buildRespostasDetalhe(s) : '');
 
   document.getElementById('modal-overlay').classList.add('open');
 }
 
-// ── HEXAGONO DE HOLLAND ───────────────────────────────────────
+// ── HEXAGONO DE HOLLAND ──────────────────────────────────────
 function buildHexagonSVG(s) {
-  var cx = 200, cy = 185, r = 130;
-  // Holland order clockwise: R(top-right 30deg) I(right 90deg) A(bottom-right 150deg) S(bottom-left 210deg) E(left 270deg) C(top-left 330deg)
-  var anglesDeg = {R:30, I:90, A:150, S:210, E:270, C:330};
-  var pts = {};
   var code = s.codigo_holland || '';
-  TYPES.forEach(function(t) {
-    var a = anglesDeg[t] * Math.PI / 180;
-    pts[t] = { x: cx + r * Math.cos(a), y: cy - r * Math.sin(a) };
+  var cx = 200, cy = 185, r = 128;
+  // Holland standard: R=30deg I=90 A=150 S=210 E=270 C=330 (clockwise from top-right)
+  var angDeg = {R:30,I:90,A:150,S:210,E:270,C:330};
+  var pts = {};
+  TYPES.forEach(function(t){
+    var a = angDeg[t] * Math.PI / 180;
+    pts[t] = {x: cx + r * Math.cos(a), y: cy - r * Math.sin(a)};
   });
-
   var maxT = Math.max.apply(null, TYPES.map(function(t){ return s.total[t]; })) || 1;
-
-  // Radar polygon
-  var radarPts = TYPES.map(function(t) {
-    var ratio = (s.total[t] / maxT) * 0.85 + 0.05;
-    var a = anglesDeg[t] * Math.PI / 180;
+  var radarPts = TYPES.map(function(t){
+    var ratio = (s.total[t] / maxT) * 0.82 + 0.05;
+    var a = angDeg[t] * Math.PI / 180;
     return (cx + r * ratio * Math.cos(a)) + ',' + (cy - r * ratio * Math.sin(a));
   }).join(' ');
-
-  var hexPts = TYPES.map(function(t){ return pts[t].x+','+pts[t].y; }).join(' ');
-
-  var lines = TYPES.map(function(t) {
+  var hexPts = TYPES.map(function(t){ return pts[t].x + ',' + pts[t].y; }).join(' ');
+  var gridLines = TYPES.map(function(t){
     return '<line x1="'+cx+'" y1="'+cy+'" x2="'+pts[t].x+'" y2="'+pts[t].y+'" stroke="#ddd" stroke-width="1" stroke-dasharray="3,3"/>';
   }).join('');
-
-  // Adjacency lines between code types
   var adjLines = '';
-  for (var i=0; i<code.length-1; i++) {
-    var t1=code[i], t2=code[i+1];
+  for (var i = 0; i < code.length - 1; i++) {
+    var t1 = code[i], t2 = code[i+1];
     if (pts[t1] && pts[t2]) {
-      adjLines += '<line x1="'+pts[t1].x+'" y1="'+pts[t1].y+'" x2="'+pts[t2].x+'" y2="'+pts[t2].y+'" stroke="'+TYPE_COLORS[t1]+'" stroke-width="2.5" stroke-dasharray="6,3" opacity="0.7"/>';
+      adjLines += '<line x1="'+pts[t1].x+'" y1="'+pts[t1].y+'" x2="'+pts[t2].x+'" y2="'+pts[t2].y
+        +'" stroke="'+TYPE_COLORS[t1]+'" stroke-width="2.5" stroke-dasharray="6,3" opacity="0.75"/>';
     }
   }
-  // Also connect last to first if 3 letters
   if (code.length === 3 && pts[code[2]] && pts[code[0]]) {
-    adjLines += '<line x1="'+pts[code[2]].x+'" y1="'+pts[code[2]].y+'" x2="'+pts[code[0]].x+'" y2="'+pts[code[0]].y+'" stroke="'+TYPE_COLORS[code[2]]+'" stroke-width="1.5" stroke-dasharray="4,4" opacity="0.4"/>';
+    adjLines += '<line x1="'+pts[code[2]].x+'" y1="'+pts[code[2]].y+'" x2="'+pts[code[0]].x+'" y2="'+pts[code[0]].y
+      +'" stroke="'+TYPE_COLORS[code[2]]+'" stroke-width="1.5" stroke-dasharray="4,5" opacity="0.35"/>';
   }
-
-  var medals = ['\u2460','\u2461','\u2462'];
-  var labels = TYPES.map(function(t) {
-    var lx = cx + (r+24) * Math.cos(anglesDeg[t] * Math.PI / 180);
-    var ly = cy - (r+24) * Math.sin(anglesDeg[t] * Math.PI / 180);
+  var medals = ['①','②','③'];
+  var labels = TYPES.map(function(t){
+    var lx = cx + (r+22) * Math.cos(angDeg[t] * Math.PI / 180);
+    var ly = cy - (r+22) * Math.sin(angDeg[t] * Math.PI / 180);
     var isTop = code.indexOf(t) !== -1;
     var rank = code.indexOf(t);
     return '<text x="'+lx+'" y="'+(ly-6)+'" text-anchor="middle" dominant-baseline="middle" '
-      + 'font-size="'+(isTop?14:12)+'" font-weight="'+(isTop?700:400)+'" '
-      + 'fill="'+TYPE_COLORS[t]+'" font-family="DM Sans,sans-serif">'
-      + t + (isTop ? ' '+medals[rank] : '') + '</text>'
-      + '<text x="'+lx+'" y="'+(ly+9)+'" text-anchor="middle" '
-      + 'font-size="9.5" fill="'+TYPE_COLORS[t]+'" opacity="0.9" font-family="DM Sans,sans-serif">'
-      + s.total[t] + '</text>';
+      +'font-size="'+(isTop?14:12)+'" font-weight="'+(isTop?700:400)+'" '
+      +'fill="'+TYPE_COLORS[t]+'" font-family="DM Sans,sans-serif">'
+      +t+(isTop?' '+medals[rank]:'')+'</text>'
+      +'<text x="'+lx+'" y="'+(ly+9)+'" text-anchor="middle" font-size="9.5" '
+      +'fill="'+TYPE_COLORS[t]+'" opacity="0.9" font-family="DM Sans,sans-serif">'+s.total[t]+'</text>';
   }).join('');
-
   var radarCol = code.length > 0 ? TYPE_COLORS[code[0]] : '#3B5A7A';
   var svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 370" width="100%" style="display:block;margin-bottom:6px">'
-    + '<polygon points="'+hexPts+'" fill="#f8fafc" stroke="#ccc" stroke-width="1.5"/>'
-    + lines
-    + '<polygon points="'+radarPts+'" fill="'+radarCol+'" fill-opacity="0.18" stroke="'+radarCol+'" stroke-width="2"/>'
-    + adjLines
-    + TYPES.map(function(t) {
-        var isTop = code.indexOf(t) !== -1;
-        return '<circle cx="'+pts[t].x+'" cy="'+pts[t].y+'" r="'+(isTop?7:5)+'" fill="'+TYPE_COLORS[t]+'" opacity="'+(isTop?1:0.45)+'"/>';
-      }).join('')
-    + labels
-    + '</svg>';
-
-  var consistText = getConsistencia(code);
-  return '<h4 style="color:var(--blue);font-size:.9rem;margin-bottom:6px">&#11041; Hex\u00e1gono de Holland \u2014 Congrugu\u00eancia do C\u00f3digo</h4>'
-    + '<div style="font-size:.78rem;color:var(--text-light);margin-bottom:6px">O pol\u00edgono sombreado representa o perfil. Os tipos do c\u00f3digo principal est\u00e3o ligados por linha tracejada \u2014 quanto mais pr\u00f3ximos no hex\u00e1gono, maior a congrugu\u00eancia e a consist\u00eancia do perfil.</div>'
-    + svg
-    + '<div style="font-size:.8rem;margin-bottom:16px;padding:8px 12px;background:var(--blue-xpale);border-radius:8px"><strong>Consist\u00eancia do c\u00f3digo ' + code + ':</strong> ' + consistText + '</div>';
+    +'<polygon points="'+hexPts+'" fill="#f8fafc" stroke="#ccc" stroke-width="1.5"/>'
+    +gridLines
+    +'<polygon points="'+radarPts+'" fill="'+radarCol+'" fill-opacity="0.18" stroke="'+radarCol+'" stroke-width="2"/>'
+    +adjLines
+    +TYPES.map(function(t){
+      var isTop = code.indexOf(t) !== -1;
+      return '<circle cx="'+pts[t].x+'" cy="'+pts[t].y+'" r="'+(isTop?7:5)+'" fill="'+TYPE_COLORS[t]+'" opacity="'+(isTop?1:0.42)+'"/>';
+    }).join('')
+    +labels+'</svg>';
+  return '<h4 style="color:var(--blue);font-size:.9rem;margin-bottom:6px">&#11041; Hexágono de Holland — Congruguência do Código</h4>'
+    +'<div style="font-size:.78rem;color:var(--text-light);margin-bottom:6px">O polígono sombreado representa o perfil. '
+    +'As linhas tracejadas ligam os tipos do código principal — quanto mais próximos no hexágono, maior a congruguência.</div>'
+    +svg
+    +'<div style="font-size:.8rem;margin-bottom:16px;padding:8px 12px;background:var(--blue-xpale);border-radius:8px">'
+    +'<strong>Consistência do código '+code+':</strong> '+getConsistencia(code)+'</div>';
 }
 
-// ── GRAFICO DE BARRAS AGRUPADAS POR SUBESCALA ─────────────────
+// ── GRAFICO SUBESCALAS ───────────────────────────────────────
 function buildSubescalaChart(s) {
   var parts = ['II','III','IV','V'];
-  var partsLabels = {II:'Actividades', III:'Compet\u00eancias', IV:'Profiss\u00f5es', V:'Aptid\u00f5es'};
-  var maxVal = 0;
-  parts.forEach(function(p){ TYPES.forEach(function(t){ var v=s.by_part[p][t]; if(v>maxVal) maxVal=v; }); });
-  if (maxVal === 0) maxVal = 1;
-
-  var chartW=580, chartH=210, padL=26, padB=50, padT=12, padR=8;
-  var innerW=chartW-padL-padR, innerH=chartH-padB-padT;
-  var groupW=innerW/6, barW=groupW/5.5, barGap=barW/4;
-  var opacities=[1,0.72,0.5,0.32];
-
-  var bars='';
-  TYPES.forEach(function(t,ti) {
-    parts.forEach(function(p,pi) {
+  var pLbl = {II:'Actividades',III:'Competências',IV:'Profissões',V:'Aptidões'};
+  var maxV = 0;
+  parts.forEach(function(p){ TYPES.forEach(function(t){ var v=s.by_part[p][t]; if(v>maxV) maxV=v; }); });
+  if (!maxV) maxV = 1;
+  var cW=580, cH=210, pL=26, pB=50, pT=12, pR=8;
+  var iW=cW-pL-pR, iH=cH-pB-pT;
+  var gW=iW/6, bW=gW/5.5, bGap=bW/4;
+  var ops=[1,0.72,0.5,0.3];
+  var bars='', yLines='';
+  TYPES.forEach(function(t,ti){
+    parts.forEach(function(p,pi){
       var val=s.by_part[p][t];
-      var barH=(val/maxVal)*innerH;
-      var bx=padL+ti*groupW+(pi+0.4)*barW+pi*barGap;
-      var by=padT+innerH-barH;
-      bars+='<rect x="'+bx+'" y="'+by+'" width="'+barW+'" height="'+barH+'" rx="2" fill="'+TYPE_COLORS[t]+'" opacity="'+opacities[pi]+'"/>';
-      if(val>0) bars+='<text x="'+(bx+barW/2)+'" y="'+(by-2)+'" text-anchor="middle" font-size="8" fill="'+TYPE_COLORS[t]+'" font-family="DM Sans">'+val+'</text>';
+      var bH=(val/maxV)*iH;
+      var bx=pL+ti*gW+(pi+0.4)*bW+pi*bGap;
+      var by=pT+iH-bH;
+      bars+='<rect x="'+bx+'" y="'+by+'" width="'+bW+'" height="'+bH+'" rx="2" fill="'+TYPE_COLORS[t]+'" opacity="'+ops[pi]+'"/>';
+      if (val>0) bars+='<text x="'+(bx+bW/2)+'" y="'+(by-2)+'" text-anchor="middle" font-size="8" fill="'+TYPE_COLORS[t]+'" font-family="DM Sans">'+val+'</text>';
     });
-    var lx=padL+ti*groupW+groupW/2;
-    bars+='<text x="'+lx+'" y="'+(padT+innerH+14)+'" text-anchor="middle" font-size="11" font-weight="700" fill="'+TYPE_COLORS[t]+'" font-family="DM Sans">'+t+'</text>';
-    bars+='<text x="'+lx+'" y="'+(padT+innerH+27)+'" text-anchor="middle" font-size="9" fill="'+TYPE_COLORS[t]+'" font-family="DM Sans">Total: '+s.total[t]+'</text>';
+    var lx=pL+ti*gW+gW/2;
+    bars+='<text x="'+lx+'" y="'+(pT+iH+14)+'" text-anchor="middle" font-size="11" font-weight="700" fill="'+TYPE_COLORS[t]+'" font-family="DM Sans">'+t+'</text>';
+    bars+='<text x="'+lx+'" y="'+(pT+iH+27)+'" text-anchor="middle" font-size="9" fill="'+TYPE_COLORS[t]+'" font-family="DM Sans">Total: '+s.total[t]+'</text>';
   });
-
-  // Y gridlines
-  var yLines='';
-  for(var yi=0; yi<=maxVal; yi+=Math.max(1,Math.ceil(maxVal/4))){
-    var yy=padT+innerH-(yi/maxVal)*innerH;
-    yLines+='<line x1="'+padL+'" y1="'+yy+'" x2="'+(chartW-padR)+'" y2="'+yy+'" stroke="#eee" stroke-width="1"/>';
-    yLines+='<text x="'+(padL-2)+'" y="'+(yy+3)+'" text-anchor="end" font-size="8" fill="#bbb" font-family="DM Sans">'+yi+'</text>';
+  for (var yi=0; yi<=maxV; yi+=Math.max(1,Math.ceil(maxV/4))) {
+    var yy=pT+iH-(yi/maxV)*iH;
+    yLines+='<line x1="'+pL+'" y1="'+yy+'" x2="'+(cW-pR)+'" y2="'+yy+'" stroke="#eee" stroke-width="1"/>';
+    yLines+='<text x="'+(pL-2)+'" y="'+(yy+3)+'" text-anchor="end" font-size="8" fill="#bbb" font-family="DM Sans">'+yi+'</text>';
   }
-
-  // Legend
-  var legend = parts.map(function(p,pi){
-    return '<rect x="'+(padL+pi*110)+'" y="'+(chartH-12)+'" width="10" height="10" rx="2" fill="#3B5A7A" opacity="'+opacities[pi]+'"/>'
-      +'<text x="'+(padL+pi*110+13)+'" y="'+(chartH-3)+'" font-size="9" fill="#666" font-family="DM Sans">'+partsLabels[p]+'</text>';
+  var legend=parts.map(function(p,pi){
+    return '<rect x="'+(pL+pi*108)+'" y="'+(cH-12)+'" width="10" height="10" rx="2" fill="#3B5A7A" opacity="'+ops[pi]+'"/>'
+      +'<text x="'+(pL+pi*108+13)+'" y="'+(cH-3)+'" font-size="9" fill="#666" font-family="DM Sans">'+pLbl[p]+'</text>';
   }).join('');
-
-  var svg='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+chartW+' '+chartH+'" width="100%" style="display:block;margin-bottom:4px">'
-    +yLines+bars+legend+'</svg>';
-
+  var svg='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+cW+' '+cH+'" width="100%" style="display:block;margin-bottom:4px">'+yLines+bars+legend+'</svg>';
   return '<h4 style="color:var(--blue);font-size:.9rem;margin:0 0 4px">&#128202; Perfil por Subescala</h4>'
-    +'<div style="font-size:.78rem;color:var(--text-light);margin-bottom:6px">Cada tipo mostra 4 barras (opacidade decrescente: Actividades \u2192 Compet\u00eancias \u2192 Profiss\u00f5es \u2192 Aptid\u00f5es). Permite ver onde o interesse \u00e9 mais consistente entre subescalas.</div>'
-    +svg;
+    +'<div style="font-size:.78rem;color:var(--text-light);margin-bottom:6px">Barras (opacidade decrescente): '
+    +'Actividades → Competências → Profissões → Aptidões. '
+    +'Permite ver onde o interesse é mais consistente entre subescalas.</div>'+svg;
 }
 
+// ── TOGGLE RESPOSTAS ─────────────────────────────────────────
+function toggleRespostasModal() {
+  var div = document.getElementById('respostas-detalhe-modal');
+  var btn = document.getElementById('btn-toggle-resp');
+  if (!div) return;
+  if (div.style.display === 'none') {
+    div.style.display = 'block';
+    if (btn) btn.textContent = '⬆ Ocultar respostas';
+  } else {
+    div.style.display = 'none';
+    if (btn) btn.innerHTML = '&#x1F4CB; Ver respostas item a item';
+  }
+}
+
+// ── RESPOSTAS ITEM A ITEM (MODAL) ────────────────────────────
+function buildRespostasDetalhe(s) {
+  var ans = s.answers || {};
+  var APT_LBL = ['Mecânica','Científica','Artística','Para ensinar','Para vendas','Escritório',
+                 'Manual','Matemática','Musical','Compreender outros','Para gestão','Administrativa'];
+  var partsConf = [
+    {key:'II', label:'Parte II — Actividades', items:ACT, ansKey:'act_'},
+    {key:'III',label:'Parte III — Competências', items:COMP, ansKey:'comp_'},
+    {key:'IV', label:'Parte IV — Profissões', items:CARR, ansKey:'carr_'}
+  ];
+  var html = '<div id="respostas-detalhe-modal" style="display:none;margin-top:16px">'
+    +'<h4 style="color:var(--blue);font-size:.9rem;margin-bottom:10px">Respostas por item</h4>';
+  partsConf.forEach(function(pc){
+    html += '<div style="margin-bottom:14px">'
+      +'<div style="font-weight:700;color:var(--blue-mid);font-size:.82rem;padding:5px 10px;background:var(--blue-xpale);border-radius:6px;margin-bottom:6px">'+pc.label+'</div>';
+    TYPES.forEach(function(t){
+      html += '<div style="margin-bottom:6px">'
+        +'<div style="font-size:.75rem;font-weight:700;color:'+TYPE_COLORS[t]+';margin-bottom:2px">'+t+' — '+TYPE_NAMES[t]+'</div>'
+        +'<table style="width:100%;border-collapse:collapse;font-size:.76rem">';
+      pc.items[t].forEach(function(item,i){
+        var key = pc.ansKey+t+'_'+i;
+        var resp = ans[key] || '—';
+        var isPos = (pc.key==='II' && resp==='G') || (pc.key!=='II' && resp==='S');
+        var cor = isPos ? '#27AE60' : (resp==='—' ? '#aaa' : '#C0392B');
+        html += '<tr style="border-bottom:1px solid #f2f2f2">'
+          +'<td style="padding:2px 6px;color:#555">'+item+'</td>'
+          +'<td style="padding:2px 6px;text-align:center;font-weight:700;color:'+cor+';width:72px">'+resp+'</td></tr>';
+      });
+      html += '</table></div>';
+    });
+    html += '</div>';
+  });
+  // Aptidoes
+  html += '<div style="margin-bottom:14px">'
+    +'<div style="font-weight:700;color:var(--blue-mid);font-size:.82rem;padding:5px 10px;background:var(--blue-xpale);border-radius:6px;margin-bottom:6px">Parte V — Aptidões</div>'
+    +'<table style="width:100%;border-collapse:collapse;font-size:.76rem">'
+    +'<thead><tr><th style="padding:4px 8px;background:var(--blue);color:white;text-align:left">Aptidão</th>'
+    +'<th style="padding:4px 8px;background:var(--blue);color:white;width:50px">Tipo</th>'
+    +'<th style="padding:4px 8px;background:var(--blue);color:white;width:44px">Valor</th></tr></thead><tbody>';
+  TYPES.forEach(function(t,ti){
+    ['apt0_','apt1_'].forEach(function(pfx,pi){
+      var val = ans[pfx+t] || '—';
+      html += '<tr style="border-bottom:1px solid #f2f2f2">'
+        +'<td style="padding:2px 8px;color:#555">'+APT_LBL[ti*2+pi]+'</td>'
+        +'<td style="padding:2px 8px;text-align:center;font-weight:700;color:'+TYPE_COLORS[t]+'">'+t+'</td>'
+        +'<td style="padding:2px 8px;text-align:center;font-weight:700">'+val+'</td></tr>';
+    });
+  });
+  html += '</tbody></table></div></div>';
+  return html;
+}
 
 function buildInterpretacao(s) {
   var maxT = Math.max.apply(null, TYPES.map(function(t){ return s.total[t]; })) || 1;
@@ -956,34 +1015,156 @@ function exportarRespostasPDF(sessao) {
 }
 
 function exportarInterpretacaoPDF(sessao) {
-  if (!sessao) { alert('Seleccione primeiro uma sessão (clique em "Ver →").'); return; }
+  if (!sessao) { alert('Seleccione primeiro uma sessão.'); return; }
   var s = sessao;
   var win = window.open('', '_blank');
-  if (!win) { alert('Popup bloqueado.'); return; }
-  var rows = TYPES.map(function(t) {
-    var score = s.total[t];
-    var maxT = Math.max.apply(null, TYPES.map(function(x){ return s.total[x]; })) || 1;
-    var pct = Math.round(score/maxT*100);
-    var isTop = s.codigo_holland.indexOf(t) !== -1;
-    return '<tr style="font-weight:'+(isTop?'bold':'normal')+'"><td>'+t+' — '+TYPE_NAMES[t]+'</td><td style="text-align:center">'+score+'</td>'+
-      '<td><div style="background:#ddd;border-radius:4px;height:12px;width:200px"><div style="background:#3B5A7A;height:12px;border-radius:4px;width:'+pct+'%"></div></div></td>'+
-      '<td>'+(isTop?'★ Código principal':'')+'</td></tr>';
+  if (!win) { alert('Popup bloqueado. Permita popups para este site.'); return; }
+  var code = s.codigo_holland || '';
+  var top  = code.split('');
+  var maxT = Math.max.apply(null, TYPES.map(function(t){ return s.total[t]; })) || 1;
+  var ans  = s.answers || {};
+  var hasAns = Object.keys(ans).length > 0;
+
+  // ── Hexágono SVG (inline, sem dependências externas) ─────────────
+  var cx=200, cy=182, r=124;
+  var angDeg={R:30,I:90,A:150,S:210,E:270,C:330};
+  var pp={};
+  TYPES.forEach(function(t){ var a=angDeg[t]*Math.PI/180; pp[t]={x:cx+r*Math.cos(a),y:cy-r*Math.sin(a)}; });
+  var rPts=TYPES.map(function(t){ var ratio=(s.total[t]/maxT)*0.82+0.05; var a=angDeg[t]*Math.PI/180; return (cx+r*ratio*Math.cos(a))+','+(cy-r*ratio*Math.sin(a)); }).join(' ');
+  var hPts=TYPES.map(function(t){ return pp[t].x+','+pp[t].y; }).join(' ');
+  var grd=TYPES.map(function(t){ return '<line x1="'+cx+'" y1="'+cy+'" x2="'+pp[t].x+'" y2="'+pp[t].y+'" stroke="#ddd" stroke-width="1" stroke-dasharray="3,3"/>'; }).join('');
+  var adj='';
+  for(var ai=0;ai<code.length-1;ai++){ var t1=code[ai],t2=code[ai+1]; if(pp[t1]&&pp[t2]) adj+='<line x1="'+pp[t1].x+'" y1="'+pp[t1].y+'" x2="'+pp[t2].x+'" y2="'+pp[t2].y+'" stroke="'+TYPE_COLORS[t1]+'" stroke-width="2" stroke-dasharray="5,3" opacity="0.72"/>'; }
+  if(code.length===3&&pp[code[2]]&&pp[code[0]]) adj+='<line x1="'+pp[code[2]].x+'" y1="'+pp[code[2]].y+'" x2="'+pp[code[0]].x+'" y2="'+pp[code[0]].y+'" stroke="'+TYPE_COLORS[code[2]]+'" stroke-width="1.5" stroke-dasharray="4,5" opacity="0.3"/>';
+  var medals=['①','②','③'];
+  var hlbls=TYPES.map(function(t){ var lx=cx+(r+20)*Math.cos(angDeg[t]*Math.PI/180); var ly=cy-(r+20)*Math.sin(angDeg[t]*Math.PI/180); var isTop=code.indexOf(t)!==-1; var rank=code.indexOf(t); return '<text x="'+lx+'" y="'+(ly-5)+'" text-anchor="middle" dominant-baseline="middle" font-size="'+(isTop?13:11)+'" font-weight="'+(isTop?700:400)+'" fill="'+TYPE_COLORS[t]+'" font-family="Arial">'+t+(isTop?' '+medals[rank]:'')+'</text><text x="'+lx+'" y="'+(ly+9)+'" text-anchor="middle" font-size="9" fill="'+TYPE_COLORS[t]+'" font-family="Arial">('+s.total[t]+')</text>'; }).join('');
+  var rcol=code.length?TYPE_COLORS[code[0]]:'#3B5A7A';
+  var hexSVG='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 364" width="380" height="364" style="display:block;margin:0 auto">'
+    +'<polygon points="'+hPts+'" fill="#f8fafc" stroke="#ccc" stroke-width="1.5"/>'
+    +grd
+    +'<polygon points="'+rPts+'" fill="'+rcol+'" fill-opacity="0.18" stroke="'+rcol+'" stroke-width="2"/>'
+    +adj
+    +TYPES.map(function(t){ var isTop=code.indexOf(t)!==-1; return '<circle cx="'+pp[t].x+'" cy="'+pp[t].y+'" r="'+(isTop?6:4)+'" fill="'+TYPE_COLORS[t]+'" opacity="'+(isTop?1:0.38)+'"/>'; }).join('')
+    +hlbls+'</svg>';
+
+  // ── Gráfico subescalas SVG ──────────────────────────────────────
+  var parts=['II','III','IV','V'];
+  var pLbl={II:'Act.',III:'Comp.',IV:'Prof.',V:'Apt.'};
+  var maxS=0; parts.forEach(function(p){ TYPES.forEach(function(t){ var v=s.by_part[p][t]; if(v>maxS) maxS=v; }); }); if(!maxS) maxS=1;
+  var cW=560,cH=185,pL=24,pB=46,pT=10,pR=8; var iW=cW-pL-pR,iH=cH-pB-pT;
+  var gW=iW/6,bW=gW/5.5,bGap=bW/4; var ops=[1,0.7,0.48,0.28];
+  var brs='',yln='';
+  TYPES.forEach(function(t,ti){ parts.forEach(function(p,pi){ var val=s.by_part[p][t]; var bH=(val/maxS)*iH; var bx=pL+ti*gW+(pi+0.4)*bW+pi*bGap; var by=pT+iH-bH; brs+='<rect x="'+bx+'" y="'+by+'" width="'+bW+'" height="'+bH+'" rx="2" fill="'+TYPE_COLORS[t]+'" opacity="'+ops[pi]+'"/>'; if(val>0) brs+='<text x="'+(bx+bW/2)+'" y="'+(by-1)+'" text-anchor="middle" font-size="7" fill="'+TYPE_COLORS[t]+'" font-family="Arial">'+val+'</text>'; }); var lx=pL+ti*gW+gW/2; brs+='<text x="'+lx+'" y="'+(pT+iH+13)+'" text-anchor="middle" font-size="10" font-weight="700" fill="'+TYPE_COLORS[t]+'" font-family="Arial">'+t+'</text><text x="'+lx+'" y="'+(pT+iH+25)+'" text-anchor="middle" font-size="8" fill="'+TYPE_COLORS[t]+'" font-family="Arial">'+s.total[t]+'</text>'; });
+  for(var yi=0;yi<=maxS;yi+=Math.max(1,Math.ceil(maxS/4))){ var yy=pT+iH-(yi/maxS)*iH; yln+='<line x1="'+pL+'" y1="'+yy+'" x2="'+(cW-pR)+'" y2="'+yy+'" stroke="#eee" stroke-width="1"/><text x="'+(pL-2)+'" y="'+(yy+3)+'" text-anchor="end" font-size="7" fill="#bbb" font-family="Arial">'+yi+'</text>'; }
+  var leg=parts.map(function(p,pi){ return '<rect x="'+(pL+pi*100)+'" y="'+(cH-11)+'" width="9" height="9" rx="2" fill="#3B5A7A" opacity="'+ops[pi]+'"/><text x="'+(pL+pi*100+12)+'" y="'+(cH-2)+'" font-size="8" fill="#666" font-family="Arial">'+pLbl[p]+'</text>'; }).join('');
+  var barSVG='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+cW+' '+cH+'" width="100%">'+yln+brs+leg+'</svg>';
+
+  // ── Tabela totais ──────────────────────────────────────────
+  var scRows=TYPES.map(function(t){
+    var sc=s.total[t]; var pct=Math.round(sc/maxT*100); var isTop=code.indexOf(t)!==-1;
+    return '<tr style="font-weight:'+(isTop?'bold':'normal')+';background:'+(isTop?'#EBF5FB':'white')+'">'
+      +'<td style="color:'+TYPE_COLORS[t]+'">'+t+' — '+TYPE_NAMES[t]+'</td>'
+      +'<td style="text-align:center;font-size:13px;color:'+TYPE_COLORS[t]+'">'+sc+'</td>'
+      +'<td><div style="background:#eee;border-radius:3px;height:10px;width:160px;display:inline-block"><div style="background:'+TYPE_COLORS[t]+';height:10px;border-radius:3px;width:'+pct+'%"></div></div></td>'
+      +'<td>'+(isTop?'★ Código principal':'')+'</td></tr>';
   }).join('');
-  var top = s.codigo_holland.split('');
-  win.document.write('<html><head><title>Interpretação SDS</title><style>body{font-family:Arial,sans-serif;font-size:12px;line-height:1.5}h2{color:#3B5A7A}table{width:100%;border-collapse:collapse;margin:12px 0}td,th{border:1px solid #ccc;padding:5px 10px}th{background:#3B5A7A;color:white}.green{background:#d5f5e3;padding:8px;border-radius:6px;margin:6px 0}.red{background:#fadbd8;padding:8px;border-radius:6px;margin:6px 0}</style></head><body>'+
-    '<h2>SDS — Relatório de Interpretação</h2>'+
-    '<p><strong>Paciente:</strong> '+s.codigo+' — '+s.nome_crianca+'<br><strong>Data:</strong> '+new Date(s.data).toLocaleDateString('pt-PT')+'<br><strong>Percurso:</strong> '+(s.percurso||'—')+'</p>'+
-    '<h3>Código de Holland: '+s.codigo_holland+'</h3>'+
-    '<table><thead><tr><th>Tipo</th><th>Score Total</th><th>Perfil (relativo)</th><th>Nota</th></tr></thead><tbody>'+rows+'</tbody></table>'+
-    '<h3>Síntese interpretativa</h3><p>'+top.map(function(l){ return '<strong>'+TYPE_NAMES[l]+':</strong> '+INTERP[l].desc; }).join('<br>')+'</p>'+
-    '<h3>Áreas profissionais alinhadas</h3><div class="green">'+top.map(function(l){ return '<div><strong>'+l+':</strong> '+INTERP[l].sim+'</div>'; }).join('<br>')+'</div>'+
-    '<h3>Áreas profissionais menos indicadas</h3><div class="red">'+top.map(function(l){ return '<div><strong>'+l+':</strong> '+INTERP[l].nao+'</div>'; }).join('<br>')+'</div>'+
-    '<p style="margin-top:20px;font-size:10px;color:#888;border-top:1px solid #ccc;padding-top:8px">Ricardina Correia · Psicologia Pediátrica · Cédula Profissional n.º 8233 · Ordem dos Psicólogos Portugueses</p>'+
-  '</body></html>');
-  win.document.close(); win.print();
+
+  // ── Respostas item a item ──────────────────────────────────
+  var APT_LBL=['Mecânica','Científica','Artística','Para ensinar','Para vendas','Escritório',
+               'Manual','Matemática','Musical','Compreender outros','Para gestão','Administrativa'];
+  var respHtml='';
+  if (hasAns) {
+    var partsConf=[
+      {key:'II', label:'Parte II — Actividades',   items:ACT,  ansKey:'act_'},
+      {key:'III',label:'Parte III — Competências', items:COMP, ansKey:'comp_'},
+      {key:'IV', label:'Parte IV — Profissões',   items:CARR, ansKey:'carr_'}
+    ];
+    respHtml='<h3 style="color:#3B5A7A;border-top:2px solid #D6E4F0;padding-top:10px;margin-top:22px">Respostas por item</h3>';
+    partsConf.forEach(function(pc){
+      respHtml+='<h4 style="color:#5B7FA6;font-size:11px;margin:10px 0 3px">'+pc.label+'</h4>';
+      TYPES.forEach(function(t){
+        respHtml+='<div style="margin-bottom:5px"><div style="font-size:9.5px;font-weight:bold;color:'+TYPE_COLORS[t]+';margin-bottom:1px">'+t+' — '+TYPE_NAMES[t]+'</div>'
+          +'<table style="width:100%;border-collapse:collapse;font-size:9.5px">';
+        pc.items[t].forEach(function(item,i){
+          var key=pc.ansKey+t+'_'+i; var resp=ans[key]||'—';
+          var isPos=(pc.key==='II'&&resp==='G')||(pc.key!=='II'&&resp==='S');
+          var cor=isPos?'#27AE60':(resp==='—'?'#aaa':'#C0392B');
+          respHtml+='<tr style="border-bottom:1px solid #f5f5f5"><td style="padding:2px 6px;color:#444">'+item+'</td>'
+            +'<td style="padding:2px 6px;text-align:center;font-weight:bold;color:'+cor+';width:60px">'+resp+'</td></tr>';
+        });
+        respHtml+='</table></div>';
+      });
+    });
+    respHtml+='<h4 style="color:#5B7FA6;font-size:11px;margin:10px 0 3px">Parte V — Aptidões</h4>'
+      +'<table style="width:100%;border-collapse:collapse;font-size:9.5px">'
+      +'<thead><tr><th style="background:#3B5A7A;color:white;padding:3px 8px;text-align:left">Aptidão</th>'
+      +'<th style="background:#3B5A7A;color:white;padding:3px 8px;width:46px">Tipo</th>'
+      +'<th style="background:#3B5A7A;color:white;padding:3px 8px;width:38px">Valor</th></tr></thead><tbody>';
+    TYPES.forEach(function(t,ti){ ['apt0_','apt1_'].forEach(function(pfx,pi){
+      var val=ans[pfx+t]||'—';
+      respHtml+='<tr style="border-bottom:1px solid #f5f5f5">'
+        +'<td style="padding:2px 8px;color:#444">'+APT_LBL[ti*2+pi]+'</td>'
+        +'<td style="padding:2px 8px;text-align:center;font-weight:bold;color:'+TYPE_COLORS[t]+'">'+t+'</td>'
+        +'<td style="padding:2px 8px;text-align:center;font-weight:bold">'+val+'</td></tr>';
+    }); });
+    respHtml+='</tbody></table>';
+  } else {
+    respHtml='<p style="color:#888;font-style:italic;font-size:10px;margin-top:12px">'
+      +'Respostas item a item não disponíveis (sessao importada via CSV sem respostas).</p>';
+  }
+
+  var consist = getConsistencia(code);
+  var body=''
+    +'<div class="np"><button onclick="window.print()" style="padding:6px 18px;background:#3B5A7A;color:white;border:none;border-radius:5px;cursor:pointer;font-size:13px">&#128424; Imprimir / Guardar PDF</button></div>'
+    +'<h2>SDS — Self-Directed Search &middot; Relatório Completo</h2>'
+    +'<p class="meta"><b>Paciente:</b> '+s.codigo+' — '+s.nome_crianca
+    +' &nbsp;&middot;&nbsp; <b>Data:</b> '+new Date(s.data).toLocaleDateString('pt-PT')
+    +' &nbsp;&middot;&nbsp; <b>Percurso:</b> '+(s.percurso||'—')
+    +' &nbsp;&middot;&nbsp; <b>Escola:</b> '+(s.escola||'—')+'</p>'
+    +'<h3>Código de Holland</h3>'
+    +'<p style="font-size:2rem;font-weight:700;letter-spacing:12px;color:#3B5A7A;text-align:center;padding:10px 0;background:#EBF5FB;border-radius:8px;margin-bottom:4px">'+code+'</p>'
+    +'<p style="text-align:center;font-size:11px;color:#7f8c8d;margin-bottom:14px">'+top.map(function(l){ return TYPE_NAMES[l]; }).join(' · ')+'</p>'
+    +'<h3>Hexágono de Holland — Congruguência do perfil</h3>'
+    +'<p class="sub">O polígono sombreado representa o perfil. As linhas tracejadas ligam os tipos do código — quanto mais próximos, maior a congruguência.</p>'
+    +hexSVG
+    +'<div style="font-size:11px;padding:6px 10px;background:#EBF5FB;border-radius:6px;margin:8px 0 14px"><b>Consistência do código '+code+':</b> '+consist+'</div>'
+    +'<h3>Perfil por Subescala (Actividades &middot; Competências &middot; Profissões &middot; Aptidões)</h3>'
+    +'<p class="sub">Barras com opacidade decrescente: Actividades (escuro) → Competências → Profissões → Aptidões (claro).</p>'
+    +barSVG
+    +'<h3>Totais RIASEC</h3>'
+    +'<table><thead><tr><th>Tipo</th><th style="text-align:center">Score Total</th><th>Perfil relativo</th><th></th></tr></thead><tbody>'+scRows+'</tbody></table>'
+    +'<h3>Síntese Interpretativa</h3>'
+    +'<p style="line-height:1.6;font-size:11px">O perfil é dominado pelos tipos <b>'+top.map(function(l){ return TYPE_NAMES[l]+' ('+l+')'; }).join(', ')+'</b> — código <b>'+code+'</b>.<br><br>'
+    +top.map(function(l){ return '<b>'+TYPE_NAMES[l]+':</b> '+INTERP[l].desc; }).join('<br>')+'</p>'
+    +'<h3>&#9989; Áreas profissionais alinhadas</h3>'
+    +'<div class="green">'+top.map(function(l){ return '<div style="margin-bottom:3px"><b>'+l+':</b> '+INTERP[l].sim+'</div>'; }).join('')+'</div>'
+    +'<h3>&#9888;&#65039; Áreas menos indicadas</h3>'
+    +'<div class="red">'+top.map(function(l){ return '<div style="margin-bottom:3px"><b>'+l+':</b> '+INTERP[l].nao+'</div>'; }).join('')+'</div>'
+    +respHtml
+    +'<p class="footer">Ricardina Correia &middot; Psicologia Pediátrica &middot; Cédula Profissional n.º 8233 '
+    +'&middot; Ordem dos Psicólogos Portugueses &middot; Interpretação automática — integrar sempre no contexto clínico.</p>';
+
+  win.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>SDS — '+s.codigo+'</title>'
+    +'<style>'
+    +'body{font-family:Arial,sans-serif;font-size:12px;color:#2C3E50;padding:20px;max-width:900px;margin:0 auto}'
+    +'h2{color:#3B5A7A;font-size:15px;margin-bottom:4px}'
+    +'h3{color:#3B5A7A;font-size:12px;margin:14px 0 5px;border-bottom:2px solid #D6E4F0;padding-bottom:3px}'
+    +'h4{color:#5B7FA6;font-size:11px;margin:10px 0 3px}'
+    +'table{width:100%;border-collapse:collapse;margin-bottom:10px}'
+    +'th{background:#3B5A7A;padding:4px 8px;color:white;font-size:10.5px;text-align:left}'
+    +'td{padding:3px 8px;border-bottom:1px solid #eee;font-size:10.5px}'
+    +'.green{background:#d5f5e3;padding:7px 10px;border-radius:5px;margin:3px 0;font-size:10.5px}'
+    +'.red{background:#fadbd8;padding:7px 10px;border-radius:5px;margin:3px 0;font-size:10.5px}'
+    +'.meta{color:#6B7A8D;font-size:10.5px;margin-bottom:10px}'
+    +'.sub{font-size:10px;color:#888;margin-bottom:5px}'
+    +'.footer{margin-top:20px;font-size:9px;color:#aaa;border-top:1px solid #eee;padding-top:8px}'
+    +'.np{margin-bottom:12px}'
+    +'@media print{.np{display:none}}'
+    +'</style></head><body>'+body+'</body></html>');
+  win.document.close();
 }
 
-// ── INIT ──────────────────────────────────────────────────────
+// ── INIT// ── INIT ──────────────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded', function() {
   if (window.location.protocol === 'file:') document.getElementById('file-offline').style.display = 'block';
   buildItems();

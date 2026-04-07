@@ -532,14 +532,16 @@ function calcularScores(respostas) {
 }
 
 function nivelTotal(t) {
+  // Total max=18 (Preoc+Curio+Conf). Limiares: Baixo 0-5, Médio 6-13, Elevado 14-18
   if (t >= 14) return 'Elevado';
-  if (t >= 7)  return 'Médio';
+  if (t >= 6)  return 'Médio';
   return 'Baixo';
 }
 
 function nivelSub(s) {
+  // Subescala max=6. Limiares: Baixo 0-1, Médio 2-4, Elevado 5-6
   if (s >= 5) return 'Elevado';
-  if (s >= 3) return 'Médio';
+  if (s >= 2) return 'Médio';
   return 'Baixo';
 }
 
@@ -700,25 +702,25 @@ function verDetalhe(idx) {
     '</tr>';
   }).join('');
 
-  // Interpretação automática
+  // Interpretação automática (limiares: Baixo=0-1, Médio=2-4, Elevado=5-6)
   function interpSub(label, val) {
     if (label === 'Preocupação') {
-      if (val <= 2) return 'Baixo envolvimento com o processo de decisão de carreira. O jovem pode não sentir urgência na exploração vocacional.';
+      if (val <= 1) return 'Baixo envolvimento com o processo de decisão de carreira. O jovem pode não sentir urgência na exploração vocacional.';
       if (val <= 4) return 'Envolvimento moderado com o planeamento de carreira. Alguma preocupação com o futuro vocacional, com margem de desenvolvimento.';
       return 'Elevado envolvimento e orientação para o futuro. O jovem demonstra preocupação ativa com as suas escolhas de carreira.';
     }
     if (label === 'Curiosidade') {
-      if (val <= 2) return 'Escassa procura de informação sobre profissões e oportunidades. Comportamentos exploratórios pouco desenvolvidos.';
+      if (val <= 1) return 'Escassa procura de informação sobre profissões e oportunidades. Comportamentos exploratórios pouco desenvolvidos.';
       if (val <= 4) return 'Curiosidade moderada. O jovem explora algumas opções, mas ainda com limitações na pesquisa de informação ocupacional.';
       return 'Elevada curiosidade e comportamentos exploratórios ativos. Boa procura de informação sobre o mundo ocupacional.';
     }
     if (label === 'Confiança') {
-      if (val <= 2) return 'Baixa confiança na capacidade de tomar decisões de carreira. Pode necessitar de apoio específico para fortalecer a autoeficácia.';
+      if (val <= 1) return 'Baixa confiança na capacidade de tomar decisões de carreira. Pode necessitar de apoio específico para fortalecer a autoeficácia.';
       if (val <= 4) return 'Confiança moderada nas capacidades de decisão. Sente-se razoavelmente capaz de fazer escolhas realistas.';
       return 'Elevada confiança na capacidade de decidir de forma sensata e realista. Boa autoeficácia vocacional.';
     }
     // Consulta
-    if (val <= 2) return 'Tendência para decisões autónomas, com pouco recurso ao apoio de outros. Pode beneficiar de encorajamento a consultar outros.';
+    if (val <= 1) return 'Tendência para decisões autónomas, com pouco recurso ao apoio de outros. Pode beneficiar de encorajamento a consultar outros.';
     if (val <= 4) return 'Padrão equilibrado entre autonomia e consulta. O jovem combina independência com recurso ao apoio de pais e amigos.';
     return 'Recurso frequente ao apoio de outros nas decisões de carreira. Poderá beneficiar de trabalho na autonomia decisional.';
   }
@@ -730,11 +732,19 @@ function verDetalhe(idx) {
 
   var nivelT = nivelTotal(s.TOTAL);
   var rec = '';
-  if (s.TOTAL <= 6)       rec = '&#9888; Adaptabilidade baixa. Recomenda-se encaminhamento para programa de intervenção vocacional estruturado (m&#237;nimo 6 sess&#245;es).';
+  if (s.TOTAL <= 5)       rec = '&#9888; Adaptabilidade baixa. Recomenda-se encaminhamento para programa de intervenção vocacional estruturado (m&#237;nimo 6 sess&#245;es).';
   else if (s.TOTAL <= 13) rec = '&#8505; Adaptabilidade moderada. O jovem beneficiaria de acompanhamento vocacional para consolidar os recursos em desenvolvimento.';
   else                    rec = '&#10003; Adaptabilidade elevada. O jovem demonstra recursos vocacionais s&#243;lidos. Uma sess&#227;o de informa&#231;&#227;o vocacional pode ser suficiente.';
 
+  var hasAns = s.respostas && s.respostas.length === N_ITENS;
+
   var html =
+    // Botões de acção
+    '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px">' +
+      '<button class="btn btn-secondary" style="font-size:.82rem;padding:5px 12px" onclick="exportarInterpretacaoPDF(sessaoActual)">&#x1F4CA; Relatório PDF</button>' +
+      (hasAns ? '<button class="btn btn-secondary" style="font-size:.82rem;padding:5px 12px" id="btn-toggle-resp" onclick="toggleRespostasModalIMC()">&#x1F4CB; Ver respostas item a item</button>' : '') +
+    '</div>' +
+
     '<p style="font-size:0.82rem;color:var(--text-light);margin-bottom:16px">' +
       'Código: <strong>' + s.patientCode + '</strong>' +
       (s.nomeCrianca ? ' &nbsp;·&nbsp; Nome: <strong>' + s.nomeCrianca + '</strong>' : '') +
@@ -781,14 +791,63 @@ function verDetalhe(idx) {
     '<p style="font-size:0.78rem;color:var(--text-light);font-style:italic">' +
       'Interpretação automática — integrar sempre no contexto clínico completo da avaliação. ' +
       'Savickas &amp; Porfeli (2011) · Adapt. portuguesa: Janeiro, Ribas &amp; Mota (2013).' +
-    '</p>';
+    '</p>' +
+    (hasAns ? buildRespostasDetalheIMC(s) : '');
 
   document.getElementById('modal-content').innerHTML = html;
   document.getElementById('modal-overlay').style.display = 'flex';
 }
 
-function fecharModal() {
-  document.getElementById('modal-overlay').style.display = 'none';
+function toggleRespostasModalIMC() {
+  var div = document.getElementById('respostas-detalhe-modal');
+  var btn = document.getElementById('btn-toggle-resp');
+  if (!div) return;
+  if (div.style.display === 'none') {
+    div.style.display = 'block';
+    if (btn) btn.textContent = '\u2B06 Ocultar respostas';
+  } else {
+    div.style.display = 'none';
+    if (btn) btn.innerHTML = '&#x1F4CB; Ver respostas item a item';
+  }
+}
+
+function buildRespostasDetalheIMC(s) {
+  var ans = s.respostas || [];
+  var SUB_KEYS = ['PREOC','CURIO','CONF','CONSUL'];
+  var SUB_NAMES = {PREOC:'Preocupação', CURIO:'Curiosidade', CONF:'Confiança', CONSUL:'Consulta/Controlo'};
+  var SUB_COLORS = {PREOC:'#3a6b2a', CURIO:'#7a5e00', CONF:'#7a3e1a', CONSUL:'#6b2040'};
+
+  var html = '<div id="respostas-detalhe-modal" style="display:none;margin-top:16px">'
+    + '<h4 style="color:var(--blue);font-size:.9rem;margin-bottom:10px">Respostas por item</h4>';
+
+  SUB_KEYS.forEach(function(sk) {
+    var idxs = SUBSCALAS[sk];
+    html += '<div style="margin-bottom:12px">'
+      + '<div style="font-weight:700;color:' + SUB_COLORS[sk] + ';font-size:.82rem;padding:4px 10px;background:#f8fafc;border-radius:6px;margin-bottom:4px">' + SUB_NAMES[sk] + '</div>'
+      + '<table style="width:100%;border-collapse:collapse;font-size:.76rem">'
+      + '<thead><tr>'
+      + '<th style="padding:3px 6px;background:var(--blue);color:white;width:22px">#</th>'
+      + '<th style="padding:3px 6px;background:var(--blue);color:white">Item</th>'
+      + '<th style="padding:3px 6px;background:var(--blue);color:white;width:52px">Resp.</th>'
+      + '<th style="padding:3px 6px;background:var(--blue);color:white;width:36px">Pto.</th>'
+      + '</tr></thead><tbody>';
+    idxs.forEach(function(i) {
+      var resp = ans[i] || '\u2014';
+      var correto = resp === CHAVE[i];
+      var respOK = resp !== '\u2014';
+      var cor = !respOK ? '#aaa' : (correto ? '#27AE60' : '#C0392B');
+      var ponto = !respOK ? '\u2014' : (correto ? '1' : '0');
+      html += '<tr style="border-bottom:1px solid #f2f2f2">'
+        + '<td style="padding:2px 6px;color:#888;font-size:.72rem">' + (i+1) + '</td>'
+        + '<td style="padding:2px 6px;color:#555">' + ITEMS[i] + '</td>'
+        + '<td style="padding:2px 6px;text-align:center;font-weight:700;color:' + cor + '">' + resp + '</td>'
+        + '<td style="padding:2px 6px;text-align:center;font-weight:700;color:' + cor + '">' + ponto + '</td>'
+        + '</tr>';
+    });
+    html += '</tbody></table></div>';
+  });
+  html += '</div>';
+  return html;
 }
 
 // ── Export / Import ───────────────────────────────────────────────────────────
@@ -888,65 +947,155 @@ function exportarRespostasPDF(sessao) {
 
 // ── Interpretação PDF ─────────────────────────────────────────────────────────
 function exportarInterpretacaoPDF(sessao) {
-  if (!sessao) { alert('Seleccione primeiro uma sess\u00e3o (clique em "Ver \u2192").'); return; }
+  if (!sessao) { alert('Seleccione primeiro uma sess\u00e3o (clique em Ver \u2192).'); return; }
   var s = sessao;
-  var subs = [
-    {label:'Preocupação', val:s.PREOC, max:6},
-    {label:'Curiosidade', val:s.CURIO, max:6},
-    {label:'Confiança',   val:s.CONF,  max:6},
-    {label:'Consulta/Controlo', val:s.CONSUL, max:6}
+  var win = window.open('', '_blank');
+  if (!win) { alert('Popup bloqueado. Permita popups para este site.'); return; }
+
+  var subDefs = [
+    {key:'PREOC',  label:'Preocupa\u00e7\u00e3o',     val:s.PREOC,  max:6, cor:'#3a6b2a'},
+    {key:'CURIO',  label:'Curiosidade',       val:s.CURIO,  max:6, cor:'#7a5e00'},
+    {key:'CONF',   label:'Confian\u00e7a',       val:s.CONF,   max:6, cor:'#7a3e1a'},
+    {key:'CONSUL', label:'Consulta/Controlo', val:s.CONSUL, max:6, cor:'#6b2040'}
   ];
-  var linhasSubs = subs.map(function(sub) {
-    var pct = Math.round(sub.val / sub.max * 100);
-    var nivel = nivelSub(sub.val);
-    var cor = nivel === 'Elevado' ? '#27AE60' : nivel === 'Médio' ? '#E67E22' : '#C0392B';
-    return '<tr>' +
-      '<td style="padding:5px 8px;border-bottom:1px solid #eee">' + sub.label + '</td>' +
-      '<td style="padding:5px 8px;border-bottom:1px solid #eee;text-align:center;font-weight:700;color:' + cor + '">' + sub.val + ' / ' + sub.max + '</td>' +
-      '<td style="padding:5px 8px;border-bottom:1px solid #eee">' +
-        '<div style="background:#eee;border-radius:3px;height:8px;width:120px">' +
-          '<div style="background:' + cor + ';border-radius:3px;height:8px;width:' + pct + '%"></div>' +
-        '</div></td>' +
-      '<td style="padding:5px 8px;border-bottom:1px solid #eee;color:' + cor + ';font-weight:600">' + nivel + '</td>' +
-    '</tr>';
-  }).join('');
+  var nc = {'Baixo':'#C0392B','M\u00e9dio':'#E67E22','Elevado':'#27AE60'};
+
+  // Gráfico SVG de barras horizontais (inline, sem dependências)
+  var cW=480, cH=155, pL=130, pR=20, pT=12, pB=8;
+  var iW=cW-pL-pR, iH=cH-pT-pB;
+  var barH=Math.floor((iH-3*8)/4), gap=8;
+  var bars='';
+  subDefs.forEach(function(sub,i){
+    var niv=nivelSub(sub.val);
+    var by=pT+i*(barH+gap);
+    var bw=Math.max(2, Math.round((sub.val/sub.max)*iW));
+    bars+='<text x="'+(pL-8)+'" y="'+(by+barH/2+4)+'" text-anchor="end" font-size="11" font-family="Arial" fill="'+sub.cor+'">'+sub.label+'</text>';
+    bars+='<rect x="'+pL+'" y="'+by+'" width="'+iW+'" height="'+barH+'" rx="3" fill="#eee"/>';
+    bars+='<rect x="'+pL+'" y="'+by+'" width="'+bw+'" height="'+barH+'" rx="3" fill="'+nc[niv]+'"/>';
+    bars+='<text x="'+(pL+bw+5)+'" y="'+(by+barH/2+4)+'" font-size="10" font-family="Arial" fill="#555">'+sub.val+'/'+sub.max+' ('+niv+')</text>';
+  });
+  var chartSVG='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+cW+' '+cH+'" width="100%" style="display:block;margin:6px 0">'+bars+'</svg>';
+
+  // Interpretação por dimensão
+  function interpSubPDF(label, val) {
+    if (label==='Preocupa\u00e7\u00e3o') {
+      if (val<=1) return 'Baixo envolvimento com o processo de decis\u00e3o de carreira. O jovem pode n\u00e3o sentir urg\u00eancia na explora\u00e7\u00e3o vocacional.';
+      if (val<=4) return 'Envolvimento moderado com o planeamento de carreira. Alguma preocupa\u00e7\u00e3o com o futuro vocacional, com margem de desenvolvimento.';
+      return 'Elevado envolvimento e orienta\u00e7\u00e3o para o futuro. O jovem demonstra preocupa\u00e7\u00e3o ativa com as suas escolhas de carreira.';
+    }
+    if (label==='Curiosidade') {
+      if (val<=1) return 'Escassa procura de informa\u00e7\u00e3o sobre profiss\u00f5es e oportunidades. Comportamentos explorat\u00f3rios pouco desenvolvidos.';
+      if (val<=4) return 'Curiosidade moderada. O jovem explora algumas op\u00e7\u00f5es, mas ainda com limita\u00e7\u00f5es na pesquisa de informa\u00e7\u00e3o ocupacional.';
+      return 'Elevada curiosidade e comportamentos explorat\u00f3rios ativos. Boa procura de informa\u00e7\u00e3o sobre o mundo ocupacional.';
+    }
+    if (label==='Confian\u00e7a') {
+      if (val<=1) return 'Baixa confian\u00e7a na capacidade de tomar decis\u00f5es de carreira. Pode necessitar de apoio espec\u00edfico para fortalecer a autoefic\u00e1cia.';
+      if (val<=4) return 'Confian\u00e7a moderada nas capacidades de decis\u00e3o. Sente-se razoavelmente capaz de fazer escolhas realistas.';
+      return 'Elevada confian\u00e7a na capacidade de decidir de forma sensata e realista. Boa autoefic\u00e1cia vocacional.';
+    }
+    // Consulta/Controlo
+    if (val<=1) return 'Tend\u00eancia para decis\u00f5es aut\u00f3nomas, com pouco recurso ao apoio de outros. Pode beneficiar de encorajamento a consultar outros.';
+    if (val<=4) return 'Padr\u00e3o equilibrado entre autonomia e consulta. O jovem combina independ\u00eancia com recurso ao apoio de pais e amigos.';
+    return 'Recurso frequente ao apoio de outros nas decis\u00f5es de carreira. Poder\u00e1 beneficiar de trabalho na autonomia decisional.';
+  }
+
   var nivelT = nivelTotal(s.TOTAL);
-  var corT = nivelT === 'Elevado' ? '#27AE60' : nivelT === 'Médio' ? '#E67E22' : '#C0392B';
-  var pctT = Math.round(s.TOTAL / 18 * 100);
-  var html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>IMC-C — ' + s.patientCode + '</title>' +
-    '<style>body{font-family:Arial,sans-serif;font-size:12px;color:#2C3E50;padding:24px;max-width:900px;margin:0 auto}' +
-    'h1{color:#3B5A7A;font-size:16px;margin-bottom:4px}h2{color:#3B5A7A;font-size:13px;margin:18px 0 8px;border-bottom:2px solid #D6E4F0;padding-bottom:4px}' +
-    'p{color:#6B7A8D;margin-bottom:12px;font-size:11px}table{width:100%;border-collapse:collapse;margin-bottom:16px}' +
-    'th{background:#D6E4F0;padding:6px 8px;text-align:left;color:#3B5A7A;font-size:11px}' +
-    '.no-print{margin-bottom:16px}@media print{.no-print{display:none};body{padding:12px}}</style></head><body>' +
-    '<div class="no-print"><button onclick="window.print()">&#128424; Imprimir / Guardar PDF</button></div>' +
-    '<h1>IMC-C — Invent\u00e1rio de Maturidade na Carreira (Forma C)</h1>' +
-    '<p>C\u00f3digo: <strong>' + s.patientCode + '</strong>' +
-    (s.nomeCrianca ? ' &nbsp;|&nbsp; Nome: <strong>' + s.nomeCrianca + '</strong>' : '') +
-    ' &nbsp;|&nbsp; Ano: ' + (s.anoEscolar || '—') +
-    ' &nbsp;|&nbsp; Data: ' + s.date +
-    ' &nbsp;|&nbsp; Ricardina Correia · C\u00e9dula 8233</p>' +
-    '<h2>Resultados por Dimens\u00e3o</h2>' +
-    '<table><thead><tr><th>Dimens\u00e3o</th><th style="text-align:center">Score</th><th>Perfil</th><th>N\u00edvel</th></tr></thead>' +
-    '<tbody>' + linhasSubs + '</tbody></table>' +
-    '<h2>Escala Total (Preoc. + Curio. + Conf.)</h2>' +
-    '<p style="font-size:13px"><strong style="font-size:18px;color:' + corT + '">' + s.TOTAL + ' / 18</strong> &nbsp; — &nbsp; <strong style="color:' + corT + '">' + nivelT + '</strong></p>' +
-    '<div style="background:#eee;border-radius:4px;height:10px;width:300px;margin-bottom:16px">' +
-      '<div style="background:' + corT + ';border-radius:4px;height:10px;width:' + pctT + '%"></div>' +
-    '</div>' +
-    '<h2>Interpreta\u00e7\u00e3o Autom\u00e1tica</h2>' +
-    '<p style="font-size:11px;line-height:1.6">' +
-      'Pontuações mais elevadas indicam maior maturidade/adaptabilidade vocacional. ' +
-      'Escala Total: <strong>Baixo</strong> 0–6 · <strong>M\u00e9dio</strong> 7–13 · <strong>Elevado</strong> 14–18. ' +
-      'Subescalas (0–6): <strong>Baixo</strong> 0–2 · <strong>M\u00e9dio</strong> 3–4 · <strong>Elevado</strong> 5–6.' +
-    '</p>' +
-    '<p style="margin-top:24px;font-style:italic;color:#999;font-size:10px">' +
-      'Interpreta\u00e7\u00e3o autom\u00e1tica — integrar sempre no contexto cl\u00ednico completo da avalia\u00e7\u00e3o. ' +
-      'Savickas &amp; Porfeli (2011) · Adapt. portuguesa: Janeiro, Ribas &amp; Mota (2013).' +
-    '</p></body></html>';
-  var w = window.open('','_blank');
-  if (!w) { alert('Pop-up bloqueado. Permite pop-ups para este site.'); return; }
-  w.document.write(html); w.document.close();
+  var rec = '';
+  if (s.TOTAL<=5)       rec='\u26a0 Adaptabilidade baixa. Recomenda-se encaminhamento para programa de interven\u00e7\u00e3o vocacional estruturado (m\u00ednimo 6 sess\u00f5es).';
+  else if (s.TOTAL<=13) rec='\u2139 Adaptabilidade moderada. O jovem beneficiaria de acompanhamento vocacional para consolidar os recursos em desenvolvimento.';
+  else                  rec='\u2713 Adaptabilidade elevada. O jovem demonstra recursos vocacionais s\u00f3lidos. Uma sess\u00e3o de informa\u00e7\u00e3o vocacional pode ser suficiente.';
+
+  var subRows = subDefs.map(function(sub){
+    var niv=nivelSub(sub.val);
+    var pct=Math.round(sub.val/sub.max*100);
+    return '<tr style="border-bottom:1px solid #eee">'
+      +'<td style="padding:4px 8px;font-weight:600;color:'+sub.cor+'">'+sub.label+'</td>'
+      +'<td style="text-align:center;font-weight:700;font-size:13px">'+sub.val+'/'+sub.max+'</td>'
+      +'<td><div style="background:#eee;border-radius:3px;height:10px;width:120px;display:inline-block"><div style="background:'+nc[niv]+';height:10px;border-radius:3px;width:'+pct+'%"></div></div></td>'
+      +'<td style="text-align:center;color:'+nc[niv]+';font-weight:700;font-size:11px">'+niv+'</td></tr>';
+  }).join('');
+
+  var interpRows = subDefs.map(function(sub){
+    return '<tr style="border-bottom:1px solid #f5f5f5">'
+      +'<td style="padding:4px 8px;font-weight:600;font-size:10.5px;white-space:nowrap;color:'+sub.cor+'">'+sub.label+'</td>'
+      +'<td style="padding:4px 8px;font-size:10.5px;line-height:1.5">'+interpSubPDF(sub.label,sub.val)+'</td></tr>';
+  }).join('');
+
+  // Respostas item a item
+  var ans = s.respostas || [];
+  var hasAns = ans.length === N_ITENS;
+  var respHtml = '';
+  if (hasAns) {
+    var SK=['PREOC','CURIO','CONF','CONSUL'];
+    var SN={PREOC:'Preocupa\u00e7\u00e3o',CURIO:'Curiosidade',CONF:'Confian\u00e7a',CONSUL:'Consulta/Controlo'};
+    var SC={PREOC:'#3a6b2a',CURIO:'#7a5e00',CONF:'#7a3e1a',CONSUL:'#6b2040'};
+    respHtml='<h3 style="color:#3B5A7A;border-top:2px solid #D6E4F0;padding-top:10px;margin-top:16px;font-size:11.5px">Respostas por item</h3>';
+    SK.forEach(function(sk){
+      var idxs=SUBSCALAS[sk];
+      respHtml+='<h4 style="color:'+SC[sk]+';font-size:10px;margin:6px 0 2px">'+SN[sk]+'</h4>'
+        +'<table style="width:100%;border-collapse:collapse;font-size:9px"><thead>'
+        +'<tr><th style="background:#3B5A7A;color:white;padding:2px 5px;width:20px">#</th>'
+        +'<th style="background:#3B5A7A;color:white;padding:2px 5px">Item</th>'
+        +'<th style="background:#3B5A7A;color:white;padding:2px 5px;width:36px">Resp.</th>'
+        +'<th style="background:#3B5A7A;color:white;padding:2px 5px;width:30px">Pto.</th>'
+        +'</tr></thead><tbody>';
+      idxs.forEach(function(i){
+        var resp=ans[i]||'\u2014';
+        var correto=resp===CHAVE[i];
+        var respOK=resp!=='\u2014';
+        var cor=!respOK?'#aaa':(correto?'#27AE60':'#C0392B');
+        var ponto=!respOK?'\u2014':(correto?'1':'0');
+        respHtml+='<tr style="border-bottom:1px solid #f5f5f5">'
+          +'<td style="padding:1px 5px;color:#888">'+(i+1)+'</td>'
+          +'<td style="padding:1px 5px;color:#444">'+ITEMS[i]+'</td>'
+          +'<td style="padding:1px 5px;text-align:center;font-weight:700;color:'+cor+'">'+resp+'</td>'
+          +'<td style="padding:1px 5px;text-align:center;font-weight:700;color:'+cor+'">'+ponto+'</td></tr>';
+      });
+      respHtml+='</tbody></table>';
+    });
+  } else {
+    respHtml='<p style="color:#888;font-style:italic;font-size:10px;margin-top:10px">Respostas n\u00e3o dispon\u00edveis (importado via CSV sem respostas).</p>';
+  }
+
+  win.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>IMC-C \u2014 '+s.patientCode+'</title>'
+    +'<style>body{font-family:Arial,sans-serif;font-size:12px;color:#2C3E50;padding:20px;max-width:860px;margin:0 auto}'
+    +'h2{color:#3B5A7A;font-size:15px;margin-bottom:4px}'
+    +'h3{color:#3B5A7A;font-size:12px;margin:12px 0 4px;border-bottom:2px solid #D6E4F0;padding-bottom:3px}'
+    +'table{width:100%;border-collapse:collapse;margin-bottom:8px}'
+    +'th{background:#3B5A7A;padding:4px 8px;color:white;text-align:left}'
+    +'td{padding:3px 8px}'
+    +'.rec{padding:10px 14px;border-radius:6px;font-size:11px;line-height:1.6;margin:8px 0;background:#FFF2CC}'
+    +'.footer{margin-top:16px;font-size:9px;color:#aaa;border-top:1px solid #eee;padding-top:6px}'
+    +'.np{margin-bottom:10px}'
+    +'@media print{.np{display:none}}'
+    +'</style></head><body>'
+    +'<div class="np"><button onclick="window.print()" style="padding:6px 18px;background:#3B5A7A;color:white;border:none;border-radius:5px;cursor:pointer">&#128424; Imprimir / Guardar PDF</button></div>'
+    +'<h2>IMC \u2014 Invent\u00e1rio de Maturidade na Carreira (Forma C) \u2014 Relat\u00f3rio Completo</h2>'
+    +'<p style="color:#6B7A8D;font-size:10.5px;margin-bottom:10px">'
+    +'<b>C\u00f3digo:</b> '+s.patientCode
+    +(s.nomeCrianca?' &middot; <b>Nome:</b> '+s.nomeCrianca:'')
+    +' &middot; <b>Ano:</b> '+(s.anoEscolar||'\u2014')
+    +' &middot; <b>Data:</b> '+s.date
+    +' &middot; Ricardina Correia &middot; C\u00e9dula 8233</p>'
+    +'<h3>Resultados por Dimens\u00e3o</h3>'
+    +'<table><thead><tr>'
+    +'<th style="width:140px">Dimens\u00e3o</th>'
+    +'<th style="width:70px;text-align:center">Score</th>'
+    +'<th>Perfil</th>'
+    +'<th style="width:70px;text-align:center">N\u00edvel</th>'
+    +'</tr></thead><tbody>'+subRows+'</tbody></table>'
+    +'<h3>Gr\u00e1fico de Barras</h3>'+chartSVG
+    +'<h3>Escala Total (Preoc.+Curio.+Conf.): '+s.TOTAL+' / 18 \u2014 N\u00edvel: <span style="color:'+nc[nivelT]+'">'+nivelT+'</span></h3>'
+    +'<p style="font-size:9.5px;color:#888;margin-top:-4px">'
+    +'Limiares: Baixo 0\u20135 &middot; M\u00e9dio 6\u201313 &middot; Elevado 14\u201318. '
+    +'A Escala Total integra apenas Preocupa\u00e7\u00e3o, Curiosidade e Confian\u00e7a. Consulta/Controlo \u00e9 pontuada separadamente.</p>'
+    +'<h3>Interpreta\u00e7\u00e3o</h3>'
+    +'<table><thead><tr><th style="width:140px">Dimens\u00e3o</th><th>Descri\u00e7\u00e3o</th></tr></thead><tbody>'+interpRows+'</tbody></table>'
+    +'<h3>Recomenda\u00e7\u00e3o</h3><div class="rec">'+rec+'</div>'
+    +respHtml
+    +'<p class="footer">Ricardina Correia &middot; Psicologia Pedi\u00e1trica &middot; C\u00e9dula n.\u00ba 8233 &middot; Savickas &amp; Porfeli (2011) &middot; Adapt. portuguesa: Janeiro, Ribas &amp; Mota (2013). Interpreta\u00e7\u00e3o autom\u00e1tica \u2014 integrar sempre no contexto cl\u00ednico.</p>'
+    +'</body></html>');
+  win.document.close();
 }
 
 // ── Arranque ──────────────────────────────────────────────────────────────────
