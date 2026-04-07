@@ -478,110 +478,241 @@ function verDetalhe(idx){
   var dt=s.date?new Date(s.date).toLocaleDateString('pt-PT'):'\u2014';
   document.getElementById('modal-titulo').textContent='Detalhe \u00b7 '+s.patientCode+(s.nomeCrianca?' \u2014 '+s.nomeCrianca:'')+(s.nomeInformante?' \u00b7 '+s.nomeInformante:'');
   var total180=parseInt(s.totalA||0)+parseInt(s.totalB||0)+parseInt(s.totalC||0)+parseInt(s.totalD||0);
-  var html='<div style="margin-bottom:16px;display:flex;gap:24px;flex-wrap:wrap;font-size:.87rem">';
+
+  var html='<div style="margin-bottom:14px;display:flex;gap:20px;flex-wrap:wrap;font-size:.87rem">';
   html+='<div><span style="color:var(--text-light)">C\u00f3digo:</span> <strong>'+escHtml(s.patientCode)+'</strong></div>';
-  if(s.nomeCrianca)html+='<div><span style="color:var(--text-light)">Jovem:</span> <strong>'+escHtml(s.nomeCrianca)+'</strong></div>';
-  if(s.nomeInformante)html+='<div><span style="color:var(--text-light)">Respondente:</span> '+escHtml(s.nomeInformante)+'</div>';
+  if(s.nomeCrianca) html+='<div><span style="color:var(--text-light)">Jovem:</span> <strong>'+escHtml(s.nomeCrianca)+'</strong></div>';
+  if(s.nomeInformante) html+='<div><span style="color:var(--text-light)">Respondente:</span> '+escHtml(s.nomeInformante)+'</div>';
   html+='<div><span style="color:var(--text-light)">Data:</span> '+dt+'</div>';
-  if(s.anoEscolar)html+='<div><span style="color:var(--text-light)">Ano:</span> '+escHtml(s.anoEscolar)+'</div>';
+  if(s.anoEscolar) html+='<div><span style="color:var(--text-light)">Ano:</span> '+escHtml(s.anoEscolar)+'</div>';
   html+='</div>';
 
-  // ── Botões de acção ──
+  // Bot\u00f5es
   html+='<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px">'
-    +'<button class="btn btn-secondary" style="padding:5px 12px;font-size:.8rem" onclick="exportarInterpretacaoPDF(sessaoActual)">\uD83D\uDCCA Relatório PDF</button>'
+    +'<button class="btn btn-secondary" style="padding:5px 12px;font-size:.8rem" onclick="exportarInterpretacaoPDF(sessaoActual)">\uD83D\uDCCA Relat\u00f3rio PDF</button>'
     +'<button class="btn btn-secondary btn-xs no-print" style="padding:5px 12px;font-size:.8rem" onclick="toggleRespostas(this)">\uD83D\uDCC4 Ver respostas item-a-item</button>'
   +'</div>';
 
-  // ── Distribuição de respostas ──
-  html+='<div style="margin-bottom:18px"><h4 style="color:var(--blue);font-size:.9rem;margin-bottom:10px">Distribui\u00e7\u00e3o de respostas (n='+total180+')</h4>';
-  [{op:"A",lbl:"Gosto",color:"var(--green)",val:parseInt(s.totalA||0)},
-   {op:"B",lbl:"Indiferente",color:"var(--blue-mid)",val:parseInt(s.totalB||0)},
-   {op:"C",lbl:"N\u00e3o gosto",color:"var(--red)",val:parseInt(s.totalC||0)},
-   {op:"D",lbl:"N\u00e3o conhece",color:"var(--orange)",val:parseInt(s.totalD||0)}
+  // Distribui\u00e7\u00e3o global
+  html+='<div style="margin-bottom:16px"><h4 style="color:var(--blue);font-size:.9rem;margin-bottom:8px">Distribui\u00e7\u00e3o de respostas (n='+total180+')</h4>';
+  [{op:'A',lbl:'Gosto',color:'var(--green)',val:parseInt(s.totalA||0)},
+   {op:'B',lbl:'Indiferente',color:'var(--blue-mid)',val:parseInt(s.totalB||0)},
+   {op:'C',lbl:'N\u00e3o gosto',color:'var(--red)',val:parseInt(s.totalC||0)},
+   {op:'D',lbl:'N\u00e3o conhece',color:'var(--orange)',val:parseInt(s.totalD||0)}
   ].forEach(function(o){
     var pct=total180>0?Math.round(o.val/total180*100):0;
-    html+='<div style="display:flex;align-items:center;gap:10px;margin-bottom:6px"><div style="min-width:32px;font-weight:700;color:'+o.color+'">'+o.op+'</div><div style="min-width:90px;font-size:.82rem;color:var(--text-light)">'+o.lbl+'</div><div style="flex:1;background:var(--gray-bdr);border-radius:4px;height:10px"><div style="background:'+o.color+';border-radius:4px;height:100%;width:'+pct+'%"></div></div><div style="min-width:50px;font-size:.82rem;text-align:right"><strong>'+o.val+'</strong> ('+pct+'%)</div></div>';
+    html+='<div style="display:flex;align-items:center;gap:10px;margin-bottom:5px">'
+      +'<div style="min-width:28px;font-weight:700;color:'+o.color+'">'+o.op+'</div>'
+      +'<div style="min-width:88px;font-size:.82rem;color:var(--text-light)">'+o.lbl+'</div>'
+      +'<div style="flex:1;background:var(--gray-bdr);border-radius:4px;height:9px"><div style="background:'+o.color+';border-radius:4px;height:100%;width:'+pct+'%"></div></div>'
+      +'<div style="min-width:54px;font-size:.82rem;text-align:right"><strong>'+o.val+'</strong> ('+pct+'%)</div></div>';
   });
   html+='</div>';
 
-  // ── Cotação por campos profissionais ──
   if(s.respostas&&s.respostas.length===N_ITENS){
     var cotacao=ipprCotar(s.respostas, s.anoEscolar, s.sexo);
-    var sorted=IPPR_FIELDS_ORDER.slice().sort(function(a,b){return cotacao.fields[b].total-cotacao.fields[a].total;});
-    var maxTotal=Math.max.apply(null,IPPR_FIELDS_ORDER.map(function(f){return cotacao.fields[f].total;}));
+    var normKey=cotacao.normKey;
 
-    html+='<h4 style="color:var(--blue);font-size:.9rem;margin-bottom:6px">Perfil por Campo Profissional</h4>';
-    html+='<div style="font-size:.75rem;color:var(--text-light);margin-bottom:10px">Tabela normativa: <strong>'+cotacao.normKey.replace('_',' · ')+'</strong> &nbsp;·&nbsp; PD = Pontuação Directa (A=Gosto) &nbsp;·&nbsp; PC = Percentil &nbsp;·&nbsp; EN = Eneatipo</div>';
+    // -- helpers --
+    function nivel(pc){
+      if(pc>=84) return {txt:'Elevado',  cor:'#1e8449',bg:'#eafaf1'};
+      if(pc>=50) return {txt:'Moderado', cor:'#2471a3',bg:'#ebf5fb'};
+      if(pc>=16) return {txt:'M\u00e9dio',    cor:'#7f8c8d',bg:'#f4f6f9'};
+      return               {txt:'Reduzido', cor:'#c0392b',bg:'#fdecea'};
+    }
 
-    // Gráfico de barras horizontais SVG
-    var chartW=620, barH=20, labelW=185, gap=5;
-    var chartH=sorted.length*(barH+gap)+10;
-    var svgBars=sorted.map(function(field,i){
-      var r=cotacao.fields[field];
-      var y=5+i*(barH+gap);
-      var avail=chartW-labelW-80;
-      var barW=maxTotal>0?Math.round((r.total/12)*avail):0; // max possible = 12
-      var pc=r.pcMed;
-      var cor=pc>=75?'var(--green)':pc>=40?'var(--orange)':'var(--red)';
+    // Calcular congrugu\u00eancia = m\u00e9dia geom\u00e9trica pcAT x pcPR
+    var fieldData=IPPR_FIELDS_ORDER.map(function(f){
+      var r=cotacao.fields[f];
+      var cong=Math.round(Math.sqrt(r.pcAT*r.pcPR));
+      return {f:f, name:IPPR_FIELD_NAMES[f], pdAT:r.pdAT, pdPR:r.pdPR,
+              total:r.total, pcAT:r.pcAT, pcPR:r.pcPR, pcMed:r.pcMed,
+              en:r.en, cong:cong};
+    });
+
+    // ordenar por pcMed desc para o gr\u00e1fico
+    var byPcMed=fieldData.slice().sort(function(a,b){return b.pcMed-a.pcMed;});
+    // top 3 por congrugu\u00eancia
+    var byCongrugu=fieldData.slice().sort(function(a,b){return b.cong-a.cong||(b.pcMed-a.pcMed);});
+    var top3=byCongrugu.slice(0,3);
+
+    // ===== SECÇÃO 1: GR\u00c1FICO DUPLO AT vs PR =====
+    html+='<h4 style="color:var(--blue);font-size:.9rem;margin:0 0 4px">Perfil de Interesses — Atividades vs. Profiss\u00f5es</h4>';
+    html+='<div style="font-size:.72rem;color:var(--text-light);margin-bottom:8px">'
+      +'Tabela normativa: <strong>'+normKey.replace('_',' · ')+'</strong>'
+      +'&nbsp;·&nbsp;<span style="display:inline-flex;align-items:center;gap:3px"><span style="width:11px;height:9px;background:#3B5A7A;border-radius:2px;display:inline-block"></span>AT (Atividades)</span>'
+      +'&nbsp;&nbsp;<span style="display:inline-flex;align-items:center;gap:3px"><span style="width:11px;height:9px;background:#7EB5D0;border-radius:2px;display:inline-block"></span>PR (Profiss\u00f5es)</span>'
+      +'&nbsp;·&nbsp;Linha tracejada = PC 50</div>';
+
+    var CW=640,RH=26,GAP=5,LW=192,AV=CW-LW-72;
+    var SH=byPcMed.length*(RH+GAP)+8;
+    var svgRows=byPcMed.map(function(r,i){
+      var y=4+i*(RH+GAP), h1=Math.floor(RH/2)-1, h2=RH-h1-2;
+      var wAT=Math.round((r.pcAT/100)*AV), wPR=Math.round((r.pcPR/100)*AV);
+      var cAT=r.pcAT>=84?'#1e8449':r.pcAT>=50?'#3B5A7A':r.pcAT>=16?'#A8C4D8':'#DDE3EA';
+      var cPR=r.pcPR>=84?'#27AE60':r.pcPR>=50?'#7EB5D0':r.pcPR>=16?'#C4D9E8':'#EBF2F8';
+      var x50=Math.round(0.5*AV);
+      var isTop=top3.some(function(t){return t.f===r.f;});
       return '<g transform="translate(0,'+y+')">'
-        +'<text x="'+(labelW-6)+'" y="'+(barH/2+5)+'" text-anchor="end" font-size="11" fill="#6B7A8D" font-family="DM Sans,sans-serif">'+IPPR_FIELD_NAMES[field]+'</text>'
-        +'<rect x="'+labelW+'" y="0" width="'+avail+'" height="'+barH+'" rx="3" fill="#DDE3EA"/>'
-        +'<rect x="'+labelW+'" y="0" width="'+barW+'" height="'+barH+'" rx="3" fill="'+cor+'"/>'
-        +'<text x="'+(labelW+avail+6)+'" y="'+(barH/2+5)+'" font-size="11" font-weight="bold" fill="'+cor+'" font-family="DM Sans,sans-serif">'+r.total+'/12 &nbsp; PC'+pc+' &nbsp; EN'+r.en+'</text>'
+        +'<text x="'+(LW-6)+'" y="'+(RH/2+4)+'" text-anchor="end" font-size="10.5" fill="'+(isTop?'#1e8449':'#6B7A8D')+'" font-weight="'+(isTop?'700':'400')+'" font-family="DM Sans,sans-serif">'
+        +r.name+(isTop?' \u2605':'')+'</text>'
+        +'<rect x="'+LW+'" y="0" width="'+AV+'" height="'+RH+'" rx="3" fill="#F4F6F9"/>'
+        +'<rect x="'+LW+'" y="1" width="'+wAT+'" height="'+h1+'" rx="2" fill="'+cAT+'"/>'
+        +'<rect x="'+LW+'" y="'+(h1+2)+'" width="'+wPR+'" height="'+h2+'" rx="2" fill="'+cPR+'"/>'
+        +'<line x1="'+(LW+x50)+'" y1="0" x2="'+(LW+x50)+'" y2="'+RH+'" stroke="#888" stroke-width="1.2" stroke-dasharray="3,2"/>'
+        +'<text x="'+(LW+AV+5)+'" y="'+(h1/2+5)+'" font-size="10" font-weight="bold" fill="'+cAT+'" font-family="DM Sans,sans-serif">'+r.pcAT+'</text>'
+        +'<text x="'+(LW+AV+5)+'" y="'+(h1+2+h2/2+4)+'" font-size="10" fill="'+cPR+'" font-family="DM Sans,sans-serif">'+r.pcPR+'</text>'
       +'</g>';
     }).join('');
-    html+='<svg xmlns="http://www.w3.org/2000/svg" width="100%" viewBox="0 0 '+chartW+' '+chartH+'" style="display:block;margin-bottom:14px">'+svgBars+'</svg>';
+    html+='<svg xmlns="http://www.w3.org/2000/svg" width="100%" viewBox="0 0 '+CW+' '+SH+'" style="display:block;margin-bottom:16px;overflow:visible">'+svgRows+'</svg>';
 
-    // Tabela detalhada
-    html+='<div style="overflow-x:auto;margin-bottom:16px"><table style="width:100%;border-collapse:collapse;font-size:.8rem">'
+    // ===== SECÇÃO 2: TABELA =====
+    html+='<div style="overflow-x:auto;margin-bottom:20px"><table style="width:100%;border-collapse:collapse;font-size:.79rem">'
       +'<thead><tr style="background:var(--blue-xpale)">'
-      +'<th style="padding:6px 8px;text-align:left;color:var(--blue)">Campo Profissional</th>'
-      +'<th style="padding:6px 8px;text-align:center;color:var(--blue)">PD AT</th>'
-      +'<th style="padding:6px 8px;text-align:center;color:var(--blue)">PD PR</th>'
-      +'<th style="padding:6px 8px;text-align:center;color:var(--blue)">Total (AT+PR)</th>'
-      +'<th style="padding:6px 8px;text-align:center;color:var(--blue)">PC AT</th>'
-      +'<th style="padding:6px 8px;text-align:center;color:var(--blue)">PC PR</th>'
-      +'<th style="padding:6px 8px;text-align:center;color:var(--blue)">PC M\u00e9d.</th>'
-      +'<th style="padding:6px 8px;text-align:center;color:var(--blue)">EN</th>'
+      +'<th style="padding:5px 8px;text-align:left;color:var(--blue)">Campo</th>'
+      +'<th style="padding:5px 8px;text-align:center;color:var(--blue)">PD AT</th>'
+      +'<th style="padding:5px 8px;text-align:center;color:var(--blue)">PD PR</th>'
+      +'<th style="padding:5px 8px;text-align:center;color:var(--blue)">Total</th>'
+      +'<th style="padding:5px 8px;text-align:center;color:var(--blue)">PC AT</th>'
+      +'<th style="padding:5px 8px;text-align:center;color:var(--blue)">N\u00edvel AT</th>'
+      +'<th style="padding:5px 8px;text-align:center;color:var(--blue)">PC PR</th>'
+      +'<th style="padding:5px 8px;text-align:center;color:var(--blue)">N\u00edvel PR</th>'
+      +'<th style="padding:5px 8px;text-align:center;color:var(--blue)">Congru\u00eancia</th>'
       +'</tr></thead><tbody>';
-    sorted.forEach(function(field){
-      var r=cotacao.fields[field];
-      var pc=r.pcMed;
-      var cor=pc>=75?'var(--green)':pc>=40?'var(--orange)':'var(--red)';
-      var badge=pc>=75?'badge-high':pc>=40?'badge-mid':'badge-low';
-      html+='<tr style="border-bottom:1px solid var(--gray-bdr)">'
-        +'<td style="padding:5px 8px;font-size:.82rem">'+IPPR_FIELD_NAMES[field]+'</td>'
+
+    byPcMed.forEach(function(r){
+      var nAT=nivel(r.pcAT), nPR=nivel(r.pcPR);
+      var isTop=top3.some(function(t){return t.f===r.f;});
+      var cCong=r.cong>=75?'#1e8449':r.cong>=50?'#2471a3':r.cong>=25?'#7f8c8d':'#c0392b';
+      html+='<tr style="border-bottom:1px solid var(--gray-bdr);'+(isTop?'background:#f0fff4;':'background:transparent;')+'">'
+        +'<td style="padding:5px 8px;font-weight:'+(isTop?'700':'400')+'">'+(isTop?'\u2605 ':'')+r.name+'</td>'
         +'<td style="padding:5px 8px;text-align:center">'+r.pdAT+'/6</td>'
         +'<td style="padding:5px 8px;text-align:center">'+r.pdPR+'/6</td>'
         +'<td style="padding:5px 8px;text-align:center;font-weight:700">'+r.total+'/12</td>'
         +'<td style="padding:5px 8px;text-align:center">'+r.pcAT+'</td>'
+        +'<td style="padding:5px 8px;text-align:center"><span style="background:'+nAT.bg+';color:'+nAT.cor+';border-radius:4px;padding:2px 6px;font-size:.73rem;font-weight:600">'+nAT.txt+'</span></td>'
         +'<td style="padding:5px 8px;text-align:center">'+r.pcPR+'</td>'
-        +'<td style="padding:5px 8px;text-align:center"><span class="badge '+badge+'">PC '+pc+'</span></td>'
-        +'<td style="padding:5px 8px;text-align:center;font-weight:700;color:'+cor+'">'+r.en+'</td>'
+        +'<td style="padding:5px 8px;text-align:center"><span style="background:'+nPR.bg+';color:'+nPR.cor+';border-radius:4px;padding:2px 6px;font-size:.73rem;font-weight:600">'+nPR.txt+'</span></td>'
+        +'<td style="padding:5px 8px;text-align:center;font-weight:700;color:'+cCong+'">'+r.cong+'</td>'
       +'</tr>';
     });
     html+='</tbody></table></div>';
-    html+='<div style="font-size:.75rem;color:var(--text-light);margin-bottom:12px">Crit\u00e9rio de interpretação: EN=9 (PC≥97) superior; EN≥7 (PC≥77) elevado; EN 5–6 m\u00e9dio-alto; EN 4–5 m\u00e9dio; EN≤3 baixo. &nbsp;·&nbsp; <em>Cota\u00e7\u00e3o aproximada baseada no mapeamento do Manual IPP-R (CEGOC-TEA, 2013). Para certifica\u00e7\u00e3o oficial use o sistema online CEGOC-TEA.</em></div>';
+
+    // ===== SECÇÃO 3: TOP 3 CONGRUGU\u00caNCIA + IMPLICA\u00c7\u00d5ES =====
+    var IMPL={
+      'CIE':{'prof':'Investigador/a cient\u00edfico/a, bi\u00f3logo/a, qu\u00edmico/a, f\u00edsico/a, ge\u00f3logo/a, astr\u00f3nomo/a, farmac\u00eautico/a, engenheiro/a do ambiente.',
+             'desc':'Interesse consistente em compreender e explorar fen\u00f3menos naturais e cient\u00edficos, tanto na vertente pr\u00e1tica (actividades laboratoriais, observa\u00e7\u00e3o, experimenta\u00e7\u00e3o) como na identifica\u00e7\u00e3o com carreiras de investiga\u00e7\u00e3o. Sugere aptid\u00e3o para percursos em ci\u00eancias exactas ou naturais.'},
+      'TEC':{'prof':'Engenheiro/a (civil, mec\u00e2nico/a, electrot\u00e9cnico/a, qu\u00edmico/a), t\u00e9cnico/a industrial, arquitecto/a, designer de produto, t\u00e9cnico/a de manuten\u00e7\u00e3o.',
+             'desc':'Interesse pela constru\u00e7\u00e3o, funcionamento e melhoria de sistemas t\u00e9cnicos e m\u00e9c\u00e2nicos. A congrugu\u00eancia entre actividades e profiss\u00f5es indica uma voca\u00e7\u00e3o s\u00f3lida para \u00e1reas t\u00e9cnico-cient\u00edficas com forte componente pr\u00e1tica.'},
+      'SAU':{'prof':'M\u00e9dico/a, enfermeiro/a, fisioterapeuta, psic\u00f3logo/a cl\u00ednico/a, nutri\u00e7\u00e3o, farm\u00e1cia, terapia ocupacional, medicina dent\u00e1ria.',
+             'desc':'Perfil orientado para o cuidado, apoio e recupera\u00e7\u00e3o da sa\u00fade humana. Implica capacidade empat\u00edtica e gosto por trabalhar directamente com pessoas em situa\u00e7\u00e3o de vulnerabilidade ou necessidade de suporte.'},
+      'CSH':{'prof':'Psic\u00f3logo/a, soci\u00f3logo/a, assistente social, antrop\u00f3logo/a, historiador/a, fil\u00f3sofo/a, rela\u00e7\u00f5es internacionais.',
+             'desc':'Interesse pela compreens\u00e3o do ser humano e da sociedade nas suas dimens\u00f5es sociais, culturais e hist\u00f3ricas. Adequado para percursos com forte liga\u00e7\u00e3o ao trabalho comunit\u00e1rio, interven\u00e7\u00e3o social e investiga\u00e7\u00e3o humana.'},
+      'CSJ':{'prof':'Advogado/a, juiz/a, magistrado/a, pol\u00edcia judici\u00e1ria, diplomata, ci\u00eancia pol\u00edtica, administra\u00e7\u00e3o p\u00fablica.',
+             'desc':'Valoriza\u00e7\u00e3o das regras, da justi\u00e7a e do quadro normativo da sociedade. Perfil com tend\u00eancia para a argumenta\u00e7\u00e3o, an\u00e1lise cr\u00edtica e defesa de direitos, adequado a carreiras jur\u00eddicas ou pol\u00edtico-administrativas.'},
+      'CPA':{'prof':'Jornalista, publicit\u00e1rio/a, realizador/a, fot\u00f3grafo/a, produtor/a de conte\u00fado digital, relat\u00f5es p\u00fablicas, marketing.',
+             'desc':'Interesse por criar, comunicar e persuadir atrav\u00e9s de diferentes meios (escrita, imagem, v\u00eddeo). Sugere uma voca\u00e7\u00e3o criativa aliada \u00e0 necessidade de impacto e visibilidade p\u00fablica.'},
+      'EDU':{'prof':'Professor/a (todos os n\u00edveis), educador/a especial, psicopedagogo/a, formador/a profissional, coordenador/a pedag\u00f3gico/a.',
+             'desc':'Gosto por ensinar, orientar e apoiar o desenvolvimento dos outros. A congrugu\u00eancia nesta \u00e1rea indica uma predisposi\u00e7\u00e3o genuinamente relacional e pedag\u00f3gica.'},
+      'FAC':{'prof':'Gestor/a, contabilista, banc\u00e1rio/a, segurador/a, comercial, empreendedor/a, analista financeiro/a.',
+             'desc':'Interesse por contextos organizacionais, transa\u00e7\u00f5es econ\u00f3micas e gest\u00e3o de recursos. Perfil adequado para percursos em gest\u00e3o, economia ou administra\u00e7\u00e3o de empresas.'},
+      'INF':{'prof':'Programador/a, engenheiro/a de software, analista de dados, especialista em ciberseguran\u00e7a, administrador/a de sistemas.',
+             'desc':'Fascinado/a por computadores, l\u00f3gica e resolu\u00e7\u00e3o de problemas atrav\u00e9s de tecnologia. A congrugu\u00eancia sugere interesse tanto no uso como na constru\u00e7\u00e3o de sistemas digitais.'},
+      'APA':{'prof':'Agronom/a, veterin\u00e1rio/a, bi\u00f3logo/a do ambiente, t\u00e9cnico/a florestal, gestor/a de recursos naturais.',
+             'desc':'Liga\u00e7\u00e3o ao mundo natural, agr\u00edcola e ambiental. Perfil que valoriza o contacto com a natureza e a sustentabilidade, adequado a carreiras ao ar livre ou de conserva\u00e7\u00e3o do ambiente.'},
+      'BMA':{'prof':'Artista pl\u00e1stico/a, arquitecto/a, designer gr\u00e1fico/a, escultor/a, restaurador/a, director/a de arte.',
+             'desc':'Sensibilidade est\u00e9tica e interesse pela cria\u00e7\u00e3o visual e tridimensional. A congrugu\u00eancia indica identifica\u00e7\u00e3o tanto com a pr\u00e1tica art\u00edstica como com a carreira criativa.'},
+      'MDR':{'prof':'M\u00fasico/a (instrumentista, compositor/a), dan\u00e7arino/a, actor/actriz, produtor/a musical, director/a art\u00edstico/a.',
+             'desc':'Voca\u00e7\u00e3o para as artes performativas — m\u00fasica, dan\u00e7a e teatro. Implica disciplina, expressividade e gosto pela cria\u00e7\u00e3o e apresenta\u00e7\u00e3o ao vivo.'},
+      'FSP':{'prof':'Militar, pol\u00edcia, bombeiro/a, agente de protec\u00e7\u00e3o civil, seguran\u00e7a privada, t\u00e9cnico/a de emerg\u00eancia pr\u00e9-hospitalar.',
+             'desc':'Interesse por contextos de risco, protec\u00e7\u00e3o e disciplina institucional. Perfil que valoriza a coragem, o servi\u00e7o p\u00fablico e a capacidade de agir sob press\u00e3o.'},
+      'DES':{'prof':'Atleta profissional, treinador/a, educador/a f\u00edsico/a, fisioterapeuta desportivo/a, gestor/a desportivo/a.',
+             'desc':'Interesse pelo desporto como pr\u00e1tica e como profiss\u00e3o. A congrugu\u00eancia indica quer o gosto pela actividade f\u00edsica quer a identifica\u00e7\u00e3o com carreiras no mundo do desporto.'},
+      'THR':{'prof':'Hoteleiro/a, chefe de cozinha, guia tur\u00edstico/a, anim/a turistica, gestor/a de eventos, sommelier.',
+             'desc':'Gosto pela hospitalidade, gastronomia e experi\u00eancia tur\u00edstica. Perfil vocacionado para contextos de servi\u00e7o ao cliente, diversidade cultural e cria\u00e7\u00e3o de experi\u00eancias.'}
+    };
+
+    html+='<h4 style="color:var(--blue);font-size:.9rem;margin-bottom:6px">&#9733; Top 3 — \u00c1reas de maior congrugu\u00eancia</h4>';
+    html+='<p style="font-size:.79rem;color:var(--text-light);line-height:1.55;margin-bottom:12px">'
+      +'A <strong>congrugu\u00eancia</strong> (m\u00e9dia geom\u00e9trica de PC\u2009AT e PC\u2009PR) identifica os campos onde o interesse pelas '
+      +'<em>actividades</em> e pelas <em>profiss\u00f5es</em> \u00e9 simultaneamente elevado — s\u00e3o os interesses mais s\u00f3lidos e consistentes, '
+      +'com maior probabilidade de satisfa\u00e7\u00e3o vocacional a longo prazo.</p>';
+
+    var medals=['\uD83E\uDD47','\uD83E\uDD48','\uD83E\uDD49'];
+    top3.forEach(function(r,i){
+      var nAT=nivel(r.pcAT), nPR=nivel(r.pcPR);
+      var impl=IMPL[r.f]||{prof:'—',desc:'—'};
+      var borderCol=i===0?'#f1c40f':i===1?'#95a5a6':'#cd7f32';
+      html+='<div style="border-left:4px solid '+borderCol+';background:#fafbfc;border-radius:0 8px 8px 0;padding:14px 16px;margin-bottom:14px">'
+        +'<div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:10px">'
+        +'<span style="font-size:1.5rem;line-height:1">'+medals[i]+'</span>'
+        +'<div style="flex:1">'
+        +'<div style="font-weight:700;font-size:.98rem;color:var(--blue)">'+r.name+'</div>'
+        +'<div style="font-size:.73rem;color:var(--text-light)">PD Total: '+r.total+'/12 &nbsp;·&nbsp; Congrugu\u00eancia: <strong style="color:#1e8449">'+r.cong+'</strong></div>'
+        +'</div></div>'
+        // mini barras AT/PR
+        +'<div style="display:flex;gap:16px;margin-bottom:10px;flex-wrap:wrap">'
+        +'<div style="background:'+nAT.bg+';border-radius:6px;padding:8px 14px;min-width:130px">'
+        +'<div style="font-size:.7rem;color:var(--text-light);margin-bottom:2px">Atividades (AT)</div>'
+        +'<div style="font-weight:700;font-size:.95rem;color:'+nAT.cor+'">PC '+r.pcAT+'</div>'
+        +'<div style="font-size:.72rem;color:'+nAT.cor+'">'+nAT.txt+'</div></div>'
+        +'<div style="background:'+nPR.bg+';border-radius:6px;padding:8px 14px;min-width:130px">'
+        +'<div style="font-size:.7rem;color:var(--text-light);margin-bottom:2px">Profiss\u00f5es (PR)</div>'
+        +'<div style="font-weight:700;font-size:.95rem;color:'+nPR.cor+'">PC '+r.pcPR+'</div>'
+        +'<div style="font-size:.72rem;color:'+nPR.cor+'">'+nPR.txt+'</div></div>'
+        +'</div>'
+        // implica\u00e7\u00f5es
+        +'<div style="font-size:.81rem;color:var(--text);line-height:1.6;margin-bottom:6px">'
+        +'<strong style="color:var(--blue-mid)">Perfil vocacional:</strong> '+impl.desc+'</div>'
+        +'<div style="font-size:.79rem;color:var(--text-light);line-height:1.5">'
+        +'<strong>Exemplos de sa\u00eddas profissionais:</strong> '+impl.prof+'</div>'
+      +'</div>';
+    });
+
+    // Padr\u00f5es divergentes
+    var diverg=fieldData.filter(function(r){return Math.abs(r.pcAT-r.pcPR)>=30&&(r.pcAT>=50||r.pcPR>=50);});
+    if(diverg.length>0){
+      html+='<div style="background:#fff8f0;border:1px solid #f39c12;border-radius:8px;padding:10px 14px;margin-bottom:12px;font-size:.79rem;line-height:1.55">'
+        +'<strong style="color:#e67e22">&#9888; Padr\u00f5es divergentes a explorar em consulta:</strong> ';
+      html+=diverg.map(function(r){
+        var quem=r.pcAT>r.pcPR?'gosta das actividades mas n\u00e3o se identifica com as profiss\u00f5es':'identifica-se com as profiss\u00f5es mas n\u00e3o com as actividades';
+        return '<strong>'+r.name+'</strong> (AT=PC'+r.pcAT+', PR=PC'+r.pcPR+') — '+quem;
+      }).join('; ')+'. Pode reflectir desconhecimento das sa\u00eddas profissionais ou prefer\u00eancia por actividade de lazer vs. voca\u00e7\u00e3o.</div>';
+    }
+
+    html+='<div style="font-size:.71rem;color:var(--text-light);font-style:italic;margin-bottom:10px">'
+      +'Cota\u00e7\u00e3o baseada no mapeamento do Manual IPP-R (CEGOC-TEA, 2013) — para certifica\u00e7\u00e3o oficial use o sistema CEGOC-TEA. '
+      +'Congrugu\u00eancia = \u221a(PC\u2009AT \u00d7 PC\u2009PR). N\u00edveis: PC\u2009\u226584 Elevado · PC\u200950–83 Moderado · PC\u200916–49 M\u00e9dio · PC&lt;16 Reduzido.</div>';
+
   } else {
-    html+='<div style="background:var(--blue-xpale);border-radius:8px;padding:12px 16px;font-size:.83rem;line-height:1.6;margin-bottom:16px"><strong style="color:var(--blue)">Nota:</strong> Respostas item-a-item n\u00e3o dispon\u00edveis para esta sess\u00e3o. As pontua\u00e7\u00f5es directas por campo profissional devem ser calculadas com a chave de cota\u00e7\u00e3o oficial (sistema online CEGOC-TEA) e convertidas em percentis atrav\u00e9s das tabelas normativas (Manual, pp. 50\u201367).</div>';
+    html+='<div style="background:var(--blue-xpale);border-radius:8px;padding:12px 16px;font-size:.83rem;line-height:1.6;margin-bottom:16px">'
+      +'<strong style="color:var(--blue)">Nota:</strong> Respostas item-a-item n\u00e3o dispon\u00edveis para esta sess\u00e3o. '
+      +'As pontua\u00e7\u00f5es directas por campo profissional devem ser calculadas com a chave de cota\u00e7\u00e3o oficial (CEGOC-TEA).</div>';
   }
 
-  // ── Respostas item-a-item (ocultas por defeito) ──
+  // respostas item-a-item (ocultas)
   if(s.respostas&&s.respostas.length===N_ITENS){
-    html+='<div id="respostas-detalhe" style="display:none;overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:.8rem"><thead><tr style="background:var(--blue-xpale)"><th style="padding:5px 8px;color:var(--blue)">#</th><th style="padding:5px 8px;color:var(--blue)">Item</th><th style="padding:5px 8px;text-align:center;color:var(--blue)">Resp.</th></tr></thead><tbody>';
+    html+='<div id="respostas-detalhe" style="display:none;overflow-x:auto">'
+      +'<table style="width:100%;border-collapse:collapse;font-size:.8rem">'
+      +'<thead><tr style="background:var(--blue-xpale)">'
+      +'<th style="padding:5px 8px;color:var(--blue)">#</th>'
+      +'<th style="padding:5px 8px;color:var(--blue)">Item</th>'
+      +'<th style="padding:5px 8px;text-align:center;color:var(--blue)">Resp.</th>'
+      +'</tr></thead><tbody>';
     s.respostas.forEach(function(r,i){
-      var corMap={A:"var(--green)",B:"var(--blue-mid)",C:"var(--red)",D:"var(--orange)"};
-      var cor=corMap[r]||"var(--text)";
-      var txt=ITENS[i]?ITENS[i].substring(0,80)+(ITENS[i].length>80?"\u2026":""):"";
-      html+='<tr><td style="padding:4px 8px;border-bottom:1px solid var(--gray-bdr);color:var(--text-light);text-align:center">'+(i+1)+'</td><td style="padding:4px 8px;border-bottom:1px solid var(--gray-bdr)">'+escHtml(txt)+'</td><td style="padding:4px 8px;border-bottom:1px solid var(--gray-bdr);text-align:center;font-weight:700;color:'+cor+'">'+escHtml(r||"\u2014")+'</td></tr>';
+      var corMap={A:'var(--green)',B:'var(--blue-mid)',C:'var(--red)',D:'var(--orange)'};
+      var cor=corMap[r]||'var(--text)';
+      var txt=ITENS[i]?ITENS[i].substring(0,80)+(ITENS[i].length>80?'\u2026':''):'';
+      html+='<tr><td style="padding:4px 8px;border-bottom:1px solid var(--gray-bdr);color:var(--text-light);text-align:center">'+(i+1)+'</td>'
+        +'<td style="padding:4px 8px;border-bottom:1px solid var(--gray-bdr)">'+escHtml(txt)+'</td>'
+        +'<td style="padding:4px 8px;border-bottom:1px solid var(--gray-bdr);text-align:center;font-weight:700;color:'+cor+'">'+escHtml(r||'\u2014')+'</td></tr>';
     });
     html+='</tbody></table></div>';
   }
-  html+='<div style="margin-top:16px;font-size:.75rem;color:var(--text-light);font-style:italic">Ricardina Correia \u00b7 C\u00e9dula 8233 \u00b7 Psicologia Pedi\u00e1trica</div>';
+  html+='<div style="margin-top:14px;font-size:.74rem;color:var(--text-light);font-style:italic">Ricardina Correia \u00b7 C\u00e9dula 8233 \u00b7 Psicologia Pedi\u00e1trica</div>';
   document.getElementById('modal-conteudo').innerHTML=html;
   document.getElementById('modal-overlay').style.display='flex';
 }
-
 
 function toggleRespostas(btn){var d=document.getElementById('respostas-detalhe');if(d.style.display==='none'){d.style.display='block';btn.textContent='\u2B06 Ocultar respostas';}else{d.style.display='none';btn.innerHTML='&#128196; Ver respostas item-a-item';}}
 
