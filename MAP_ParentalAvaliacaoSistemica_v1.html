@@ -341,8 +341,10 @@ tr:last-child td{border-bottom:none}
       <h2 style="font-family:'DM Serif Display',serif;color:var(--blue)">Painel Clínico</h2>
       <div style="display:flex;gap:8px;flex-wrap:wrap" class="no-print">
         <button class="btn btn-secondary" onclick="showPage('page-home')">← Início</button>
+        <button class="btn btn-secondary" onclick="sincronizarSheet()" id="btn-sync">↺ Sincronizar</button>
         <button class="btn btn-primary" onclick="compararPerfis()">⚖ Comparar Perfis</button>
         <button class="btn btn-secondary" onclick="exportarTudo()">↓ Exportar JSON</button>
+        <label class="btn btn-secondary" style="cursor:pointer">↑ Importar JSON<input type="file" accept=".json" style="display:none" onchange="importarJSON(this)"></label>
       </div>
     </div>
     <div id="sessoes-container"></div>
@@ -799,47 +801,68 @@ function submeterFormulario(){
 // ══════════════════════════════════════════════
 function guardarSessoes(){try{localStorage.setItem('rc_copar_sessoes',JSON.stringify(sessoes));}catch(e){}}
 function carregarSessoes(){
+  // Carregar localStorage
   try{var raw=localStorage.getItem('rc_copar_sessoes');if(raw)sessoes=JSON.parse(raw);}catch(e){sessoes=[];}
   if(document.getElementById('sessoes-container')){
-    if(!sessoes.length){ carregarDoSheet(); } else { renderSessoes(); }
+    // No painel clínico: SEMPRE sincronizar com Sheet (merge)
+    sincronizarSheet();
   }
 }
 
+function sincronizarSheet(){
+  var btn=document.getElementById('btn-sync');
+  if(btn){btn.textContent='↺ A sincronizar...';btn.disabled=true;}
+  carregarDoSheet();
+}
+
 async function carregarDoSheet(){
+  var btn=document.getElementById('btn-sync');
   var c=document.getElementById('sessoes-container');
-  if(c) c.innerHTML='<div style="text-align:center;padding:40px;color:var(--text-light)"><div style="font-size:1.5rem;margin-bottom:8px">⏳</div><p style="font-size:.88rem">A carregar dados do servidor...</p></div>';
+  if(c&&!sessoes.length) c.innerHTML='<div style="text-align:center;padding:40px;color:var(--text-light)"><div style="font-size:1.5rem;margin-bottom:8px">⏳</div><p style="font-size:.88rem">A carregar dados do servidor...</p></div>';
   try{
     var url=SCRIPT_URL+'?instrumento=MAP_Parental&t='+Date.now();
     var res=await fetch(url);
     var data=await res.json();
     var rows=Array.isArray(data)?data:(data&&data.rows?data.rows:[]);
-    var importadas=[];
+    // Merge: começar com sessões locais, adicionar do Sheet se não duplicadas
+    var merged=sessoes.slice(); // cópia das locais
+    var localKeys=new Set(merged.map(function(s){
+      return (s.id&&s.id.patientCode||'')+'|'+(s.id&&s.id.relacao||'')+'|'+(s.id&&s.id.data||'');
+    }));
     rows.forEach(function(row){
-      // Tentar reconstruir a partir do JSON completo (DadosCompletos)
+      var s=null;
+      // 1. Tentar DadosCompletos (JSON completo)
       var dc=row['DadosCompletos']||row['dados_completos']||'';
-      if(dc){
-        try{
-          var s=JSON.parse(dc);
-          if(s&&s.id) importadas.push(s);
-          return;
-        }catch(e2){}
+      if(dc){try{var parsed=JSON.parse(dc);if(parsed&&parsed.id)s=parsed;}catch(e){}}
+      // 2. Fallback: campos individuais do Sheet
+      if(!s){
+        var code=row['Código']||row['patientCode']||'';
+        if(!code) return;
+        var dataRaw=String(row['Data']||'');
+        if(dataRaw.indexOf('T')>=0){var d=new Date(dataRaw);dataRaw=isNaN(d)?dataRaw:d.toLocaleDateString('pt-PT');}
+        s={id:{patientCode:code,nome:row['NomeProgenitor']||'',relacao:row['Relação']||'',
+               data:dataRaw,sitFamiliar:row['SituaçãoFamiliar']||'',idadesFilhos:row['IdadesFilhos']||''},
+           s2:{likert:{},principios:row['Princípios']||''},
+           s3:{},s4:{},s5:{},s6:{},s7:{},ts:Date.now()};
       }
-      // Fallback: construir sessão mínima a partir das colunas do Sheet
-      var code=row['Código']||row['patientCode']||'';
-      if(!code) return;
-      var dataRaw=String(row['Data']||'');
-      if(dataRaw.indexOf('T')>=0){var d=new Date(dataRaw);dataRaw=isNaN(d)?dataRaw:d.toLocaleDateString('pt-PT');}
-      importadas.push({
-        id:{patientCode:code,nome:row['NomeProgenitor']||'',relacao:row['Relação']||'',
-            data:dataRaw,sitFamiliar:row['SituaçãoFamiliar']||'',idadesFilhos:row['IdadesFilhos']||''},
-        s2:{likert:{},principios:row['Princípios']||''},
-        s3:{},s4:{},s5:{},s6:{},s7:{},ts:Date.now()
-      });
+      // Só adicionar se não for duplicado
+      var key=(s.id&&s.id.patientCode||'')+'|'+(s.id&&s.id.relacao||'')+'|'+(s.id&&s.id.data||'');
+      if(!localKeys.has(key)){merged.push(s);localKeys.add(key);}
+      else {
+        // Actualizar entrada local com dados do Sheet se tiver DadosCompletos mais ricos
+        var idx=merged.findIndex(function(m){
+          return ((m.id&&m.id.patientCode||'')+'|'+(m.id&&m.id.relacao||'')+'|'+(m.id&&m.id.data||''))===key;
+        });
+        if(idx>=0&&dc&&Object.keys(merged[idx].s3||{}).length===0) merged[idx]=s;
+      }
     });
-    sessoes=importadas;
+    sessoes=merged;
+    // Guardar localmente para próxima visita
+    try{localStorage.setItem('rc_copar_sessoes',JSON.stringify(sessoes));}catch(e){}
   }catch(err){
     console.error('Erro ao carregar Sheet:',err);
   }
+  if(btn){btn.textContent='↺ Sincronizar';btn.disabled=false;}
   renderSessoes();
 }
 
@@ -953,6 +976,32 @@ function fecharModalComp(e){if(e.target===document.getElementById('modal-comp'))
 function exportarTudo(){
   var blob=new Blob([JSON.stringify(sessoes,null,2)],{type:'application/json'});
   var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='MAP_Parental_'+new Date().toISOString().split('T')[0]+'.json';a.click();
+}
+
+function importarJSON(input){
+  var file=input.files[0];
+  if(!file) return;
+  var reader=new FileReader();
+  reader.onload=function(e){
+    try{
+      var data=JSON.parse(e.target.result);
+      var arr=Array.isArray(data)?data:[data];
+      var added=0;
+      var existingKeys=new Set(sessoes.map(function(s){
+        return (s.id&&s.id.patientCode||'')+'|'+(s.id&&s.id.relacao||'')+'|'+(s.id&&s.id.data||'');
+      }));
+      arr.forEach(function(s){
+        if(!s||!s.id) return;
+        var key=(s.id.patientCode||'')+'|'+(s.id.relacao||'')+'|'+(s.id.data||'');
+        if(!existingKeys.has(key)){sessoes.push(s);existingKeys.add(key);added++;}
+      });
+      try{localStorage.setItem('rc_copar_sessoes',JSON.stringify(sessoes));}catch(e){}
+      renderSessoes();
+      alert(added+' sessão(ões) importada(s) com sucesso.');
+    }catch(err){alert('Erro ao importar ficheiro: '+err.message);}
+    input.value='';
+  };
+  reader.readAsText(file);
 }
 </script>
 </body>
