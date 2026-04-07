@@ -124,9 +124,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--gray);color:var(--text);m
   .card{box-shadow:none;border:1px solid #ddd;}
   .modal-overlay{position:relative;display:block;background:none;padding:0;}
   .modal-box{box-shadow:none;padding:0;}
-  .modal-respostas-section{display:block!important;}
-  .modal-respostas-toggle{display:none!important;}
-  .modal-respostas-content{display:block!important;}
 }
 
 /* RESPONSIVE */
@@ -905,7 +902,7 @@ function verDetalhe(idx){
     '<span style="color:var(--red);">🔴 ≥3.1 Clínico significativo</span>'+
     '</div>'+
 
-    // Respostas item-a-item (expandível no modal, visível ao imprimir)
+    // Respostas item a item (expansível)
     (function(){
       if(!s.answers) return '';
       var respostas=s.answers.split('|');
@@ -914,30 +911,36 @@ function verDetalhe(idx){
       var rows=respostas.map(function(r,i){
         var item=allItems[i]||{cod:'Item '+(i+1),txt:'—',inv:false};
         var rInt=parseInt(r)||0;
-        var rLabel=['—','Nunca','Raramente','Às vezes','Frequentemente','Sempre'][rInt]||r;
+        var LABELS=['—','Nunca','Raramente','Às vezes','Frequentemente','Sempre'];
+        var rLabel=LABELS[rInt]||r;
         return '<tr>'+
-          '<td style="padding:4px 8px;border-bottom:1px solid #f0f0f0;color:#6B7A8D;font-size:0.78rem;white-space:nowrap;">'+item.cod+'</td>'+
-          '<td style="padding:4px 8px;border-bottom:1px solid #f0f0f0;font-size:0.8rem;line-height:1.4;">'+(item.inv?'<em style="color:#6B7A8D;font-size:0.75rem;">[inv] </em>':'')+item.txt+'</td>'+
-          '<td style="padding:4px 8px;border-bottom:1px solid #f0f0f0;text-align:center;font-weight:700;font-size:0.85rem;color:var(--blue);">'+rInt+'</td>'+
-          '<td style="padding:4px 8px;border-bottom:1px solid #f0f0f0;font-size:0.78rem;color:var(--text-light);">'+rLabel+'</td>'+
+          '<td style="padding:4px 8px;border-bottom:1px solid #f0f0f0;color:#6B7A8D;font-size:0.78rem">'+item.cod+'</td>'+
+          '<td style="padding:4px 8px;border-bottom:1px solid #f0f0f0;font-size:0.8rem;line-height:1.4">'+(item.inv?'<em style="color:#6B7A8D;font-size:0.75rem">[inv] </em>':'')+item.txt+'</td>'+
+          '<td style="padding:4px 8px;border-bottom:1px solid #f0f0f0;text-align:center;font-weight:700;color:var(--blue)">'+rInt+'</td>'+
+          '<td style="padding:4px 8px;border-bottom:1px solid #f0f0f0;font-size:0.78rem;color:var(--text-light)">'+rLabel+'</td>'+
           '</tr>';
       }).join('');
-      return '<div class="modal-respostas-section" style="margin-bottom:20px;">'+
-        '<button class="modal-respostas-toggle btn btn-secondary no-print" style="padding:6px 14px;font-size:0.82rem;width:100%;text-align:left;margin-bottom:0;border-radius:8px 8px 0 0;" onclick="toggleRespostas(this)">'+
-        '📝 Ver Respostas Item a Item <span style="float:right;font-size:0.75rem;color:var(--text-light);">▼ expandir</span></button>'+
-        '<div class="modal-respostas-content" style="display:none;border:1px solid var(--gray-bdr);border-top:none;border-radius:0 0 8px 8px;overflow:hidden;">'+
-        '<table style="width:100%;border-collapse:collapse;">'+
-        '<thead><tr>'+
-        '<th style="padding:6px 8px;background:var(--blue-pale);color:var(--blue);font-size:0.78rem;">Cód.</th>'+
-        '<th style="padding:6px 8px;background:var(--blue-pale);color:var(--blue);font-size:0.78rem;">Item</th>'+
-        '<th style="padding:6px 8px;background:var(--blue-pale);color:var(--blue);font-size:0.78rem;text-align:center;">Valor</th>'+
-        '<th style="padding:6px 8px;background:var(--blue-pale);color:var(--blue);font-size:0.78rem;">Frequência</th>'+
-        '</tr></thead><tbody>'+rows+'</tbody></table></div></div>';
+      return '<div style="margin-bottom:16px;">'+
+        '<button id="ecefea-toggle" class="no-print" '+
+          'style="padding:6px 14px;font-size:0.82rem;width:100%;text-align:left;border-radius:8px 8px 0 0;background:var(--blue-xpale);color:var(--blue);border:1px solid var(--gray-bdr);cursor:pointer;font-weight:600;font-family:\'DM Sans\',sans-serif" '+
+          'onclick="toggleRespostasECE(this)">'+
+          '📝 Ver Respostas Item a Item <span style="float:right;font-size:0.75rem;color:var(--text-light)">▼ expandir</span>'+
+        '</button>'+
+        '<div id="ecefea-respostas" style="display:none;border:1px solid var(--gray-bdr);border-top:none;border-radius:0 0 8px 8px;overflow:auto;max-height:360px">'+
+          '<table style="width:100%;border-collapse:collapse">'+
+          '<thead><tr>'+
+            '<th style="padding:6px 8px;background:var(--blue-pale);color:var(--blue);font-size:0.78rem;position:sticky;top:0">Cód.</th>'+
+            '<th style="padding:6px 8px;background:var(--blue-pale);color:var(--blue);font-size:0.78rem;position:sticky;top:0">Item</th>'+
+            '<th style="padding:6px 8px;background:var(--blue-pale);color:var(--blue);font-size:0.78rem;position:sticky;top:0;text-align:center">Val.</th>'+
+            '<th style="padding:6px 8px;background:var(--blue-pale);color:var(--blue);font-size:0.78rem;position:sticky;top:0">Frequência</th>'+
+          '</tr></thead>'+
+          '<tbody>'+rows+'</tbody></table>'+
+        '</div></div>';
     })() +
 
     // Export buttons
     '<div style="display:flex;gap:8px;flex-wrap:wrap;" class="no-print">'+
-    '<button class="btn" style="padding:6px 14px;font-size:0.82rem;background:var(--blue);color:white;" onclick="imprimirModal()">🖨 Imprimir Tudo</button>'+
+    '<button class="btn" style="background:var(--blue);color:white;padding:6px 14px;font-size:0.82rem;border:none;border-radius:8px;cursor:pointer;font-weight:600" onclick="relatórioCompletoECE(sessions['+sessions.indexOf(s)+'])">📊 Relatório Completo PDF</button>'+
     '<button class="btn btn-secondary" style="padding:6px 14px;font-size:0.82rem;" onclick="exportarRespostasPDF(sessions['+sessions.indexOf(s)+'])">📋 Respostas PDF</button>'+
     '<button class="btn btn-secondary" style="padding:6px 14px;font-size:0.82rem;" onclick="exportarInterpretacaoPDF(sessions['+sessions.indexOf(s)+'])">📄 Interpretação PDF</button>'+
     '</div>';
@@ -948,6 +951,135 @@ function verDetalhe(idx){
 function fecharModal(e){
   if(!e||e.target===document.getElementById('modal-overlay'))
     document.getElementById('modal-overlay').classList.remove('open');
+}
+
+// ── TOGGLE RESPOSTAS ECE ──────────────────────────────────────────────────
+function toggleRespostasECE(btn){
+  var content=document.getElementById('ecefea-respostas');
+  if(!content) return;
+  var open=content.style.display!=='none';
+  content.style.display=open?'none':'block';
+  var span=btn.querySelector('span');
+  if(span) span.textContent=open?'▼ expandir':'▲ fechar';
+  btn.style.borderRadius=open?'8px':'8px 8px 0 0';
+}
+
+// ── RELATÓRIO COMPLETO PDF ────────────────────────────────────────────────
+function relatórioCompletoECE(sessao){
+  if(!sessao){alert('Sessão não encontrada.');return;}
+  var igae=parseFloat(sessao.igae||0);
+  var scoreA=parseFloat(sessao.scoreA||0);
+  var scoreB=parseFloat(sessao.scoreB||0);
+  var scoreC=parseFloat(sessao.scoreC||0);
+  var scoreD=parseFloat(sessao.scoreD||0);
+  var scoreE=parseFloat(sessao.scoreE||0);
+  var classif=igaeClassif(igae);
+  var bCrit=scoreB>=2;
+
+  function corVal(v){ return v>=3.1?'#C0392B':v>=2.1?'#E67E22':v>=1.1?'#c08000':'#27AE60'; }
+  function zonaVal(v){ return v>=3.1?'Elevado':v>=2.1?'Disfuncional moderado':v>=1.1?'Zona de risco':'Normativo'; }
+  function baraPDF(label,val){
+    var pct=Math.min(100,Math.round((val/4)*100));
+    var cor=corVal(val);
+    return '<tr>'+
+      '<td style="padding:5px 8px;font-size:11px">'+label+'</td>'+
+      '<td style="padding:5px 8px;text-align:center;font-weight:700;color:'+cor+';font-size:12px">'+val.toFixed(2)+'</td>'+
+      '<td style="padding:5px 8px"><div style="background:#DDE3EA;border-radius:4px;height:10px;width:120px;display:inline-block;vertical-align:middle">'+
+        '<div style="background:'+cor+';border-radius:4px;height:10px;width:'+pct+'%"></div></div>'+
+        ' <span style="font-size:10px;color:#888">'+pct+'%</span></td>'+
+      '<td style="padding:5px 8px;font-size:11px;font-weight:600;color:'+cor+'">'+zonaVal(val)+'</td>'+
+      '</tr>';
+  }
+
+  // Interpretação textual (mesma lógica do modal)
+  var igaeZona=igae>=3.1?'clínica significativa':igae>=2.1?'disfuncional moderada':igae>=1.1?'de risco':'normativa';
+  var parts=[];
+  parts.push('O Índice Global de Alimentação Emocional (IGAE) situa-se em <strong>'+igae.toFixed(2)+'</strong>, zona <strong>'+igaeZona+'</strong>.');
+  if(bCrit) parts.push('<strong style="color:#C0392B">⚠ Critério clínico de Perda de Controlo Alimentar atingido (Dom. B = '+scoreB.toFixed(2)+' ≥ 2)</strong> — explorar episódios de loss of control eating em detalhe.');
+  if(scoreE<=1) parts.push('O insight é limitado (Dom. E = '+scoreE.toFixed(2)+') — priorizar intervenção psicoeducativa antes de estratégias cognitivas.');
+  if(igae<1.1) parts.push('Todos os domínios situam-se dentro dos limites normativos.');
+  parts.push('<em style="color:#999">Esta interpretação é automática e deve ser integrada no contexto clínico completo da avaliação.</em>');
+
+  // Respostas item a item
+  var respostasHtml='';
+  if(sessao.answers){
+    var arr=sessao.answers.split('|');
+    var allItems=[];
+    ['A','B','C','D','E'].forEach(function(letter){ITENS[letter].forEach(function(it){allItems.push(it);});});
+    var LABELS=['—','Nunca','Raramente','Às vezes','Frequentemente','Sempre'];
+    respostasHtml='<h2>Respostas por Item</h2>'+
+      '<table><thead><tr>'+
+      '<th>Cód.</th><th>Item</th><th style="text-align:center">Val.</th><th>Frequência</th>'+
+      '</tr></thead><tbody>'+
+      arr.map(function(r,i){
+        var item=allItems[i]||{cod:'Item '+(i+1),txt:'—'};
+        var rInt=parseInt(r)||0;
+        return '<tr style="background:'+(i%2===0?'#fff':'#f9fbfd')+'">'+
+          '<td style="padding:3px 8px;font-size:10px;color:#5B7FA6;font-weight:600">'+item.cod+'</td>'+
+          '<td style="padding:3px 8px;font-size:11px">'+item.txt+'</td>'+
+          '<td style="padding:3px 8px;text-align:center;font-weight:700;color:#3B5A7A">'+rInt+'</td>'+
+          '<td style="padding:3px 8px;font-size:10px;color:#6B7A8D">'+( LABELS[rInt]||'—')+'</td>'+
+          '</tr>';
+      }).join('')+
+      '</tbody></table>';
+  }
+
+  var nomeCrianca=sessao.nomeCrianca||'';
+  var nomeInf=sessao.nome_informante||'';
+  var html='<!DOCTYPE html><html><head><meta charset="UTF-8">'+
+    '<title>ECE-FEA — Relatório '+sessao.patientCode+'</title>'+
+    '<style>'+
+    'body{font-family:Arial,sans-serif;font-size:12px;color:#2C3E50;padding:28px;max-width:900px;margin:0 auto}'+
+    'h1{color:#3B5A7A;font-size:16px;margin:0 0 4px}'+
+    'h2{color:#3B5A7A;font-size:13px;margin:20px 0 8px;border-bottom:2px solid #D6E4F0;padding-bottom:4px}'+
+    'table{width:100%;border-collapse:collapse;margin-bottom:8px}'+
+    'th{background:#D6E4F0;padding:6px 8px;text-align:left;color:#3B5A7A;font-size:11px}'+
+    'td{border-bottom:1px solid #f0f0f0}'+
+    '.no-print{margin-bottom:20px}'+
+    '@media print{.no-print{display:none}body{padding:12px}}'+
+    '</style></head><body>'+
+    '<div class="no-print"><button onclick="window.print()" style="padding:8px 18px;background:#3B5A7A;color:white;border:none;border-radius:6px;cursor:pointer;font-size:13px">🖨 Imprimir / Guardar PDF</button></div>'+
+    '<h1>ECE-FEA — Relatório de Avaliação</h1>'+
+    '<p style="color:#6B7A8D;font-size:11px;margin:0 0 16px">'+
+      'Código: <strong>'+sessao.patientCode+'</strong>'+
+      (nomeCrianca?' &nbsp;|&nbsp; Criança: <strong>'+nomeCrianca+'</strong>':'')+
+      (nomeInf?' &nbsp;|&nbsp; Respondente: <em>'+nomeInf+'</em>':'')+
+      ' &nbsp;|&nbsp; Data: '+formatDate(sessao.data)+
+      ' &nbsp;|&nbsp; Ricardina Correia · Cédula 8233'+
+    '</p>'+
+
+    '<h2>Scores por Domínio</h2>'+
+    '<table><thead><tr>'+
+    '<th>Domínio</th><th style="text-align:center">Score (0–4)</th><th>Perfil visual</th><th>Zona</th>'+
+    '</tr></thead><tbody>'+
+    baraPDF('A — Ingestão Emocional',scoreA)+
+    baraPDF('B — Perda de Controlo'+(bCrit?' ⚠ LOC':''),scoreB)+
+    baraPDF('C — Ingestão sem Fome',scoreC)+
+    baraPDF('D — Função Reguladora',scoreD)+
+    baraPDF('E — Consciência/Insight',scoreE)+
+    '<tr style="border-top:2px solid #D6E4F0">'+
+      '<td style="padding:6px 8px;font-weight:700;font-size:12px">IGAE (Índice Global)</td>'+
+      '<td style="padding:6px 8px;text-align:center;font-weight:700;font-size:14px;color:'+corVal(igae)+'">'+igae.toFixed(2)+'</td>'+
+      '<td colspan="2" style="padding:6px 8px;font-weight:600;color:'+corVal(igae)+'">'+classif.label+'</td>'+
+    '</tr>'+
+    '</tbody></table>'+
+
+    '<h2>Interpretação Clínica</h2>'+
+    '<div style="background:#EBF2F8;border-radius:8px;padding:14px;font-size:11px;line-height:1.8">'+parts.join(' ')+'</div>'+
+
+    '<div style="background:#f4f6f9;border-radius:8px;padding:10px 14px;margin:16px 0;font-size:10px;color:#6B7A8D">'+
+    '<strong style="color:#2C3E50">Limiares IGAE:</strong> &nbsp;'+
+    '0–1 Normativo &nbsp;·&nbsp; 1–2 Zona de risco &nbsp;·&nbsp; 2–3 Disfuncional moderado &nbsp;·&nbsp; ≥3.1 Clínico significativo</div>'+
+
+    respostasHtml+
+
+    '<p style="margin-top:28px;font-size:10px;color:#bbb;border-top:1px solid #eee;padding-top:10px">'+
+    'ECE-FEA — Entrevista Clínica Estruturada da Função Emocional da Alimentação · Ricardina Correia · Cédula 8233 · Psicologia Pediátrica</p>'+
+    '</body></html>';
+
+  var w=window.open('','_blank');
+  if(!w){alert('Pop-up bloqueado. Permite pop-ups para este site.');return;}
+  w.document.write(html);w.document.close();
 }
 
 // ── EXPORT CSV ─────────────────────────────────────────────────────────────
@@ -1145,26 +1277,6 @@ function exportarInterpretacaoPDF(sessao){
   var w=window.open('','_blank');
   if(!w){alert('Pop-up bloqueado.');return;}
   w.document.write(html);w.document.close();
-}
-
-// ── RESPOSTAS TOGGLE ─────────────────────────────────────────────────────
-function toggleRespostas(btn){
-  var content=btn.nextElementSibling;
-  var isOpen=content.style.display!=='none';
-  content.style.display=isOpen?'none':'block';
-  var span=btn.querySelector('span');
-  if(span) span.textContent=isOpen?'▼ expandir':'▲ fechar';
-  btn.style.borderRadius=isOpen?'8px':'8px 8px 0 0';
-}
-
-// ── IMPRIMIR MODAL (TUDO) ─────────────────────────────────────────────────
-function imprimirModal(){
-  // Expand respostas if collapsed before printing
-  var content=document.querySelector('.modal-respostas-content');
-  var wasHidden=content&&content.style.display==='none';
-  if(wasHidden) content.style.display='block';
-  window.print();
-  if(wasHidden) content.style.display='none';
 }
 
 // ── ARRANQUE ──────────────────────────────────────────────────────────────

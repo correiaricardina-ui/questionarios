@@ -384,13 +384,13 @@ const SWAN_ITEMS = [
 ];
 
 const ESCALA_LABELS = [
-  { valor:3,  label:'Muito abaixo da média' },
-  { valor:2,  label:'Abaixo da média' },
-  { valor:1,  label:'Ligeiramente abaixo' },
+  { valor:-3, label:'Muito abaixo da média' },
+  { valor:-2, label:'Abaixo da média' },
+  { valor:-1, label:'Ligeiramente abaixo' },
   { valor:0,  label:'Na média' },
-  { valor:-1, label:'Ligeiramente acima' },
-  { valor:-2, label:'Acima da média' },
-  { valor:-3, label:'Muito acima da média' }
+  { valor:1,  label:'Ligeiramente acima' },
+  { valor:2,  label:'Acima da média' },
+  { valor:3,  label:'Muito acima da média' }
 ];
 
 let currentSecao = 1;
@@ -540,10 +540,10 @@ function calcularScores() {
 }
 
 function classificar(score) {
-  // No SWAN valores NEGATIVOS = dificuldade (abaixo da média)
-  // Corte clínico: ≤ -1.65 (percentil 5) | Borderline: -1.65 a -1.0
-  if (score <= -1.65) return 'Clínico';
-  if (score <= -1.0)  return 'Borderline';
+  // No SWAN valores POSITIVOS = dificuldade (abaixo da média)
+  // Corte clínico: ≥ +1.65 (percentil 95) | Borderline: +1.0 a +1.64
+  if (score >= 1.65) return 'Clínico';
+  if (score >= 1.0)  return 'Borderline';
   return 'Normativo';
 }
 
@@ -709,8 +709,8 @@ function renderTabela(dados) {
 
 // ── Modal de detalhe ───────────────────────────────────────
 function corScore(s) {
-  // Valores negativos = dificuldade; positivos/zero = normativo
-  return s <= -1.65 ? 'var(--red)' : s <= -1.0 ? 'var(--orange)' : 'var(--green)';
+  // Valores positivos = dificuldade
+  return s >= 1.65 ? 'var(--red)' : s >= 1.0 ? 'var(--orange)' : 'var(--green)';
 }
 
 function gerarInterpretacao(scoreD, scoreH, scoreT, cl) {
@@ -720,23 +720,23 @@ function gerarInterpretacao(scoreD, scoreH, scoreT, cl) {
     ? 'O perfil global situa-se na zona borderline, sugerindo dificuldades ligeiras que merecem monitorização clínica.'
     : 'O perfil global situa-se na zona clínica, indicando dificuldades com significância clínica que justificam avaliação aprofundada.';
 
-  var txtD = scoreD <= -1.65
+  var txtD = scoreD >= 1.65
     ? 'A subescala de <strong>Desatenção</strong> encontra-se na zona clínica (' + scoreD.toFixed(2) + '), sugerindo dificuldades marcadas na sustentação da atenção e organização.'
-    : scoreD <= -1.0
+    : scoreD >= 1.0
     ? 'A subescala de <strong>Desatenção</strong> situa-se na zona borderline (' + scoreD.toFixed(2) + '), com algumas dificuldades atencionais que merecem monitorização.'
     : 'A subescala de <strong>Desatenção</strong> encontra-se dentro dos limites normativos (' + scoreD.toFixed(2) + ').';
 
-  var txtH = scoreH <= -1.65
+  var txtH = scoreH >= 1.65
     ? 'A subescala de <strong>Hiperatividade-Impulsividade</strong> encontra-se na zona clínica (' + scoreH.toFixed(2) + '), sugerindo dificuldades no controlo motor e regulação comportamental.'
-    : scoreH <= -1.0
+    : scoreH >= 1.0
     ? 'A subescala de <strong>Hiperatividade-Impulsividade</strong> situa-se na zona borderline (' + scoreH.toFixed(2) + '), com alguma agitação acima do esperado.'
     : 'A subescala de <strong>Hiperatividade-Impulsividade</strong> encontra-se dentro dos limites normativos (' + scoreH.toFixed(2) + ').';
 
-  var perfil = scoreD <= -1.65 && scoreH > -1.0
+  var perfil = scoreD >= 1.65 && scoreH < 1.0
     ? 'O perfil é consistente com uma <strong>apresentação predominantemente desatenta</strong>.'
-    : scoreH <= -1.65 && scoreD > -1.0
+    : scoreH >= 1.65 && scoreD < 1.0
     ? 'O perfil é consistente com uma <strong>apresentação predominantemente hiperativa-impulsiva</strong>.'
-    : scoreD <= -1.65 && scoreH <= -1.65
+    : scoreD >= 1.65 && scoreH >= 1.65
     ? 'O perfil é consistente com uma <strong>apresentação combinada</strong>.'
     : '';
 
@@ -747,7 +747,7 @@ function gerarInterpretacao(scoreD, scoreH, scoreT, cl) {
     '<p style="margin-bottom:' + (perfil?'8px':'0') + ';">' + txtH + '</p>' +
     (perfil ? '<p style="margin-bottom:0;padding-top:8px;border-top:1px solid var(--blue-pale);">' + perfil + '</p>' : '') +
     '</div>' +
-    '<p style="font-size:0.72rem;color:var(--text-light);margin-top:8px;"><em>⚠️ Corte clínico: média ≥ 1.65 (~percentil 95). Swanson et al., 2000; Moura, 2006. Interpretação automática -- integrar no contexto clínico completo.</em></p>';
+    '<p style="font-size:0.72rem;color:var(--text-light);margin-top:8px;"><em>⚠️ Corte clínico: média ≥ +1.65 (~percentil 95). Swanson et al., 2000; Moura, 2006. Interpretação automática -- integrar no contexto clínico completo.</em></p>';
 }
 
 function buildItens(grupo, answers) {
@@ -757,7 +757,7 @@ function buildItens(grupo, answers) {
     var label = '';
     ESCALA_LABELS.forEach(function(op){ if (op.valor === val) label = op.label; });
     var pct = isNaN(val) ? 0 : ((val + 3) / 6) * 100;
-    var cor = isNaN(val) ? '#aaa' : corScore(val);
+    var cor = isNaN(val) ? '#aaa' : (val >= 1.65 ? 'var(--red)' : val >= 1.0 ? 'var(--orange)' : 'var(--green)');
     var valStr = isNaN(val) ? '--' : (val > 0 ? '+' : '') + val.toFixed(0);
     h += '<div style="font-size:0.78rem;">';
     h += '<div style="display:flex;justify-content:space-between;margin-bottom:3px;">';
@@ -787,9 +787,9 @@ function printModal() {
     var cx = 90, cy = 80, r = 60;
     var ex  = cx + r * Math.cos(rad);
     var ey  = cy + r * Math.sin(rad);
-    var cor = score <= -1.65 ? '#C0392B' : score <= -1.0 ? '#E67E22' : '#27AE60';
-    // Corte clínico a -1.65
-    var cutA = (-180 + ((-1.65+3)/6)*180) * Math.PI/180;
+    var cor = score >= 1.65 ? '#C0392B' : score >= 1.0 ? '#E67E22' : '#27AE60';
+    // Corte clínico a +1.65
+    var cutA = (-180 + ((1.65+3)/6)*180) * Math.PI/180;
     var cex  = cx + r * Math.cos(cutA);
     var cey  = cy + r * Math.sin(cutA);
     return '<svg width="180" height="110" viewBox="0 0 180 110" xmlns="http://www.w3.org/2000/svg">' +
@@ -809,11 +809,11 @@ function printModal() {
   }
 
   function corScore(s) {
-    return s <= -1.65 ? '#C0392B' : s <= -1.0 ? '#E67E22' : '#27AE60';
+    return s >= 1.65 ? '#C0392B' : s >= 1.0 ? '#E67E22' : '#27AE60';
   }
 
   function barPct(s) { return Math.max(2, ((s+3)/6*100)).toFixed(1); }
-  var cutPct = (((-1.65+3)/6)*100).toFixed(1);
+  var cutPct = (((1.65+3)/6)*100).toFixed(1);
 
   // Itens para impressão (sem barras -- só texto)
   function itensHTML(grupo) {
@@ -823,7 +823,7 @@ function printModal() {
       ESCALA_LABELS.forEach(function(op){ if(op.valor === val) label = op.label; });
       var valStr = isNaN(val) ? '--' : (val > 0 ? '+' : '') + val.toFixed(0);
       var cor = isNaN(val) ? '#aaa' : corScore(val);
-      var bg  = val <= -1.65 ? '#FDECEA' : val <= -1.0 ? '#FEF9EC' : '#F0F7FF';
+      var bg  = val >= 1.65 ? '#FDECEA' : val >= 1.0 ? '#FEF9EC' : '#F0F7FF';
       return '<tr style="background:' + bg + ';">' +
         '<td style="padding:3px 6px;font-size:9px;color:#8a99a8;text-align:center;width:20px;">' + item.id + '</td>' +
         '<td style="padding:3px 6px;font-size:9px;">' + item.texto + '</td>' +
@@ -894,7 +894,7 @@ function printModal() {
       '<div class="bar-wrap"><div class="bar-fill" style="width:' + barPct(f.scoreD) + '%;background:' + corScore(f.scoreD) + ';"></div><div class="bar-cut" style="left:' + cutPct + '%;"></div></div>' +
       '<div style="display:flex;justify-content:space-between;font-size:10px;margin-bottom:2px;"><span>Hiperatividade-Impulsividade</span><span style="font-weight:700;color:' + corScore(f.scoreH) + ';">' + (f.scoreH>=0?'+':'') + f.scoreH.toFixed(2) + '</span></div>' +
       '<div class="bar-wrap"><div class="bar-fill" style="width:' + barPct(f.scoreH) + '%;background:' + corScore(f.scoreH) + ';"></div><div class="bar-cut" style="left:' + cutPct + '%;"></div></div>' +
-      '<div style="font-size:8px;color:#8a99a8;">│ linha vermelha = corte clínico (-1.65 . percentil 5)</div>' +
+      '<div style="font-size:8px;color:#8a99a8;">│ linha vermelha = corte clínico (+1.65 . percentil 95)</div>' +
     '</div>' +
 
     // Interpretação
@@ -973,7 +973,7 @@ function verDetalhe(idx) {
     var answers = answersRaw.length > 0 ? answersRaw.split('|') : [];
     var pctD    = Math.max(2, ((f.scoreD + 3) / 6 * 100)).toFixed(1);
     var pctH    = Math.max(2, ((f.scoreH + 3) / 6 * 100)).toFixed(1);
-    var cutPct  = ((-1.65 + 3) / 6 * 100).toFixed(1); // ~22.5% da barra (lado esquerdo)
+    var cutPct  = ((1.65 + 3) / 6 * 100).toFixed(1); // ~77.5% da barra (lado direito = clínico)
 
     var overlay = document.createElement('div');
     overlay.id = 'modal-detalhe';
@@ -1036,7 +1036,7 @@ function verDetalhe(idx) {
             '<div style="position:absolute;left:' + cutPct + '%;top:-4px;bottom:-4px;width:2px;background:var(--red);border-radius:2px;"></div>' +
           '</div>' +
         '</div>' +
-        '<div style="margin-top:6px;font-size:0.72rem;color:var(--text-light);">│ linha vermelha = corte clínico (-1.65 . percentil 5)</div>' +
+        '<div style="margin-top:6px;font-size:0.72rem;color:var(--text-light);">│ linha vermelha = corte clínico (+1.65 . percentil 95)</div>' +
       '</div>' +
       // Interpretação
       gerarInterpretacao(f.scoreD, f.scoreH, f.scoreT, f.cl) +
@@ -1089,12 +1089,12 @@ function desenharGauge(canvasId, score) {
   ctx.scale(dpr, dpr);
   var cx=W/2, cy=H*0.80, r=82;
   var startAngle=Math.PI, endAngle=2*Math.PI;
-  // Gauge: -3 (esquerda) = pior | +3 (direita) = melhor
-  // Vermelho: -3 a -1.65 (clínico) | Laranja: -1.65 a -1.0 (borderline) | Verde: -1 a +3 (normativo)
+  // Gauge: -3 (esquerda) = melhor | +3 (direita) = pior (mais dificuldades)
+  // Verde: -3 a +1.0 (normativo) | Laranja: +1.0 a +1.65 (borderline) | Vermelho: +1.65 a +3 (clínico)
   var faixas=[
-    {from:-3,   to:-1.65, cor:'#C0392B'},
-    {from:-1.65,to:-1.0,  cor:'#E67E22'},
-    {from:-1.0, to:3,     cor:'#27AE60'}
+    {from:-3,   to:1.0,  cor:'#27AE60'},
+    {from:1.0,  to:1.65, cor:'#E67E22'},
+    {from:1.65, to:3,    cor:'#C0392B'}
   ];
   function s2a(s){ return startAngle + ((s+3)/6)*Math.PI; }
   ctx.beginPath(); ctx.arc(cx,cy,r,startAngle,endAngle);
@@ -1109,7 +1109,7 @@ function desenharGauge(canvasId, score) {
     ctx.textAlign='center'; ctx.textBaseline='middle';
     ctx.fillText(m[1], cx+(r+13)*Math.cos(ang), cy+(r+13)*Math.sin(ang));
   });
-  var angCut=s2a(-1.65);
+  var angCut=s2a(1.65);
   ctx.beginPath();
   ctx.moveTo(cx+(r-10)*Math.cos(angCut), cy+(r-10)*Math.sin(angCut));
   ctx.lineTo(cx+(r+2)*Math.cos(angCut),  cy+(r+2)*Math.sin(angCut));
@@ -1259,7 +1259,7 @@ function exportarRespostasPDF(sessao) {
   ];
   var linhas = answers.map(function(r,i){
     var v = parseFloat(r);
-    var cor = v<=-1.65?'#C0392B':v<=-1.0?'#E67E22':'#27AE60';
+    var cor = v>=1.65?'#C0392B':v>=1.0?'#E67E22':'#27AE60';
     return '<tr><td style="padding:3px 8px;border-bottom:1px solid #eee;color:#999;text-align:center;width:30px;">'+(i+1)+'</td>' +
       '<td style="padding:3px 8px;border-bottom:1px solid #eee;font-size:11px;">'+(itens[i]||'Item '+(i+1))+'</td>' +
       '<td style="padding:3px 8px;border-bottom:1px solid #eee;text-align:center;font-weight:700;color:'+cor+';width:50px;">'+(r||'\u2014')+'</td></tr>';
@@ -1278,7 +1278,7 @@ function exportarRespostasPDF(sessao) {
     ' &nbsp;|&nbsp; Data: '+dt+' &nbsp;|&nbsp; Ricardina Correia \u00b7 C\u00e9dula 8233</p>' +
     '<table><thead><tr><th style="text-align:center">#</th><th>Item</th><th style="text-align:center">Score</th></tr></thead>' +
     '<tbody>'+linhas+'</tbody></table>' +
-    '<p style="margin-top:14px;font-size:10px;color:#999;">Escala: +3 (muito acima) a -3 (muito abaixo da m\u00e9dia)</p>' +
+    '<p style="margin-top:14px;font-size:10px;color:#999;">Escala: \u22123 (muito acima da m\u00e9dia) a +3 (muito abaixo da m\u00e9dia)</p>' +
     '</body></html>';
   var w=window.open('','_blank');
   if(!w){alert('Pop-up bloqueado.');return;}
@@ -1319,7 +1319,7 @@ function exportarInterpretacaoPDF(sessao) {
     row('Hiperactividade/Impulsividade (itens 10\u201318)', f.scoreH, clH, false) +
     row('Total', f.scoreTot, clT, true) +
     '</tbody></table>' +
-    '<p style="font-size:10px;color:#888;font-style:italic;">Corte cl\u00ednico: \u2264 \u22121.65 (percentil 5) &nbsp;|&nbsp; Borderline: \u22121.65 a \u22121.0 &nbsp;|&nbsp; Normativo: &gt; \u22121.0</p>' +
+    '<p style="font-size:10px;color:#888;font-style:italic;">Corte cl\u00ednico: \u2265 +1.65 (percentil 95) &nbsp;|&nbsp; Borderline: +1.0 a +1.64 &nbsp;|&nbsp; Normativo: &lt; +1.0</p>' +
     '<p style="margin-top:18px;font-style:italic;color:#999;font-size:10px;">Interpreta\u00e7\u00e3o autom\u00e1tica \u2014 integrar no contexto cl\u00ednico completo.</p>' +
     '</body></html>';
   var w=window.open('','_blank');

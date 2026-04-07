@@ -88,7 +88,7 @@ td{padding:8px 12px;font-size:.85rem;border-bottom:1px solid var(--gray-bdr)}
 tr:hover td{background:var(--gray)}
 .table-wrap{overflow-x:auto;border-radius:8px;border:1px solid var(--gray-bdr)}
 @media(max-width:600px){.form-row{grid-template-columns:1fr}.emotion-grid{grid-template-columns:1fr}.landing-btns{flex-direction:column;align-items:center}}
-@media print{.app-header,.no-print{display:none!important}body{background:white}.card{box-shadow:none;border:1px solid #ddd}.modal-overlay{position:relative!important;display:block!important;background:none!important;padding:0!important;overflow:visible!important}.modal-box{box-shadow:none!important;max-width:100%!important}#modal-respostas-content{display:block!important}.modal-respostas-toggle{display:none!important}}
+@media print{.app-header,.no-print{display:none!important}body{background:white}.card{box-shadow:none;border:1px solid #ddd}}
 </style>
 </head>
 <body>
@@ -487,7 +487,7 @@ tr:hover td{background:var(--gray)}
     <div id="modal-body"></div>
     <div id="modal-respostas-wrap" style="margin-top:16px;margin-bottom:4px"></div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:16px" class="no-print">
-      <button class="btn btn-primary btn-xs" onclick="imprimirModal()" style="background:var(--blue);color:white">🖨 Imprimir Tudo</button>
+      <button class="btn btn-xs" style="background:var(--blue);color:white;padding:6px 14px;font-size:.82rem;border:none;border-radius:8px;cursor:pointer;font-weight:600" onclick="relatórioCompletoPDF(sessaoActual)">📊 Relatório Completo PDF</button>
       <button class="btn btn-secondary btn-xs" onclick="exportarRespostasPDF(sessaoActual)">📋 Respostas PDF</button>
       <button class="btn btn-secondary btn-xs" onclick="exportarInterpretacaoPDF(sessaoActual)">📄 Interpretação PDF</button>
     </div>
@@ -1008,26 +1008,25 @@ function verDetalhe(idx) {
 
   document.getElementById('modal-body').innerHTML = html;
 
-  // ── Respostas item a item ─────────────────────────────────────────────────
+  // ── Respostas item a item (expansível) ────────────────────────────────────
   var respWrap = document.getElementById('modal-respostas-wrap');
   if(s.answers) {
     var resp2 = s.answers.split('|');
     var linhasR = resp2.map(function(r,i){
       var it = ITEMS[i];
-      var rVal = parseInt(r);
+      var rVal = parseInt(r)||0;
       var optText = (it&&it.opts&&it.opts[rVal]) ? it.opts[rVal] : '—';
-      var sub = it ? (it.sub||'') : '';
       return '<tr>'+
-        '<td style="padding:4px 8px;border-bottom:1px solid #f0f0f0;color:#6B7A8D;font-size:.78rem;white-space:nowrap">'+(i+1)+'</td>'+
-        '<td style="padding:4px 8px;border-bottom:1px solid #f0f0f0;font-size:.75rem;color:var(--blue-mid)">'+sub+'</td>'+
+        '<td style="padding:4px 8px;border-bottom:1px solid #f0f0f0;color:#6B7A8D;font-size:.78rem">'+( i+1)+'</td>'+
+        '<td style="padding:4px 8px;border-bottom:1px solid #f0f0f0;font-size:.75rem;color:#5B7FA6">'+(it?it.sub||'':'')+'</td>'+
         '<td style="padding:4px 8px;border-bottom:1px solid #f0f0f0;font-size:.81rem;line-height:1.4">'+(it?it.q:'Item '+(i+1))+'</td>'+
-        '<td style="padding:4px 8px;border-bottom:1px solid #f0f0f0;text-align:center;font-weight:700;font-size:.85rem;color:var(--blue)">'+rVal+'</td>'+
+        '<td style="padding:4px 8px;border-bottom:1px solid #f0f0f0;text-align:center;font-weight:700;color:var(--blue)">'+rVal+'</td>'+
         '<td style="padding:4px 8px;border-bottom:1px solid #f0f0f0;font-size:.78rem;color:var(--text-light)">'+optText+'</td>'+
         '</tr>';
     }).join('');
     respWrap.innerHTML =
-      '<button id="modal-respostas-toggle" class="modal-respostas-toggle btn btn-secondary no-print" '+
-        'style="padding:6px 14px;font-size:.82rem;width:100%;text-align:left;border-radius:8px 8px 0 0;margin-bottom:0" '+
+      '<button id="modal-respostas-toggle" class="no-print" '+
+        'style="padding:6px 14px;font-size:.82rem;width:100%;text-align:left;border-radius:8px 8px 0 0;margin-bottom:0;background:var(--blue-xpale);color:var(--blue);border:1px solid var(--gray-bdr);cursor:pointer;font-weight:600;font-family:\'DM Sans\',sans-serif" '+
         'onclick="toggleRespostasModal()">'+
         '📝 Ver Respostas Item a Item <span id="modal-respostas-arrow" style="float:right;font-size:.75rem;color:var(--text-light)">▼ expandir</span>'+
       '</button>'+
@@ -1038,7 +1037,7 @@ function verDetalhe(idx) {
           '<th style="padding:6px 8px;background:var(--blue-pale);color:var(--blue);font-size:.78rem;position:sticky;top:0">Sub.</th>'+
           '<th style="padding:6px 8px;background:var(--blue-pale);color:var(--blue);font-size:.78rem;position:sticky;top:0">Item</th>'+
           '<th style="padding:6px 8px;background:var(--blue-pale);color:var(--blue);font-size:.78rem;position:sticky;top:0">Val.</th>'+
-          '<th style="padding:6px 8px;background:var(--blue-pale);color:var(--blue);font-size:.78rem;position:sticky;top:0">Opção</th>'+
+          '<th style="padding:6px 8px;background:var(--blue-pale);color:var(--blue);font-size:.78rem;position:sticky;top:0">Opção escolhida</th>'+
         '</tr></thead>'+
         '<tbody>'+linhasR+'</tbody></table>'+
       '</div>';
@@ -1049,7 +1048,132 @@ function verDetalhe(idx) {
   document.getElementById('modal-detalhe').style.display='flex';
 }
 
-function gerarInterpretacao(sc, perfil) {
+function toggleRespostasModal() {
+  var content = document.getElementById('modal-respostas-content');
+  var arrow   = document.getElementById('modal-respostas-arrow');
+  var toggle  = document.getElementById('modal-respostas-toggle');
+  if(!content) return;
+  var open = content.style.display !== 'none';
+  content.style.display = open ? 'none' : 'block';
+  if(arrow)  arrow.textContent  = open ? '▼ expandir' : '▲ fechar';
+  if(toggle) toggle.style.borderRadius = open ? '8px' : '8px 8px 0 0';
+}
+
+function relatórioCompletoPDF(sessao) {
+  if(!sessao) { alert('Seleccione primeiro uma sessão.'); return; }
+  var s = sessao;
+  var sc = {DE:s.DE||0, DR:s.DR||0, EE:s.EE||0, DRE:s.DRE||0};
+  var escalaData = [
+    {nome:'Défice Executivo (DE)',        val:sc.DE,  max:76, nivel:nivelDE(sc.DE)},
+    {nome:'Desmotivação Reativa (DR)',     val:sc.DR,  max:72, nivel:nivelDR(sc.DR)},
+    {nome:'Evitamento Emocional (EE)',     val:sc.EE,  max:56, nivel:nivelEE(sc.EE)},
+    {nome:'Depend. Regulação Externa (DRE)',val:sc.DRE,max:72, nivel:nivelDRE(sc.DRE)}
+  ];
+
+  // ── 1. Cabeçalho ──
+  var cabecalho =
+    '<h1 style="color:#3B5A7A;font-size:16px;margin:0 0 4px">EAFE — Relatório de Avaliação</h1>'+
+    '<p style="color:#6B7A8D;font-size:11px;margin:0 0 16px">'+
+      'Código: <strong>'+s.patientCode+'</strong>'+
+      (s.nome ? ' &nbsp;|&nbsp; Nome: <strong>'+s.nome+'</strong>' : '')+
+      ' &nbsp;|&nbsp; Data: '+new Date(s.date).toLocaleDateString('pt-PT')+
+      (s.anoEscolaridade ? ' &nbsp;|&nbsp; Ano: '+s.anoEscolaridade : '')+
+      (s.escola ? ' &nbsp;|&nbsp; Escola: '+s.escola : '')+
+      (s.modo ? ' &nbsp;|&nbsp; Modo: '+s.modo : '')+
+      ' &nbsp;|&nbsp; Ricardina Correia · Cédula 8233'+
+    '</p>';
+
+  // ── 2. Tabela de scores com barras ──
+  var tabelaScores = '<h2>Scores por Subescala</h2>'+
+    '<table><thead><tr><th>Subescala</th><th style="text-align:center">Pontuação</th><th style="text-align:center">Máximo</th><th>Perfil visual</th><th>Nível</th></tr></thead><tbody>';
+  escalaData.forEach(function(e) {
+    var pct = Math.round(e.val/e.max*100);
+    var cor = ['Sem défice','Preservada','Sem evitamento','Autonomia adequada'].indexOf(e.nivel)>=0?'#27AE60':
+              ['Ligeiro','Ligeira'].indexOf(e.nivel)>=0?'#F39C12':
+              ['Moderado','Moderada'].indexOf(e.nivel)>=0?'#E67E22':'#C0392B';
+    tabelaScores +=
+      '<tr>'+
+      '<td style="padding:5px 8px;font-weight:600">'+e.nome+'</td>'+
+      '<td style="padding:5px 8px;text-align:center;font-weight:700;color:'+cor+'">'+e.val+'</td>'+
+      '<td style="padding:5px 8px;text-align:center;color:#888">'+e.max+'</td>'+
+      '<td style="padding:5px 8px"><div style="background:#eee;border-radius:4px;height:10px;width:120px;display:inline-block;vertical-align:middle">'+
+        '<div style="background:'+cor+';height:10px;border-radius:4px;width:'+pct+'%"></div></div>'+
+        ' <span style="font-size:10px;color:#888">'+pct+'%</span></td>'+
+      '<td style="padding:5px 8px;font-weight:600;color:'+cor+'">'+corNivel(e.nivel)+' '+e.nivel+'</td>'+
+      '</tr>';
+  });
+  tabelaScores += '</tbody></table>';
+
+  // ── 3. Perfil ──
+  var perfilBox = '<div style="background:#EBF2F8;border-left:4px solid #3B5A7A;padding:10px 14px;border-radius:0 8px 8px 0;margin:16px 0">'+
+    '<strong>Perfil Identificado:</strong> '+s.perfil+'</div>';
+
+  // ── 4. Interpretação ──
+  var interpBox = '<h2>Interpretação Clínica</h2>'+
+    '<div style="background:#fafbfc;border:1px solid #DDE3EA;border-radius:8px;padding:14px;font-size:11px;line-height:1.75">'+
+    gerarInterpretacao(sc, s.perfil)+
+    '<br><em style="color:#999">Interpretação gerada automaticamente com base nos scores obtidos. Sujeita a validação clínica.</em>'+
+    '</div>';
+
+  // ── 5. Itens críticos ──
+  var resp = (s.answers||'').split('|').map(Number);
+  var criticos = [];
+  if(resp[1]>3)  criticos.push('🔴 Item 2: Défice executivo severo (score='+resp[1]+')');
+  if(resp[1]>3 && resp[27]<2) criticos.push('✅ Item 28: Funciona com instrução — dependência (não défice executivo puro)');
+  if(resp[31]===4) criticos.push('🔴 Item 32: RISCO DESAMPARO APRENDIDO — atribui sempre a incapacidade pessoal');
+  if(resp[33]>3) criticos.push('🔴 Item 34: Ansiedade severa perante avaliação');
+  if(resp[38]>3) criticos.push('🔴 Item 39: Autoblame intenso — trabalhar autoestima');
+  var criticosBox = '<h2>Itens Críticos</h2>'+
+    '<div style="font-size:11px;line-height:1.8">'+
+    (criticos.length ? criticos.map(function(c){return '<div>'+c+'</div>';}).join('') : '<span style="color:#888">Sem alertas críticos.</span>')+
+    '</div>';
+
+  // ── 6. Respostas item a item ──
+  var respostasHtml = '';
+  if(s.answers) {
+    var arr = s.answers.split('|');
+    respostasHtml = '<h2>Respostas por Item</h2>'+
+      '<table><thead><tr>'+
+      '<th style="text-align:center">#</th><th>Sub.</th><th>Item</th>'+
+      '<th style="text-align:center">Val.</th><th>Opção escolhida</th>'+
+      '</tr></thead><tbody>'+
+      arr.map(function(r,i){
+        var it = ITEMS[i];
+        var rVal = parseInt(r)||0;
+        var optText = (it&&it.opts&&it.opts[rVal]) ? it.opts[rVal] : '—';
+        return '<tr style="background:'+(i%2===0?'#fff':'#f9fbfd')+'">'+
+          '<td style="padding:3px 6px;text-align:center;color:#999">'+( i+1)+'</td>'+
+          '<td style="padding:3px 6px;color:#5B7FA6;font-size:10px">'+(it?it.sub||'':'')+'</td>'+
+          '<td style="padding:3px 6px;font-size:11px">'+(it?it.q:'Item '+(i+1))+'</td>'+
+          '<td style="padding:3px 6px;text-align:center;font-weight:700;color:#3B5A7A">'+rVal+'</td>'+
+          '<td style="padding:3px 6px;color:#6B7A8D;font-size:10px">'+optText+'</td>'+
+          '</tr>';
+      }).join('')+
+      '</tbody></table>';
+  }
+
+  // ── Montar HTML completo ──
+  var html = '<!DOCTYPE html><html><head><meta charset="UTF-8">'+
+    '<title>EAFE — Relatório '+s.patientCode+'</title>'+
+    '<style>'+
+    'body{font-family:Arial,sans-serif;font-size:12px;color:#2C3E50;padding:28px;max-width:900px;margin:0 auto}'+
+    'h2{color:#3B5A7A;font-size:13px;margin:20px 0 8px;border-bottom:2px solid #D6E4F0;padding-bottom:4px}'+
+    'table{width:100%;border-collapse:collapse;margin-bottom:8px}'+
+    'th{background:#D6E4F0;padding:6px 8px;text-align:left;color:#3B5A7A;font-size:11px}'+
+    'td{border-bottom:1px solid #f0f0f0}'+
+    '.no-print{margin-bottom:20px}'+
+    '@media print{.no-print{display:none}body{padding:12px}}'+
+    '</style></head><body>'+
+    '<div class="no-print"><button onclick="window.print()" style="padding:8px 18px;background:#3B5A7A;color:white;border:none;border-radius:6px;cursor:pointer;font-size:13px">🖨 Imprimir / Guardar PDF</button></div>'+
+    cabecalho+tabelaScores+perfilBox+interpBox+criticosBox+respostasHtml+
+    '<p style="margin-top:28px;font-size:10px;color:#bbb;border-top:1px solid #eee;padding-top:10px">'+
+    'EAFE — Entrevista de Análise Funcional do Estudo · Ricardina Correia · Cédula 8233 · Psicologia Pediátrica</p>'+
+    '</body></html>';
+
+  var w = window.open('','_blank');
+  if(!w){ alert('Pop-up bloqueado. Permite pop-ups para este site.'); return; }
+  w.document.write(html); w.document.close();
+}
   var linhas = [];
   // DE
   if(sc.DE>=58) linhas.push('Défice executivo <strong>severo</strong> ('+sc.DE+'/76): dificuldades significativas na iniciação, organização e monitorização do estudo.');
@@ -1115,25 +1239,6 @@ function exportarPDF() {
   var w = window.open('','_blank');
   if(!w){alert('Pop-up bloqueado.');return;}
   w.document.write(html); w.document.close();
-}
-
-function toggleRespostasModal() {
-  var content = document.getElementById('modal-respostas-content');
-  var arrow   = document.getElementById('modal-respostas-arrow');
-  var toggle  = document.getElementById('modal-respostas-toggle');
-  if(!content) return;
-  var open = content.style.display !== 'none';
-  content.style.display = open ? 'none' : 'block';
-  if(arrow)  arrow.textContent  = open ? '▼ expandir' : '▲ fechar';
-  if(toggle) toggle.style.borderRadius = open ? '8px' : '8px 8px 0 0';
-}
-
-function imprimirModal() {
-  var content = document.getElementById('modal-respostas-content');
-  var wasHidden = content && content.style.display === 'none';
-  if(wasHidden) content.style.display = 'block';
-  window.print();
-  if(wasHidden) content.style.display = 'none';
 }
 
 function exportarRespostasPDF(sessao) {

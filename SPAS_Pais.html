@@ -502,7 +502,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
     <div class="modal-header">
       <div class="modal-title" id="modal-title">Detalhe da sessão</div>
       <div style="display:flex;gap:8px;align-items:center" class="no-print">
-        <button class="btn btn-secondary btn-sm" onclick="imprimirDetalhe()" style="padding:5px 12px;font-size:.8rem;">🖨 Imprimir / PDF</button>
+        <button class="btn btn-primary btn-sm" onclick="relatórioCompletoSPAS(sessaoActual)" style="padding:5px 14px;font-size:.82rem;background:var(--blue);color:white;border:none;border-radius:8px;cursor:pointer;font-weight:600">📊 Relatório Completo PDF</button>
         <button class="modal-close" onclick="document.getElementById('modal-overlay').style.display='none'">✕</button>
       </div>
     </div>
@@ -846,8 +846,9 @@ function verDetalhe(idx) {
   }
 
   document.getElementById('modal-title').textContent =
-    'SPAS Pais · ' + (r.patientCode||r.Código||'—') + ' · ' +
-    (r.date ? new Date(r.date).toLocaleDateString('pt-PT') : (r.Data||''));
+    'SPAS Pais · ' + (r.patientCode||r.Código||'—') +
+    (r.nomeCrianca||r.Nome ? ' — ' + (r.nomeCrianca||r.Nome) : '') +
+    ' · ' + (r.date ? new Date(r.date).toLocaleDateString('pt-PT') : (r.Data||''));
 
   // Tabela interpretação
   var subEsc = Object.keys(SUBESCALAS);
@@ -910,10 +911,11 @@ function verDetalhe(idx) {
   var chartHtml = '<div style="position:relative;height:200px;margin-bottom:20px;"><canvas id="'+chartId+'"></canvas></div>';
 
   document.getElementById('modal-body').innerHTML =
-    '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:18px;font-size:.83rem;">' +
-      '<div><span style="color:var(--text-light);font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;">Código</span><br><strong>' + (r.patientCode||'—') + '</strong></div>' +
-      '<div><span style="color:var(--text-light);font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;">Data</span><br><strong>' + (r.date ? new Date(r.date).toLocaleDateString('pt-PT') : '—') + '</strong></div>' +
-      '<div><span style="color:var(--text-light);font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;">Respondente</span><br><strong>' + (r.respondente||r.Respondente||'—') + '</strong></div>' +
+    '<div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px;margin-bottom:18px;font-size:.83rem;">' +
+      '<div><span style="color:var(--text-light);font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;">Código</span><br><strong>' + (r.patientCode||r.Código||'—') + '</strong></div>' +
+      '<div><span style="color:var(--text-light);font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;">Nome da Criança</span><br><strong>' + (r.nomeCrianca||r.Nome||'—') + '</strong></div>' +
+      '<div><span style="color:var(--text-light);font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;">Data</span><br><strong>' + (r.date ? new Date(r.date).toLocaleDateString('pt-PT') : (r.Data||'—')) + '</strong></div>' +
+      '<div><span style="color:var(--text-light);font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;">Respondente</span><br><strong>' + (r.nome_informante||r.nome_preenche||r.respondente||r.Respondente||'—') + '</strong><br><span style="font-size:.75rem;color:var(--text-light)">' + (r.respondente||r.Respondente||'') + '</span></div>' +
     '</div>' +
     chartHtml +
     '<h4 style="color:var(--blue);font-size:.9rem;margin-bottom:10px;">Resultados por Subescala</h4>' +
@@ -924,8 +926,7 @@ function verDetalhe(idx) {
     '<div class="profile-text">' + parts.join(' ') +
       '<br><em style="font-size:.78rem;color:var(--text-light)">Esta interpretação é automática e deve ser integrada no contexto clínico completo.</em></div>' +
     '<div style="margin-top:16px;display:flex;gap:8px;flex-wrap:wrap;" class="no-print">' +
-      '<button class="btn btn-secondary btn-sm" onclick="exportarRespostasPDF(' + idx + ')">📋 Respostas PDF</button>' +
-      '<button class="btn btn-secondary btn-sm" onclick="exportarInterpretacaoPDF(' + idx + ')">📄 Interpretação PDF</button>' +
+      '<button class="btn btn-sm" style="background:var(--blue);color:white;border:none;border-radius:8px;padding:6px 14px;font-size:.82rem;cursor:pointer;font-weight:600" onclick="relatórioCompletoSPAS(sessaoActual)">📊 Relatório Completo PDF</button>' +
     '</div>' +
     (answersArr && answersArr.length ? '<div style="margin-top:18px;"><h4 style=\"color:var(--blue);font-size:.9rem;margin-bottom:8px;\">Respostas Item a Item</h4><div style=\"overflow-x:auto\"><table style=\"width:100%;border-collapse:collapse;font-size:.78rem;\"><thead><tr style=\"background:var(--blue-xpale)\"><th style=\"padding:6px 8px;text-align:left\">Nº</th><th style=\"padding:6px 8px;text-align:left\">Item</th><th style=\"padding:6px 8px;text-align:center\">Resp.</th></tr></thead><tbody>' + ITENS.map(function(txt,i){var v=answersArr[i]||'—';var bg=parseInt(v)>=3?'rgba(192,57,43,0.08)':parseInt(v)>=2?'rgba(230,126,34,0.06)':'';return '<tr style=\"border-bottom:1px solid var(--border);background:'+bg+'\"><td style=\"padding:5px 8px;color:var(--text-light)\">'+  (i+1)+'</td><td style=\"padding:5px 8px\">'+txt+'</td><td style=\"padding:5px 8px;text-align:center;font-weight:600\">'+v+'</td></tr>';}).join('') + '</tbody></table></div></div>' : '') +
     '<div class="modal-footer-note">SPAS · Normas PT: Almeida &amp; Viana (2013) · Limiares: M+1DP (Intermédio) e M+1,5DP (Elevado). Ricardina Correia · Cédula 8233.</div>';
@@ -961,6 +962,166 @@ function verDetalhe(idx) {
       }
     });
   }, 100);
+}
+
+function relatórioCompletoSPAS(r) {
+  if (!r) { alert('Seleccione primeiro uma sessão.'); return; }
+  var scores = r.scores || {};
+  if (!Object.keys(scores).length) {
+    scores = {
+      'Ansiedade Geral':        parseInt(r.AG)||0,
+      'Ansiedade Social':       parseInt(r.AS)||0,
+      'Ansiedade de Separação': parseInt(r.SEP)||0,
+      'Medo de Dano Físico':    parseInt(r.MDF)||0,
+      'Perturbação OC':         parseInt(r.POC)||0,
+      'Total':                  parseInt(r.Total)||0
+    };
+  }
+
+  // ── 1. Cabeçalho ──
+  var nomeCrianca = r.nomeCrianca||r.Nome||'—';
+  var nomeRespondente = r.nome_informante||r.nome_preenche||'';
+  var tipoRespondente = r.respondente||r.Respondente||'';
+  var respondenteFull = nomeRespondente + (tipoRespondente ? ' (' + tipoRespondente + ')' : '');
+  var dataFmt = r.date ? new Date(r.date).toLocaleDateString('pt-PT') : (r.Data||'—');
+
+  var cabecalho =
+    '<h1 style="color:#3B5A7A;font-size:16px;margin:0 0 4px">SPAS — Escala de Ansiedade Pré-Escolar e Escolar · Versão Pais</h1>' +
+    '<table style="width:100%;border-collapse:collapse;margin-bottom:16px;font-size:11px">' +
+    '<tr>' +
+      '<td style="padding:4px 8px;border:1px solid #D6E4F0;background:#EBF2F8;font-weight:700;color:#3B5A7A;width:120px">Código</td>' +
+      '<td style="padding:4px 8px;border:1px solid #D6E4F0"><strong>' + (r.patientCode||r.Código||'—') + '</strong></td>' +
+      '<td style="padding:4px 8px;border:1px solid #D6E4F0;background:#EBF2F8;font-weight:700;color:#3B5A7A;width:120px">Nome da Criança</td>' +
+      '<td style="padding:4px 8px;border:1px solid #D6E4F0"><strong>' + nomeCrianca + '</strong></td>' +
+    '</tr>' +
+    '<tr>' +
+      '<td style="padding:4px 8px;border:1px solid #D6E4F0;background:#EBF2F8;font-weight:700;color:#3B5A7A">Data</td>' +
+      '<td style="padding:4px 8px;border:1px solid #D6E4F0">' + dataFmt + '</td>' +
+      '<td style="padding:4px 8px;border:1px solid #D6E4F0;background:#EBF2F8;font-weight:700;color:#3B5A7A">Respondente</td>' +
+      '<td style="padding:4px 8px;border:1px solid #D6E4F0">' + (respondenteFull||'—') + '</td>' +
+    '</tr>' +
+    '<tr>' +
+      '<td style="padding:4px 8px;border:1px solid #D6E4F0;background:#EBF2F8;font-weight:700;color:#3B5A7A">Clínico</td>' +
+      '<td colspan="3" style="padding:4px 8px;border:1px solid #D6E4F0">Ricardina Correia · Cédula 8233 · Psicologia Pediátrica</td>' +
+    '</tr>' +
+    '</table>';
+
+  // ── 2. Tabela de scores com barras ──
+  function corClass(cl) {
+    return cl.label.indexOf('Elevado')>-1?'#C0392B':cl.label==='Intermédio'?'#E67E22':'#27AE60';
+  }
+  var subEsc = Object.keys(SUBESCALAS);
+  var tabRows = subEsc.map(function(sub) {
+    var s = scores[sub]||0, nm = SUBESCALAS[sub];
+    var cl = classificar(s, nm.media, nm.dp);
+    var pct = Math.min(100, Math.round((s/nm.max)*100));
+    var cor = corClass(cl);
+    return '<tr>' +
+      '<td style="padding:5px 8px;font-weight:600;font-size:11px">' + sub + '</td>' +
+      '<td style="padding:5px 8px;text-align:center;font-weight:700;color:' + cor + '">' + s + '/' + nm.max + '</td>' +
+      '<td style="padding:5px 8px;text-align:center;color:#888;font-size:10px">' + nm.media.toFixed(1) + '</td>' +
+      '<td style="padding:5px 8px"><div style="background:#DDE3EA;border-radius:4px;height:10px;width:120px;display:inline-block;vertical-align:middle">' +
+        '<div style="background:' + cor + ';border-radius:4px;height:10px;width:' + pct + '%"></div></div>' +
+        ' <span style="font-size:10px;color:#888">' + pct + '%</span></td>' +
+      '<td style="padding:5px 8px;font-weight:600;font-size:11px;color:' + cor + '">' + cl.label + '</td>' +
+      '</tr>';
+  }).join('');
+
+  var tot = scores['Total']||0, totCl = classificar(tot, TOTAL_NORMA.media, TOTAL_NORMA.dp);
+  var totPct = Math.min(100, Math.round((tot/TOTAL_NORMA.max)*100));
+  var totCor = corClass(totCl);
+  tabRows += '<tr style="background:#EBF2F8;border-top:2px solid #D6E4F0">' +
+    '<td style="padding:6px 8px;font-weight:700;font-size:12px">TOTAL GERAL</td>' +
+    '<td style="padding:6px 8px;text-align:center;font-weight:700;font-size:13px;color:' + totCor + '">' + tot + '/112</td>' +
+    '<td style="padding:6px 8px;text-align:center;color:#888;font-size:10px">31.2</td>' +
+    '<td style="padding:6px 8px"><div style="background:#DDE3EA;border-radius:4px;height:10px;width:120px;display:inline-block;vertical-align:middle">' +
+      '<div style="background:' + totCor + ';border-radius:4px;height:10px;width:' + totPct + '%"></div></div>' +
+      ' <span style="font-size:10px;color:#888">' + totPct + '%</span></td>' +
+    '<td style="padding:6px 8px;font-weight:700;color:' + totCor + '">' + totCl.label + '</td>' +
+    '</tr>';
+
+  // ── 3. Interpretação ──
+  var clinicos = [], intermedios = [];
+  subEsc.forEach(function(sub) {
+    var cl = classificar(scores[sub]||0, SUBESCALAS[sub].media, SUBESCALAS[sub].dp);
+    if (cl.label.indexOf('Elevado')>-1) clinicos.push(sub);
+    else if (cl.label==='Intermédio') intermedios.push(sub);
+  });
+  var parts = ['A pontuação total obtida é <strong>' + tot + ' pontos</strong> (máx. 112; média normativa PT: 31,2).'];
+  if (totCl.label.indexOf('Elevado')>-1)
+    parts.push('O resultado global situa-se <strong>acima do limiar de preocupação clínica</strong> (≥ M + 1,5 DP).');
+  else if (totCl.label==='Intermédio')
+    parts.push('O resultado global situa-se numa <strong>zona de vigilância</strong> (entre M + 1 DP e M + 1,5 DP).');
+  else
+    parts.push('O resultado global encontra-se dentro dos <strong>limites normativos</strong> para a faixa etária.');
+  if (clinicos.length)  parts.push('Subescalas em zona clínica: <strong>' + clinicos.join(', ') + '</strong>.');
+  if (intermedios.length) parts.push('Subescalas em zona intermédia: <strong>' + intermedios.join(', ') + '</strong>.');
+
+  // ── 4. Respostas item a item ──
+  var answersArr = r.answers || [];
+  if (typeof answersArr === 'string') answersArr = answersArr.split('|');
+  var respostasHtml = '';
+  if (answersArr && answersArr.length) {
+    var subItensMap = {};
+    Object.keys(SUBESCALAS).forEach(function(sub) {
+      SUBESCALAS[sub].itens.forEach(function(n){ subItensMap[n] = sub; });
+    });
+    respostasHtml = '<h2>Respostas por Item</h2>' +
+      '<table><thead><tr>' +
+      '<th style="text-align:center;width:36px">#</th>' +
+      '<th style="width:60px">Subescala</th>' +
+      '<th>Item</th>' +
+      '<th style="text-align:center;width:52px">Resp.<br><span style="font-weight:400;font-size:9px">(0–4)</span></th>' +
+      '</tr></thead><tbody>' +
+      ITENS.map(function(txt, i) {
+        var n = i+1;
+        var v = answersArr[i] !== undefined ? answersArr[i] : '—';
+        var vInt = parseInt(v);
+        var sub = subItensMap[n] ? subItensMap[n].replace('Ansiedade ','A.').replace('Medo de Dano Físico','MDF').replace('Perturbação OC','POC') : '';
+        var bg = vInt>=3?'rgba(192,57,43,0.06)':vInt>=2?'rgba(230,126,34,0.04)':'';
+        var valCor = vInt>=3?'#C0392B':vInt>=2?'#E67E22':'#2C3E50';
+        return '<tr style="background:' + bg + ';border-bottom:1px solid #f0f0f0">' +
+          '<td style="padding:3px 6px;text-align:center;color:#6B7A8D;font-size:10px">' + n + '</td>' +
+          '<td style="padding:3px 6px;font-size:9px;color:#5B7FA6">' + sub + '</td>' +
+          '<td style="padding:3px 6px;font-size:11px">' + txt + '</td>' +
+          '<td style="padding:3px 6px;text-align:center;font-weight:700;color:' + valCor + '">' + v + '</td>' +
+          '</tr>';
+      }).join('') +
+      '</tbody></table>';
+  }
+
+  // ── Montar HTML completo ──
+  var html = '<!DOCTYPE html><html><head><meta charset="UTF-8">' +
+    '<title>SPAS Pais — Relatório ' + (r.patientCode||'') + '</title>' +
+    '<style>' +
+    'body{font-family:Arial,sans-serif;font-size:12px;color:#2C3E50;padding:28px;max-width:900px;margin:0 auto}' +
+    'h2{color:#3B5A7A;font-size:13px;margin:20px 0 8px;border-bottom:2px solid #D6E4F0;padding-bottom:4px}' +
+    'table{width:100%;border-collapse:collapse;margin-bottom:8px}' +
+    'th{background:#D6E4F0;padding:6px 8px;text-align:left;color:#3B5A7A;font-size:11px}' +
+    'td{border-bottom:1px solid #f0f0f0}' +
+    '.no-print{margin-bottom:20px}' +
+    '@media print{.no-print{display:none}body{padding:12px}}' +
+    '</style></head><body>' +
+    '<div class="no-print"><button onclick="window.print()" style="padding:8px 18px;background:#3B5A7A;color:white;border:none;border-radius:6px;cursor:pointer;font-size:13px">🖨 Imprimir / Guardar PDF</button></div>' +
+    cabecalho +
+    '<h2>Resultados por Subescala</h2>' +
+    '<table><thead><tr><th>Subescala</th><th style="text-align:center">Score</th><th style="text-align:center">Média PT</th><th>Perfil visual</th><th>Classificação</th></tr></thead>' +
+    '<tbody>' + tabRows + '</tbody></table>' +
+    '<h2>Interpretação Clínica</h2>' +
+    '<div style="background:#EBF2F8;border-radius:8px;padding:14px;font-size:11px;line-height:1.8">' +
+    parts.join(' ') +
+    '<br><br><em style="color:#999">Esta interpretação é automática e deve ser integrada no contexto clínico completo da avaliação.</em></div>' +
+    '<div style="background:#f4f6f9;border-radius:6px;padding:8px 12px;margin:12px 0;font-size:10px;color:#6B7A8D">' +
+    '<strong style="color:#2C3E50">Limiares:</strong> Normal &lt; M+1DP &nbsp;·&nbsp; Intermédio ≥ M+1DP &nbsp;·&nbsp; Elevado ≥ M+1,5DP &nbsp;|&nbsp; Normas PT: Almeida &amp; Viana (2013)' +
+    '</div>' +
+    respostasHtml +
+    '<p style="margin-top:28px;font-size:10px;color:#bbb;border-top:1px solid #eee;padding-top:10px">' +
+    'SPAS — Escala de Ansiedade Pré-Escolar e Escolar · Versão Pais · Ricardina Correia · Cédula 8233 · Psicologia Pediátrica</p>' +
+    '</body></html>';
+
+  var w = window.open('','_blank');
+  if (!w) { alert('Pop-up bloqueado. Permite pop-ups para este site.'); return; }
+  w.document.write(html); w.document.close();
 }
 
 function imprimirDetalhe(){
