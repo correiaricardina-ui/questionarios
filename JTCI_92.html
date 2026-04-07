@@ -341,6 +341,7 @@
       <button class="btn btn-secondary" style="padding:6px 14px;font-size:.82rem;" onclick="window.print()">🖨 Imprimir</button>
       <button class="btn btn-secondary" style="padding:6px 14px;font-size:.82rem;" onclick="exportarRespostasPDF(sessaoActual)">📋 Respostas PDF</button>
       <button class="btn btn-secondary" style="padding:6px 14px;font-size:.82rem;" onclick="exportarInterpretacaoPDF(sessaoActual)">📊 Exportar Interpretação PDF</button>
+      <button class="btn btn-primary" style="padding:6px 14px;font-size:.82rem;" onclick="exportarRelatorioCompleto(sessaoActual)">📑 Relatório Completo</button>
       <input type="file" id="import-file-input" accept=".csv,.xlsx,.xls" style="display:none;" onchange="processarFicheiroImportado(this)">
     </div>
     <div id="import-feedback" style="margin-bottom:12px;display:none;"></div>
@@ -461,11 +462,11 @@ var ITEMS = [
 ];
 
 var BLOCOS = [
-  {label:'Busca de Novidades & Evitação de Danos', items:[3,5,6,9,10,12,15,23,27,28,29,31,32,41,43,44,51,55,58,59,60,63,66,69,71,77,80,85]},
-  {label:'Dependência de Recompensa & Persistência', items:[0,8,14,16,17,26,33,35,39,42,49,50,54,57,61,62,75,82,84,86]},
-  {label:'Auto-Diretividade (parte 1)', items:[1,7,11,19,20,21,25,30,34,36,38,40]},
-  {label:'Auto-Diretividade (parte 2) & início Cooperatividade', items:[2,4,13,14,18,22,24,37,52,56,65,67,73,76,81,83,87,89,90,91]},
-  {label:'Cooperatividade (conclusão)', items:[45,46,47,48,53,64,68,70,72,74,78,79,88]}
+  {label:'Parte 1 — Itens 1 a 19',  items:[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18]},
+  {label:'Parte 2 — Itens 20 a 38', items:[19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37]},
+  {label:'Parte 3 — Itens 39 a 56', items:[38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55]},
+  {label:'Parte 4 — Itens 57 a 74', items:[56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73]},
+  {label:'Parte 5 — Itens 75 a 92', items:[74,75,76,77,78,79,80,81,82,83,84,85,86,87,88,89,90,91]}
 ];
 
 var NS_ITEMS = [4,6,7,10,11,13,16,30,33,44,52,56,59,61,64,67,86];
@@ -806,11 +807,15 @@ function carregarDados() {
 
 function renderTabela() {
   var sessoes = [];
+  var seen = {};
   try {
     for(var k in localStorage){
       if(k.startsWith('JTCI_')){
         var s = JSON.parse(localStorage.getItem(k));
-        if(s && s.codigo) sessoes.push(s);
+        if(s && s.codigo){
+          var uid = (s.codigo||'') + '_' + (s.timestamp||'').slice(0,19);
+          if(!seen[uid]){ seen[uid] = true; sessoes.push(s); }
+        }
       }
     }
   } catch(e){}
@@ -863,77 +868,134 @@ function verDetalhe(idx) {
     (s.nome_crianca ? ' — ' + s.nome_crianca : '') +
     (s.nome_informante ? ' · ' + s.nome_informante : '');
 
+  var sc = s.scores || {};
+  var ansList = typeof s.answers==='string' ? s.answers.split('|') : [];
+
+  // ── helper: interpret a dimension ──────────────────────────────────────
+  function dimLevel(key, maxV) {
+    var v = sc[key]||0;
+    var pct = calcularPct(v, maxV);
+    if(pct >= 68) return {level:'elevado', cls:'color:#C0392B;font-weight:700;', cor:'#C0392B', pct:pct, v:v};
+    if(pct >= 55) return {level:'moderado-alto', cls:'color:#E67E22;font-weight:600;', cor:'#E67E22', pct:pct, v:v};
+    if(pct <= 32) return {level:'baixo', cls:'color:#1A5276;font-weight:700;', cor:'#1A5276', pct:pct, v:v};
+    if(pct <= 45) return {level:'moderado-baixo', cls:'color:#2E86C1;font-weight:600;', cor:'#2E86C1', pct:pct, v:v};
+    return {level:'médio', cls:'color:var(--green);font-weight:600;', cor:'#27AE60', pct:pct, v:v};
+  }
+
+  var NS = dimLevel('NS',85), HA = dimLevel('HA',55), RD = dimLevel('RD',35),
+      P  = dimLevel('P',65),  SD = dimLevel('SD',120), CO = dimLevel('CO',105);
+
   var html = '';
-  // Info
-  html += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;margin-bottom:20px;">';
+
+  // ── Info grid ───────────────────────────────────────────────────────────
+  html += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-bottom:20px;">';
   [['Data',dt],['Código',s.codigo||'—'],['Criança',s.nome_crianca||'—'],
    ['Respondente',s.nome_informante||'—'],['Género',s.genero||'—'],['Ano',s.anoEscolar||'—']
   ].forEach(function(pair){
     html += '<div style="background:var(--blue-xpale);border-radius:8px;padding:10px;">';
     html += '<div style="font-size:.72rem;color:var(--text-light);">' + pair[0] + '</div>';
-    html += '<div style="font-weight:600;font-size:.9rem;">' + escapeHtml(pair[1]) + '</div>';
+    html += '<div style="font-weight:600;font-size:.88rem;">' + escapeHtml(pair[1]) + '</div>';
     html += '</div>';
   });
   html += '</div>';
 
-  // Scores table with profile bars
+  // ── Scores table ────────────────────────────────────────────────────────
   html += '<h4 style="color:var(--blue);font-size:.9rem;margin-bottom:10px;">Resultados por Dimensão</h4>';
   html += '<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:.85rem;margin-bottom:18px;">';
   html += '<thead><tr style="background:var(--blue-xpale);">';
-  html += '<th style="padding:8px 10px;text-align:left;color:var(--blue);">Dimensão</th>';
-  html += '<th style="padding:8px 10px;text-align:center;color:var(--blue);">Score</th>';
-  html += '<th style="padding:8px 10px;text-align:center;color:var(--blue);">Máx</th>';
-  html += '<th style="padding:8px 10px;color:var(--blue);">Perfil</th>';
-  html += '<th style="padding:8px 10px;text-align:center;color:var(--blue);">%</th>';
+  ['Dimensão','Score','Máx','Perfil','%'].forEach(function(h){
+    html += '<th style="padding:8px 10px;text-align:' + (h==='Dimensão'?'left':'center') + ';color:var(--blue);">' + h + '</th>';
+  });
   html += '</tr></thead><tbody>';
   DIMS.forEach(function(d){
-    var sc = s.scores ? (s.scores[d.key]||0) : 0;
-    var pct = calcularPct(sc, d.max);
-    var cor = pct >= 65 ? 'var(--blue)' : pct >= 45 ? 'var(--green)' : 'var(--orange)';
+    var lv = dimLevel(d.key, d.max);
     html += '<tr><td style="padding:8px 10px;font-size:.84rem;">' + d.label + '</td>';
-    html += '<td style="padding:8px 10px;text-align:center;font-weight:700;">' + sc + '</td>';
+    html += '<td style="padding:8px 10px;text-align:center;font-weight:700;' + lv.cls + '">' + lv.v + '</td>';
     html += '<td style="padding:8px 10px;text-align:center;color:var(--text-light);">' + d.max + '</td>';
-    html += '<td style="padding:8px 10px;min-width:120px;">';
+    html += '<td style="padding:8px 10px;min-width:130px;">';
     html += '<div style="background:var(--gray-bdr);border-radius:4px;height:8px;">';
-    html += '<div style="background:' + cor + ';border-radius:4px;height:100%;width:' + pct + '%;"></div>';
+    html += '<div style="background:' + lv.cor + ';border-radius:4px;height:100%;width:' + lv.pct + '%;"></div>';
     html += '</div></td>';
-    html += '<td style="padding:8px 10px;text-align:center;">' + pct + '%</td></tr>';
+    html += '<td style="padding:8px 10px;text-align:center;' + lv.cls + '">' + lv.pct + '%</td></tr>';
   });
   html += '</tbody></table></div>';
 
-  // Interpretação automática
-  html += '<h4 style="color:var(--blue);font-size:.9rem;margin-bottom:8px;">Interpretação</h4>';
-  var sc = s.scores || {};
-  var partes = [];
-  DIMS.forEach(function(d){
-    var v = sc[d.key]||0;
-    var pct = calcularPct(v, d.max);
-    if(pct >= 65) partes.push(d.label + ' elevado (' + v + '/' + d.max + ')');
-    else if(pct <= 35) partes.push(d.label + ' baixo (' + v + '/' + d.max + ')');
-  });
-  var resumo = partes.length > 0
-    ? 'Valores a destacar: ' + partes.join('; ') + '.'
-    : 'Todos os valores dentro da amplitude média.';
-  html += '<div style="background:var(--blue-xpale);border-radius:8px;padding:12px 16px;margin-bottom:16px;font-size:.85rem;line-height:1.6;">';
-  html += resumo;
-  html += '</div>';
-  html += '<p style="font-size:.75rem;color:var(--text-light);font-style:italic;">Interpretação automática gerada a partir dos scores brutos. Não substitui avaliação clínica.</p>';
+  // ── Clinical interpretation ─────────────────────────────────────────────
+  html += '<h4 style="color:var(--blue);font-size:.9rem;margin-bottom:8px;">Interpretação Clínica</h4>';
+  html += '<div style="background:var(--blue-xpale);border-radius:8px;padding:14px 16px;margin-bottom:12px;font-size:.86rem;line-height:1.75;">';
 
-  // Respostas por item
-  if(s.answers){
-    html += '<div style="margin-top:20px;">';
-    html += '<button class="btn btn-secondary btn-xs" onclick="toggleRespostas(this)">Ver respostas por item</button>';
+  // Temperamento section
+  html += '<p style="font-weight:600;color:var(--blue);margin-bottom:6px;">Temperamento</p>';
+
+  // NS
+  html += '<p style="margin-bottom:5px;"><strong>Busca de Novidades (NS = ' + NS.v + '/' + 85 + '):</strong> ';
+  if(NS.level==='elevado') html += 'Valor <span style="' + NS.cls + '">elevado</span>, sugerindo tendência marcada para a exploração de novidades, impulsividade e procura de estimulação intensa. A criança/adolescente pode apresentar dificuldade em adiar recompensas e preferência por atividades variadas e estimulantes.';
+  else if(NS.level==='moderado-alto') html += 'Valor <span style="' + NS.cls + '">moderado-alto</span>, indicando alguma tendência exploratória e procura de novidade, dentro de limites funcionais.';
+  else if(NS.level==='baixo') html += 'Valor <span style="' + NS.cls + '">baixo</span>, sugerindo caráter mais deliberado, metódico e resistente à mudança. A criança/adolescente pode preferir rotinas estáveis e apresentar menor impulsividade.';
+  else if(NS.level==='moderado-baixo') html += 'Valor <span style="' + NS.cls + '">moderado-baixo</span>, indicando preferência por estabilidade com abertura limitada à novidade.';
+  else html += 'Valor na amplitude média, sem características exploratórias salientes.';
+  html += '</p>';
+
+  // HA
+  html += '<p style="margin-bottom:5px;"><strong>Evitação de Danos (HA = ' + HA.v + '/' + 55 + '):</strong> ';
+  if(HA.level==='elevado') html += 'Valor <span style="' + HA.cls + '">elevado</span>, sugerindo ansiedade antecipatória marcada, timidez social, tendência à preocupação excessiva e fatigabilidade. Pode refletir inibição comportamental significativa que importa avaliar no contexto clínico.';
+  else if(HA.level==='moderado-alto') html += 'Valor <span style="' + HA.cls + '">moderado-alto</span>, indicando alguma tendência à ansiedade antecipatória e cautela, ainda dentro de parâmetros funcionais.';
+  else if(HA.level==='baixo') html += 'Valor <span style="' + HA.cls + '">baixo</span>, sugerindo baixa inibição ao risco, menor ansiedade antecipatória e maior propensão para comportamentos de aproximação. Considerar no contexto de comportamentos de risco.';
+  else html += 'Valor na amplitude média, sem ansiedade antecipatória saliente.';
+  html += '</p>';
+
+  // RD
+  html += '<p style="margin-bottom:5px;"><strong>Dependência de Recompensa (RD = ' + RD.v + '/' + 35 + '):</strong> ';
+  if(RD.level==='elevado') html += 'Valor <span style="' + RD.cls + '">elevado</span>, sugerindo sensibilidade emocional elevada, necessidade de aprovação social e vinculação afetiva marcada. A criança/adolescente pode ser particularmente sensível a críticas e rejeição.';
+  else if(RD.level==='baixo') html += 'Valor <span style="' + RD.cls + '">baixo</span>, sugerindo menor sensibilidade às recompensas sociais e maior independência afetiva, podendo manifestar-se como reserva emocional ou menor necessidade de aprovação.';
+  else html += 'Valor na amplitude média, sem dependência de recompensa saliente.';
+  html += '</p>';
+
+  // P
+  html += '<p style="margin-bottom:10px;"><strong>Persistência (P = ' + P.v + '/' + 65 + '):</strong> ';
+  if(P.level==='elevado') html += 'Valor <span style="' + P.cls + '">elevado</span>, indicando ambição, determinação e perfeccionismo marcados. A criança/adolescente revela capacidade de manter esforço face à adversidade, o que é um fator protetor académico e vocacional.';
+  else if(P.level==='baixo') html += 'Valor <span style="' + P.cls + '">baixo</span>, sugerindo dificuldade em manter esforço, desistência perante obstáculos e menor ambição. Este padrão associa-se frequentemente a dificuldades académicas e motivacionais.';
+  else html += 'Valor na amplitude média para a determinação e persistência face a desafios.';
+  html += '</p>';
+
+  // Caráter section
+  html += '<p style="font-weight:600;color:var(--blue);margin-bottom:6px;">Caráter</p>';
+
+  // SD
+  html += '<p style="margin-bottom:5px;"><strong>Auto-Diretividade (SD = ' + SD.v + '/' + 120 + '):</strong> ';
+  if(SD.level==='elevado') html += 'Valor <span style="' + SD.cls + '">elevado</span>, indicando forte sentido de responsabilidade, auto-eficácia, flexibilidade adaptativa e aceitação de si próprio. A criança/adolescente demonstra boa capacidade de autorregulação e orientação para objetivos.';
+  else if(SD.level==='baixo') html += 'Valor <span style="' + SD.cls + '">baixo</span>, sugerindo dificuldades na autorregulação, sentido de auto-eficácia reduzido e tendência para atribuir responsabilidade ao exterior. Este padrão pode associar-se a perturbações de personalidade e dificuldades de adaptação.';
+  else html += 'Valor na amplitude média para a autonomia e capacidade de auto-direção.';
+  html += '</p>';
+
+  // CO
+  html += '<p style="margin-bottom:5px;"><strong>Cooperatividade (CO = ' + CO.v + '/' + 105 + '):</strong> ';
+  if(CO.level==='elevado') html += 'Valor <span style="' + CO.cls + '">elevado</span>, indicando empatia marcada, orientação prossocial e capacidade de colaboração. A criança/adolescente demonstra sensibilidade aos outros e comportamento cooperativo.';
+  else if(CO.level==='baixo') html += 'Valor <span style="' + CO.cls + '">baixo</span>, sugerindo menor empatia, dificuldades na cooperação e possível tendência para comportamentos oposicionistas ou autocentrados. Avaliar no contexto relacional.';
+  else html += 'Valor na amplitude média para a empatia e comportamento cooperativo.';
+  html += '</p>';
+
+  // Overall pattern
+  html += '<p style="margin-top:10px;padding-top:10px;border-top:1px solid var(--blue-pale);font-size:.83rem;color:var(--text-light);font-style:italic;">Interpretação automática baseada nos scores brutos (Mondoni 2010 · Moreira et al. 2012). Não substitui avaliação clínica integrada.</p>';
+  html += '</div>';
+
+  // ── Responses per item ──────────────────────────────────────────────────
+  if(ansList.length > 0){
+    html += '<div style="margin-top:16px;">';
+    html += '<button class="btn btn-secondary btn-xs" onclick="toggleRespostas(this)">▸ Ver respostas por item</button>';
     html += '<div style="display:none;margin-top:12px;">';
-    var ansList = typeof s.answers==='string' ? s.answers.split('|') : [];
     var labelsMap = {1:'F',2:'QSF',3:'NCD',4:'QSV',5:'V'};
-    html += '<table style="width:100%;border-collapse:collapse;font-size:.78rem;">';
-    html += '<thead><tr style="background:var(--blue-xpale);"><th style="padding:5px 8px;text-align:left;">Nº</th><th style="padding:5px 8px;text-align:left;">Item</th><th style="padding:5px 8px;text-align:center;">Resp.</th></tr></thead><tbody>';
+    html += '<table style="width:100%;border-collapse:collapse;font-size:.76rem;">';
+    html += '<thead><tr style="background:var(--blue-xpale);"><th style="padding:4px 8px;text-align:left;">Nº</th><th style="padding:4px 8px;text-align:left;">Item</th><th style="padding:4px 8px;text-align:center;">Resp.</th></tr></thead><tbody>';
     ansList.forEach(function(r,i){
+      var rv = parseInt(r);
+      var isRev = REVERSE_ITEMS.has(i+1);
+      var score = isRev ? (6-rv) : rv;
       var bg = i%2===0 ? 'white' : 'var(--blue-xpale)';
       html += '<tr style="background:' + bg + ';">';
-      html += '<td style="padding:5px 8px;color:var(--text-light);">' + (i+1) + '</td>';
-      html += '<td style="padding:5px 8px;">' + escapeHtml(ITEMS[i]||'') + '</td>';
-      html += '<td style="padding:5px 8px;text-align:center;font-weight:600;">' + (labelsMap[parseInt(r)]||r) + '</td>';
+      html += '<td style="padding:4px 8px;color:var(--text-light);">' + (i+1) + '</td>';
+      html += '<td style="padding:4px 8px;">' + escapeHtml(ITEMS[i]||'') + '</td>';
+      html += '<td style="padding:4px 8px;text-align:center;font-weight:600;">' + (labelsMap[rv]||r) + (isRev ? ' <span style="font-size:.65rem;color:#888;">(→' + score + ')</span>' : '') + '</td>';
       html += '</tr>';
     });
     html += '</tbody></table>';
@@ -1074,6 +1136,150 @@ function exportarInterpretacaoPDF(sessao) {
 function toggleRespostas(btn) {
   var div = btn.nextSibling;
   if(div) div.style.display = div.style.display === 'none' ? 'block' : 'none';
+}
+
+// ── Relatório Completo PDF ────────────────────────────────────────────────
+function exportarRelatorioCompleto(sessao) {
+  if(!sessao || !sessao.scores){ alert('Selecione um registo primeiro (Ver →).'); return; }
+  var sc = sessao.scores || {};
+  var ansList = typeof sessao.answers==='string' ? sessao.answers.split('|') : [];
+  var dt = sessao.timestamp ? new Date(sessao.timestamp).toLocaleString('pt-PT') : '—';
+  var labelsShort = {1:'F',2:'QSF',3:'NCD',4:'QSV',5:'V'};
+
+  var DIMS_REL = [
+    {key:'NS', label:'Busca de Novidades',  max:85},
+    {key:'HA', label:'Evitação de Danos',   max:55},
+    {key:'RD', label:'Dep. Recompensa',     max:35},
+    {key:'P',  label:'Persistência',        max:65},
+    {key:'SD', label:'Auto-Diretividade',   max:120},
+    {key:'CO', label:'Cooperatividade',     max:105}
+  ];
+
+  function pctR(key, maxV){ return sc[key] ? Math.round(sc[key]/maxV*100) : 0; }
+  function barR(p, c){
+    return '<div style="background:#eee;border-radius:3px;height:10px;width:100%;">' +
+           '<div style="background:' + c + ';border-radius:3px;height:100%;width:' + p + '%;"></div></div>';
+  }
+  function corR(p){ return p>=68?'#C0392B':p>=55?'#E67E22':p<=32?'#1A5276':p<=45?'#2E86C1':'#27AE60'; }
+  function nivelR(p){ return p>=68?'Elevado':p>=55?'Mod. Alto':p<=32?'Baixo':p<=45?'Mod. Baixo':'Médio'; }
+
+  function interpText(key, p) {
+    var lv = p>=68?'elevado':p>=55?'mod-alto':p<=32?'baixo':p<=45?'mod-baixo':'medio';
+    if(key==='NS'){
+      if(lv==='elevado') return 'Tendência marcada para exploração de novidades, impulsividade e procura de estimulação intensa. Pode apresentar dificuldade em adiar recompensas.';
+      if(lv==='mod-alto') return 'Alguma tendência exploratória e procura de novidade, dentro de limites funcionais.';
+      if(lv==='baixo') return 'Caráter deliberado e metódico, com preferência por rotinas estáveis e menor impulsividade.';
+      if(lv==='mod-baixo') return 'Preferência por estabilidade, com abertura limitada à novidade.';
+      return 'Sem características exploratórias salientes.';
+    }
+    if(key==='HA'){
+      if(lv==='elevado') return 'Ansiedade antecipatória marcada, timidez social e inibição comportamental significativa. Avaliar no contexto clínico.';
+      if(lv==='mod-alto') return 'Alguma tendência à ansiedade antecipatória e cautela, ainda funcional.';
+      if(lv==='baixo') return 'Baixa inibição ao risco e maior propensão para comportamentos de aproximação. Considerar no contexto de comportamentos de risco.';
+      return 'Sem ansiedade antecipatória saliente.';
+    }
+    if(key==='RD'){
+      if(lv==='elevado') return 'Sensibilidade emocional elevada e necessidade marcada de aprovação social. Pode ser particularmente sensível a críticas e rejeição.';
+      if(lv==='baixo') return 'Menor sensibilidade às recompensas sociais e maior independência afetiva, podendo manifestar-se como reserva emocional.';
+      return 'Sem dependência de recompensa saliente.';
+    }
+    if(key==='P'){
+      if(lv==='elevado') return 'Ambição, determinação e perfeccionismo marcados. Capacidade de manter esforço face à adversidade — fator protetor académico e vocacional.';
+      if(lv==='baixo') return 'Dificuldade em manter esforço, desistência perante obstáculos e menor ambição. Associa-se frequentemente a dificuldades académicas e motivacionais.';
+      return 'Sem dificuldades de persistência salientes.';
+    }
+    if(key==='SD'){
+      if(lv==='elevado') return 'Forte sentido de responsabilidade, auto-eficácia e boa capacidade de autorregulação e orientação para objetivos.';
+      if(lv==='baixo') return 'Dificuldades na autorregulação, sentido de auto-eficácia reduzido e tendência para atribuir responsabilidade ao exterior.';
+      return 'Sem dificuldades de auto-diretividade salientes.';
+    }
+    if(key==='CO'){
+      if(lv==='elevado') return 'Empatia marcada, orientação prossocial e forte capacidade de colaboração.';
+      if(lv==='baixo') return 'Menor empatia e possível tendência para comportamentos autocentrados. Avaliar no contexto relacional.';
+      return 'Sem dificuldades de cooperatividade salientes.';
+    }
+    return '';
+  }
+
+  // Build score+interpretation rows
+  var scRows = DIMS_REL.map(function(d){
+    var v = sc[d.key]||0;
+    var p = pctR(d.key, d.max);
+    var c = corR(p);
+    return '<tr style="border-top:2px solid #D6E4F0;">' +
+      '<td style="padding:7px 10px;font-weight:700;font-size:12px;">' + d.label + '</td>' +
+      '<td style="padding:7px 10px;text-align:center;font-weight:700;color:' + c + ';font-size:13px;">' + v + '<span style="font-size:10px;color:#aaa;">/' + d.max + '</span></td>' +
+      '<td style="padding:7px 10px;text-align:center;">' + barR(p, c) + '<span style="font-size:10px;color:' + c + ';font-weight:600;">' + nivelR(p) + ' (' + p + '%)</span></td>' +
+      '<td style="padding:7px 10px;font-size:11px;color:#444;">' + interpText(d.key, p) + '</td>' +
+    '</tr>';
+  }).join('');
+
+  // Build answers rows
+  var ansRows = '';
+  if(ansList.length > 0){
+    ansRows = ansList.map(function(r,i){
+      var rv = parseInt(r);
+      var isRev = REVERSE_ITEMS.has(i+1);
+      var score = isRev ? (6-rv) : rv;
+      var bg = i%2===0 ? '#fff' : '#f5f9fd';
+      return '<tr style="background:' + bg + ';">' +
+        '<td style="padding:3px 8px;text-align:center;color:#888;font-size:10px;">' + (i+1) + '</td>' +
+        '<td style="padding:3px 8px;font-size:10px;">' + (ITEMS[i]||'') + '</td>' +
+        '<td style="padding:3px 8px;text-align:center;font-weight:600;font-size:11px;">' + (labelsShort[rv]||r) + '</td>' +
+        '<td style="padding:3px 8px;text-align:center;font-size:10px;color:' + (isRev?'#888':'#2C3E50') + ';">' + (isRev ? '↺ '+score : score) + '</td></tr>';
+    }).join('');
+  }
+
+  var reportHtml = '<!DOCTYPE html><html><head><meta charset="UTF-8">' +
+    '<title>Relatório JTCI — ' + (sessao.codigo||'') + '</title>' +
+    '<style>' +
+    'body{font-family:Arial,sans-serif;font-size:12px;color:#2C3E50;padding:28px;max-width:960px;margin:0 auto;}' +
+    'h1{color:#3B5A7A;font-size:19px;margin-bottom:2px;}' +
+    'h2{color:#3B5A7A;font-size:14px;margin:22px 0 8px 0;border-bottom:2px solid #D6E4F0;padding-bottom:4px;}' +
+    'table{width:100%;border-collapse:collapse;}' +
+    'th{background:#D6E4F0;padding:7px 10px;text-align:left;color:#3B5A7A;font-size:11px;}' +
+    'td{border-bottom:1px solid #f0f0f0;}' +
+    '.info-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:20px;}' +
+    '.info-box{background:#EBF2F8;border-radius:6px;padding:8px 12px;}' +
+    '.info-label{font-size:9px;color:#6B7A8D;text-transform:uppercase;letter-spacing:.5px;}' +
+    '.info-val{font-weight:700;font-size:12px;margin-top:2px;}' +
+    '.no-print{margin-bottom:20px;}' +
+    '@page{margin:15mm}' +
+    '@media print{.no-print{display:none}body{padding:0}}' +
+    '</style></head><body>' +
+    '<div class="no-print">' +
+    '<button onclick="window.print()" style="padding:8px 18px;background:#3B5A7A;color:white;border:none;border-radius:6px;cursor:pointer;font-size:13px;margin-right:8px;">🖨 Imprimir / Guardar PDF</button>' +
+    '</div>' +
+    '<h1>JTCI — Inventário Júnior de Temperamento e Caráter</h1>' +
+    '<p style="color:#888;font-size:11px;margin-bottom:18px;">Mondoni (2010) · Moreira et al. (2012) · Versão 92 itens · Ricardina Correia · Cédula 8233 · Psicologia Pediátrica</p>' +
+    '<div class="info-grid">' +
+    '<div class="info-box"><div class="info-label">Código</div><div class="info-val">' + escapeHtml(sessao.codigo||'—') + '</div></div>' +
+    '<div class="info-box"><div class="info-label">Criança</div><div class="info-val">' + escapeHtml(sessao.nome_crianca||'—') + '</div></div>' +
+    '<div class="info-box"><div class="info-label">Respondente</div><div class="info-val">' + escapeHtml(sessao.nome_informante||'—') + '</div></div>' +
+    '<div class="info-box"><div class="info-label">Data</div><div class="info-val">' + dt + '</div></div>' +
+    '<div class="info-box"><div class="info-label">Género</div><div class="info-val">' + escapeHtml(sessao.genero||'—') + '</div></div>' +
+    '<div class="info-box"><div class="info-label">Ano Escolar</div><div class="info-val">' + escapeHtml(sessao.anoEscolar||'—') + '</div></div>' +
+    '</div>' +
+    '<h2>Resultados por Dimensão e Interpretação Clínica</h2>' +
+    '<table><thead><tr>' +
+    '<th style="width:22%;">Dimensão</th>' +
+    '<th style="width:10%;text-align:center;">Score</th>' +
+    '<th style="width:25%;">Perfil</th>' +
+    '<th style="width:43%;">Interpretação</th>' +
+    '</tr></thead><tbody>' + scRows + '</tbody></table>' +
+    '<p style="margin-top:10px;font-size:10px;color:#888;font-style:italic;">Interpretação automática baseada nos scores brutos (Mondoni 2010 · Moreira et al. 2012). Não substitui avaliação clínica integrada.</p>' +
+    (ansList.length > 0 ?
+      '<h2>Respostas por Item</h2>' +
+      '<p style="font-size:10px;color:#888;margin-bottom:8px;">F=Falso · QSF=Quase sempre falso · NCD=Não consigo decidir · QSV=Quase sempre verdadeiro · V=Verdadeiro · ↺=item invertido (valor cotado)</p>' +
+      '<table><thead><tr><th style="text-align:center;width:5%;">#</th><th>Item</th><th style="text-align:center;width:8%;">Resp.</th><th style="text-align:center;width:10%;">Cotação</th></tr></thead>' +
+      '<tbody>' + ansRows + '</tbody></table>'
+    : '') +
+    '</body></html>';
+
+  var w = window.open('','_blank');
+  if(!w){ alert('Pop-up bloqueado. Permite pop-ups para este site.'); return; }
+  w.document.write(reportHtml);
+  w.document.close();
 }
 
 // ── Utilitários ───────────────────────────────────────────────────────────
