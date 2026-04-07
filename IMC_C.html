@@ -626,17 +626,19 @@ async function carregarDados() {
     var data = await res.json();
     var rows = Array.isArray(data) ? data : (data && data.rows ? data.rows : []);
     sessoes = rows.map(function(r) {
+      var respostasStr = r['Respostas'] || r['respostas'] || '';
+      var respostasArr = respostasStr ? respostasStr.split('|').map(function(v){ return v.trim(); }).filter(Boolean) : [];
       return {
         date: r['Data'] || r['Timestamp'] || '',
         patientCode: String(r['Código'] || r['Codigo'] || '').toUpperCase(),
-        nomeCrianca: r['NomeCrianca'] || r['Nome'] || '',
-        anoEscolar: r['AnoEscolar'] || '',
-        PREOC:  Number(r['Preocupacao']  || 0),
+        nomeCrianca: r['NomeCrianca'] || r['Nome'] || r['NomeCrian\u00e7a'] || r['nome_crianca'] || '',
+        anoEscolar: r['AnoEscolar'] || r['Ano'] || r['ano_escolar'] || '',
+        PREOC:  Number(r['Preocupacao']  || r['Preocupa\u00e7\u00e3o']  || 0),
         CURIO:  Number(r['Curiosidade']  || 0),
-        CONF:   Number(r['Confianca']    || 0),
+        CONF:   Number(r['Confianca']    || r['Confian\u00e7a']    || 0),
         CONSUL: Number(r['Consulta']     || 0),
         TOTAL:  Number(r['Total']        || 0),
-        answers: r['Respostas'] || ''
+        respostas: respostasArr
       };
     });
     renderTabela();
@@ -885,17 +887,19 @@ function processarFicheiroImportado(input) {
       var cols = rows[i].split(';').map(function(c){ return c.replace(/^"|"$/g,'').trim(); });
       var obj = {};
       headers.forEach(function(h,j){ obj[h] = cols[j] || ''; });
+      var respostasStr = obj['Respostas'] || '';
+      var respostasArr = respostasStr ? respostasStr.split('|').map(function(v){ return v.trim(); }).filter(Boolean) : [];
       sessoes.push({
         date: obj['Data'] || '',
         patientCode: (obj['Código'] || obj['Codigo'] || '').toUpperCase(),
-        nomeCrianca: obj['Nome'] || '',
-        anoEscolar: obj['Ano'] || '',
+        nomeCrianca: obj['NomeCrianca'] || obj['Nome'] || '',
+        anoEscolar: obj['AnoEscolar'] || obj['Ano'] || '',
         PREOC:  Number(obj['Preocupação']  || obj['Preocupacao']  || 0),
         CURIO:  Number(obj['Curiosidade']  || 0),
         CONF:   Number(obj['Confiança']    || obj['Confianca']    || 0),
         CONSUL: Number(obj['Consulta']     || 0),
         TOTAL:  Number(obj['Total']        || 0),
-        answers: obj['Respostas'] || ''
+        respostas: respostasArr
       });
       novos++;
     }
@@ -913,8 +917,8 @@ function exportarPDF() { window.print(); }
 
 // ── Respostas PDF ─────────────────────────────────────────────────────────────
 function exportarRespostasPDF(sessao) {
-  if (!sessao || !sessao.answers) { alert('Seleccione primeiro uma sessão (clique em "Ver →").'); return; }
-  var arr = typeof sessao.answers === 'string' ? sessao.answers.split('|') : sessao.answers;
+  if (!sessao || !sessao.respostas || !sessao.respostas.length) { alert('Seleccione primeiro uma sessão com respostas (clique em "Ver →").'); return; }
+  var arr = sessao.respostas;
   var linhas = arr.map(function(r, i) {
     var sub = getSubLabel(i);
     var subNome = SUB_LABELS[sub] || '';
