@@ -124,6 +124,9 @@ body{font-family:'DM Sans',sans-serif;background:var(--gray);color:var(--text);m
   .card{box-shadow:none;border:1px solid #ddd;}
   .modal-overlay{position:relative;display:block;background:none;padding:0;}
   .modal-box{box-shadow:none;padding:0;}
+  .modal-respostas-section{display:block!important;}
+  .modal-respostas-toggle{display:none!important;}
+  .modal-respostas-content{display:block!important;}
 }
 
 /* RESPONSIVE */
@@ -902,8 +905,39 @@ function verDetalhe(idx){
     '<span style="color:var(--red);">🔴 ≥3.1 Clínico significativo</span>'+
     '</div>'+
 
+    // Respostas item-a-item (expandível no modal, visível ao imprimir)
+    (function(){
+      if(!s.answers) return '';
+      var respostas=s.answers.split('|');
+      var allItems=[];
+      ['A','B','C','D','E'].forEach(function(letter){ITENS[letter].forEach(function(it){allItems.push(it);});});
+      var rows=respostas.map(function(r,i){
+        var item=allItems[i]||{cod:'Item '+(i+1),txt:'—',inv:false};
+        var rInt=parseInt(r)||0;
+        var rLabel=['—','Nunca','Raramente','Às vezes','Frequentemente','Sempre'][rInt]||r;
+        return '<tr>'+
+          '<td style="padding:4px 8px;border-bottom:1px solid #f0f0f0;color:#6B7A8D;font-size:0.78rem;white-space:nowrap;">'+item.cod+'</td>'+
+          '<td style="padding:4px 8px;border-bottom:1px solid #f0f0f0;font-size:0.8rem;line-height:1.4;">'+(item.inv?'<em style="color:#6B7A8D;font-size:0.75rem;">[inv] </em>':'')+item.txt+'</td>'+
+          '<td style="padding:4px 8px;border-bottom:1px solid #f0f0f0;text-align:center;font-weight:700;font-size:0.85rem;color:var(--blue);">'+rInt+'</td>'+
+          '<td style="padding:4px 8px;border-bottom:1px solid #f0f0f0;font-size:0.78rem;color:var(--text-light);">'+rLabel+'</td>'+
+          '</tr>';
+      }).join('');
+      return '<div class="modal-respostas-section" style="margin-bottom:20px;">'+
+        '<button class="modal-respostas-toggle btn btn-secondary no-print" style="padding:6px 14px;font-size:0.82rem;width:100%;text-align:left;margin-bottom:0;border-radius:8px 8px 0 0;" onclick="toggleRespostas(this)">'+
+        '📝 Ver Respostas Item a Item <span style="float:right;font-size:0.75rem;color:var(--text-light);">▼ expandir</span></button>'+
+        '<div class="modal-respostas-content" style="display:none;border:1px solid var(--gray-bdr);border-top:none;border-radius:0 0 8px 8px;overflow:hidden;">'+
+        '<table style="width:100%;border-collapse:collapse;">'+
+        '<thead><tr>'+
+        '<th style="padding:6px 8px;background:var(--blue-pale);color:var(--blue);font-size:0.78rem;">Cód.</th>'+
+        '<th style="padding:6px 8px;background:var(--blue-pale);color:var(--blue);font-size:0.78rem;">Item</th>'+
+        '<th style="padding:6px 8px;background:var(--blue-pale);color:var(--blue);font-size:0.78rem;text-align:center;">Valor</th>'+
+        '<th style="padding:6px 8px;background:var(--blue-pale);color:var(--blue);font-size:0.78rem;">Frequência</th>'+
+        '</tr></thead><tbody>'+rows+'</tbody></table></div></div>';
+    })() +
+
     // Export buttons
     '<div style="display:flex;gap:8px;flex-wrap:wrap;" class="no-print">'+
+    '<button class="btn" style="padding:6px 14px;font-size:0.82rem;background:var(--blue);color:white;" onclick="imprimirModal()">🖨 Imprimir Tudo</button>'+
     '<button class="btn btn-secondary" style="padding:6px 14px;font-size:0.82rem;" onclick="exportarRespostasPDF(sessions['+sessions.indexOf(s)+'])">📋 Respostas PDF</button>'+
     '<button class="btn btn-secondary" style="padding:6px 14px;font-size:0.82rem;" onclick="exportarInterpretacaoPDF(sessions['+sessions.indexOf(s)+'])">📄 Interpretação PDF</button>'+
     '</div>';
@@ -1111,6 +1145,26 @@ function exportarInterpretacaoPDF(sessao){
   var w=window.open('','_blank');
   if(!w){alert('Pop-up bloqueado.');return;}
   w.document.write(html);w.document.close();
+}
+
+// ── RESPOSTAS TOGGLE ─────────────────────────────────────────────────────
+function toggleRespostas(btn){
+  var content=btn.nextElementSibling;
+  var isOpen=content.style.display!=='none';
+  content.style.display=isOpen?'none':'block';
+  var span=btn.querySelector('span');
+  if(span) span.textContent=isOpen?'▼ expandir':'▲ fechar';
+  btn.style.borderRadius=isOpen?'8px':'8px 8px 0 0';
+}
+
+// ── IMPRIMIR MODAL (TUDO) ─────────────────────────────────────────────────
+function imprimirModal(){
+  // Expand respostas if collapsed before printing
+  var content=document.querySelector('.modal-respostas-content');
+  var wasHidden=content&&content.style.display==='none';
+  if(wasHidden) content.style.display='block';
+  window.print();
+  if(wasHidden) content.style.display='none';
 }
 
 // ── ARRANQUE ──────────────────────────────────────────────────────────────

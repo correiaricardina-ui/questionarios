@@ -88,7 +88,7 @@ td{padding:8px 12px;font-size:.85rem;border-bottom:1px solid var(--gray-bdr)}
 tr:hover td{background:var(--gray)}
 .table-wrap{overflow-x:auto;border-radius:8px;border:1px solid var(--gray-bdr)}
 @media(max-width:600px){.form-row{grid-template-columns:1fr}.emotion-grid{grid-template-columns:1fr}.landing-btns{flex-direction:column;align-items:center}}
-@media print{.app-header,.no-print{display:none!important}body{background:white}.card{box-shadow:none;border:1px solid #ddd}}
+@media print{.app-header,.no-print{display:none!important}body{background:white}.card{box-shadow:none;border:1px solid #ddd}.modal-overlay{position:relative!important;display:block!important;background:none!important;padding:0!important;overflow:visible!important}.modal-box{box-shadow:none!important;max-width:100%!important}#modal-respostas-content{display:block!important}.modal-respostas-toggle{display:none!important}}
 </style>
 </head>
 <body>
@@ -485,7 +485,9 @@ tr:hover td{background:var(--gray)}
       <button class="btn btn-secondary btn-xs" onclick="fecharModal()">✕ Fechar</button>
     </div>
     <div id="modal-body"></div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:20px" class="no-print">
+    <div id="modal-respostas-wrap" style="margin-top:16px;margin-bottom:4px"></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:16px" class="no-print">
+      <button class="btn btn-primary btn-xs" onclick="imprimirModal()" style="background:var(--blue);color:white">🖨 Imprimir Tudo</button>
       <button class="btn btn-secondary btn-xs" onclick="exportarRespostasPDF(sessaoActual)">📋 Respostas PDF</button>
       <button class="btn btn-secondary btn-xs" onclick="exportarInterpretacaoPDF(sessaoActual)">📄 Interpretação PDF</button>
     </div>
@@ -1005,6 +1007,45 @@ function verDetalhe(idx) {
   html += '</div></div>';
 
   document.getElementById('modal-body').innerHTML = html;
+
+  // ── Respostas item a item ─────────────────────────────────────────────────
+  var respWrap = document.getElementById('modal-respostas-wrap');
+  if(s.answers) {
+    var resp2 = s.answers.split('|');
+    var linhasR = resp2.map(function(r,i){
+      var it = ITEMS[i];
+      var rVal = parseInt(r);
+      var optText = (it&&it.opts&&it.opts[rVal]) ? it.opts[rVal] : '—';
+      var sub = it ? (it.sub||'') : '';
+      return '<tr>'+
+        '<td style="padding:4px 8px;border-bottom:1px solid #f0f0f0;color:#6B7A8D;font-size:.78rem;white-space:nowrap">'+(i+1)+'</td>'+
+        '<td style="padding:4px 8px;border-bottom:1px solid #f0f0f0;font-size:.75rem;color:var(--blue-mid)">'+sub+'</td>'+
+        '<td style="padding:4px 8px;border-bottom:1px solid #f0f0f0;font-size:.81rem;line-height:1.4">'+(it?it.q:'Item '+(i+1))+'</td>'+
+        '<td style="padding:4px 8px;border-bottom:1px solid #f0f0f0;text-align:center;font-weight:700;font-size:.85rem;color:var(--blue)">'+rVal+'</td>'+
+        '<td style="padding:4px 8px;border-bottom:1px solid #f0f0f0;font-size:.78rem;color:var(--text-light)">'+optText+'</td>'+
+        '</tr>';
+    }).join('');
+    respWrap.innerHTML =
+      '<button id="modal-respostas-toggle" class="modal-respostas-toggle btn btn-secondary no-print" '+
+        'style="padding:6px 14px;font-size:.82rem;width:100%;text-align:left;border-radius:8px 8px 0 0;margin-bottom:0" '+
+        'onclick="toggleRespostasModal()">'+
+        '📝 Ver Respostas Item a Item <span id="modal-respostas-arrow" style="float:right;font-size:.75rem;color:var(--text-light)">▼ expandir</span>'+
+      '</button>'+
+      '<div id="modal-respostas-content" style="display:none;border:1px solid var(--gray-bdr);border-top:none;border-radius:0 0 8px 8px;overflow:auto;max-height:360px">'+
+        '<table style="width:100%;border-collapse:collapse">'+
+        '<thead><tr>'+
+          '<th style="padding:6px 8px;background:var(--blue-pale);color:var(--blue);font-size:.78rem;position:sticky;top:0">#</th>'+
+          '<th style="padding:6px 8px;background:var(--blue-pale);color:var(--blue);font-size:.78rem;position:sticky;top:0">Sub.</th>'+
+          '<th style="padding:6px 8px;background:var(--blue-pale);color:var(--blue);font-size:.78rem;position:sticky;top:0">Item</th>'+
+          '<th style="padding:6px 8px;background:var(--blue-pale);color:var(--blue);font-size:.78rem;position:sticky;top:0">Val.</th>'+
+          '<th style="padding:6px 8px;background:var(--blue-pale);color:var(--blue);font-size:.78rem;position:sticky;top:0">Opção</th>'+
+        '</tr></thead>'+
+        '<tbody>'+linhasR+'</tbody></table>'+
+      '</div>';
+  } else {
+    respWrap.innerHTML = '';
+  }
+
   document.getElementById('modal-detalhe').style.display='flex';
 }
 
@@ -1074,6 +1115,25 @@ function exportarPDF() {
   var w = window.open('','_blank');
   if(!w){alert('Pop-up bloqueado.');return;}
   w.document.write(html); w.document.close();
+}
+
+function toggleRespostasModal() {
+  var content = document.getElementById('modal-respostas-content');
+  var arrow   = document.getElementById('modal-respostas-arrow');
+  var toggle  = document.getElementById('modal-respostas-toggle');
+  if(!content) return;
+  var open = content.style.display !== 'none';
+  content.style.display = open ? 'none' : 'block';
+  if(arrow)  arrow.textContent  = open ? '▼ expandir' : '▲ fechar';
+  if(toggle) toggle.style.borderRadius = open ? '8px' : '8px 8px 0 0';
+}
+
+function imprimirModal() {
+  var content = document.getElementById('modal-respostas-content');
+  var wasHidden = content && content.style.display === 'none';
+  if(wasHidden) content.style.display = 'block';
+  window.print();
+  if(wasHidden) content.style.display = 'none';
 }
 
 function exportarRespostasPDF(sessao) {
