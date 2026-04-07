@@ -240,7 +240,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--gray);color:var(--text);m
       <div class="form-row">
         <div class="form-field">
           <label>Nome do/a professor/a que preenche</label>
-          <input type="text" id="nome_informante" class="form-input" placeholder="Nome completo" oninput="var hv=document.getElementById('h-nome-preenche-hidden'); if(hv) hv.value=this.value;">
+          <input type="text" id="nome_informante" class="form-input" placeholder="Nome completo">
         </div>
         <div class="form-field">
           <label>Disciplina / Área</label>
@@ -1853,10 +1853,9 @@ function calcularScores(answers) {
 // SUBMISSÃO
 // ═══════════════════════════════════════════════
 function submeterQuestionario() {
-  // Validar itens 51-86 cotados
-  var scaledItems51_86 = [51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73];
+  // Validar todos os itens da secção 3 (51-86)
   var missing = [];
-  for (var i=51; i<=73; i++) {
+  for (var i=51; i<=86; i++) {
     var ans = document.querySelector('input[name="q'+i+'"]:checked');
     if (!ans) missing.push(i);
   }
@@ -1883,7 +1882,7 @@ function submeterQuestionario() {
   var dob         = document.getElementById('child-dob').value;
   var gender      = document.getElementById('child-gender').value;
   var grade       = document.getElementById('child-grade').value.trim();
-  var teacherName = document.getElementById('teacher-name').value.trim();
+  var teacherName = document.getElementById('nome_informante').value.trim();
   var subject     = document.getElementById('teacher-subject').value.trim();
   var fillDate    = document.getElementById('fill-date').value || new Date().toISOString().slice(0,10);
 
@@ -2500,6 +2499,69 @@ function exportarInterpretacaoPDF(sessao) {
   if(!w){alert('Pop-up bloqueado.');return;}
   w.document.write(html);w.document.close();
 }
+
+// ═══════════════════════════════════════════════════════════════════
+// RC_SELF_TEST — diagnóstico automático de integridade
+// Corre em modo de desenvolvimento (URL contém ?rctest=1)
+// Garante que todos os IDs referenciados no JS existem no HTML
+// e que o fluxo de submissão não tem referências nulas.
+// ═══════════════════════════════════════════════════════════════════
+(function RC_selfTest() {
+  if (window.location.search.indexOf('rctest=1') === -1) return;
+  var erros = [];
+
+  // 1. Verificar IDs críticos do formulário
+  var idsObrigatorios = [
+    'patient-code', 'child-name', 'child-dob', 'child-gender',
+    'child-grade', 'nome_informante', 'teacher-subject', 'fill-date',
+    'obrigado-resumo', 'progress-2', 'progress-3',
+    'login-pw', 'login-error',
+    'clinico-loading', 'clinico-table-wrap', 'clinico-tbody',
+    'import-file-input', 'import-feedback'
+  ];
+  idsObrigatorios.forEach(function(id) {
+    if (!document.getElementById(id)) erros.push('ID em falta: #' + id);
+  });
+
+  // 2. Verificar que existem inputs radio q1..q86
+  var missingQ = [];
+  for (var i = 1; i <= 86; i++) {
+    if (!document.querySelector('input[name="q' + i + '"]')) missingQ.push(i);
+  }
+  if (missingQ.length) erros.push('Itens sem input radio: q' + missingQ.join(', q'));
+
+  // 3. Verificar SCRIPT_URL definida e não vazia
+  if (typeof SCRIPT_URL === 'undefined' || !SCRIPT_URL) erros.push('SCRIPT_URL não definida');
+
+  // 4. Simular execução parcial de submeterQuestionario (sem enviar)
+  try {
+    var ids = ['patient-code','child-name','child-dob','child-gender',
+               'child-grade','nome_informante','teacher-subject','fill-date'];
+    ids.forEach(function(id) {
+      var el = document.getElementById(id);
+      if (!el) throw new Error('getElementById null: #' + id);
+      var _ = el.value; // aceder ao .value para garantir que não explode
+    });
+  } catch(e) {
+    erros.push('Erro em submeterQuestionario: ' + e.message);
+  }
+
+  // Resultado
+  var cor = erros.length ? '#C0392B' : '#27AE60';
+  var msg = erros.length
+    ? '⚠ RC_SELF_TEST — ' + erros.length + ' erro(s):\n• ' + erros.join('\n• ')
+    : '✓ RC_SELF_TEST — todos os ' + idsObrigatorios.length + ' IDs presentes, ' +
+      '86 inputs radio OK, submeter sem erros.';
+  var banner = document.createElement('div');
+  banner.style.cssText = 'position:fixed;bottom:0;left:0;right:0;z-index:99999;' +
+    'background:' + cor + ';color:white;padding:10px 16px;font-size:13px;' +
+    'font-family:monospace;white-space:pre-wrap;cursor:pointer;';
+  banner.textContent = msg;
+  banner.onclick = function(){ banner.remove(); };
+  document.body.appendChild(banner);
+  if (erros.length) console.error('RC_SELF_TEST FALHOU:\n' + erros.join('\n'));
+  else console.log('RC_SELF_TEST OK');
+})();
 
 </script>
 </body>
