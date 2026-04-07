@@ -627,6 +627,27 @@ function calcularPontuacao(ans) {
   return scores;
 }
 
+// ── Normas de referência: Moreira et al. (2012) ──────────────────────────
+// Média por item e DP por item — adolescentes portugueses (n=801)
+// Escala 1–5 | Comprehensive Psychiatry 53: 1227-1236
+var NORMS_MOREIRA = {
+  NS: {mean: 2.9, sd: 0.45, nItems: 17},
+  HA: {mean: 2.8, sd: 0.42, nItems: 11},
+  RD: {mean: 3.3, sd: 0.37, nItems: 7},
+  P:  {mean: 3.3, sd: 0.42, nItems: 13},
+  SD: {mean: 3.5, sd: 0.41, nItems: 24},
+  CO: {mean: 3.8, sd: 0.49, nItems: 21}
+};
+
+// Calcula Z-score: (média/item obtida − média ref.) / DP ref.
+function calcularZ(score, key) {
+  var n = NORMS_MOREIRA[key];
+  if (!n || !score) return null;
+  var mediaItem = score / n.nItems;
+  return Math.round((mediaItem - n.mean) / n.sd * 100) / 100;
+}
+
+// Mantém calcularPct por compatibilidade com código existente
 function calcularPct(score, maxScore) {
   return maxScore > 0 ? Math.round(score / maxScore * 100) : 0;
 }
@@ -840,12 +861,14 @@ function renderTabela() {
     html += '<td>' + escapeHtml(s.nome_informante||'—') + '</td>';
     DIMS.forEach(function(d){
       var sc = s.scores ? (s.scores[d.key] || 0) : 0;
-      var pct = calcularPct(sc, d.max);
-      var cor = pct >= 70 ? 'var(--blue)' : pct >= 50 ? 'var(--green)' : 'var(--gray-bdr)';
+      var z = calcularZ(sc, d.key);
+      var zDisp = z !== null ? (z > 0 ? '+' : '') + z.toFixed(2) : '—';
+      var cor = z===null?'#aaa':z>1?'#27AE60':z>=-1?'#3B5A7A':z>=-2?'#E67E22':'#C0392B';
+      var pctMax = d.max > 0 ? Math.round(sc/d.max*100) : 0;
       html += '<td style="text-align:center;">' +
-              '<div style="font-weight:700;font-size:.9rem;">' + sc + '</div>' +
-              '<div style="font-size:.68rem;color:var(--text-light);">/' + d.max + '</div>' +
-              '<div class="dim-bar-wrap"><div class="dim-bar" style="background:' + cor + ';width:' + pct + '%;"></div></div>' +
+              '<div style="font-weight:700;font-size:.9rem;color:' + cor + ';">' + sc + '</div>' +
+              '<div style="font-size:.68rem;color:' + cor + ';font-weight:600;">Z=' + zDisp + '</div>' +
+              '<div class="dim-bar-wrap"><div class="dim-bar" style="background:' + cor + ';width:' + pctMax + '%;"></div></div>' +
               '</td>';
     });
     html += '<td><button class="btn btn-secondary btn-xs" onclick="verDetalhe(' + idx + ')">Ver →</button></td>';
@@ -871,16 +894,22 @@ function verDetalhe(idx) {
   var sc = s.scores || {};
   var ansList = typeof s.answers==='string' ? s.answers.split('|') : [];
 
-  // ── helper: interpret a dimension ──────────────────────────────────────
+  // ── helper: interpret a dimension using Z-score vs Moreira et al. (2012) ─
   function dimLevel(key, maxV) {
     var v = sc[key]||0;
-    var pct = calcularPct(v, maxV);
-    if(pct >= 68) return {level:'elevado', cls:'color:#C0392B;font-weight:700;', cor:'#C0392B', pct:pct, v:v};
-    if(pct >= 55) return {level:'moderado-alto', cls:'color:#E67E22;font-weight:600;', cor:'#E67E22', pct:pct, v:v};
-    if(pct <= 32) return {level:'baixo', cls:'color:#1A5276;font-weight:700;', cor:'#1A5276', pct:pct, v:v};
-    if(pct <= 45) return {level:'moderado-baixo', cls:'color:#2E86C1;font-weight:600;', cor:'#2E86C1', pct:pct, v:v};
-    return {level:'médio', cls:'color:var(--green);font-weight:600;', cor:'#27AE60', pct:pct, v:v};
+    var z = calcularZ(v, key);
+    var zDisp = z !== null ? (z > 0 ? '+' : '') + z.toFixed(2) : '—';
+    // Classificação por Z-score
+    if(z === null) return {level:'sem dados', cls:'color:#888;', cor:'#888', z:null, zDisp:zDisp, v:v, maxV:maxV};
+    if(z >  2.0)  return {level:'muito acima da média', cls:'color:#145A32;font-weight:700;', cor:'#1E8449', z:z, zDisp:zDisp, v:v, maxV:maxV};
+    if(z >  1.0)  return {level:'acima da média', cls:'color:#1E8449;font-weight:600;', cor:'#27AE60', z:z, zDisp:zDisp, v:v, maxV:maxV};
+    if(z >= -1.0) return {level:'na média', cls:'color:#3B5A7A;font-weight:600;', cor:'#3B5A7A', z:z, zDisp:zDisp, v:v, maxV:maxV};
+    if(z >= -2.0) return {level:'abaixo da média', cls:'color:#E67E22;font-weight:600;', cor:'#E67E22', z:z, zDisp:zDisp, v:v, maxV:maxV};
+    return {level:'muito abaixo da média', cls:'color:#C0392B;font-weight:700;', cor:'#C0392B', z:z, zDisp:zDisp, v:v, maxV:maxV};
   }
+
+  // Pct mantido para barra visual (% do máximo possível)
+  function pctBar(v, maxV) { return maxV > 0 ? Math.round(v / maxV * 100) : 0; }
 
   var NS = dimLevel('NS',85), HA = dimLevel('HA',55), RD = dimLevel('RD',35),
       P  = dimLevel('P',65),  SD = dimLevel('SD',120), CO = dimLevel('CO',105);
@@ -911,21 +940,23 @@ function verDetalhe(idx) {
   var DIMS_DATA = DIMS_ALL.map(function(d){
     var lv = dimLevel(d.key, d.max);
     return {key:d.key, label:d.label, short:d.short, max:d.max, grupo:d.grupo,
-            v:lv.v, pct:lv.pct, level:lv.level, cls:lv.cls, cor:lv.cor};
+            v:lv.v, z:lv.z, zDisp:lv.zDisp, level:lv.level, cls:lv.cls, cor:lv.cor,
+            pctBar:pctBar(lv.v, d.max)};
   });
-  // Sort by pct for ranking display
-  var ranked = DIMS_DATA.slice().sort(function(a,b){ return b.pct - a.pct; });
-  var topDims  = ranked.filter(function(d){ return d.pct >= 55; });
-  var lowDims  = ranked.filter(function(d){ return d.pct <= 45; }).reverse();
-  var midDims  = ranked.filter(function(d){ return d.pct > 45 && d.pct < 55; });
+  // Sort by Z for ranking display
+  var ranked = DIMS_DATA.slice().sort(function(a,b){ return (b.z||0) - (a.z||0); });
+  var topDims  = ranked.filter(function(d){ return d.z !== null && d.z > 1.0; });
+  var lowDims  = ranked.filter(function(d){ return d.z !== null && d.z < -1.0; }).reverse();
+  var midDims  = ranked.filter(function(d){ return d.z !== null && d.z >= -1.0 && d.z <= 1.0; });
 
   // ── Visual ranking strip ─────────────────────────────────────────────────
   html += '<h4 style="color:var(--blue);font-size:.9rem;margin-bottom:10px;">Perfil de Dimensões</h4>';
 
-  // Ranked pills — sorted by %
+  // Ranked pills — sorted by Z-score (Moreira et al. 2012)
   html += '<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px;">';
   ranked.forEach(function(d, i){
-    var bgPill = d.pct>=68 ? '#fdecea' : d.pct>=55 ? '#fef3e2' : d.pct<=32 ? '#e8f0fe' : d.pct<=45 ? '#e3f0fb' : '#eafaf1';
+    var z = d.z;
+    var bgPill = z>2?'#d5f5e3':z>1?'#eafaf1':z>=-1?'#EBF2F8':z>=-2?'#fef3e2':'#fdecea';
     var rank = i + 1;
     var rankLabel = rank===1 ? '1.º ↑' : rank===2 ? '2.º ↑' : rank===ranked.length ? String(rank)+'º ↓' : String(rank)+'º';
     html += '<div style="background:' + bgPill + ';border:1.5px solid ' + d.cor + ';border-radius:10px;padding:8px 14px;min-width:110px;text-align:center;">';
@@ -933,10 +964,10 @@ function verDetalhe(idx) {
     html += '<div style="font-weight:800;font-size:1.15rem;color:' + d.cor + ';">' + d.short + '</div>';
     html += '<div style="font-size:.72rem;color:#555;margin-bottom:4px;">' + d.label + '</div>';
     html += '<div style="font-size:.82rem;font-weight:700;color:' + d.cor + ';">' + d.v + '<span style="font-size:.65rem;color:#aaa;">/' + d.max + '</span></div>';
-    html += '<div style="font-size:.7rem;color:' + d.cor + ';font-weight:600;">' + d.pct + '%</div>';
-    // Mini-bar
+    html += '<div style="font-size:.75rem;font-weight:700;color:' + d.cor + ';">Z = ' + d.zDisp + '</div>';
+    // Mini-bar visual (% do máximo possível)
     html += '<div style="background:#e0e0e0;border-radius:3px;height:5px;margin-top:5px;">';
-    html += '<div style="background:' + d.cor + ';border-radius:3px;height:100%;width:' + d.pct + '%;"></div>';
+    html += '<div style="background:' + d.cor + ';border-radius:3px;height:100%;width:' + d.pctBar + '%;"></div>';
     html += '</div></div>';
   });
   html += '</div>';
@@ -944,23 +975,27 @@ function verDetalhe(idx) {
   // ── Scores table (compact) ──────────────────────────────────────────────
   html += '<div style="overflow-x:auto;margin-bottom:20px;"><table style="width:100%;border-collapse:collapse;font-size:.83rem;">';
   html += '<thead><tr style="background:var(--blue-xpale);">';
-  ['Dimensão','Grupo','Score','Perfil','Nível'].forEach(function(h){
+  ['Dimensão','Grupo','Score Bruto','Média/Item','Z-score','Perfil (visual)','Classificação'].forEach(function(h){
     html += '<th style="padding:7px 10px;text-align:' + (h==='Dimensão'||h==='Grupo'?'left':'center') + ';color:var(--blue);">' + h + '</th>';
   });
   html += '</tr></thead><tbody>';
   DIMS_DATA.forEach(function(d){
     var grupoLabel = d.grupo==='T' ? 'Temperamento' : 'Caráter';
-    var nivelBadge = d.level==='elevado'?'Elevado':d.level==='moderado-alto'?'Mod. Alto':d.level==='baixo'?'Baixo':d.level==='moderado-baixo'?'Mod. Baixo':'Médio';
-    var bgBadge = d.pct>=68?'#fdecea':d.pct>=55?'#fef3e2':d.pct<=32?'#e8f0fe':d.pct<=45?'#e3f0fb':'#eafaf1';
+    var nivel = d.level==='muito acima da média'?'Muito acima':d.level==='acima da média'?'Acima da média':d.level==='abaixo da média'?'Abaixo da média':d.level==='muito abaixo da média'?'Muito abaixo':'Na média';
+    var bgBadge = d.z>2?'#d5f5e3':d.z>1?'#eafaf1':d.z>=-1?'#EBF2F8':d.z>=-2?'#fef3e2':'#fdecea';
+    var nRef = NORMS_MOREIRA[d.key];
+    var mediaItem = nRef ? Math.round(d.v / nRef.nItems * 100) / 100 : '—';
     html += '<tr style="border-bottom:1px solid var(--gray-bdr);">';
     html += '<td style="padding:7px 10px;font-weight:600;">' + d.label + '</td>';
     html += '<td style="padding:7px 10px;font-size:.75rem;color:var(--text-light);">' + grupoLabel + '</td>';
     html += '<td style="padding:7px 10px;text-align:center;font-weight:700;' + d.cls + '">' + d.v + '<span style="font-size:.7rem;color:#aaa;font-weight:400;">/' + d.max + '</span></td>';
-    html += '<td style="padding:7px 10px;min-width:110px;">';
+    html += '<td style="padding:7px 10px;text-align:center;font-weight:600;">' + mediaItem + ' <span style="font-size:.68rem;color:#aaa;">(ref: ' + (nRef?nRef.mean:'—') + ')</span></td>';
+    html += '<td style="padding:7px 10px;text-align:center;font-weight:700;' + d.cls + '">Z = ' + d.zDisp + '</td>';
+    html += '<td style="padding:7px 10px;min-width:100px;">';
     html += '<div style="background:var(--gray-bdr);border-radius:4px;height:7px;">';
-    html += '<div style="background:' + d.cor + ';border-radius:4px;height:100%;width:' + d.pct + '%;"></div>';
+    html += '<div style="background:' + d.cor + ';border-radius:4px;height:100%;width:' + d.pctBar + '%;"></div>';
     html += '</div></td>';
-    html += '<td style="padding:7px 10px;text-align:center;"><span style="background:' + bgBadge + ';color:' + d.cor + ';border-radius:5px;padding:2px 8px;font-size:.72rem;font-weight:700;">' + nivelBadge + '</span></td>';
+    html += '<td style="padding:7px 10px;text-align:center;"><span style="background:' + bgBadge + ';color:' + d.cor + ';border-radius:5px;padding:2px 8px;font-size:.72rem;font-weight:700;">' + nivel + '</span></td>';
     html += '</tr>';
   });
   html += '</tbody></table></div>';
@@ -972,14 +1007,14 @@ function verDetalhe(idx) {
   // Build global synthesis text
   var synth = '';
   // Temperament profile
-  var tempAltos = DIMS_DATA.filter(function(d){ return d.grupo==='T' && d.pct>=55; });
-  var tempBaixos = DIMS_DATA.filter(function(d){ return d.grupo==='T' && d.pct<=45; });
-  var carAltos  = DIMS_DATA.filter(function(d){ return d.grupo==='C' && d.pct>=55; });
-  var carBaixos = DIMS_DATA.filter(function(d){ return d.grupo==='C' && d.pct<=45; });
+  var tempAltos = DIMS_DATA.filter(function(d){ return d.grupo==='T' && d.z !== null && d.z > 1.0; });
+  var tempBaixos = DIMS_DATA.filter(function(d){ return d.grupo==='T' && d.z !== null && d.z < -1.0; });
+  var carAltos  = DIMS_DATA.filter(function(d){ return d.grupo==='C' && d.z !== null && d.z > 1.0; });
+  var carBaixos = DIMS_DATA.filter(function(d){ return d.grupo==='C' && d.z !== null && d.z < -1.0; });
 
   // --- Intro line ---
-  var topTwo = ranked.slice(0,2).map(function(d){ return '<strong>' + d.label + '</strong> (' + d.pct + '%)'; }).join(' e ');
-  var botTwo  = ranked.slice(-2).reverse().map(function(d){ return '<strong>' + d.label + '</strong> (' + d.pct + '%)'; }).join(' e ');
+  var topTwo = ranked.slice(0,2).map(function(d){ return '<strong>' + d.label + '</strong> (Z = ' + d.zDisp + ')'; }).join(' e ');
+  var botTwo  = ranked.slice(-2).reverse().map(function(d){ return '<strong>' + d.label + '</strong> (Z = ' + d.zDisp + ')'; }).join(' e ');
   synth += '<p style="margin-bottom:10px;">O perfil desta criança/adolescente destaca-se por valores mais elevados em ' + topTwo;
   if(botTwo) synth += ', e valores mais baixos em ' + botTwo;
   synth += '.</p>';
@@ -989,21 +1024,21 @@ function verDetalhe(idx) {
   var tempLines = [];
   DIMS_DATA.filter(function(d){ return d.grupo==='T'; }).forEach(function(d){
     if(d.key==='NS'){
-      if(d.pct>=68) tempLines.push('A <strong>Busca de Novidades elevada</strong> sugere impulsividade e procura intensa de estimulação — pode traduzir-se em dificuldade em adiar gratificações e preferência por ambientes variados.');
-      else if(d.pct>=55) tempLines.push('A <strong>Busca de Novidades moderada-alta</strong> indica abertura à exploração dentro de limites funcionais.');
-      else if(d.pct<=32) tempLines.push('A <strong>Busca de Novidades baixa</strong> reflete preferência por rotinas previsíveis e um estilo mais deliberado e cauteloso.');
-      else if(d.pct<=45) tempLines.push('A <strong>Busca de Novidades moderada-baixa</strong> indica alguma resistência à mudança e preferência pela estabilidade.');
+      if(d.z>2.0) tempLines.push('A <strong>Busca de Novidades muito acima da média</strong> sugere impulsividade e procura intensa de estimulação — pode traduzir-se em dificuldade em adiar gratificações e preferência por ambientes variados.');
+      else if(d.z>1.0) tempLines.push('A <strong>Busca de Novidades acima da média</strong> indica abertura à exploração dentro de limites funcionais.');
+      else if(d.z<-2.0) tempLines.push('A <strong>Busca de Novidades muito abaixo da média</strong> reflete preferência por rotinas previsíveis e um estilo mais deliberado e cauteloso.');
+      else if(d.z<-1.0) tempLines.push('A <strong>Busca de Novidades abaixo da média</strong> indica alguma resistência à mudança e preferência pela estabilidade.');
     } else if(d.key==='HA'){
-      if(d.pct>=68) tempLines.push('A <strong>Evitação de Danos elevada</strong> aponta para ansiedade antecipatória, timidez social e inibição comportamental — padrão que importa contextualizar clinicamente, nomeadamente em relação a perturbações ansiosas.');
-      else if(d.pct>=55) tempLines.push('A <strong>Evitação de Danos moderada-alta</strong> traduz cautela e alguma sensibilidade à ameaça, ainda dentro de parâmetros adaptativos.');
-      else if(d.pct<=32) tempLines.push('A <strong>Evitação de Danos baixa</strong> reflete menor inibição ao risco e tendência para a aproximação — avaliar no contexto de comportamentos de risco.');
+      if(d.z>2.0) tempLines.push('A <strong>Evitação de Danos muito acima da média</strong> aponta para ansiedade antecipatória, timidez social e inibição comportamental — padrão que importa contextualizar clinicamente, nomeadamente em relação a perturbações ansiosas.');
+      else if(d.z>1.0) tempLines.push('A <strong>Evitação de Danos acima da média</strong> traduz cautela e alguma sensibilidade à ameaça, ainda dentro de parâmetros adaptativos.');
+      else if(d.z<-2.0) tempLines.push('A <strong>Evitação de Danos muito abaixo da média</strong> reflete menor inibição ao risco e tendência para a aproximação — avaliar no contexto de comportamentos de risco.');
     } else if(d.key==='RD'){
-      if(d.pct>=68) tempLines.push('A <strong>Dependência de Recompensa elevada</strong> indica forte necessidade de aprovação social e sensibilidade à rejeição e crítica.');
-      else if(d.pct<=32) tempLines.push('A <strong>Dependência de Recompensa baixa</strong> traduz maior independência afetiva e menor necessidade de validação social.');
+      if(d.z>1.0) tempLines.push('A <strong>Dependência de Recompensa acima da média</strong> indica forte necessidade de aprovação social e sensibilidade à rejeição e crítica.');
+      else if(d.z<-1.0) tempLines.push('A <strong>Dependência de Recompensa abaixo da média</strong> traduz maior independência afetiva e menor necessidade de validação social.');
     } else if(d.key==='P'){
-      if(d.pct>=68) tempLines.push('A <strong>Persistência elevada</strong> é um fator protetor relevante — a criança/adolescente revela capacidade de manter esforço, ambição e determinação face à adversidade.');
-      else if(d.pct<=32) tempLines.push('A <strong>Persistência baixa</strong> associa-se a dificuldade em manter o esforço, desistência perante obstáculos e menor motivação para objetivos a longo prazo.');
-      else if(d.pct<=45) tempLines.push('A <strong>Persistência moderada-baixa</strong> pode traduzir alguma tendência para abandonar tarefas antes de as concluir.');
+      if(d.z>1.0) tempLines.push('A <strong>Persistência acima da média</strong> é um fator protetor relevante — a criança/adolescente revela capacidade de manter esforço, ambição e determinação face à adversidade.');
+      else if(d.z<-2.0) tempLines.push('A <strong>Persistência muito abaixo da média</strong> associa-se a dificuldade em manter o esforço, desistência perante obstáculos e menor motivação para objetivos a longo prazo.');
+      else if(d.z<-1.0) tempLines.push('A <strong>Persistência abaixo da média</strong> pode traduzir alguma tendência para abandonar tarefas antes de as concluir.');
     }
   });
   if(tempLines.length===0) tempLines.push('O perfil de temperamento situa-se globalmente na amplitude média, sem características salientes.');
@@ -1016,15 +1051,15 @@ function verDetalhe(idx) {
   var carLines = [];
   DIMS_DATA.filter(function(d){ return d.grupo==='C'; }).forEach(function(d){
     if(d.key==='SD'){
-      if(d.pct>=68) carLines.push('A <strong>Auto-Diretividade elevada</strong> reflete maturidade psicológica, forte sentido de responsabilidade pessoal, auto-eficácia e boa capacidade de autorregulação — recursos adaptativos importantes.');
-      else if(d.pct>=55) carLines.push('A <strong>Auto-Diretividade moderada-alta</strong> indica boa capacidade de autonomia e orientação para objetivos.');
-      else if(d.pct<=32) carLines.push('A <strong>Auto-Diretividade baixa</strong> sugere dificuldades na autorregulação, menor sentido de auto-eficácia e tendência para responsabilizar o exterior. Este padrão associa-se a maior vulnerabilidade psicopatológica.');
-      else if(d.pct<=45) carLines.push('A <strong>Auto-Diretividade moderada-baixa</strong> traduz alguma dificuldade em assumir responsabilidade pessoal e em orientar o comportamento por objetivos próprios.');
+      if(d.z>1.0) carLines.push('A <strong>Auto-Diretividade acima da média</strong> reflete maturidade psicológica, forte sentido de responsabilidade pessoal, auto-eficácia e boa capacidade de autorregulação — recursos adaptativos importantes.');
+      else if(d.z>0.5) carLines.push('A <strong>Auto-Diretividade moderada-alta</strong> indica boa capacidade de autonomia e orientação para objetivos.');
+      else if(d.z<-2.0) carLines.push('A <strong>Auto-Diretividade muito abaixo da média</strong> sugere dificuldades na autorregulação, menor sentido de auto-eficácia e tendência para responsabilizar o exterior. Este padrão associa-se a maior vulnerabilidade psicopatológica.');
+      else if(d.z<-1.0) carLines.push('A <strong>Auto-Diretividade abaixo da média</strong> traduz alguma dificuldade em assumir responsabilidade pessoal e em orientar o comportamento por objetivos próprios.');
     } else if(d.key==='CO'){
-      if(d.pct>=68) carLines.push('A <strong>Cooperatividade elevada</strong> reflete empatia marcada, orientação prossocial e capacidade de colaboração e partilha.');
-      else if(d.pct>=55) carLines.push('A <strong>Cooperatividade moderada-alta</strong> traduz boa sensibilidade interpessoal e disposição para a colaboração.');
-      else if(d.pct<=32) carLines.push('A <strong>Cooperatividade baixa</strong> pode indicar dificuldades empáticas, menor orientação para o outro e possível tendência para comportamentos oposicionistas ou autocentrados — a explorar no contexto relacional.');
-      else if(d.pct<=45) carLines.push('A <strong>Cooperatividade moderada-baixa</strong> traduz alguma dificuldade em adotar a perspetiva do outro e em colaborar de forma consistente.');
+      if(d.z>1.0) carLines.push('A <strong>Cooperatividade acima da média</strong> reflete empatia marcada, orientação prossocial e capacidade de colaboração e partilha.');
+      else if(d.z>0.5) carLines.push('A <strong>Cooperatividade moderada-alta</strong> traduz boa sensibilidade interpessoal e disposição para a colaboração.');
+      else if(d.z<-2.0) carLines.push('A <strong>Cooperatividade muito abaixo da média</strong> pode indicar dificuldades empáticas, menor orientação para o outro e possível tendência para comportamentos oposicionistas ou autocentrados — a explorar no contexto relacional.');
+      else if(d.z<-1.0) carLines.push('A <strong>Cooperatividade abaixo da média</strong> traduz alguma dificuldade em adotar a perspetiva do outro e em colaborar de forma consistente.');
     }
   });
   if(carLines.length===0) carLines.push('O perfil de caráter situa-se globalmente na amplitude média.');
@@ -1033,15 +1068,15 @@ function verDetalhe(idx) {
   synth += '</ul>';
 
   // --- Combined pattern note ---
-  var haAlerta = (NS.pct>=68 && P.pct<=45);
-  var haRecurso = (P.pct>=68 && SD.pct>=55);
-  var haAnsiedade = (HA.pct>=55);
+  var haAlerta = (NS.z>1.0 && P.z<-1.0);
+  var haRecurso = (P.z>1.0 && SD.z>0.5);
+  var haAnsiedade = (HA.z>1.0);
   if(haAlerta || haRecurso || haAnsiedade){
     synth += '<p style="font-weight:700;color:var(--blue);margin-bottom:4px;">Padrão combinado</p>';
     var combLines = [];
     if(haAlerta) combLines.push('A combinação de <strong>NS elevado + P baixo/mod-baixo</strong> sugere impulsividade com dificuldade de persistência — padrão frequentemente associado a dificuldades de regulação comportamental e motivacionais.');
     if(haRecurso) combLines.push('A combinação de <strong>P elevada + SD elevada/moderada-alta</strong> constitui um perfil de resiliência e recurso — a criança/adolescente revela recursos internos significativos para enfrentar desafios.');
-    if(haAnsiedade && SD.pct<=45) combLines.push('A combinação de <strong>HA elevado + SD baixa/mod-baixa</strong> pode refletir inibição comportamental com dificuldades de autorregulação — padrão que merece atenção clínica prioritária.');
+    if(haAnsiedade && SD.z<-1.0) combLines.push('A combinação de <strong>HA elevado + SD baixa/mod-baixa</strong> pode refletir inibição comportamental com dificuldades de autorregulação — padrão que merece atenção clínica prioritária.');
     if(combLines.length>0){
       synth += '<ul style="margin:0 0 8px 16px;padding:0;">';
       combLines.forEach(function(l){ synth += '<li style="margin-bottom:5px;">' + l + '</li>'; });
@@ -1049,7 +1084,7 @@ function verDetalhe(idx) {
     }
   }
 
-  synth += '<p style="font-size:.78rem;color:var(--text-light);font-style:italic;margin-top:8px;padding-top:8px;border-top:1px solid var(--blue-pale);">Interpretação automática baseada nos scores brutos (Mondoni 2010 · Moreira et al. 2012). Não substitui avaliação clínica integrada.</p>';
+  synth += '<p style="font-size:.78rem;color:var(--text-light);font-style:italic;margin-top:8px;padding-top:8px;border-top:1px solid var(--blue-pale);">Interpretação baseada em Z-scores vs. normas de Moreira et al. (2012) — adolescentes portugueses (n=801). Z &gt; +1 = acima da média · Z entre −1 e +1 = na média · Z &lt; −1 = abaixo da média. Não substitui avaliação clínica integrada.</p>';
   html += synth + '</div>';
 
   // ── Per-dimension detail (collapsible) ─────────────────────────────────
@@ -1058,53 +1093,53 @@ function verDetalhe(idx) {
   html += '<p style="font-weight:600;color:var(--blue);margin-bottom:6px;">Temperamento</p>';
 
   // NS
-  html += '<p style="margin-bottom:5px;"><strong>Busca de Novidades — NS = ' + NS.v + '/' + 85 + ' <span style="' + NS.cls + '">(' + NS.pct + '% · ' + (NS.level.charAt(0).toUpperCase()+NS.level.slice(1)) + ')</span></strong><br>';
-  if(NS.level==='elevado') html += 'Tendência marcada para a exploração de novidades, impulsividade e procura de estimulação intensa. Pode apresentar dificuldade em adiar recompensas e preferência por atividades variadas e estimulantes.';
-  else if(NS.level==='moderado-alto') html += 'Alguma tendência exploratória e procura de novidade, dentro de limites funcionais.';
-  else if(NS.level==='baixo') html += 'Caráter mais deliberado e metódico, com preferência por rotinas estáveis e menor impulsividade.';
-  else if(NS.level==='moderado-baixo') html += 'Preferência por estabilidade com abertura limitada à novidade.';
+  html += '<p style="margin-bottom:5px;"><strong>Busca de Novidades — NS = ' + NS.v + '/85 &nbsp;|&nbsp; Média/item = ' + (Math.round(NS.v/NORMS_MOREIRA.NS.nItems*100)/100).toFixed(2) + ' <span style="' + NS.cls + '">(Z = ' + NS.zDisp + ' · ' + NS.level + ')</span></strong><br>';
+  if(NS.z>2.0) html += 'Tendência marcada para a exploração de novidades, impulsividade e procura de estimulação intensa. Pode apresentar dificuldade em adiar recompensas e preferência por atividades variadas e estimulantes.';
+  else if(NS.z>1.0) html += 'Alguma tendência exploratória e procura de novidade, dentro de limites funcionais.';
+  else if(NS.z<-2.0) html += 'Caráter muito deliberado e metódico, com preferência por rotinas estáveis e menor impulsividade.';
+  else if(NS.z<-1.0) html += 'Preferência por estabilidade com abertura limitada à novidade.';
   else html += 'Sem características exploratórias salientes.';
   html += '</p>';
 
   // HA
-  html += '<p style="margin-bottom:5px;"><strong>Evitação de Danos — HA = ' + HA.v + '/' + 55 + ' <span style="' + HA.cls + '">(' + HA.pct + '% · ' + (HA.level.charAt(0).toUpperCase()+HA.level.slice(1)) + ')</span></strong><br>';
-  if(HA.level==='elevado') html += 'Ansiedade antecipatória marcada, timidez social, preocupação excessiva e fatigabilidade. Inibição comportamental significativa que importa avaliar no contexto clínico.';
-  else if(HA.level==='moderado-alto') html += 'Alguma tendência à ansiedade antecipatória e cautela, ainda dentro de parâmetros funcionais.';
-  else if(HA.level==='baixo') html += 'Baixa inibição ao risco, menor ansiedade antecipatória e maior propensão para comportamentos de aproximação. Considerar no contexto de comportamentos de risco.';
+  html += '<p style="margin-bottom:5px;"><strong>Evitação de Danos — HA = ' + HA.v + '/55 &nbsp;|&nbsp; Média/item = ' + (Math.round(HA.v/NORMS_MOREIRA.HA.nItems*100)/100).toFixed(2) + ' <span style="' + HA.cls + '">(Z = ' + HA.zDisp + ' · ' + HA.level + ')</span></strong><br>';
+  if(HA.z>2.0) html += 'Ansiedade antecipatória marcada, timidez social, preocupação excessiva e fatigabilidade. Inibição comportamental significativa que importa avaliar no contexto clínico.';
+  else if(HA.z>1.0) html += 'Alguma tendência à ansiedade antecipatória e cautela, ainda dentro de parâmetros funcionais.';
+  else if(HA.z<-1.0) html += 'Baixa inibição ao risco, menor ansiedade antecipatória e maior propensão para comportamentos de aproximação. Considerar no contexto de comportamentos de risco.';
   else html += 'Sem ansiedade antecipatória saliente.';
   html += '</p>';
 
   // RD
-  html += '<p style="margin-bottom:5px;"><strong>Dependência de Recompensa — RD = ' + RD.v + '/' + 35 + ' <span style="' + RD.cls + '">(' + RD.pct + '% · ' + (RD.level.charAt(0).toUpperCase()+RD.level.slice(1)) + ')</span></strong><br>';
-  if(RD.level==='elevado') html += 'Sensibilidade emocional elevada, necessidade de aprovação social e vinculação afetiva marcada. Pode ser particularmente sensível a críticas e rejeição.';
-  else if(RD.level==='baixo') html += 'Menor sensibilidade às recompensas sociais e maior independência afetiva, podendo manifestar-se como reserva emocional.';
+  html += '<p style="margin-bottom:5px;"><strong>Dependência de Recompensa — RD = ' + RD.v + '/35 &nbsp;|&nbsp; Média/item = ' + (Math.round(RD.v/NORMS_MOREIRA.RD.nItems*100)/100).toFixed(2) + ' <span style="' + RD.cls + '">(Z = ' + RD.zDisp + ' · ' + RD.level + ')</span></strong><br>';
+  if(RD.z>1.0) html += 'Sensibilidade emocional elevada, necessidade de aprovação social e vinculação afetiva marcada. Pode ser particularmente sensível a críticas e rejeição.';
+  else if(RD.z<-1.0) html += 'Menor sensibilidade às recompensas sociais e maior independência afetiva, podendo manifestar-se como reserva emocional.';
   else html += 'Sem dependência de recompensa saliente.';
   html += '</p>';
 
   // P
-  html += '<p style="margin-bottom:10px;"><strong>Persistência — P = ' + P.v + '/' + 65 + ' <span style="' + P.cls + '">(' + P.pct + '% · ' + (P.level.charAt(0).toUpperCase()+P.level.slice(1)) + ')</span></strong><br>';
-  if(P.level==='elevado') html += 'Ambição, determinação e perfeccionismo marcados. Capacidade de manter esforço face à adversidade — fator protetor académico e vocacional.';
-  else if(P.level==='baixo') html += 'Dificuldade em manter esforço, desistência perante obstáculos e menor ambição. Padrão associado a dificuldades académicas e motivacionais.';
+  html += '<p style="margin-bottom:10px;"><strong>Persistência — P = ' + P.v + '/65 &nbsp;|&nbsp; Média/item = ' + (Math.round(P.v/NORMS_MOREIRA.P.nItems*100)/100).toFixed(2) + ' <span style="' + P.cls + '">(Z = ' + P.zDisp + ' · ' + P.level + ')</span></strong><br>';
+  if(P.z>1.0) html += 'Ambição, determinação e perfeccionismo marcados. Capacidade de manter esforço face à adversidade — fator protetor académico e vocacional.';
+  else if(P.z<-1.0) html += 'Dificuldade em manter esforço, desistência perante obstáculos e menor ambição. Padrão associado a dificuldades académicas e motivacionais.';
   else html += 'Sem dificuldades de persistência salientes.';
   html += '</p>';
 
   html += '<p style="font-weight:600;color:var(--blue);margin-bottom:6px;">Caráter</p>';
 
   // SD
-  html += '<p style="margin-bottom:5px;"><strong>Auto-Diretividade — SD = ' + SD.v + '/' + 120 + ' <span style="' + SD.cls + '">(' + SD.pct + '% · ' + (SD.level.charAt(0).toUpperCase()+SD.level.slice(1)) + ')</span></strong><br>';
-  if(SD.level==='elevado') html += 'Forte sentido de responsabilidade, auto-eficácia, flexibilidade adaptativa e aceitação de si próprio. Boa capacidade de autorregulação e orientação para objetivos.';
-  else if(SD.level==='baixo') html += 'Dificuldades na autorregulação, sentido de auto-eficácia reduzido e tendência para atribuir responsabilidade ao exterior. Pode associar-se a perturbações de personalidade e dificuldades de adaptação.';
+  html += '<p style="margin-bottom:5px;"><strong>Auto-Diretividade — SD = ' + SD.v + '/120 &nbsp;|&nbsp; Média/item = ' + (Math.round(SD.v/NORMS_MOREIRA.SD.nItems*100)/100).toFixed(2) + ' <span style="' + SD.cls + '">(Z = ' + SD.zDisp + ' · ' + SD.level + ')</span></strong><br>';
+  if(SD.z>1.0) html += 'Forte sentido de responsabilidade, auto-eficácia, flexibilidade adaptativa e aceitação de si próprio. Boa capacidade de autorregulação e orientação para objetivos.';
+  else if(SD.z<-1.0) html += 'Dificuldades na autorregulação, sentido de auto-eficácia reduzido e tendência para atribuir responsabilidade ao exterior. Pode associar-se a perturbações de personalidade e dificuldades de adaptação.';
   else html += 'Sem dificuldades de auto-diretividade salientes.';
   html += '</p>';
 
   // CO
-  html += '<p style="margin-bottom:5px;"><strong>Cooperatividade — CO = ' + CO.v + '/' + 105 + ' <span style="' + CO.cls + '">(' + CO.pct + '% · ' + (CO.level.charAt(0).toUpperCase()+CO.level.slice(1)) + ')</span></strong><br>';
-  if(CO.level==='elevado') html += 'Empatia marcada, orientação prossocial e capacidade de colaboração. Sensibilidade aos outros e comportamento cooperativo.';
-  else if(CO.level==='baixo') html += 'Menor empatia, dificuldades na cooperação e possível tendência para comportamentos oposicionistas ou autocentrados. Avaliar no contexto relacional.';
+  html += '<p style="margin-bottom:5px;"><strong>Cooperatividade — CO = ' + CO.v + '/105 &nbsp;|&nbsp; Média/item = ' + (Math.round(CO.v/NORMS_MOREIRA.CO.nItems*100)/100).toFixed(2) + ' <span style="' + CO.cls + '">(Z = ' + CO.zDisp + ' · ' + CO.level + ')</span></strong><br>';
+  if(CO.z>1.0) html += 'Empatia marcada, orientação prossocial e capacidade de colaboração. Sensibilidade aos outros e comportamento cooperativo.';
+  else if(CO.z<-1.0) html += 'Menor empatia, dificuldades na cooperação e possível tendência para comportamentos oposicionistas ou autocentrados. Avaliar no contexto relacional.';
   else html += 'Sem dificuldades de cooperatividade salientes.';
   html += '</p>';
 
-  html += '<p style="margin-top:10px;padding-top:10px;border-top:1px solid var(--blue-pale);font-size:.78rem;color:var(--text-light);font-style:italic;">Interpretação automática baseada nos scores brutos (Mondoni 2010 · Moreira et al. 2012). Não substitui avaliação clínica integrada.</p>';
+  html += '<p style="margin-top:10px;padding-top:10px;border-top:1px solid var(--blue-pale);font-size:.78rem;color:var(--text-light);font-style:italic;">Z-score = (média/item − média ref.) / DP ref. · Normas: Moreira et al. (2012), adolescentes portugueses, n=801 · Não substitui avaliação clínica integrada.</p>';
   html += '</div>';
 
   // ── Responses per item ──────────────────────────────────────────────────
@@ -1232,30 +1267,69 @@ function exportarRespostasPDF(sessao) {
 function exportarInterpretacaoPDF(sessao) {
   if(!sessao||!sessao.scores){ alert('Selecione um registo primeiro (Ver →).'); return; }
   var sc = sessao.scores;
-  var linhas = DIMS.map(function(d){
+  // Dimensões com referência normativa (Moreira et al. 2012)
+  var DIMS_I = [
+    {key:'NS', label:'Busca de Novidades (NS)',  max:85,  nItems:17},
+    {key:'HA', label:'Evitação de Danos (HA)',   max:55,  nItems:11},
+    {key:'RD', label:'Dep. Recompensa (RD)',      max:35,  nItems:7},
+    {key:'P',  label:'Persistência (P)',          max:65,  nItems:13},
+    {key:'SD', label:'Auto-Diretividade (SD)',    max:120, nItems:24},
+    {key:'CO', label:'Cooperatividade (CO)',      max:105, nItems:21}
+  ];
+  function zI(key, v) {
+    var n = NORMS_MOREIRA[key]; if(!n||!v) return null;
+    return Math.round((v/n.nItems - n.mean)/n.sd * 100)/100;
+  }
+  function corI(z) {
+    if(z===null) return '#888';
+    return z>2?'#145A32':z>1?'#27AE60':z>=-1?'#3B5A7A':z>=-2?'#E67E22':'#C0392B';
+  }
+  function nivelI(z) {
+    if(z===null) return '—';
+    return z>2?'Muito acima da média':z>1?'Acima da média':z>=-1?'Na média':z>=-2?'Abaixo da média':'Muito abaixo da média';
+  }
+  var linhas = DIMS_I.map(function(d){
     var v = sc[d.key]||0;
-    var pct = calcularPct(v, d.max);
-    return '<tr><td style="padding:6px 10px;">'+d.label+'</td>'+
-           '<td style="padding:6px 10px;text-align:center;font-weight:700;">'+v+'</td>'+
-           '<td style="padding:6px 10px;text-align:center;color:#888;">'+d.max+'</td>'+
-           '<td style="padding:6px 10px;text-align:center;">'+pct+'%</td></tr>';
+    var z = zI(d.key, v);
+    var n = NORMS_MOREIRA[d.key];
+    var mediaItem = v ? (Math.round(v/d.nItems*100)/100).toFixed(2) : '—';
+    var zDisp = z!==null ? (z>0?'+':'')+z.toFixed(2) : '—';
+    var cor = corI(z);
+    var nivel = nivelI(z);
+    var pctMax = d.max > 0 ? Math.round(v/d.max*100) : 0;
+    return '<tr>'+
+      '<td style="padding:6px 10px;font-weight:600;">'+d.label+'</td>'+
+      '<td style="padding:6px 10px;text-align:center;font-weight:700;">'+v+'<span style="font-size:10px;color:#aaa;font-weight:400;">/'+d.max+'</span></td>'+
+      '<td style="padding:6px 10px;text-align:center;">'+mediaItem+'<br><span style="font-size:9px;color:#aaa;">(ref: '+(n?n.mean:'—')+' ±'+(n?n.sd:'—')+')</span></td>'+
+      '<td style="padding:6px 10px;text-align:center;font-weight:700;color:'+cor+';">Z = '+zDisp+'</td>'+
+      '<td style="padding:6px 10px;"><div style="background:#eee;border-radius:3px;height:8px;width:100%;"><div style="background:'+cor+';border-radius:3px;height:100%;width:'+pctMax+'%;"></div></div></td>'+
+      '<td style="padding:6px 10px;font-weight:700;color:'+cor+';">'+nivel+'</td>'+
+    '</tr>';
   }).join('');
   var w = window.open('','_blank');
   if(!w){ alert('Pop-up bloqueado.'); return; }
   w.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Interpretação — '+sessao.codigo+'</title>'+
-    '<style>body{font-family:sans-serif;font-size:12px;color:#2C3E50;padding:24px;}h2,h3{color:#3B5A7A;}'+
-    'table{width:100%;border-collapse:collapse;}th{background:#D6E4F0;padding:8px;text-align:left;color:#3B5A7A;}'+
-    'td{border-bottom:1px solid #eee;}.no-print{margin-bottom:20px;}@media print{.no-print{display:none}}</style></head><body>'+
-    '<div class="no-print"><button onclick="window.print()">🖨 Imprimir / Guardar PDF</button></div>'+
+    '<style>body{font-family:sans-serif;font-size:12px;color:#2C3E50;padding:24px;max-width:960px;margin:0 auto;}h2,h3{color:#3B5A7A;}'+
+    'table{width:100%;border-collapse:collapse;}th{background:#D6E4F0;padding:8px;text-align:left;color:#3B5A7A;font-size:11px;}'+
+    'td{border-bottom:1px solid #eee;}.no-print{margin-bottom:20px;}@media print{.no-print{display:none}body{padding:0}}</style></head><body>'+
+    '<div class="no-print"><button onclick="window.print()" style="padding:8px 18px;background:#3B5A7A;color:white;border:none;border-radius:6px;cursor:pointer;font-size:13px;">🖨 Imprimir / Guardar PDF</button></div>'+
     '<h2>JTCI — Resultados e Interpretação</h2>'+
+    '<p style="color:#888;font-size:11px;">Mondoni (2010) · Moreira et al. (2012) · Versão 92 itens · Ricardina Correia · Cédula 8233 · Psicologia Pediátrica</p>'+
     '<p>Paciente: <strong>'+escapeHtml(sessao.codigo)+'</strong>'+
     (sessao.nome_crianca?' · '+escapeHtml(sessao.nome_crianca):'')+
     (sessao.nome_informante?' · '+escapeHtml(sessao.nome_informante):'')+
-    ' · '+new Date(sessao.timestamp).toLocaleDateString("pt-PT")+' · Ricardina Correia · Cédula 8233</p>'+
-    '<h3>Scores por Dimensão</h3>'+
-    '<table><thead><tr><th>Dimensão</th><th>Score</th><th>Máx</th><th>%</th></tr></thead>'+
+    ' · '+new Date(sessao.timestamp).toLocaleDateString("pt-PT")+'</p>'+
+    '<h3>Scores por Dimensão — Comparação com Normas Portuguesas</h3>'+
+    '<table><thead><tr>'+
+    '<th style="width:22%;">Dimensão</th>'+
+    '<th style="width:10%;text-align:center;">Score Bruto</th>'+
+    '<th style="width:15%;text-align:center;">Média/Item (ref.)</th>'+
+    '<th style="width:12%;text-align:center;">Z-score</th>'+
+    '<th style="width:18%;">Perfil visual</th>'+
+    '<th style="width:23%;">Classificação</th>'+
+    '</tr></thead>'+
     '<tbody>'+linhas+'</tbody></table>'+
-    '<p style="margin-top:16px;font-style:italic;color:#888;font-size:11px;">Interpretação automática gerada a partir dos scores brutos (Mondoni 2010 / Moreira et al. 2012). Não substitui avaliação clínica.</p>'+
+    '<p style="margin-top:12px;font-size:10px;color:#888;font-style:italic;">Z-score = (média/item − média ref.) / DP ref. · Normas: Moreira et al. (2012), adolescentes portugueses (n=801) · Escala 1–5 · Classificação: Z &gt; +1 = acima da média · Z entre −1 e +1 = na média · Z &lt; −1 = abaixo da média. Não substitui avaliação clínica.</p>'+
     '</body></html>');
   w.document.close();
 }
@@ -1275,55 +1349,61 @@ function exportarRelatorioCompleto(sessao) {
   var labelsShort = {1:'F',2:'QSF',3:'NCD',4:'QSV',5:'V'};
 
   var DIMS_REL = [
-    {key:'NS', label:'Busca de Novidades',  max:85},
-    {key:'HA', label:'Evitação de Danos',   max:55},
-    {key:'RD', label:'Dep. Recompensa',     max:35},
-    {key:'P',  label:'Persistência',        max:65},
-    {key:'SD', label:'Auto-Diretividade',   max:120},
-    {key:'CO', label:'Cooperatividade',     max:105}
+    {key:'NS', label:'Busca de Novidades',  max:85,  nItems:17},
+    {key:'HA', label:'Evitação de Danos',   max:55,  nItems:11},
+    {key:'RD', label:'Dep. Recompensa',     max:35,  nItems:7},
+    {key:'P',  label:'Persistência',        max:65,  nItems:13},
+    {key:'SD', label:'Auto-Diretividade',   max:120, nItems:24},
+    {key:'CO', label:'Cooperatividade',     max:105, nItems:21}
   ];
 
-  function pctR(key, maxV){ return sc[key] ? Math.round(sc[key]/maxV*100) : 0; }
-  function barR(p, c){
-    return '<div style="background:#eee;border-radius:3px;height:10px;width:100%;">' +
-           '<div style="background:' + c + ';border-radius:3px;height:100%;width:' + p + '%;"></div></div>';
+  // Z-score vs Moreira et al. (2012): (média/item − média ref.) / DP ref.
+  function zR(key, v) {
+    var n = NORMS_MOREIRA[key]; if(!n||!v) return null;
+    return Math.round((v/n.nItems - n.mean)/n.sd * 100)/100;
   }
-  function corR(p){ return p>=68?'#C0392B':p>=55?'#E67E22':p<=32?'#1A5276':p<=45?'#2E86C1':'#27AE60'; }
-  function nivelR(p){ return p>=68?'Elevado':p>=55?'Mod. Alto':p<=32?'Baixo':p<=45?'Mod. Baixo':'Médio'; }
-
-  function interpText(key, p) {
-    var lv = p>=68?'elevado':p>=55?'mod-alto':p<=32?'baixo':p<=45?'mod-baixo':'medio';
+  function zDispR(z) { return z===null ? '—' : (z>0?'+':'')+z.toFixed(2); }
+  function corR(z) {
+    if(z===null) return '#888';
+    return z>2?'#145A32':z>1?'#27AE60':z>=-1?'#3B5A7A':z>=-2?'#E67E22':'#C0392B';
+  }
+  function nivelR(z) {
+    if(z===null) return '—';
+    return z>2?'Muito acima':z>1?'Acima da média':z>=-1?'Na média':z>=-2?'Abaixo da média':'Muito abaixo';
+  }
+  function barR(pctMax, c) {
+    return '<div style="background:#eee;border-radius:3px;height:8px;width:100%;">' +
+           '<div style="background:' + c + ';border-radius:3px;height:100%;width:' + pctMax + '%;"></div></div>';
+  }
+  function interpText(key, z) {
     if(key==='NS'){
-      if(lv==='elevado') return 'Tendência marcada para exploração de novidades, impulsividade e procura de estimulação intensa. Pode apresentar dificuldade em adiar recompensas.';
-      if(lv==='mod-alto') return 'Alguma tendência exploratória e procura de novidade, dentro de limites funcionais.';
-      if(lv==='baixo') return 'Caráter deliberado e metódico, com preferência por rotinas estáveis e menor impulsividade.';
-      if(lv==='mod-baixo') return 'Preferência por estabilidade, com abertura limitada à novidade.';
+      if(z>1.0) return 'Tendência marcada para exploração de novidades, impulsividade e procura de estimulação intensa. Pode apresentar dificuldade em adiar recompensas.';
+      if(z<-1.0) return 'Caráter deliberado e metódico, com preferência por rotinas estáveis e menor impulsividade.';
       return 'Sem características exploratórias salientes.';
     }
     if(key==='HA'){
-      if(lv==='elevado') return 'Ansiedade antecipatória marcada, timidez social e inibição comportamental significativa. Avaliar no contexto clínico.';
-      if(lv==='mod-alto') return 'Alguma tendência à ansiedade antecipatória e cautela, ainda funcional.';
-      if(lv==='baixo') return 'Baixa inibição ao risco e maior propensão para comportamentos de aproximação. Considerar no contexto de comportamentos de risco.';
+      if(z>1.0) return 'Ansiedade antecipatória marcada, timidez social e inibição comportamental significativa. Avaliar no contexto clínico.';
+      if(z<-1.0) return 'Baixa inibição ao risco e maior propensão para comportamentos de aproximação. Considerar no contexto de comportamentos de risco.';
       return 'Sem ansiedade antecipatória saliente.';
     }
     if(key==='RD'){
-      if(lv==='elevado') return 'Sensibilidade emocional elevada e necessidade marcada de aprovação social. Pode ser particularmente sensível a críticas e rejeição.';
-      if(lv==='baixo') return 'Menor sensibilidade às recompensas sociais e maior independência afetiva, podendo manifestar-se como reserva emocional.';
+      if(z>1.0) return 'Sensibilidade emocional elevada e necessidade marcada de aprovação social. Pode ser particularmente sensível a críticas e rejeição.';
+      if(z<-1.0) return 'Menor sensibilidade às recompensas sociais e maior independência afetiva, podendo manifestar-se como reserva emocional.';
       return 'Sem dependência de recompensa saliente.';
     }
     if(key==='P'){
-      if(lv==='elevado') return 'Ambição, determinação e perfeccionismo marcados. Capacidade de manter esforço face à adversidade — fator protetor académico e vocacional.';
-      if(lv==='baixo') return 'Dificuldade em manter esforço, desistência perante obstáculos e menor ambição. Associa-se frequentemente a dificuldades académicas e motivacionais.';
+      if(z>1.0) return 'Ambição, determinação e perfeccionismo marcados. Capacidade de manter esforço face à adversidade — fator protetor académico e vocacional.';
+      if(z<-1.0) return 'Dificuldade em manter esforço, desistência perante obstáculos e menor ambição. Associa-se frequentemente a dificuldades académicas e motivacionais.';
       return 'Sem dificuldades de persistência salientes.';
     }
     if(key==='SD'){
-      if(lv==='elevado') return 'Forte sentido de responsabilidade, auto-eficácia e boa capacidade de autorregulação e orientação para objetivos.';
-      if(lv==='baixo') return 'Dificuldades na autorregulação, sentido de auto-eficácia reduzido e tendência para atribuir responsabilidade ao exterior.';
+      if(z>1.0) return 'Forte sentido de responsabilidade, auto-eficácia e boa capacidade de autorregulação e orientação para objetivos.';
+      if(z<-1.0) return 'Dificuldades na autorregulação, sentido de auto-eficácia reduzido e tendência para atribuir responsabilidade ao exterior.';
       return 'Sem dificuldades de auto-diretividade salientes.';
     }
     if(key==='CO'){
-      if(lv==='elevado') return 'Empatia marcada, orientação prossocial e forte capacidade de colaboração.';
-      if(lv==='baixo') return 'Menor empatia e possível tendência para comportamentos autocentrados. Avaliar no contexto relacional.';
+      if(z>1.0) return 'Empatia marcada, orientação prossocial e forte capacidade de colaboração.';
+      if(z<-1.0) return 'Menor empatia e possível tendência para comportamentos autocentrados. Avaliar no contexto relacional.';
       return 'Sem dificuldades de cooperatividade salientes.';
     }
     return '';
@@ -1332,13 +1412,17 @@ function exportarRelatorioCompleto(sessao) {
   // Build score+interpretation rows
   var scRows = DIMS_REL.map(function(d){
     var v = sc[d.key]||0;
-    var p = pctR(d.key, d.max);
-    var c = corR(p);
+    var z = zR(d.key, v);
+    var c = corR(z);
+    var mediaItem = v ? (Math.round(v/d.nItems*100)/100).toFixed(2) : '—';
+    var nRef = NORMS_MOREIRA[d.key];
+    var pctMax = d.max > 0 ? Math.round(v/d.max*100) : 0;
     return '<tr style="border-top:2px solid #D6E4F0;">' +
       '<td style="padding:7px 10px;font-weight:700;font-size:12px;">' + d.label + '</td>' +
       '<td style="padding:7px 10px;text-align:center;font-weight:700;color:' + c + ';font-size:13px;">' + v + '<span style="font-size:10px;color:#aaa;">/' + d.max + '</span></td>' +
-      '<td style="padding:7px 10px;text-align:center;">' + barR(p, c) + '<span style="font-size:10px;color:' + c + ';font-weight:600;">' + nivelR(p) + ' (' + p + '%)</span></td>' +
-      '<td style="padding:7px 10px;font-size:11px;color:#444;">' + interpText(d.key, p) + '</td>' +
+      '<td style="padding:7px 10px;text-align:center;font-size:11px;">' + mediaItem + '<br><span style="font-size:9px;color:#aaa;">(ref: ' + (nRef?nRef.mean:'—') + ' ±' + (nRef?nRef.sd:'—') + ')</span></td>' +
+      '<td style="padding:7px 10px;text-align:center;font-weight:700;color:' + c + ';font-size:13px;">Z = ' + zDispR(z) + '<br>' + barR(pctMax, c) + '<span style="font-size:10px;color:' + c + ';font-weight:600;">' + nivelR(z) + '</span></td>' +
+      '<td style="padding:7px 10px;font-size:11px;color:#444;">' + interpText(d.key, z) + '</td>' +
     '</tr>';
   }).join('');
 
@@ -1390,12 +1474,13 @@ function exportarRelatorioCompleto(sessao) {
     '</div>' +
     '<h2>Resultados por Dimensão e Interpretação Clínica</h2>' +
     '<table><thead><tr>' +
-    '<th style="width:22%;">Dimensão</th>' +
-    '<th style="width:10%;text-align:center;">Score</th>' +
-    '<th style="width:25%;">Perfil</th>' +
-    '<th style="width:43%;">Interpretação</th>' +
+    '<th style="width:20%;">Dimensão</th>' +
+    '<th style="width:10%;text-align:center;">Score Bruto</th>' +
+    '<th style="width:13%;text-align:center;">Média/Item</th>' +
+    '<th style="width:17%;text-align:center;">Z-score · Nível</th>' +
+    '<th style="width:40%;">Interpretação</th>' +
     '</tr></thead><tbody>' + scRows + '</tbody></table>' +
-    '<p style="margin-top:10px;font-size:10px;color:#888;font-style:italic;">Interpretação automática baseada nos scores brutos (Mondoni 2010 · Moreira et al. 2012). Não substitui avaliação clínica integrada.</p>' +
+    '<p style="margin-top:10px;font-size:10px;color:#888;font-style:italic;">Interpretação baseada em Z-scores calculados pela fórmula (média/item − média ref.) / DP ref., comparando com normas de adolescentes portugueses (Moreira et al., 2012, n=801). Classificação: Z &gt; +1 = acima da média · Z entre −1 e +1 = na média · Z &lt; −1 = abaixo da média. Não substitui avaliação clínica integrada.</p>' +
     (ansList.length > 0 ?
       '<h2>Respostas por Item</h2>' +
       '<p style="font-size:10px;color:#888;margin-bottom:8px;">F=Falso · QSF=Quase sempre falso · NCD=Não consigo decidir · QSV=Quase sempre verdadeiro · V=Verdadeiro · ↺=item invertido (valor cotado)</p>' +
