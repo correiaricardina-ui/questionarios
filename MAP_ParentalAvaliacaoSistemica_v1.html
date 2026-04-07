@@ -798,7 +798,50 @@ function submeterFormulario(){
 // STORAGE
 // ══════════════════════════════════════════════
 function guardarSessoes(){try{localStorage.setItem('rc_copar_sessoes',JSON.stringify(sessoes));}catch(e){}}
-function carregarSessoes(){try{var raw=localStorage.getItem('rc_copar_sessoes');if(raw)sessoes=JSON.parse(raw);}catch(e){sessoes=[];}if(document.getElementById('sessoes-container'))renderSessoes();}
+function carregarSessoes(){
+  try{var raw=localStorage.getItem('rc_copar_sessoes');if(raw)sessoes=JSON.parse(raw);}catch(e){sessoes=[];}
+  if(document.getElementById('sessoes-container')){
+    if(!sessoes.length){ carregarDoSheet(); } else { renderSessoes(); }
+  }
+}
+
+async function carregarDoSheet(){
+  var c=document.getElementById('sessoes-container');
+  if(c) c.innerHTML='<div style="text-align:center;padding:40px;color:var(--text-light)"><div style="font-size:1.5rem;margin-bottom:8px">⏳</div><p style="font-size:.88rem">A carregar dados do servidor...</p></div>';
+  try{
+    var url=SCRIPT_URL+'?instrumento=MAP_Parental&t='+Date.now();
+    var res=await fetch(url);
+    var data=await res.json();
+    var rows=Array.isArray(data)?data:(data&&data.rows?data.rows:[]);
+    var importadas=[];
+    rows.forEach(function(row){
+      // Tentar reconstruir a partir do JSON completo (DadosCompletos)
+      var dc=row['DadosCompletos']||row['dados_completos']||'';
+      if(dc){
+        try{
+          var s=JSON.parse(dc);
+          if(s&&s.id) importadas.push(s);
+          return;
+        }catch(e2){}
+      }
+      // Fallback: construir sessão mínima a partir das colunas do Sheet
+      var code=row['Código']||row['patientCode']||'';
+      if(!code) return;
+      var dataRaw=String(row['Data']||'');
+      if(dataRaw.indexOf('T')>=0){var d=new Date(dataRaw);dataRaw=isNaN(d)?dataRaw:d.toLocaleDateString('pt-PT');}
+      importadas.push({
+        id:{patientCode:code,nome:row['NomeProgenitor']||'',relacao:row['Relação']||'',
+            data:dataRaw,sitFamiliar:row['SituaçãoFamiliar']||'',idadesFilhos:row['IdadesFilhos']||''},
+        s2:{likert:{},principios:row['Princípios']||''},
+        s3:{},s4:{},s5:{},s6:{},s7:{},ts:Date.now()
+      });
+    });
+    sessoes=importadas;
+  }catch(err){
+    console.error('Erro ao carregar Sheet:',err);
+  }
+  renderSessoes();
+}
 
 // ══════════════════════════════════════════════
 // PAINEL CLÍNICO
