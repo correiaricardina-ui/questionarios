@@ -784,22 +784,222 @@ function exportarInterpretacaoPDF(sessao){
   if(!sessao){alert('Seleccione primeiro uma sess\u00e3o (clique em "Ver \u2192").');return;}
   var dt=sessao.date?new Date(sessao.date).toLocaleDateString('pt-PT'):'\u2014';
   var total=parseInt(sessao.totalA||0)+parseInt(sessao.totalB||0)+parseInt(sessao.totalC||0)+parseInt(sessao.totalD||0);
-  var dist=[["A","Gosto",sessao.totalA],["B","Indiferente",sessao.totalB],["C","N\u00e3o gosto",sessao.totalC],["D","N\u00e3o conhece",sessao.totalD]].map(function(row){var pct=total>0?Math.round(parseInt(row[2]||0)/total*100):0;return'<tr><td><strong>'+row[0]+'<\/strong><\/td><td>'+row[1]+'<\/td><td style="text-align:center">'+row[2]+'<\/td><td style="text-align:center">'+pct+'%<\/td><\/tr>';}).join("");
-  var html='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>IPP-R \u2014 '+sessao.patientCode+'<\/title>'
-    +'<style>body{font-family:Arial,sans-serif;font-size:12px;color:#2C3E50;padding:24px;max-width:900px;margin:0 auto}'
-    +'h1{color:#3B5A7A;font-size:16px}h2{color:#3B5A7A;font-size:13px;margin:16px 0 8px;border-bottom:2px solid #D6E4F0;padding-bottom:4px}'
-    +'p{color:#6B7A8D;margin-bottom:12px;font-size:11px}table{width:100%;border-collapse:collapse;margin-bottom:16px}'
-    +'th{background:#D6E4F0;padding:6px 8px;text-align:left;color:#3B5A7A;font-size:11px}td{padding:5px 8px;border-bottom:1px solid #eee}'
-    +'.np{margin-bottom:16px}@media print{.np{display:none}}<\/style><\/head><body>'
-    +'<div class="np"><button onclick="window.print()">&#128424; Imprimir<\/button><\/div>'
-    +'<h1>IPP-R \u2014 Interesses e Prefer\u00eancias Profissionais \u00b7 Relat\u00f3rio<\/h1>'
-    +'<p>C\u00f3digo: <strong>'+sessao.patientCode+'<\/strong>'+(sessao.nomeCrianca?' \u00b7 Jovem: <strong>'+sessao.nomeCrianca+'<\/strong>':'')+(sessao.nomeInformante?' \u00b7 Respondente: <strong>'+sessao.nomeInformante+'<\/strong>':'')+'\u00b7 Data: '+dt+' \u00b7 Ano: '+(sessao.anoEscolar||'\u2014')+' \u00b7 Ricardina Correia \u00b7 C\u00e9dula 8233<\/p>'
-    +'<h2>Distribui\u00e7\u00e3o de Respostas<\/h2>'
-    +'<table><thead><tr><th>Op\u00e7\u00e3o<\/th><th>Significado<\/th><th>N<\/th><th>%<\/th><\/tr><\/thead><tbody>'+dist+'<\/tbody><\/table>'
-    +'<h2>Nota de Interpreta\u00e7\u00e3o<\/h2>'
-    +'<p>As pontua\u00e7\u00f5es directas por campo profissional devem ser calculadas com a chave de cota\u00e7\u00e3o oficial (sistema online CEGOC-TEA) e convertidas em percentis atrav\u00e9s das tabelas normativas do Manual IPP-R (pp. 50\u201367).<\/p>'
-    +'<p style="font-style:italic;color:#999">Gerado automaticamente \u2014 integrar sempre no contexto cl\u00ednico completo da avalia\u00e7\u00e3o.<\/p><\/body><\/html>';
-  var w=window.open('','_blank');if(!w){alert('Pop-up bloqueado.');return;}w.document.write(html);w.document.close();
+
+  // ── helpers (duplicados da verDetalhe para uso dentro da janela) ──
+  function nivel(pc){
+    if(pc>=84) return {txt:'Elevado',  cor:'#1e8449',bg:'#eafaf1'};
+    if(pc>=50) return {txt:'Moderado', cor:'#2471a3',bg:'#ebf5fb'};
+    if(pc>=16) return {txt:'M\u00e9dio',    cor:'#7f8c8d',bg:'#f4f6f9'};
+    return               {txt:'Reduzido', cor:'#c0392b',bg:'#fdecea'};
+  }
+
+  // ── distribui\u00e7\u00e3o ──
+  var distRows=[['A','Gosto','#1e8449',sessao.totalA],
+                ['B','Indiferente','#2471a3',sessao.totalB],
+                ['C','N\u00e3o gosto','#c0392b',sessao.totalC],
+                ['D','N\u00e3o conhece','#d35400',sessao.totalD]].map(function(row){
+    var pct=total>0?Math.round(parseInt(row[3]||0)/total*100):0;
+    var barW=pct;
+    return '<tr><td style="font-weight:700;color:'+row[2]+'">'+row[0]+'</td><td>'+row[1]+'</td>'
+      +'<td style="text-align:center">'+row[3]+'</td><td style="text-align:center">'+pct+'%</td>'
+      +'<td style="width:120px"><div style="background:#eee;border-radius:3px;height:8px">'
+      +'<div style="background:'+row[2]+';border-radius:3px;height:8px;width:'+barW+'%"></div></div></td></tr>';
+  }).join('');
+
+  // ── cota\u00e7\u00e3o + gr\u00e1fico + tabela + top3 ──
+  var secCotacao='<p style="font-style:italic;color:#888">Respostas item-a-item n\u00e3o dispon\u00edveis — importado sem detalhes por item.</p>';
+
+  if(sessao.respostas&&sessao.respostas.length===N_ITENS){
+    var cotacao=ipprCotar(sessao.respostas, sessao.anoEscolar, sessao.sexo);
+    var normKey=cotacao.normKey;
+
+    // dados por campo
+    var fieldData=IPPR_FIELDS_ORDER.map(function(f){
+      var r=cotacao.fields[f];
+      var cong=Math.round(Math.sqrt(r.pcAT*r.pcPR));
+      return {f:f,name:IPPR_FIELD_NAMES[f],pdAT:r.pdAT,pdPR:r.pdPR,
+              total:r.total,pcAT:r.pcAT,pcPR:r.pcPR,pcMed:r.pcMed,en:r.en,cong:cong};
+    });
+    var byPcMed=fieldData.slice().sort(function(a,b){return b.pcMed-a.pcMed;});
+    var top3=fieldData.slice().sort(function(a,b){return b.cong-a.cong||(b.pcMed-a.pcMed);}).slice(0,3);
+
+    // ── SVG duplo AT/PR ──
+    var CW=700,RH=26,GAP=5,LW=210,AV=CW-LW-75;
+    var SH=byPcMed.length*(RH+GAP)+10;
+    var svgRows=byPcMed.map(function(r,i){
+      var y=4+i*(RH+GAP), h1=Math.floor(RH/2)-1, h2=RH-h1-2;
+      var wAT=Math.round((r.pcAT/100)*AV), wPR=Math.round((r.pcPR/100)*AV);
+      var cAT=r.pcAT>=84?'#1e8449':r.pcAT>=50?'#3B5A7A':r.pcAT>=16?'#A8C4D8':'#DDE3EA';
+      var cPR=r.pcPR>=84?'#27AE60':r.pcPR>=50?'#7EB5D0':r.pcPR>=16?'#C4D9E8':'#EBF2F8';
+      var x50=Math.round(0.5*AV);
+      var isTop=top3.some(function(t){return t.f===r.f;});
+      return '<g transform="translate(0,'+y+')">'
+        +'<text x="'+(LW-6)+'" y="'+(RH/2+4)+'" text-anchor="end" font-size="10" fill="'+(isTop?'#1e8449':'#5a6a7a')+'" font-weight="'+(isTop?'700':'400')+'" font-family="Arial,sans-serif">'+r.name+(isTop?' \u2605':'')+'</text>'
+        +'<rect x="'+LW+'" y="0" width="'+AV+'" height="'+RH+'" rx="3" fill="#F4F6F9"/>'
+        +'<rect x="'+LW+'" y="1" width="'+wAT+'" height="'+h1+'" rx="2" fill="'+cAT+'"/>'
+        +'<rect x="'+LW+'" y="'+(h1+2)+'" width="'+wPR+'" height="'+h2+'" rx="2" fill="'+cPR+'"/>'
+        +'<line x1="'+(LW+x50)+'" y1="0" x2="'+(LW+x50)+'" y2="'+RH+'" stroke="#888" stroke-width="1" stroke-dasharray="3,2"/>'
+        +'<text x="'+(LW+AV+5)+'" y="'+(h1/2+5)+'" font-size="10" font-weight="bold" fill="'+cAT+'" font-family="Arial">'+r.pcAT+'</text>'
+        +'<text x="'+(LW+AV+5)+'" y="'+(h1+2+h2/2+4)+'" font-size="10" fill="'+cPR+'" font-family="Arial">'+r.pcPR+'</text>'
+      +'</g>';
+    }).join('');
+    var svgGrafico='<svg xmlns="http://www.w3.org/2000/svg" width="100%" viewBox="0 0 '+CW+' '+SH+'">'+svgRows+'</svg>';
+
+    // legenda svg
+    var legenda='<div style="font-size:10px;color:#6B7A8D;margin-bottom:6px">'
+      +'Tabela normativa: <strong>'+normKey.replace('_',' \u00b7 ')+'</strong>'
+      +'&nbsp;\u00b7&nbsp;<span style="display:inline-flex;align-items:center;gap:3px"><span style="width:11px;height:9px;background:#3B5A7A;border-radius:2px;display:inline-block"></span> AT (Atividades)</span>'
+      +'&nbsp;&nbsp;<span style="display:inline-flex;align-items:center;gap:3px"><span style="width:11px;height:9px;background:#7EB5D0;border-radius:2px;display:inline-block"></span> PR (Profiss\u00f5es)</span>'
+      +'&nbsp;\u00b7&nbsp;Linha tracejada = PC 50</div>';
+
+    // tabela campos
+    var tabelaLinhas=byPcMed.map(function(r){
+      var nAT=nivel(r.pcAT), nPR=nivel(r.pcPR);
+      var isTop=top3.some(function(t){return t.f===r.f;});
+      var cCong=r.cong>=75?'#1e8449':r.cong>=50?'#2471a3':r.cong>=25?'#7f8c8d':'#c0392b';
+      return '<tr style="'+(isTop?'background:#f0fff4;':'')+'">'
+        +'<td style="font-weight:'+(isTop?'700':'400')+'">'+(isTop?'\u2605 ':'')+r.name+'</td>'
+        +'<td style="text-align:center">'+r.pdAT+'/6</td>'
+        +'<td style="text-align:center">'+r.pdPR+'/6</td>'
+        +'<td style="text-align:center;font-weight:700">'+r.total+'/12</td>'
+        +'<td style="text-align:center">'+r.pcAT+'</td>'
+        +'<td style="text-align:center;color:'+nAT.cor+';font-weight:600">'+nAT.txt+'</td>'
+        +'<td style="text-align:center">'+r.pcPR+'</td>'
+        +'<td style="text-align:center;color:'+nPR.cor+';font-weight:600">'+nPR.txt+'</td>'
+        +'<td style="text-align:center;font-weight:700;color:'+cCong+'">'+r.cong+'</td>'
+      +'</tr>';
+    }).join('');
+
+    // top 3 implica\u00e7\u00f5es
+    var IMPL={
+      'CIE':{prof:'Investigador/a, bi\u00f3logo/a, qu\u00edmico/a, f\u00edsico/a, ge\u00f3logo/a, astr\u00f3nomo/a, farmac\u00eautico/a, engenheiro/a do ambiente.',
+             desc:'Interesse consistente em compreender e explorar fen\u00f3menos naturais e cient\u00edficos, tanto na pr\u00e1tica laboratorial como na identifica\u00e7\u00e3o com carreiras de investiga\u00e7\u00e3o. Sugere aptid\u00e3o para percursos em ci\u00eancias exactas ou naturais.'},
+      'TEC':{prof:'Engenheiro/a (civil, mec\u00e2nico/a, electrot\u00e9cnico/a), t\u00e9cnico/a industrial, arquitecto/a, designer de produto.',
+             desc:'Interesse pela constru\u00e7\u00e3o, funcionamento e melhoria de sistemas t\u00e9cnicos. A congru\u00eancia indica voca\u00e7\u00e3o s\u00f3lida para \u00e1reas t\u00e9cnico-cient\u00edficas com forte componente pr\u00e1tica.'},
+      'SAU':{prof:'M\u00e9dico/a, enfermeiro/a, fisioterapeuta, psic\u00f3logo/a, nutricionista, farm\u00e1cia, terapia ocupacional, medicina dent\u00e1ria.',
+             desc:'Perfil orientado para o cuidado e recupera\u00e7\u00e3o da sa\u00fade humana. Implica capacidade emp\u00e1tica e gosto por trabalhar directamente com pessoas.'},
+      'CSH':{prof:'Psic\u00f3logo/a, soci\u00f3logo/a, assistente social, antrop\u00f3logo/a, historiador/a, fil\u00f3sofo/a, rela\u00e7\u00f5es internacionais.',
+             desc:'Interesse pela compreens\u00e3o do ser humano e da sociedade nas suas dimens\u00f5es sociais, culturais e hist\u00f3ricas. Adequado para trabalho comunit\u00e1rio e interven\u00e7\u00e3o social.'},
+      'CSJ':{prof:'Advogado/a, juiz/a, magistrado/a, pol\u00edcia judici\u00e1ria, diplomata, ci\u00eancia pol\u00edtica, administra\u00e7\u00e3o p\u00fablica.',
+             desc:'Valoriza\u00e7\u00e3o das regras, da justi\u00e7a e do quadro normativo. Perfil com tend\u00eancia para a argumenta\u00e7\u00e3o e defesa de direitos, adequado a carreiras jur\u00eddicas ou pol\u00edtico-administrativas.'},
+      'CPA':{prof:'Jornalista, publicit\u00e1rio/a, realizador/a, fot\u00f3grafo/a, produtor/a de conte\u00fado digital, rela\u00e7\u00f5es p\u00fablicas, marketing.',
+             desc:'Interesse por criar, comunicar e persuadir atrav\u00e9s de diferentes meios. Sugere voca\u00e7\u00e3o criativa aliada \u00e0 necessidade de impacto e visibilidade p\u00fablica.'},
+      'EDU':{prof:'Professor/a (todos os n\u00edveis), educador/a especial, psicopedagogo/a, formador/a profissional, coordenador/a pedag\u00f3gico/a.',
+             desc:'Gosto por ensinar, orientar e apoiar o desenvolvimento dos outros. A congru\u00eancia indica predisposi\u00e7\u00e3o genuinamente relacional e pedag\u00f3gica.'},
+      'FAC':{prof:'Gestor/a, contabilista, banc\u00e1rio/a, comercial, empreendedor/a, analista financeiro/a.',
+             desc:'Interesse por contextos organizacionais e gest\u00e3o de recursos. Adequado para percursos em gest\u00e3o, economia ou administra\u00e7\u00e3o de empresas.'},
+      'INF':{prof:'Programador/a, engenheiro/a de software, analista de dados, especialista em ciberseguran\u00e7a, administrador/a de sistemas.',
+             desc:'Fascinado/a por computadores e resolu\u00e7\u00e3o de problemas atrav\u00e9s de tecnologia. A congru\u00eancia sugere interesse tanto no uso como na constru\u00e7\u00e3o de sistemas digitais.'},
+      'APA':{prof:'Agronom/a, veterin\u00e1rio/a, bi\u00f3logo/a do ambiente, t\u00e9cnico/a florestal, gestor/a de recursos naturais.',
+             desc:'Liga\u00e7\u00e3o ao mundo natural e ambiental. Perfil adequado a carreiras ao ar livre ou de conserva\u00e7\u00e3o da natureza.'},
+      'BMA':{prof:'Artista pl\u00e1stico/a, arquitecto/a, designer gr\u00e1fico/a, escultor/a, restaurador/a de arte, director/a de arte.',
+             desc:'Sensibilidade est\u00e9tica e interesse pela cria\u00e7\u00e3o visual e tridimensional. A congru\u00eancia indica identifica\u00e7\u00e3o com a pr\u00e1tica art\u00edstica e com a carreira criativa.'},
+      'MDR':{prof:'M\u00fasico/a (instrumentista, compositor/a), dan\u00e7arino/a, actor/actriz, produtor/a musical, director/a art\u00edstico/a.',
+             desc:'Voca\u00e7\u00e3o para as artes performativas. Implica disciplina, expressividade e gosto pela cria\u00e7\u00e3o e apresenta\u00e7\u00e3o ao vivo.'},
+      'FSP':{prof:'Militar, pol\u00edcia, bombeiro/a, agente de protec\u00e7\u00e3o civil, seguran\u00e7a privada, t\u00e9cnico/a de emerg\u00eancia pr\u00e9-hospitalar.',
+             desc:'Interesse por contextos de risco, protec\u00e7\u00e3o e disciplina institucional. Perfil que valoriza a coragem, o servi\u00e7o p\u00fablico e a capacidade de agir sob press\u00e3o.'},
+      'DES':{prof:'Atleta profissional, treinador/a, educador/a f\u00edsico/a, fisioterapeuta desportivo/a, gestor/a desportivo/a.',
+             desc:'Interesse pelo desporto como pr\u00e1tica e como profiss\u00e3o. A congru\u00eancia indica gosto pela actividade f\u00edsica e identifica\u00e7\u00e3o com carreiras no mundo do desporto.'},
+      'THR':{prof:'Hoteleiro/a, chefe de cozinha, guia tur\u00edstico/a, animador/a tur\u00edstico/a, gestor/a de eventos, sommelier.',
+             desc:'Gosto pela hospitalidade, gastronomia e experi\u00eancia tur\u00edstica. Perfil para contextos de servi\u00e7o ao cliente e cria\u00e7\u00e3o de experi\u00eancias.'}
+    };
+
+    var medals=['\uD83E\uDD47','\uD83E\uDD48','\uD83E\uDD49'];
+    var top3HTML=top3.map(function(r,i){
+      var nAT=nivel(r.pcAT), nPR=nivel(r.pcPR);
+      var impl=IMPL[r.f]||{prof:'\u2014',desc:'\u2014'};
+      var borderCol=i===0?'#f1c40f':i===1?'#95a5a6':'#cd7f32';
+      return '<div style="border-left:4px solid '+borderCol+';background:#fafbfc;border-radius:0 6px 6px 0;padding:12px 14px;margin-bottom:12px">'
+        +'<div style="font-weight:700;font-size:13px;color:#3B5A7A;margin-bottom:4px">'+medals[i]+' '+r.name
+        +' <span style="font-size:10px;font-weight:400;color:#7f8c8d">PD '+r.total+'/12 \u00b7 Congru\u00eancia: '+r.cong+'</span></div>'
+        +'<div style="display:flex;gap:12px;margin-bottom:8px">'
+        +'<div style="background:'+nAT.bg+';border-radius:4px;padding:5px 10px;font-size:11px">'
+        +'<div style="color:#7f8c8d;font-size:9px;margin-bottom:1px">Atividades (AT)</div>'
+        +'<div style="font-weight:700;color:'+nAT.cor+'">PC '+r.pcAT+' \u00b7 '+nAT.txt+'</div></div>'
+        +'<div style="background:'+nPR.bg+';border-radius:4px;padding:5px 10px;font-size:11px">'
+        +'<div style="color:#7f8c8d;font-size:9px;margin-bottom:1px">Profiss\u00f5es (PR)</div>'
+        +'<div style="font-weight:700;color:'+nPR.cor+'">PC '+r.pcPR+' \u00b7 '+nPR.txt+'</div></div>'
+        +'</div>'
+        +'<div style="font-size:11px;color:#2C3E50;line-height:1.55;margin-bottom:4px"><strong style="color:#5b7fa6">Perfil vocacional:</strong> '+impl.desc+'</div>'
+        +'<div style="font-size:10.5px;color:#7f8c8d;line-height:1.5"><strong>Sa\u00eddas profissionais:</strong> '+impl.prof+'</div>'
+      +'</div>';
+    }).join('');
+
+    // padr\u00f5es divergentes
+    var diverg=fieldData.filter(function(r){return Math.abs(r.pcAT-r.pcPR)>=30&&(r.pcAT>=50||r.pcPR>=50);});
+    var divergHTML='';
+    if(diverg.length>0){
+      divergHTML='<div style="background:#fff8f0;border:1px solid #f39c12;border-radius:6px;padding:8px 12px;margin-bottom:12px;font-size:10.5px;line-height:1.55">'
+        +'<strong style="color:#e67e22">&#9888; Padr\u00f5es divergentes a explorar em consulta:</strong> '
+        +diverg.map(function(r){
+          var quem=r.pcAT>r.pcPR?'gosta das actividades mas n\u00e3o se identifica com as profiss\u00f5es':'identifica-se com as profiss\u00f5es mas n\u00e3o com as actividades';
+          return '<strong>'+r.name+'</strong> (AT=PC'+r.pcAT+', PR=PC'+r.pcPR+') \u2014 '+quem;
+        }).join('; ')+'.</div>';
+    }
+
+    // respostas item-a-item
+    var respHTML='';
+    if(sessao.respostas&&sessao.respostas.length===N_ITENS){
+      var corMap={A:'#1e8449',B:'#2471a3',C:'#c0392b',D:'#d35400'};
+      var linhasResp=sessao.respostas.map(function(r,i){
+        var cor=corMap[r]||'#333';
+        var txt=ITENS[i]||'';
+        return '<tr><td style="text-align:center;color:#aaa;font-size:9px">'+(i+1)+'</td>'
+          +'<td style="font-size:10px">'+txt+'</td>'
+          +'<td style="text-align:center;font-weight:700;color:'+cor+';font-size:11px">'+r+'</td></tr>';
+      }).join('');
+      respHTML='<h2>Respostas por Item</h2>'
+        +'<table><thead><tr><th style="width:28px">#</th><th>Item</th><th style="width:36px;text-align:center">Resp.</th></tr></thead>'
+        +'<tbody>'+linhasResp+'</tbody></table>';
+    }
+
+    secCotacao=
+      '<h2>Perfil de Interesses \u2014 Atividades vs. Profiss\u00f5es</h2>'
+      +legenda+svgGrafico
+      +'<h2>Tabela de Resultados por Campo Profissional</h2>'
+      +'<table><thead><tr>'
+      +'<th>Campo</th><th style="text-align:center">PD AT</th><th style="text-align:center">PD PR</th>'
+      +'<th style="text-align:center">Total</th><th style="text-align:center">PC AT</th>'
+      +'<th style="text-align:center">N\u00edvel AT</th><th style="text-align:center">PC PR</th>'
+      +'<th style="text-align:center">N\u00edvel PR</th><th style="text-align:center">Congru\u00eancia</th>'
+      +'</tr></thead><tbody>'+tabelaLinhas+'</tbody></table>'
+      +'<h2>&#9733; \u00c1reas de Maior Congru\u00eancia (Interesses Consolidados)</h2>'
+      +'<p style="font-size:10.5px;color:#6B7A8D;margin-bottom:10px">A congru\u00eancia (\u221a PC\u2009AT \u00d7 PC\u2009PR) identifica os campos onde o interesse pelas <em>actividades</em> e pelas <em>profiss\u00f5es</em> \u00e9 simultaneamente elevado \u2014 s\u00e3o os interesses mais s\u00f3lidos, com maior probabilidade de satisfa\u00e7\u00e3o vocacional.</p>'
+      +top3HTML+divergHTML
+      +'<p style="font-size:9px;color:#aaa;font-style:italic">N\u00edveis: PC\u2009\u226584 Elevado \u00b7 PC\u200950\u201383 Moderado \u00b7 PC\u200916\u201349 M\u00e9dio \u00b7 PC&lt;16 Reduzido. Cota\u00e7\u00e3o baseada no Manual IPP-R (CEGOC-TEA, 2013) \u2014 para certifica\u00e7\u00e3o oficial use o sistema CEGOC-TEA.</p>'
+      +respHTML;
+  }
+
+  var htmlDoc='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>IPP-R \u2014 '+sessao.patientCode+'</title>'
+    +'<style>'
+    +'body{font-family:Arial,sans-serif;font-size:12px;color:#2C3E50;padding:20px;max-width:900px;margin:0 auto}'
+    +'h1{color:#3B5A7A;font-size:16px;margin-bottom:4px}'
+    +'h2{color:#3B5A7A;font-size:13px;margin:18px 0 6px;border-bottom:2px solid #D6E4F0;padding-bottom:3px}'
+    +'p{color:#6B7A8D;margin-bottom:10px;font-size:11px;line-height:1.5}'
+    +'table{width:100%;border-collapse:collapse;margin-bottom:14px}'
+    +'th{background:#D6E4F0;padding:5px 7px;text-align:left;color:#3B5A7A;font-size:10.5px}'
+    +'td{padding:4px 7px;border-bottom:1px solid #eee;font-size:11px}'
+    +'.np{margin-bottom:16px}'
+    +'@media print{.np{display:none}body{padding:10px}}'
+    +'</style></head><body>'
+    +'<div class="np"><button onclick="window.print()" style="padding:6px 16px;background:#3B5A7A;color:white;border:none;border-radius:5px;cursor:pointer;font-size:13px">\uD83D\uDDA8 Imprimir / Guardar PDF</button></div>'
+    +'<h1>IPP-R \u00b7 Interesses e Prefer\u00eancias Profissionais \u2014 Relat\u00f3rio</h1>'
+    +'<p>C\u00f3digo: <strong>'+sessao.patientCode+'</strong>'
+    +(sessao.nomeCrianca?' \u00b7 Jovem: <strong>'+sessao.nomeCrianca+'</strong>':'')
+    +(sessao.nomeInformante?' \u00b7 Respondente: <strong>'+sessao.nomeInformante+'</strong>':'')
+    +' \u00b7 Data: '+dt+' \u00b7 Ano: '+(sessao.anoEscolar||'\u2014')
+    +' \u00b7 Ricardina Correia \u00b7 C\u00e9dula 8233</p>'
+    +'<h2>Distribui\u00e7\u00e3o Global de Respostas</h2>'
+    +'<table><thead><tr><th>Op\u00e7\u00e3o</th><th>Significado</th><th style="text-align:center">N</th><th style="text-align:center">%</th><th>Perfil</th></tr></thead>'
+    +'<tbody>'+distRows+'</tbody></table>'
+    +secCotacao
+    +'<p style="margin-top:20px;font-style:italic;color:#aaa;font-size:9.5px">Relat\u00f3rio gerado automaticamente \u2014 integrar sempre no contexto cl\u00ednico completo da avalia\u00e7\u00e3o.</p>'
+    +'</body></html>';
+
+  var w=window.open('','_blank');
+  if(!w){alert('Pop-up bloqueado. Permite pop-ups para este site.');return;}
+  w.document.write(htmlDoc);
+  w.document.close();
 }
 
 // Auto-login via ?clinico=CNS2024
