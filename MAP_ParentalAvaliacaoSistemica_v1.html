@@ -906,7 +906,21 @@ function verDetalhe(i){
     if(!d){html+='<tr><td>'+dom.icon+' '+dom.label+'</td><td colspan="3" style="color:var(--text-light)">—</td></tr>';return;}
     var cor=d.triagem==='melhorar'?'var(--orange)':d.triagem==='bem'?'var(--green)':'var(--text-light)';
     var pts=[];
-    if(d.itens)Object.keys(d.itens).forEach(function(k){if(d.itens[k])pts.push(k.replace(/_/g,' ')+': '+d.itens[k]);});
+    if(d.itens)Object.keys(d.itens).forEach(function(k){
+      var it=d.itens[k];
+      if(!it) return;
+      // it pode ser string ou objeto {val, nao_funciona, como_gostaria}
+      var itemLabel=k.replace(/_/g,' ');
+      if(typeof it==='string' && it){
+        pts.push(itemLabel+': '+it);
+      } else if(it&&typeof it==='object'){
+        if(it.val){
+          var txt=itemLabel+': '+it.val;
+          if(it.nao_funciona) txt+=' ('+it.nao_funciona+')';
+          pts.push(txt);
+        }
+      }
+    });
     if(d.outro)pts.push('Outro: '+d.outro);
     html+='<tr><td>'+dom.icon+' '+dom.label+'</td>';
     html+='<td style="color:'+cor+';font-weight:600">'+(d.triagem==='melhorar'?'⚙ Melhorias':d.triagem==='bem'?'✓ Bem':'—')+'</td>';
@@ -943,6 +957,11 @@ function verDetalhe(i){
     if(s.s7.rotinasFund)html+='<p style="font-size:.85rem;margin-bottom:8px"><strong>Rotinas fundamentais:</strong> '+s.s7.rotinasFund+'</p>';
     if(s.s7.mudancas)html+='<p style="font-size:.85rem;margin-bottom:8px"><strong>Mudanças desejadas:</strong> '+s.s7.mudancas+'</p>';
   }
+  // Botão imprimir / PDF no fundo
+  html+='<div class="no-print" style="margin-top:24px;padding-top:16px;border-top:1px solid var(--gray-bdr);display:flex;gap:8px;justify-content:flex-end">';
+  html+='<button class="btn btn-secondary" onclick="imprimirRelatorio('+i+')" style="font-size:.88rem">🖨 Imprimir / PDF</button>';
+  html+='<button class="btn btn-secondary" onclick="exportarSessao('+i+')" style="font-size:.88rem">↓ Exportar JSON</button>';
+  html+='</div>';
   document.getElementById('modal-body').innerHTML=html;
   document.getElementById('modal-overlay').style.display='flex';
 }
@@ -1002,6 +1021,45 @@ function importarJSON(input){
     input.value='';
   };
   reader.readAsText(file);
+}
+
+function imprimirRelatorio(i){
+  var s=sessoes[i]; if(!s) return;
+  var titulo='Mapeamento Parental Sistémico';
+  var subtitulo=(s.id.patientCode||'')+(s.id.nome?' — '+s.id.nome:'')+(s.id.relacao?' ('+s.id.relacao+')':'');
+  var corpo=document.getElementById('modal-body').innerHTML;
+  var w=window.open('','_blank');
+  if(!w){alert('Pop-up bloqueado. Permite pop-ups para este site.');return;}
+  w.document.write('<html><head><meta charset="UTF-8"><title>'+titulo+'</title>');
+  w.document.write('<style>');
+  w.document.write('body{font-family:DM Sans,Arial,sans-serif;color:#2C3E50;padding:32px;max-width:900px;margin:0 auto;font-size:13px}');
+  w.document.write('h1{font-size:1.4rem;color:#3B5A7A;margin-bottom:4px}');
+  w.document.write('h2{font-size:1rem;color:#3B5A7A;font-weight:400;margin-bottom:24px}');
+  w.document.write('h3{font-size:1rem;color:#3B5A7A;margin:20px 0 8px;border-bottom:2px solid #D6E4F0;padding-bottom:4px}');
+  w.document.write('table{width:100%;border-collapse:collapse;margin-bottom:16px;font-size:12px}');
+  w.document.write('th{background:#EBF2F8;color:#3B5A7A;padding:6px 8px;text-align:left;font-weight:600}');
+  w.document.write('td{padding:6px 8px;border-bottom:1px solid #DDE3EA;vertical-align:top}');
+  w.document.write('p{margin:0 0 6px;font-size:12px;line-height:1.5}');
+  w.document.write('.no-print{display:none}');
+  w.document.write('.footer{margin-top:40px;padding-top:12px;border-top:1px solid #DDE3EA;font-size:11px;color:#999;text-align:right}');
+  w.document.write('@media print{body{padding:16px}.no-print{display:none!important}}');
+  w.document.write('</style></head><body>');
+  w.document.write('<h1>'+titulo+'</h1>');
+  w.document.write('<h2>'+subtitulo+'</h2>');
+  w.document.write(corpo);
+  w.document.write('<div class="footer">Ricardina Correia · Cédula 8233 · Psicologia Pediátrica &nbsp;|&nbsp; '+new Date().toLocaleDateString("pt-PT")+'<br><em>Documento gerado automaticamente — integrar sempre no contexto clínico completo.</em></div>');
+  w.document.write('</body></html>');
+  w.document.close();
+  setTimeout(function(){w.print();},400);
+}
+
+function exportarSessao(i){
+  var s=sessoes[i]; if(!s) return;
+  var blob=new Blob([JSON.stringify(s,null,2)],{type:'application/json'});
+  var a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='MAP_'+(s.id&&s.id.patientCode||'s'+(i+1))+'_'+(s.id&&s.id.relacao||'').replace(/\s/g,'_')+'.json';
+  a.click();
 }
 </script>
 </body>
