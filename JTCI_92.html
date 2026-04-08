@@ -360,6 +360,12 @@
       <button onclick="fecharModal()" style="background:none;border:none;font-size:1.4rem;cursor:pointer;color:var(--text-light);padding:0 0 0 12px;">×</button>
     </div>
     <div id="modal-corpo" style="overflow-x:auto;"></div>
+    <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:20px;padding-top:16px;border-top:1px solid var(--gray-bdr,#E2E8F0);">
+      <button class="btn btn-secondary" style="padding:7px 16px;font-size:0.83rem;" onclick="exportarRespostasPDF(sessaoActual)">📋 Respostas PDF</button>
+      <button class="btn btn-secondary" style="padding:7px 16px;font-size:0.83rem;" onclick="exportarInterpretacaoPDF(sessaoActual)">📊 Interpretação PDF</button>
+      <button class="btn btn-primary" style="padding:7px 18px;font-size:0.83rem;" onclick="exportarRelatorioCompleto(sessaoActual)">📑 Relatório Completo</button>
+      <button class="btn btn-secondary" style="padding:7px 16px;font-size:0.83rem;" onclick="fecharModal()">Fechar</button>
+    </div>
   </div>
 </div>
 
