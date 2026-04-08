@@ -610,6 +610,8 @@ function voltarParaIdentificacao() {
 }
 
 // ── SUBMISSÃO ─────────────────────────────────────────────────
+var SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxX2_Ry7VRH6jr7eGBMmtmyZFXZc69blwdO5bqJK0j69HRSexpXXPuEfDC5OHQRMLLL/exec';
+
 function submeterQuestionario() {
   var s = calcScores();
   var asp = [];
@@ -632,6 +634,28 @@ function submeterQuestionario() {
   };
   sessions.push(sessao);
   guardarLocal();
+
+  // ── Enviar para Google Sheet ──────────────────────────────────
+  var payload = {
+    instrumento: 'SDS_Holland',
+    patientCode:     sessao.codigo,
+    nome_crianca:    sessao.nome_crianca,
+    data_nasc:       sessao.data_nasc,
+    percurso:        sessao.percurso,
+    escola:          sessao.escola,
+    data:            sessao.data,
+    codigo_holland:  sessao.codigo_holland,
+    by_part: sessao.by_part,
+    total:   sessao.total,
+    answers: JSON.stringify(sessao.answers)
+  };
+  fetch(SCRIPT_URL, {
+    method: 'POST',
+    mode: 'no-cors',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  }).catch(function(err){ console.warn('SDS: erro ao enviar para Sheet:', err); });
+
   showPage('page-obrigado');
   answers = {};
   document.getElementById('section-1').style.display = 'block';
