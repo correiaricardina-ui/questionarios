@@ -421,6 +421,12 @@
       <button class="btn btn-secondary btn-xs no-print" onclick="document.getElementById('modal-overlay').classList.remove('active')">✕ Fechar</button>
     </div>
     <div id="modal-conteudo"></div>
+    <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:20px;padding-top:16px;border-top:1px solid #E2E8F0;flex-wrap:wrap;">
+      <button class="btn btn-secondary no-print" style="padding:7px 16px;font-size:0.83rem;" onclick="exportarRespostasPDF(sessaoActual)">📋 Respostas PDF</button>
+      <button class="btn btn-secondary no-print" style="padding:7px 16px;font-size:0.83rem;" onclick="exportarInterpretacaoPDF(sessaoActual)">📊 Interpretação PDF</button>
+      <button class="btn btn-primary no-print" style="padding:7px 18px;font-size:0.83rem;" onclick="exportarRelatorioCompleto(sessaoActual)">📑 Relatório Completo</button>
+      <button class="btn btn-secondary no-print" style="padding:7px 16px;font-size:0.83rem;" onclick="document.getElementById('modal-overlay').classList.remove('active')">✕ Fechar</button>
+    </div>
   </div>
 </div>
 
@@ -1053,6 +1059,142 @@ function processarFicheiroImportado(input) {
 }
 
 // ─── Respostas PDF ──────────────────────────────────────────────────
+function exportarRelatorioCompleto(sessao) {
+  if(!sessao) { alert('Seleccione primeiro uma sessão (clique em "Ver →").'); return; }
+  var sc = sessao.scores || {};
+  var ex = sc.ex||0, dc = sc.dc||0, ef = sc.ef||0;
+  var diag = sessao.diag || diagnostico(ex, dc, ef);
+  var pEx = percentilAprox(ex,0), pDc = percentilAprox(dc,1), pEf = percentilAprox(ef,2);
+  var dt = sessao.date ? new Date(sessao.date).toLocaleDateString('pt-PT') : '—';
+
+  function cor(zona) { return zona==='clinical'?'#C0392B':zona==='borderline'?'#E67E22':'#27AE60'; }
+  function zonaExDc(p) { return p>=66?'clinical':p>=50?'borderline':'normative'; }
+  function zonaEf(p)   { return p<=33?'clinical':p<=50?'borderline':'normative'; }
+  var zEx=zonaExDc(pEx), zDc=zonaExDc(pDc), zEf=zonaEf(pEf);
+
+  var escalas = [
+    {label:'Exaustão Emocional', score:ex, max:30, zona:zEx, pct:pEx},
+    {label:'Descrença',          score:dc, max:24, zona:zDc, pct:pDc},
+    {label:'Eficácia Académica', score:ef, max:36, zona:zEf, pct:pEf}
+  ];
+
+  // ── Gráfico de barras SVG inline ──
+  var svgBars = escalas.map(function(e, i) {
+    var c = cor(e.zona);
+    var pctBar = Math.min(100, Math.round((e.score/e.max)*100));
+    var y = 30 + i*55;
+    return '<g>' +
+      '<text x="0" y="' + (y-6) + '" font-size="11" fill="#2C3E50">' + e.label + ' — Score: ' + e.score + '/' + e.max + ' (P≈' + e.pct + ')</text>' +
+      '<rect x="0" y="' + y + '" width="400" height="18" rx="4" fill="#ECEFF1"/>' +
+      '<rect x="0" y="' + y + '" width="' + (pctBar*4) + '" height="18" rx="4" fill="' + c + '"/>' +
+      '<text x="' + (pctBar*4 + 6) + '" y="' + (y+13) + '" font-size="10" fill="' + c + '" font-weight="bold">' +
+        (e.zona==='clinical'?(e.label==='Eficácia Académica'?'Baixa':'Elevada'):e.zona==='borderline'?'Média':(e.label==='Eficácia Académica'?'Elevada':'Baixa')) +
+      '</text></g>';
+  }).join('');
+
+  var diagLabel = diag==='burnout'?'Burnout provável':diag==='risco'?'Risco moderado':'Sem indicadores de burnout';
+  var diagCor   = diag==='burnout'?'#C0392B':diag==='risco'?'#E67E22':'#27AE60';
+
+  // ── Tabela de scores ──
+  var scoreLinhas = escalas.map(function(e) {
+    var c = cor(e.zona);
+    var pctBar = Math.min(100, Math.round((e.score/e.max)*100));
+    var nivel = e.zona==='clinical'?(e.label==='Eficácia Académica'?'Baixa':'Elevada'):e.zona==='borderline'?'Média':(e.label==='Eficácia Académica'?'Elevada':'Baixa');
+    return '<tr>' +
+      '<td style="padding:5px 8px;border-bottom:1px solid #eee;">' + e.label + '</td>' +
+      '<td style="padding:5px 8px;border-bottom:1px solid #eee;text-align:center;font-weight:700;color:' + c + ';">' + e.score + '</td>' +
+      '<td style="padding:5px 8px;border-bottom:1px solid #eee;text-align:center;font-size:10px;color:#6B7A8D;">P≈' + e.pct + '</td>' +
+      '<td style="padding:5px 8px;border-bottom:1px solid #eee;">' +
+        '<div style="background:#eee;border-radius:3px;height:8px;width:120px;">' +
+          '<div style="background:' + c + ';border-radius:3px;height:8px;width:' + pctBar + '%;"></div>' +
+        '</div></td>' +
+      '<td style="padding:5px 8px;border-bottom:1px solid #eee;color:' + c + ';font-weight:600;">' + nivel + '</td>' +
+      '</tr>';
+  }).join('');
+
+  // ── Respostas item a item ──
+  var resp = sessao.respostas || sessao.answers || [];
+  var respLinhas = resp.map(function(r,i) {
+    var it = ITEMS_DATA[i];
+    return '<tr>' +
+      '<td style="padding:3px 6px;border-bottom:1px solid #f0f0f0;color:#999;text-align:center;">' + (i+1) + '</td>' +
+      '<td style="padding:3px 6px;border-bottom:1px solid #f0f0f0;color:#5B7FA6;font-size:10px;">' + (it?it[0]:'') + '</td>' +
+      '<td style="padding:3px 6px;border-bottom:1px solid #f0f0f0;font-size:10px;">' + (it?it[1]:'Item '+(i+1)) + '</td>' +
+      '<td style="padding:3px 6px;border-bottom:1px solid #f0f0f0;text-align:center;font-weight:700;">' + (r!==null&&r!==undefined?r:'—') + '</td>' +
+      '<td style="padding:3px 6px;border-bottom:1px solid #f0f0f0;font-size:10px;color:#6B7A8D;">' + (r!==null&&r!==undefined?LIKERT_LABELS[r]:'') + '</td>' +
+      '</tr>';
+  }).join('');
+
+  var html = '<!DOCTYPE html><html><head><meta charset="UTF-8">' +
+    '<title>Relatório Completo MBI-SS — ' + sessao.patientCode + '</title>' +
+    '<style>' +
+    'body{font-family:Arial,sans-serif;font-size:12px;color:#2C3E50;padding:28px;max-width:900px;margin:0 auto;}' +
+    'h1{color:#3B5A7A;font-size:17px;margin-bottom:2px;}' +
+    'h2{color:#3B5A7A;font-size:13px;margin:22px 0 8px;border-bottom:2px solid #D6E4F0;padding-bottom:4px;}' +
+    '.header-meta{color:#6B7A8D;font-size:11px;margin-bottom:20px;line-height:1.7;}' +
+    'table{width:100%;border-collapse:collapse;margin-bottom:12px;}' +
+    'th{background:#D6E4F0;padding:6px 8px;text-align:left;color:#3B5A7A;font-size:11px;}' +
+    '.diag-box{padding:12px 16px;border-radius:6px;margin-bottom:16px;font-size:12px;}' +
+    '.no-print{margin-bottom:20px;}' +
+    '@media print{.no-print{display:none}body{padding:14px}}' +
+    '</style></head><body>' +
+    '<div class="no-print">' +
+      '<button onclick="window.print()" style="padding:8px 18px;background:#3B5A7A;color:white;border:none;border-radius:6px;cursor:pointer;font-size:13px;">🖨 Imprimir / Guardar PDF</button>' +
+    '</div>' +
+    '<h1>MBI-SS — Inventário de Burnout de Maslach para Estudantes</h1>' +
+    '<div class="header-meta">' +
+      'Código: <strong>' + sessao.patientCode + '</strong>' +
+      (sessao.nomeCrianca ? ' &nbsp;·&nbsp; Estudante: <strong>' + sessao.nomeCrianca + '</strong>' : '') +
+      (sessao.nome_informante ? ' &nbsp;·&nbsp; Respondente: <strong>' + sessao.nome_informante + '</strong>' : '') +
+      ' &nbsp;·&nbsp; Data: ' + dt +
+      ' &nbsp;·&nbsp; Ricardina Correia · Cédula 8233' +
+    '</div>' +
+
+    '<h2>Perfil Visual</h2>' +
+    '<svg width="580" height="' + (30 + escalas.length*55) + '" xmlns="http://www.w3.org/2000/svg">' +
+      svgBars +
+    '</svg>' +
+
+    '<h2>Scores por Subescala</h2>' +
+    '<table><thead><tr>' +
+      '<th>Subescala</th><th style="text-align:center">Score</th><th style="text-align:center">Percentil</th><th>Perfil</th><th>Nível</th>' +
+    '</tr></thead><tbody>' + scoreLinhas + '</tbody></table>' +
+
+    '<h2>Diagnóstico</h2>' +
+    '<div class="diag-box" style="background:' + (diag==='burnout'?'#FDEDEC':diag==='risco'?'#FEF9E7':'#EAFAF1') + ';border-left:4px solid ' + diagCor + ';">' +
+      '<strong style="color:' + diagCor + ';">' + diagLabel + '</strong><br>' +
+      '<span style="color:#6B7A8D;">Critério (Maroco &amp; Tecedeiro, 2009): Exaustão ≥ P66 (≥14) <em>e</em> Descrença ≥ P66 (≥6) <em>e</em> Eficácia ≤ P33 (≤27).</span>' +
+    '</div>' +
+
+    '<h2>Interpretação Clínica</h2>' +
+    '<div style="background:#F4F8FC;border-radius:6px;padding:12px 16px;font-size:11.5px;line-height:1.75;color:#2C3E50;">' +
+      (function() {
+        var parts = [];
+        parts.push('O estudante apresenta <strong>Exaustão Emocional ' + (zEx==='clinical'?'elevada':zEx==='borderline'?'moderada':'baixa') + '</strong> (score ' + ex + ', P≈' + pEx + '), ' +
+          '<strong>Descrença ' + (zDc==='clinical'?'elevada':zDc==='borderline'?'moderada':'baixa') + '</strong> (score ' + dc + ', P≈' + pDc + ') e ' +
+          '<strong>Eficácia Académica ' + (zEf==='clinical'?'baixa':zEf==='borderline'?'moderada':'elevada') + '</strong> (score ' + ef + ', P≈' + pEf + ').');
+        if(diag==='burnout') parts.push('O perfil preenche os <strong>critérios de burnout académico provável</strong> nas três dimensões em simultâneo.');
+        else if(diag==='risco') parts.push('O perfil indica <strong>risco moderado de burnout académico</strong>, com pelo menos uma dimensão em zona de alerta.');
+        else parts.push('O perfil <strong>não preenche os critérios de burnout académico</strong> pelo critério percentil.');
+        parts.push('<span style="font-size:10px;color:#999;font-style:italic;">Interpretação automática — integrar sempre no contexto clínico completo. Normas: Maroco &amp; Tecedeiro, 2009 (n=654).</span>');
+        return parts.join(' ');
+      })() +
+    '</div>' +
+
+    (resp.length ?
+      '<h2>Respostas por Item</h2>' +
+      '<table><thead><tr>' +
+        '<th style="text-align:center">#</th><th>Subescala</th><th>Item</th><th style="text-align:center">Resp.</th><th>Descrição</th>' +
+      '</tr></thead><tbody>' + respLinhas + '</tbody></table>'
+    : '') +
+
+    '</body></html>';
+
+  var w = window.open('','_blank');
+  if(!w){ alert('Pop-up bloqueado. Permite pop-ups para este site.'); return; }
+  w.document.write(html); w.document.close();
+}
+
 function exportarRespostasPDF(sessao) {
   if(!sessao || (!sessao.respostas && !sessao.answers)) { alert('Seleccione primeiro uma sessão (clique em "Ver →").'); return; }
   var resp = sessao.respostas || sessao.answers || [];
