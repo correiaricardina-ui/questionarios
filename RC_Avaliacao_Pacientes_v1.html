@@ -751,7 +751,10 @@ const SYNC_KEY_TO_ABA = {
   'cssrs_adolescentes': 'CSSRS',
   // ── BSI — v29.0 ────────────────────────────────────────────
   'bsi':   'BSI',
-  'BSI':   'BSI'
+  'BSI':   'BSI',
+  // ── EDE-Q 6.0 ───────────────────────────────────────────────
+  'edeq':  'EDEQ',
+  'EDEQ':  'EDEQ'
 };
 
 // Cache em memória das respostas do Sheet (evita fetch repetidos na mesma sessão)
@@ -1004,6 +1007,13 @@ function initCatalog() {
       syncKey:'eat26', area:'Comportamento Alimentar', ageRange:'Adolescentes / Adultos',
       objective:'Rastreio de atitudes e comportamentos alimentares de risco (Garner et al., 1982)',
       domains:['D','B','OC','Total'], ageMin:132, ageMax:null},
+    // ── EDE-Q 6.0 ───────────────────────────────────────────────────────
+    { id:'q_edeq', name:'EDE-Q 6.0',
+      dest:['Paciente'],
+      link:'https://correiaricardina-ui.github.io/questionarios/EDEQ_v1.html',
+      syncKey:'edeq', area:'Comportamento Alimentar', ageRange:'Adolescentes / Adultos',
+      objective:'Avalia psicopatologia de perturbações alimentares — restrição, preocupações com alimentação, forma e peso (Fairburn & Beglin, 2008)',
+      domains:['Restraint','Eating Concern','Shape Concern','Weight Concern','Global'], ageMin:132, ageMax:null},
     // ── Personalidade ────────────────────────────────────────────────────
     { id:'q_neopir', name:'NEO PI-R — Inventário de Personalidade NEO Revisto',
       dest:['Paciente'],
@@ -1190,6 +1200,8 @@ function initCatalog() {
       'q_cssrs':  { link:'https://correiaricardina-ui.github.io/questionarios/CSSRS_v1.html', syncKey:'cssrs' },
       // ── BSI — v29.0 ─────────────────────────────────────────
       'q_bsi':   { link:'https://correiaricardina-ui.github.io/questionarios/BSI_v1.html', syncKey:'bsi' },
+      // ── EDE-Q 6.0 ─────────────────────────────────────────
+      'q_edeq':  { link:'https://correiaricardina-ui.github.io/questionarios/EDEQ_v1.html', syncKey:'edeq' },
     };
     // ── Re-store com chave correcta ('q_' + id) — corrige instalações anteriores ──
     // Garante que Conners, FAD e MAP ficam acessíveis pelo META.forEach e getCatalog
@@ -1411,6 +1423,11 @@ function initCatalog() {
     if(!catalog.includes('q_bsi')) {
       const d = defaults.find(x => x.id === 'q_bsi');
       if(d) { store.set('q_' + d.id, d); catalog.push('q_bsi'); store.set('catalog', catalog); }
+    }
+    // ── EDE-Q 6.0 ─────────────────────────────────────────────────────
+    if(!catalog.includes('q_edeq')) {
+      const d = defaults.find(x => x.id === 'q_edeq');
+      if(d) { store.set('q_' + d.id, d); catalog.push('q_edeq'); store.set('catalog', catalog); }
     }
     }
   }
@@ -1890,6 +1907,22 @@ function formatScoreSummary(scores, syncKey) {
       return '<span style="font-size:0.78rem;color:var(--blue)">' + parts.join(' · ') + '</span>';
     }
   }
+  // ── EDE-Q 6.0 ─────────────────────────────────────────────────────────
+  if(syncKey === 'edeq') {
+    const global = scores['global'] ?? scores['Global'] ?? scores['score_global'] ?? null;
+    const r  = scores['restraint']     ?? scores['Restraint']     ?? null;
+    const ec = scores['eatingConcern'] ?? scores['EatingConcern'] ?? scores['Eating Concern'] ?? null;
+    const sc = scores['shapeConcern']  ?? scores['ShapeConcern']  ?? scores['Shape Concern']  ?? null;
+    const wc = scores['weightConcern'] ?? scores['WeightConcern'] ?? scores['Weight Concern'] ?? null;
+    if(global != null) {
+      const g = parseFloat(global);
+      const cls = g >= 2.77 ? 'color:#C0392B;font-weight:700;' : g >= 1.0 ? 'color:#E67E22;font-weight:600;' : 'color:var(--green);font-weight:600;';
+      const sub = (r!=null&&ec!=null&&sc!=null&&wc!=null)
+        ? ` · R=${parseFloat(r).toFixed(2)} EC=${parseFloat(ec).toFixed(2)} SC=${parseFloat(sc).toFixed(2)} WC=${parseFloat(wc).toFixed(2)}`
+        : '';
+      return '<span style="font-size:0.78rem;' + cls + '">Global=' + g.toFixed(2) + sub + '</span>';
+    }
+  }
   // Genérico
   const entries = Object.entries(scores).filter(([,v]) => v != null).slice(0,3);
   if(entries.length > 0) return `<span style="font-size:0.78rem;color:var(--blue-dark);">${entries.map(([k,v])=>k+'='+v).join(' · ')}</span>`;
@@ -2241,7 +2274,9 @@ function renderAssignments(patientId) {
                 'NEOPIR':['NomeInformante'],
                 'CSSRS':[],
                 // ── BSI — respondente único, basta código ──
-                'BSI':['NomeRespondente']
+                'BSI':['NomeRespondente'],
+                // EDE-Q — respondente único (o próprio paciente), basta o código
+                'EDEQ':[]
               };
               const RC = {
                 'SWAN':['Relação'],'BRIEF_Pais':['Relação'],'SCARED_R_PAIS':['Relação'],
