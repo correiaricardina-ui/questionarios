@@ -1083,6 +1083,14 @@ function initCatalog() {
       objective:'Rastreio de sintomatologia psicopatológica em 9 dimensões e 3 índices globais (Derogatis 1982; Canavarro 1999)',
       domains:['Somatização','Obsessões-Compulsões','Sensibilidade Interpessoal','Depressão','Ansiedade','Hostilidade','Ansiedade Fóbica','Ideação Paranóide','Psicoticismo','IGS','TSP','ISP'],
       ageMin:13, ageMax:null },
+    // ── BESAA — v1.0 ────────────────────────────────────────────────────
+    { id:'q_besaa', name:'BESAA — Escala de Estima Corporal',
+      dest:['Paciente','Adolescente','Jovem avaliado'],
+      link:'https://correiaricardina-ui.github.io/questionarios/BESAA_v1.html',
+      syncKey:'besaa', area:'Imagem Corporal', ageRange:'12+ anos',
+      objective:'Avalia a auto-estima corporal em três dimensões: aparência geral, satisfação com o peso e avaliações atribuídas por outros (Mendelson et al., 2001)',
+      domains:['BE-Aparência','BE-Peso','BE-Atribuição'],
+      ageMin:144, ageMax:null },
   ];
   // Garantir que TODOS os defaults estão no catálogo, sempre
   // (funciona em RC novos e em RC existentes — nunca perde questionários)
@@ -2020,6 +2028,37 @@ function formatScoreSummary(scores, syncKey) {
       return '<span style="font-size:0.78rem;font-weight:' + peso + ';color:' + cor + '">' +
         'ISP=' + parseFloat(isp).toFixed(3) + (perturbado ? ' ⚠ Pert. provável' : ' ✓ Normal') +
         igsStr + '</span>';
+    }
+  }
+
+  // ── BESAA — v1.0 ─────────────────────────────────────────────
+  if(syncKey === 'besaa') {
+    const beApar = scores['BE_Aparencia'] ?? scores['BE_Aparência'] ?? scores['be_aparencia'] ?? null;
+    const bePeso = scores['BE_Peso'] ?? scores['be_peso'] ?? null;
+    const beAtrib = scores['BE_Atribuicao'] ?? scores['BE_Atribuição'] ?? scores['be_atribuicao'] ?? null;
+    
+    if(beApar != null || bePeso != null || beAtrib != null) {
+      let partes = [];
+      if(beApar != null) {
+        const val = parseFloat(beApar).toFixed(2);
+        const nivel = val >= 2.5 ? 'Alto' : val >= 2.0 ? 'Médio' : 'Baixo';
+        const cor = val >= 2.5 ? '#27AE60' : val >= 2.0 ? '#F39C12' : '#E74C3C';
+        partes.push('<span style="color:' + cor + '">BE-Ap=' + val + '</span>');
+      }
+      if(bePeso != null) {
+        const val = parseFloat(bePeso).toFixed(2);
+        const nivel = val >= 2.5 ? 'Alto' : val >= 2.0 ? 'Médio' : 'Baixo';
+        const cor = val >= 2.5 ? '#27AE60' : val >= 2.0 ? '#F39C12' : '#E74C3C';
+        partes.push('<span style="color:' + cor + '">BE-Pe=' + val + '</span>');
+      }
+      if(beAtrib != null) {
+        const val = parseFloat(beAtrib).toFixed(2);
+        const nivel = val >= 2.5 ? 'Alto' : val >= 2.0 ? 'Médio' : 'Baixo';
+        const cor = val >= 2.5 ? '#27AE60' : val >= 2.0 ? '#F39C12' : '#E74C3C';
+        partes.push('<span style="color:' + cor + '">BE-At=' + val + '</span>');
+      }
+      
+      return '<span style="font-size:0.78rem;font-weight:600">' + partes.join(' · ') + '</span>';
     }
   }
 
