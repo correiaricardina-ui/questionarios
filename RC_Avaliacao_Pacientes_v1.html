@@ -754,7 +754,13 @@ const SYNC_KEY_TO_ABA = {
   'BSI':   'BSI',
   // ── EDE-Q 6.0 ───────────────────────────────────────────────
   'edeq':  'EDEQ',
-  'EDEQ':  'EDEQ'
+  'EDEQ':  'EDEQ',
+  // ── SEQ-C — v1.0 ────────────────────────────────────────────────────
+  'seqc':              'SEQ_C',
+  'SEQ_C':             'SEQ_C',
+  // ── Collins Silhuetas — v1.0 ────────────────────────────────────────
+  'collins':           'Collins_Silhuetas',
+  'Collins_Silhuetas': 'Collins_Silhuetas'
 };
 
 // Cache em memória das respostas do Sheet (evita fetch repetidos na mesma sessão)
@@ -1101,6 +1107,22 @@ function initCatalog() {
       objective:'Avalia a auto-estima corporal em três dimensões: aparência geral, satisfação com o peso e avaliações atribuídas por outros (Mendelson et al., 2001)',
       domains:['BE-Aparência','BE-Peso','BE-Atribuição'],
       ageMin:144, ageMax:null },
+    // ── SEQ-C — v1.0 ─────────────────────────────────────────────────────
+    { id:'q_seqc', name:'SEQ-C — Autoeficácia para Crianças',
+      dest:['Paciente','Jovem avaliado'],
+      link:'https://correiaricardina-ui.github.io/questionarios/SEQC_v2.html',
+      syncKey:'seqc', area:'Autoeficácia / Aprendizagem', ageRange:'7.º–12.º ano',
+      objective:'Avalia crenças de autoeficácia em três domínios: académico, social e emocional (Nogueira, 2003)',
+      domains:['AE Académica','AE Social','AE Emocional','AE Global'],
+      ageMin:132, ageMax:215 },
+    // ── Collins Silhuetas — v1.0 ─────────────────────────────────────────
+    { id:'q_collins', name:'Collins — Silhuetas Corporais',
+      dest:['Paciente','Jovem avaliado'],
+      link:'https://correiaricardina-ui.github.io/questionarios/Collins_Silhuetas.html',
+      syncKey:'collins', area:'Imagem Corporal', ageRange:'Crianças / Adolescentes',
+      objective:'Avalia a insatisfação com a imagem corporal através de silhuetas — percepção real vs. ideal (Collins, 1991)',
+      domains:['Silhueta Real','Silhueta Ideal','Insatisfação','IMC'],
+      ageMin:72, ageMax:215 },
   ];
   // Garantir que TODOS os defaults estão no catálogo, sempre
   // (funciona em RC novos e em RC existentes — nunca perde questionários)
@@ -1202,6 +1224,10 @@ function initCatalog() {
       'q_bsi':   { link:'https://correiaricardina-ui.github.io/questionarios/BSI_v1.html', syncKey:'bsi' },
       // ── EDE-Q 6.0 ─────────────────────────────────────────
       'q_edeq':  { link:'https://correiaricardina-ui.github.io/questionarios/EDEQ_v1.html', syncKey:'edeq' },
+      // ── SEQ-C — v1.0 ─────────────────────────────────────────
+      'q_seqc':    { link:'https://correiaricardina-ui.github.io/questionarios/SEQC_v2.html', syncKey:'seqc' },
+      // ── Collins Silhuetas — v1.0 ─────────────────────────────
+      'q_collins': { link:'https://correiaricardina-ui.github.io/questionarios/Collins_Silhuetas.html', syncKey:'collins' },
     };
     // ── Re-store com chave correcta ('q_' + id) — corrige instalações anteriores ──
     // Garante que Conners, FAD e MAP ficam acessíveis pelo META.forEach e getCatalog
@@ -1428,6 +1454,16 @@ function initCatalog() {
     if(!catalog.includes('q_edeq')) {
       const d = defaults.find(x => x.id === 'q_edeq');
       if(d) { store.set('q_' + d.id, d); catalog.push('q_edeq'); store.set('catalog', catalog); }
+    }
+    // SEQ-C — v1.0
+    if(!catalog.includes('q_seqc')) {
+      const d = defaults.find(x => x.id === 'q_seqc');
+      if(d) { store.set('q_' + d.id, d); catalog.push('q_seqc'); store.set('catalog', catalog); }
+    }
+    // Collins Silhuetas — v1.0
+    if(!catalog.includes('q_collins')) {
+      const d = defaults.find(x => x.id === 'q_collins');
+      if(d) { store.set('q_' + d.id, d); catalog.push('q_collins'); store.set('catalog', catalog); }
     }
     }
   }
@@ -2064,6 +2100,32 @@ function formatScoreSummary(scores, syncKey) {
     }
   }
 
+  // ── SEQ-C — v1.0 ─────────────────────────────────────────────
+  if(syncKey === 'seqc') {
+    const global = scores['AE_Global'] ?? scores['global'] ?? null;
+    const zonaGlobal = scores['ZonaGlobal'] ?? scores['zonaGlobal'] ?? '';
+    const acad  = scores['AE_Acad']   ?? scores['acad']  ?? null;
+    const social= scores['AE_Social'] ?? scores['social'] ?? null;
+    const emoc  = scores['AE_Emoc']   ?? scores['emoc']  ?? null;
+    if(global != null) {
+      const cor = zonaGlobal==='Elevada' ? '#1E8449' : zonaGlobal==='Média' ? '#2E75B6' : '#C0392B';
+      const ic  = zonaGlobal==='Elevada' ? '★' : zonaGlobal==='Média' ? '✓' : '⚠';
+      return `<span style="font-size:0.78rem;font-weight:700;color:${cor}">${ic} Global=${global}/105${acad!=null?' · Acad='+acad:''}${social!=null?' Soc='+social:''}${emoc!=null?' Emoc='+emoc:''}</span>`;
+    }
+  }
+  // ── Collins Silhuetas — v1.0 ─────────────────────────────────
+  if(syncKey === 'collins') {
+    const silReal   = scores['silReal']   ?? scores['SilReal']   ?? null;
+    const silIdeal  = scores['silIdeal']  ?? scores['SilIdeal']  ?? null;
+    const insatisf  = scores['insatisfacao'] ?? scores['Insatisfacao'] ?? null;
+    const imc       = scores['imc']       ?? scores['IMC']       ?? null;
+    if(silReal != null || insatisf != null) {
+      const inscorNum = insatisf != null ? parseFloat(insatisf) : null;
+      const cor = inscorNum == null ? '#2E75B6' : Math.abs(inscorNum) <= 1 ? '#27AE60' : Math.abs(inscorNum) <= 2 ? '#E67E22' : '#C0392B';
+      const peso = Math.abs(inscorNum||0) > 1 ? '700' : '600';
+      return `<span style="font-size:0.78rem;font-weight:${peso};color:${cor}">Real=${silReal??'—'} Ideal=${silIdeal??'—'} Δ=${insatisf!=null?(inscorNum>0?'+'+insatisf:insatisf):'—'}${imc?' IMC='+imc:''}</span>`;
+    }
+  }
   // ── BESAA — v1.0 ─────────────────────────────────────────────
   if(syncKey === 'besaa') {
     const beApar = scores['BE_Aparencia'] ?? scores['BE_Aparência'] ?? scores['be_aparencia'] ?? null;
@@ -2276,7 +2338,11 @@ function renderAssignments(patientId) {
                 // ── BSI — respondente único, basta código ──
                 'BSI':['NomeRespondente'],
                 // EDE-Q — respondente único (o próprio paciente), basta o código
-                'EDEQ':[]
+                'EDEQ':[],
+                // SEQ-C — respondente único (aluno), NomeCriança identifica
+                'SEQ_C':['NomeCriança'],
+                // Collins Silhuetas — respondente único, basta o código
+                'Collins_Silhuetas':[]
               };
               const RC = {
                 'SWAN':['Relação'],'BRIEF_Pais':['Relação'],'SCARED_R_PAIS':['Relação'],
