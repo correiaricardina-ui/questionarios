@@ -508,8 +508,8 @@ function submeterQuestionario(){
   var totalT=calcTScore(totalRaw,'Total Anxiety and Depression (25.1)',age,gender);
 
   var payload={
-    sheet:SHEET_NAME,
-    data:new Date().toISOString(),
+    instrumento:SHEET_NAME,
+    date:new Date().toISOString(),
     patientCode:code,
     nomeCrianca:nomeCrianca,
     nomeInformante:nomeInformante,
