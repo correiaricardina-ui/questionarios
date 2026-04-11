@@ -719,8 +719,205 @@ function verDetalhe(i){
       'Normas: Ebesutani et al. (2011), versão self-report, idades 9–18'+
     '</div>'+
     '</div>';
+  // ── Gráfico SVG das 6 subescalas ──────────────────────────
+  var subDims=[
+    {key:'sp',  label:'Fobia Social',        max:9,  raw:parseFloat(d.sp)||0,  color:'#2980B9'},
+    {key:'sad', label:'Sep. Ansiedade',       max:9,  raw:parseFloat(d.sad)||0, color:'#8E44AD'},
+    {key:'gad', label:'Ans. Generalizada',   max:9,  raw:parseFloat(d.gad)||0, color:'#27AE60'},
+    {key:'pd',  label:'Pânico',              max:9,  raw:parseFloat(d.pd)||0,  color:'#E67E22'},
+    {key:'ocd', label:'Obs.-Compulsiva',     max:9,  raw:parseFloat(d.ocd)||0, color:'#C0392B'},
+    {key:'mdd', label:'Depressão Major',     max:30, raw:parseFloat(d.mdd)||0, color:'#34495E'}
+  ];
+  var svgW=420,barH=20,gap=8,padL=130,padT=6;
+  var svgH=padT+subDims.length*(barH+gap)+16;
+  var svgBars=subDims.map(function(dim,i){
+    var y=padT+i*(barH+gap);
+    var w=dim.raw>0?Math.round((dim.raw/dim.max)*(svgW-padL-10)):0;
+    return '<rect x="'+padL+'" y="'+y+'" width="'+(svgW-padL-10)+'" height="'+barH+'" rx="3" fill="#e8ecef"/>'+
+      '<rect x="'+padL+'" y="'+y+'" width="'+w+'" height="'+barH+'" rx="3" fill="'+dim.color+'" opacity=".85"/>'+
+      '<text x="'+(padL-6)+'" y="'+(y+barH/2+4)+'" text-anchor="end" font-size="11" fill="#2c3e50" font-family="DM Sans,Arial,sans-serif">'+dim.label+'</text>'+
+      '<text x="'+(padL+w+5)+'" y="'+(y+barH/2+4)+'" font-size="11" font-weight="bold" fill="'+dim.color+'" font-family="DM Sans,Arial,sans-serif">'+dim.raw+'/'+dim.max+'</text>';
+  }).join('');
+  var svgGrafico='<div style="margin:0 0 18px">'+
+    '<div style="font-size:.82rem;font-weight:600;color:var(--blue);margin-bottom:8px">Perfil das Subescalas (scores brutos)</div>'+
+    '<svg width="100%" viewBox="0 0 '+svgW+' '+svgH+'" style="max-width:'+svgW+'px">'+svgBars+'</svg>'+
+    '</div>';
+
+  // ── Respostas item a item ─────────────────────────────────
+  var ansArr=d.answers?d.answers.toString().split('|'):[];
+  var OPTS_LABEL=['Nunca','Às vezes','Muitas vezes','Sempre'];
+  var SCALE_PT={MDD:'Dep. Major',SP:'Fobia Social',SAD:'Sep. Ans.',GAD:'Ans. Gen.',PD:'Pânico',OCD:'Obs.-Comp.'};
+  var itensHtml='';
+  if(ansArr.length>=25){
+    itensHtml='<details style="margin-top:18px"><summary style="cursor:pointer;font-size:.82rem;font-weight:600;color:var(--blue);padding:6px 0;user-select:none">▼ Respostas item a item</summary>'+
+      '<div style="margin-top:8px;max-height:340px;overflow-y:auto">'+
+      '<table style="width:100%;border-collapse:collapse;font-size:.78rem">'+
+      '<thead><tr style="background:var(--blue-xpale)"><th style="padding:5px 8px;text-align:left">Nº</th><th style="padding:5px 8px;text-align:left">Escala</th><th style="padding:5px 8px;text-align:left">Enunciado</th><th style="padding:5px 8px;text-align:center">Resp.</th></tr></thead><tbody>';
+    ITEMS_PT.forEach(function(item,idx){
+      var val=ansArr[idx]!==undefined?parseInt(ansArr[idx]):'—';
+      var label=OPTS_LABEL[val]||val;
+      var bg=idx%2===0?'':'background:#f8f9fa';
+      itensHtml+='<tr style="'+bg+'">'+
+        '<td style="padding:4px 8px;font-weight:700;color:var(--blue)">'+item.pos+'</td>'+
+        '<td style="padding:4px 8px;font-size:.72rem;color:var(--text-light)">'+( SCALE_PT[item.scale]||item.scale)+'</td>'+
+        '<td style="padding:4px 8px">'+item.pt+'</td>'+
+        '<td style="padding:4px 8px;text-align:center;font-weight:700">'+val+'<span style="font-size:.65rem;color:var(--text-light);display:block">'+label+'</span></td>'+
+        '</tr>';
+    });
+    itensHtml+='</tbody></table></div></details>';
+  } else {
+    itensHtml='<p style="font-size:.78rem;color:var(--text-light);font-style:italic;margin-top:12px">Respostas item a item não disponíveis nesta sessão.</p>';
+  }
+
+  var overlay=document.createElement('div');
+  overlay.className='modal-overlay';
+  overlay.innerHTML=
+    '<div class="modal-box">'+
+    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">'+
+      '<div style="font-family:DM Serif Display,serif;font-size:1.1rem;color:var(--blue)">Detalhe · '+(d.patientCode||'')+
+        (d.nomeCrianca?' — '+d.nomeCrianca:'')+
+        (d.nomeInformante?' · '+d.nomeInformante:'')+'</div>'+
+      '<button class="btn btn-xs btn-secondary" onclick="this.closest(&quot;.modal-overlay&quot;).remove()">&#10005; Fechar</button>'+
+    '</div>'+
+    '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:20px">'+
+      '<div class="card" style="padding:12px"><div style="font-size:0.75rem;color:var(--text-light)">Data</div><div style="font-weight:600">'+(d.date?new Date(d.date).toLocaleDateString('pt-PT'):'')+'</div></div>'+
+      '<div class="card" style="padding:12px"><div style="font-size:0.75rem;color:var(--text-light)">Ano Escolar</div><div style="font-weight:600">'+(d.relation||'—')+'</div></div>'+
+      '<div class="card" style="padding:12px"><div style="font-size:0.75rem;color:var(--text-light)">Idade / Sexo</div><div style="font-weight:600">'+(d.age||'—')+' · '+(d.gender==='Female'?'F':d.gender==='Male'?'M':d.gender||'—')+'</div></div>'+
+    '</div>'+
+    '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px">'+
+      '<div class="card" style="padding:10px"><div style="font-size:0.72rem;color:var(--text-light)">SP — Fobia Social</div><div style="font-weight:600;font-size:1.1rem">'+(d.sp||'—')+' <span style="font-size:.72rem;color:var(--text-light)">/ 9</span></div></div>'+
+      '<div class="card" style="padding:10px"><div style="font-size:0.72rem;color:var(--text-light)">SAD — Sep. Ansiedade</div><div style="font-weight:600;font-size:1.1rem">'+(d.sad||'—')+' <span style="font-size:.72rem;color:var(--text-light)">/ 9</span></div></div>'+
+      '<div class="card" style="padding:10px"><div style="font-size:0.72rem;color:var(--text-light)">GAD — Ans. Generalizada</div><div style="font-weight:600;font-size:1.1rem">'+(d.gad||'—')+' <span style="font-size:.72rem;color:var(--text-light)">/ 9</span></div></div>'+
+      '<div class="card" style="padding:10px"><div style="font-size:0.72rem;color:var(--text-light)">PD — Pânico</div><div style="font-weight:600;font-size:1.1rem">'+(d.pd||'—')+' <span style="font-size:.72rem;color:var(--text-light)">/ 9</span></div></div>'+
+      '<div class="card" style="padding:10px"><div style="font-size:0.72rem;color:var(--text-light)">OCD</div><div style="font-weight:600;font-size:1.1rem">'+(d.ocd||'—')+' <span style="font-size:.72rem;color:var(--text-light)">/ 9</span></div></div>'+
+      '<div class="card" style="padding:10px"><div style="font-size:0.72rem;color:var(--text-light)">MDD — Depressão Major</div><div style="font-weight:600;font-size:1.1rem">'+(d.mdd||'—')+' <span style="font-size:.72rem;color:var(--text-light)">/ 30</span></div></div>'+
+    '</div>'+
+    svgGrafico+
+    '<div style="margin-bottom:16px"><h4 style="color:var(--blue);font-size:0.9rem;margin-bottom:10px;">Interpretação (T-scores)</h4>'+tbl+paragrafo+'</div>'+
+    itensHtml+
+    '<div style="margin-top:16px;display:flex;gap:8px" class="no-print">'+
+      '<button class="btn btn-primary" style="padding:7px 18px;font-size:.82rem" onclick="exportarRelatorioPDF('+i+')">🖨️ Relatório Completo PDF</button>'+
+    '</div>'+
+    '<div style="background:var(--gray);border-radius:8px;padding:10px 14px;font-size:0.78rem;color:var(--text-light);margin-top:14px">'+
+      'Limiares: T≥70 = Clínico &nbsp;·&nbsp; T 65–69 = Borderline &nbsp;·&nbsp; T&lt;65 = Normativo &nbsp;·&nbsp; '+
+      'Normas: Ebesutani et al. (2011), versão self-report, idades 9–18'+
+    '</div>'+
+    '</div>';
   document.body.appendChild(overlay);
   overlay.addEventListener('click',function(e){if(e.target===overlay)overlay.remove();});
+}
+
+// ── RELATÓRIO COMPLETO PDF ──────────────────────────────────────
+function exportarRelatorioPDF(i){
+  var rows=window._clinico_sessions||[];
+  var row=rows[i]; if(!row){alert('Sessão não encontrada.');return;}
+  var d=extrairCampos(row);
+
+  var subDims=[
+    {label:'Fobia Social',         raw:parseFloat(d.sp)||0,  max:9,  color:'#2980B9'},
+    {label:'Sep. Ansiedade',       raw:parseFloat(d.sad)||0, max:9,  color:'#8E44AD'},
+    {label:'Ans. Generalizada',    raw:parseFloat(d.gad)||0, max:9,  color:'#27AE60'},
+    {label:'Pânico',               raw:parseFloat(d.pd)||0,  max:9,  color:'#E67E22'},
+    {label:'Obs.-Compulsiva',      raw:parseFloat(d.ocd)||0, max:9,  color:'#C0392B'},
+    {label:'Depressão Major',      raw:parseFloat(d.mdd)||0, max:30, color:'#34495E'}
+  ];
+
+  // SVG barras
+  var svgW=400,barH=20,gap=8,padL=130,padT=6;
+  var svgH=padT+subDims.length*(barH+gap)+16;
+  var svgBars=subDims.map(function(dim,i){
+    var y=padT+i*(barH+gap);
+    var w=dim.raw>0?Math.round((dim.raw/dim.max)*(svgW-padL-10)):0;
+    return '<rect x="'+padL+'" y="'+y+'" width="'+(svgW-padL-10)+'" height="'+barH+'" rx="3" fill="#e8ecef"/>'+
+      '<rect x="'+padL+'" y="'+y+'" width="'+w+'" height="'+barH+'" rx="3" fill="'+dim.color+'" opacity=".85"/>'+
+      '<text x="'+(padL-6)+'" y="'+(y+barH/2+4)+'" text-anchor="end" font-size="11" fill="#2c3e50" font-family="Arial,sans-serif">'+dim.label+'</text>'+
+      '<text x="'+(padL+w+5)+'" y="'+(y+barH/2+4)+'" font-size="11" font-weight="bold" fill="'+dim.color+'" font-family="Arial,sans-serif">'+dim.raw+'/'+dim.max+'</text>';
+  }).join('');
+
+  // T-scores tabela
+  var scalasT2=[
+    {label:'Depressão Major',           t:parseFloat(d.mddT)},
+    {label:'Total Ansiedade',           t:parseFloat(d.anxT)},
+    {label:'Total Ansiedade e Depressão',t:parseFloat(d.totalT)}
+  ];
+  var tRowsPDF=scalasT2.map(function(s,idx){
+    if(isNaN(s.t))return '';
+    var zona=s.t>=70?'Clínico':s.t>=65?'Borderline':'Normativo';
+    var cor=s.t>=70?'#C0392B':s.t>=65?'#E67E22':'#27AE60';
+    var pct=Math.min(100,Math.round(((s.t-30)/70)*100));
+    return '<tr style="background:'+(idx%2===0?'#f8f9fa':'#fff')+'">'+
+      '<td style="padding:6px 10px;font-size:12px">'+s.label+'</td>'+
+      '<td style="padding:6px 10px;text-align:center;font-weight:700;font-size:13px;color:'+cor+'">'+s.t+'</td>'+
+      '<td style="padding:6px 10px"><div style="background:#e8ecef;border-radius:3px;height:10px;width:160px;display:inline-block">'+
+        '<div style="background:'+cor+';border-radius:3px;height:10px;width:'+pct+'%"></div></div></td>'+
+      '<td style="padding:6px 10px;text-align:center"><span style="color:'+cor+';font-weight:700;font-size:11px">'+zona+'</span></td>'+
+      '</tr>';
+  }).join('');
+
+  // Respostas
+  var ansArr=d.answers?d.answers.toString().split('|'):[];
+  var OPTS_LABEL2=['Nunca','Às vezes','Muitas vezes','Sempre'];
+  var SCALE_PT2={MDD:'Dep. Major',SP:'Fobia Social',SAD:'Sep. Ans.',GAD:'Ans. Gen.',PD:'Pânico',OCD:'Obs.-Comp.'};
+  var itensRows=ansArr.length>=25?ITEMS_PT.map(function(item,idx){
+    var val=ansArr[idx]!==undefined?parseInt(ansArr[idx]):'—';
+    var label=OPTS_LABEL2[val]||val;
+    return '<tr style="background:'+(idx%2===0?'#f8f9fa':'#fff')+'">'+
+      '<td style="padding:4px 8px;font-size:11px;font-weight:700;color:#3B5A7A">'+item.pos+'</td>'+
+      '<td style="padding:4px 8px;font-size:10px;color:#888">'+( SCALE_PT2[item.scale]||item.scale)+'</td>'+
+      '<td style="padding:4px 8px;font-size:11px">'+item.pt+'</td>'+
+      '<td style="padding:4px 8px;text-align:center;font-weight:700;font-size:12px">'+val+'</td>'+
+      '<td style="padding:4px 8px;font-size:10px;color:#aaa">'+label+'</td>'+
+      '</tr>';
+  }).join(''):'';
+
+  var dt=d.date?new Date(d.date).toLocaleDateString('pt-PT'):'—';
+  var html='<!DOCTYPE html><html><head><meta charset="utf-8">'+
+    '<title>RCADS-25 Jovem · '+( d.patientCode||'')+'</title>'+
+    '<style>body{font-family:Arial,sans-serif;color:#2c3e50;margin:0;padding:28px 36px;font-size:13px}'+
+    'h2{font-size:13px;color:#3B5A7A;margin:18px 0 6px;border-bottom:1px solid #dde3ea;padding-bottom:3px}'+
+    'table{width:100%;border-collapse:collapse}th{background:#f0f4f8;padding:7px 10px;font-size:12px;color:#3B5A7A;text-align:left}'+
+    '@media print{button{display:none}}</style></head><body>'+
+    '<div style="display:flex;justify-content:space-between;align-items:flex-start">'+
+    '<div><h1 style="font-size:18px;color:#3B5A7A;margin:0 0 2px">RCADS-25 — Jovem (Self-Report)</h1>'+
+    '<p style="margin:2px 0;color:#666;font-size:12px">Revised Children's Anxiety and Depression Scale · Ebesutani et al. (2011)</p></div>'+
+    '<div style="text-align:right;font-size:11px;color:#aaa"><div>Ricardina Correia · Cédula 8233</div><div>Psicologia Pediátrica</div></div></div>'+
+    '<hr style="border:none;border-top:2px solid #3B5A7A;margin:10px 0 14px">'+
+    '<table style="margin-bottom:14px"><tr>'+
+    '<td style="padding:3px 16px 3px 0"><strong>Código:</strong> '+(d.patientCode||'—')+'</td>'+
+    '<td style="padding:3px 16px 3px 0"><strong>Nome:</strong> '+(d.nomeCrianca||'—')+'</td>'+
+    '<td style="padding:3px 16px 3px 0"><strong>Idade:</strong> '+(d.age||'—')+'</td>'+
+    '<td style="padding:3px 16px 3px 0"><strong>Sexo:</strong> '+(d.gender==='Female'?'Feminino':d.gender==='Male'?'Masculino':d.gender||'—')+'</td>'+
+    '<td style="padding:3px 16px 3px 0"><strong>Ano:</strong> '+(d.relation||'—')+'</td>'+
+    '<td><strong>Data:</strong> '+dt+'</td>'+
+    '</tr></table>'+
+    '<h2>Subescalas (Scores Brutos)</h2>'+
+    '<svg width="100%" viewBox="0 0 '+svgW+' '+svgH+'" style="max-width:'+svgW+'px;display:block;margin:6px 0 12px">'+svgBars+'</svg>'+
+    '<h2>T-Scores e Classificação</h2>'+
+    '<table><thead><tr><th>Escala / Índice</th><th style="text-align:center">T</th><th style="width:180px">Perfil</th><th style="text-align:center">Zona</th></tr></thead>'+
+    '<tbody>'+tRowsPDF+'</tbody></table>'+
+    '<h2>Interpretação</h2>'+
+    '<div style="background:#f0f4f8;border-radius:6px;padding:10px 14px;font-size:12px;line-height:1.7">'+
+    (function(){
+      var totT=parseFloat(d.totalT);
+      var totZona=totT>=70?'clínica':totT>=65?'borderline':'normativa';
+      var parts=['O índice total (Ansiedade e Depressão) situa-se na zona <strong>'+totZona+'</strong> (T='+totT+').'];
+      scalasT2.forEach(function(s){if(!isNaN(s.t)&&s.t>=65)parts.push(s.label+': zona '+(s.t>=70?'clínica':'borderline')+' (T='+s.t+').');});
+      if(!scalasT2.some(function(s){return !isNaN(s.t)&&s.t>=65;}))parts.push('Todas as escalas dentro dos limites normativos.');
+      parts.push('<em style="font-size:11px;color:#aaa">Interpretação automática — integrar sempre no contexto clínico completo.</em>');
+      return parts.join(' ');
+    })()+
+    '</div>'+
+    (itensRows?'<h2>Respostas Item a Item (escala: 0=Nunca · 1=Às vezes · 2=Muitas vezes · 3=Sempre)</h2>'+
+    '<table><thead><tr><th style="width:24px">Nº</th><th style="width:80px">Escala</th><th>Enunciado</th><th style="text-align:center;width:40px">Resp.</th><th style="width:100px">Label</th></tr></thead>'+
+    '<tbody>'+itensRows+'</tbody></table>':'')+
+    '<div style="margin-top:24px;text-align:center"><button onclick="window.print()" '+
+    'style="background:#3B5A7A;color:#fff;border:none;border-radius:6px;padding:8px 24px;font-size:13px;cursor:pointer">'+
+    '🖨️ Imprimir / Guardar PDF</button></div>'+
+    '</body></html>';
+
+  var w=window.open('','_blank');
+  if(!w){alert('Pop-up bloqueado. Permite pop-ups para este site.');return;}
+  w.document.write(html);w.document.close();
 }
 
 // ── EXPORTAR CSV ──
