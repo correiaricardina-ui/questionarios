@@ -577,12 +577,33 @@ function submeter() {
 
 // ============================================================
 // PAINEL CLÍNICO
+// ── Normalização de chaves vindas do script (maiúsculas → camelCase esperado) ──
+function normalizarSessao(s) {
+  // Aceita tanto as chaves do doGet ("Código", "SilReal"…) como as camelCase do payload
+  return {
+    data:        s.data        || s.Data        || s.DATA        || '',
+    hora:        s.hora        || s.Hora        || s.HORA        || '',
+    patientCode: s.patientCode || s.Codigo      || s.Código      || s.codigo      || s.CODIGO || '',
+    genero:      s.genero      || s.Genero      || s.Género      || s.GENERO      || '',
+    idade:       s.idade       || s.Idade       || s.IDADE       || '',
+    peso:        s.peso        || s.Peso        || s.PESO        || '',
+    altura:      s.altura      || s.Altura      || s.ALTURA      || '',
+    imc:         s.imc         || s.IMC         || s.Imc         || '',
+    grupo:       s.grupo       || s.Grupo       || s.GRUPO       || '',
+    silReal:     s.silReal     || s.SilReal     || s.SILREAL     || s.Silreal     || '',
+    silIdeal:    s.silIdeal    || s.SilIdeal    || s.SILIDEAL    || s.Silideal    || s.SilIdeal || s.Silideal || '',
+    insatisfacao:s.insatisfacao|| s.Insatisfacao|| s.INSATISFACAO|| '',
+    avaliacao:   s.avaliacao   || s.Avaliacao   || s.Avaliação   || s.AVALIACAO   || '',
+    desejo:      s.desejo      || s.Desejo      || s.DESEJO      || ''
+  };
+}
+
 // ============================================================
 function carregarDados() {
   document.getElementById('tabela-container').innerHTML='<p style="color:var(--text-light);text-align:center;padding:40px 0;">A sincronizar...</p>';
   fetch(SCRIPT_URL+'?instrumento='+NOME_ABA+'&t='+Date.now())
     .then(function(r){return r.json();})
-    .then(function(data){sessoes=Array.isArray(data)?data:(data.rows||[]);renderTabela();})
+    .then(function(data){var raw=Array.isArray(data)?data:(data.rows||[]);sessoes=raw.map(normalizarSessao);renderTabela();})
     .catch(function(){document.getElementById('tabela-container').innerHTML='<p style="color:var(--red);text-align:center;padding:40px 0;">Erro ao sincronizar.</p>';renderTabela();});
 }
 
@@ -812,7 +833,7 @@ function processarFicheiroImportado(input){
       var obj={};hdr.forEach(function(h,j){obj[h]=vals[j]||'';});
       var key=(obj['código']||obj['codigo']||obj['patientcode']||'')+(obj['data']||'');
       var dup=sessoes.some(function(s){return(s.patientCode+s.data)===key;});
-      if(!dup){sessoes.push({data:obj['data'],hora:obj['hora'],patientCode:obj['código']||obj['codigo']||obj['patientcode'],genero:obj['género']||obj['genero'],idade:obj['idade'],grupo:obj['grupo']||obj['grupo_silhuetas']||'',peso:obj['peso'],altura:obj['altura'],imc:obj['imc'],silReal:obj['sil.real']||obj['silhueta_real'],silIdeal:obj['sil.ideal']||obj['silhueta_ideal'],insatisfacao:obj['insatisfação']||obj['insatisfacao'],avaliacao:obj['avaliação']||obj['avaliacao'],desejo:obj['desejo']});novos++;}
+      if(!dup){sessoes.push(normalizarSessao({data:obj['data'],hora:obj['hora'],patientCode:obj['código']||obj['codigo']||obj['patientcode']||obj['código'],genero:obj['género']||obj['genero'],idade:obj['idade'],grupo:obj['grupo']||obj['grupo_silhuetas']||'',peso:obj['peso'],altura:obj['altura'],imc:obj['imc'],silReal:obj['silreal']||obj['sil.real']||obj['silhueta_real']||obj['real'],silIdeal:obj['silideal']||obj['sil.ideal']||obj['silhueta_ideal']||obj['ideal'],insatisfacao:obj['insatisfação']||obj['insatisfacao']||obj['insatisfação'],avaliacao:obj['avaliação']||obj['avaliacao']||obj['avaliação'],desejo:obj['desejo']}));novos++;}
     }
     var fb=document.getElementById('import-feedback');
     fb.style.display='block';fb.style.color=novos?'var(--green)':'var(--orange)';
