@@ -1174,6 +1174,8 @@ function relatórioCompletoPDF(sessao) {
   if(!w){ alert('Pop-up bloqueado. Permite pop-ups para este site.'); return; }
   w.document.write(html); w.document.close();
 }
+
+function gerarInterpretacao(sc) {
   var linhas = [];
   // DE
   if(sc.DE>=58) linhas.push('Défice executivo <strong>severo</strong> ('+sc.DE+'/76): dificuldades significativas na iniciação, organização e monitorização do estudo.');
