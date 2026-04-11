@@ -682,7 +682,7 @@ function carregarDados(){
   fetch(SCRIPT_URL+'?instrumento=EAT26&t='+Date.now())
     .then(function(r){return r.json();})
     .then(function(data){
-      if(data && data.rows) sessoes=data.rows;
+      if(data && data.rows) sessoes=data.rows.map(normalizarRow);
       renderTabela();
       document.getElementById('sync-status').textContent='Última sincronização: '+new Date().toLocaleTimeString('pt-PT');
     })
@@ -690,6 +690,27 @@ function carregarDados(){
       document.getElementById('sync-status').textContent='Sem ligação ao servidor — a mostrar dados locais.';
       renderTabela();
     });
+}
+
+function normalizarRow(r) {
+  return {
+    date:        r.Data        || r.date        || r.timestamp  || '',
+    patientCode: r.Código      || r.Codigo      || r.patientCode|| r.codigo || '',
+    patientName: r.Nome        || r.patientName || r.nome       || '',
+    dob:         r.DataNasc    || r.dob         || '',
+    sex:         r.Sexo        || r.sex         || '',
+    scoreD:      r.D           !== undefined ? r.D   : (r.scoreD  !== undefined ? r.scoreD  : 0),
+    scoreB:      r.B           !== undefined ? r.B   : (r.scoreB  !== undefined ? r.scoreB  : 0),
+    scoreOC:     r.OC          !== undefined ? r.OC  : (r.scoreOC !== undefined ? r.scoreOC : 0),
+    total:       r.Total       !== undefined ? r.Total : (r.total !== undefined ? r.total   : 0),
+    rastreio:    r.Rastreio    || r.rastreio    || '',
+    riscoB1:     r.B1          || r.riscoB1     || '—',
+    riscoB2:     r.B2          || r.riscoB2     || '—',
+    riscoB3:     r.B3          || r.riscoB3     || '—',
+    riscoB4:     r.B4          || r.riscoB4     || '—',
+    riscoB5:     r.B5          || r.riscoB5     || '—',
+    answers:     r.Respostas   || r.answers     || r.respostas  || ''
+  };
 }
 
 function renderTabela(){
@@ -746,7 +767,8 @@ function verDetalhe(idx){
 
   // answers table
   var answersArr=[];
-  if(s.answers){answersArr=String(s.answers).split('|').map(Number);}
+  var rawAns=s.answers||s.Respostas||s.respostas||'';
+  if(rawAns){answersArr=String(rawAns).split('|').map(Number);}
   var ansTable='';
   if(answersArr.length===26){
     ansTable='<div style="margin-top:20px"><div style="font-weight:700;font-size:.95rem;color:var(--blue);margin-bottom:10px;">📋 Respostas por item</div>'
@@ -813,6 +835,7 @@ function verDetalhe(idx){
     +'<div style="margin-top:8px;font-size:.75rem;color:var(--text-light);border-top:1px solid var(--gray-bdr);padding-top:8px;">Cut-off clínico: score total ≥ 20 · Garner et al. (1982), Psychological Medicine, 12(4), 871–878.</div>'
     +'<div style="margin-top:14px;display:flex;gap:8px" class="no-print">'
     +'<button class="btn btn-primary" style="padding:7px 18px;font-size:.82rem" onclick="exportarInterpretacaoPDF('+idx+')">📄 Exportar Interpretação PDF</button>'
+    +'<button class="btn btn-secondary" style="padding:7px 18px;font-size:.82rem" onclick="exportarRelatorioPDF('+idx+')">🖨️ Relatório Completo PDF</button>'
     +'</div></div>'
     // Comportamentos de risco
     +'<div style="margin-top:20px;padding:16px;background:#fef9ee;border:1px solid #f9e4bc;border-radius:10px">'
@@ -898,6 +921,109 @@ function desenharGrafico(D,B,OC,total){
     ctx.font='700 13px DM Sans,sans-serif';
     ctx.fillText(b.val+'/'+b.max,pad.left+barW+8,y+bh/2);
   });
+}
+
+
+// ── RELATÓRIO COMPLETO PDF ──────────────────────────────────────
+function exportarRelatorioPDF(idx){
+  var s=sessoes[idx];
+  if(!s){alert('Sessão não encontrada.');return;}
+  var total=parseInt(s.total||s.Total)||0;
+  var D=parseInt(s.scoreD||s.D)||0;
+  var B=parseInt(s.scoreB||s.B)||0;
+  var OC=parseInt(s.scoreOC||s.OC)||0;
+  var pos=total>=20;
+  var pctD=Math.round(D/39*100);
+  var pctB=Math.round(B/18*100);
+  var pctOC=Math.round(OC/21*100);
+  var pctTotal=Math.round(total/78*100);
+  var dt=(s.date||s.timestamp||s.Data||'—').toString().slice(0,10);
+
+  // Subescalas rows
+  function baraSVG(v,max){
+    var pct=Math.min(100,Math.round(v/max*100));
+    var cor=pos&&v>0?'#C0392B':'#27AE60';
+    return '<div style="background:#e8ecef;border-radius:3px;height:10px;width:200px;display:inline-block;vertical-align:middle">'
+      +'<div style="background:'+cor+';border-radius:3px;height:10px;width:'+pct+'%"></div></div>';
+  }
+
+  // Respostas item a item
+  var rawAns=s.answers||s.Respostas||s.respostas||'';
+  var answersArr=rawAns?String(rawAns).split('|').map(Number):[];
+  var itensRows='';
+  if(answersArr.length===26){
+    for(var i=0;i<26;i++){
+      var oi=answersArr[i];
+      var sc=calcScore(oi,i+1);
+      var isInv=(i===25);
+      var label=['','Nunca','Raramente','Às vezes','Muitas vezes','Normalmente','Sempre'][oi]||oi;
+      itensRows+='<tr style="background:'+(i%2===0?'#f8f9fa':'#fff')+'">'
+        +'<td style="padding:4px 8px;font-size:11px;color:#3B5A7A;font-weight:700">'+(i+1)+(isInv?'★':'')+'</td>'
+        +'<td style="padding:4px 8px;font-size:11px">'+ITEMS[i]+'</td>'
+        +'<td style="padding:4px 8px;font-size:11px;text-align:center">'+label+'</td>'
+        +'<td style="padding:4px 8px;font-size:11px;text-align:center;font-weight:700;color:#3B5A7A">'+sc+'</td>'
+        +'</tr>';
+    }
+  }
+
+  // Comportamentos de risco
+  var riscoRows='';
+  ['riscoB1','riscoB2','riscoB3','riscoB4','riscoB5'].forEach(function(k,i){
+    var val=s[k]||'—';
+    var isYes=(val==='Sim');
+    riscoRows+='<tr><td style="padding:5px 8px;font-size:12px"><strong>B'+(i+1)+'.</strong> '+RISCO_ITEMS[i]+'</td>'
+      +'<td style="padding:5px 8px;font-size:12px;font-weight:700;color:'+(isYes?'#C0392B':'#27AE60')+'">'+val+'</td></tr>';
+  });
+
+  // Interpretação
+  var interpTxt=gerarTextoInterp(total,D,B,OC,s).replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim();
+
+  var html='<!DOCTYPE html><html><head><meta charset="utf-8">'
+    +'<title>EAT-26 · Relatório · '+(s.patientCode||s.Código||'')+'</title>'
+    +'<style>body{font-family:"DM Sans",Arial,sans-serif;color:#2c3e50;margin:0;padding:28px 36px;font-size:13px}'
+    +'h1{font-size:17px;color:#3B5A7A;margin:0 0 2px}h2{font-size:13px;color:#3B5A7A;margin:18px 0 6px;border-bottom:1px solid #dde3ea;padding-bottom:3px}'
+    +'table{width:100%;border-collapse:collapse}th{background:#f0f4f8;padding:7px 10px;font-size:12px;color:#3B5A7A;text-align:left}'
+    +'@media print{button{display:none}}</style></head><body>'
+    +'<div style="display:flex;justify-content:space-between;align-items:flex-start">'
+    +'<div><h1>EAT-26 — Eating Attitudes Test</h1>'
+    +'<p style="margin:2px 0;color:#666;font-size:12px">Garner, Olmsted, Bohr &amp; Garfinkel (1982) · 26 itens</p></div>'
+    +'<div style="text-align:right;font-size:11px;color:#aaa"><div>Ricardina Correia · Cédula 8233</div><div>Psicologia Pediátrica</div></div></div>'
+    +'<hr style="border:none;border-top:2px solid #3B5A7A;margin:10px 0 16px">'
+    +'<table style="margin-bottom:12px"><tr>'
+    +'<td style="padding:3px 16px 3px 0"><strong>Código:</strong> '+(s.patientCode||s.Código||'—')+'</td>'
+    +'<td style="padding:3px 16px 3px 0"><strong>Nome:</strong> '+(s.patientName||s.Nome||'—')+'</td>'
+    +'<td style="padding:3px 16px 3px 0"><strong>Sexo:</strong> '+(s.sex||s.Sexo||'—')+'</td>'
+    +'<td><strong>Data:</strong> '+dt+'</td>'
+    +'</tr></table>'
+    // Resultado global
+    +'<h2>Resultado Global</h2>'
+    +'<div style="background:'+(pos?'#fdedec':'#eafaf1')+';border:1px solid '+(pos?'#C0392B':'#27AE60')+';border-radius:8px;padding:12px 16px;margin-bottom:12px">'
+    +'<span style="font-size:22px;font-weight:700;color:'+(pos?'#C0392B':'#27AE60')+'">'+total+'</span>'
+    +' <span style="font-size:12px;color:#666">/ 78 pontos</span> &nbsp;&nbsp; '
+    +'<span style="font-weight:700;color:'+(pos?'#C0392B':'#27AE60')+'">'+(pos?'⚠ Rastreio POSITIVO (≥ 20)':'✓ Rastreio negativo (< 20)')+'</span>'
+    +'</div>'
+    // Subescalas
+    +'<h2>Resultados por Subescala</h2>'
+    +'<table><thead><tr><th>Subescala</th><th style="text-align:center">Score</th><th style="text-align:center">Máximo</th><th>Perfil</th><th style="text-align:center">% do máx.</th></tr></thead><tbody>'
+    +'<tr><td style="padding:7px 10px">Dieting (D)</td><td style="text-align:center;font-weight:700;padding:7px 10px">'+D+'</td><td style="text-align:center;padding:7px 10px;color:#999">39</td><td style="padding:7px 10px">'+baraSVG(D,39)+'</td><td style="text-align:center;padding:7px 10px">'+pctD+'%</td></tr>'
+    +'<tr style="background:#f8f9fa"><td style="padding:7px 10px">Bulimia e Preoc. Comida (B)</td><td style="text-align:center;font-weight:700;padding:7px 10px">'+B+'</td><td style="text-align:center;padding:7px 10px;color:#999">18</td><td style="padding:7px 10px">'+baraSVG(B,18)+'</td><td style="text-align:center;padding:7px 10px">'+pctB+'%</td></tr>'
+    +'<tr><td style="padding:7px 10px">Controlo Oral (OC)</td><td style="text-align:center;font-weight:700;padding:7px 10px">'+OC+'</td><td style="text-align:center;padding:7px 10px;color:#999">21</td><td style="padding:7px 10px">'+baraSVG(OC,21)+'</td><td style="text-align:center;padding:7px 10px">'+pctOC+'%</td></tr>'
+    +'<tr style="background:#f0f4f8;font-weight:700"><td style="padding:7px 10px">Total EAT-26</td><td style="text-align:center;padding:7px 10px;color:#3B5A7A">'+total+'</td><td style="text-align:center;padding:7px 10px;color:#999">78</td><td style="padding:7px 10px">'+baraSVG(total,78)+'</td><td style="text-align:center;padding:7px 10px">'+pctTotal+'%</td></tr>'
+    +'</tbody></table>'
+    // Interpretação
+    +'<h2>Interpretação</h2>'
+    +'<div style="background:#f0f4f8;border-radius:6px;padding:10px 14px;font-size:12px;line-height:1.7">'+interpTxt
+    +' <em style="display:block;margin-top:6px;font-size:11px;color:#aaa">Interpretação automática — integrar sempre no contexto clínico completo. Cut-off: score ≥ 20 · Garner et al. (1982).</em></div>'
+    // Comportamentos de risco
+    +(riscoRows?'<h2>Comportamentos de Risco (B1–B5)</h2><table><thead><tr><th>Comportamento</th><th style="width:60px">Resposta</th></tr></thead><tbody>'+riscoRows+'</tbody></table>':'')
+    // Respostas item a item
+    +(itensRows?'<h2>Respostas Item a Item</h2><table><thead><tr><th style="width:28px">Nº</th><th>Enunciado</th><th style="text-align:center;width:110px">Resposta</th><th style="text-align:center;width:60px">Cotação</th></tr></thead><tbody>'+itensRows+'</tbody></table><p style="font-size:10px;color:#aaa">★ Item 26 com cotação invertida.</p>':'')
+    +'<div style="margin-top:24px;text-align:center"><button onclick="window.print()" style="background:#3B5A7A;color:#fff;border:none;border-radius:6px;padding:8px 24px;font-size:13px;cursor:pointer">🖨️ Imprimir / Guardar PDF</button></div>'
+    +'</body></html>';
+
+  var w=window.open('','_blank');
+  if(!w){alert('Pop-up bloqueado. Permite pop-ups para este site.');return;}
+  w.document.write(html);w.document.close();
 }
 
 // ── EXPORTAR INTERPRETAÇÃO PDF ─────────────────────────────────
