@@ -700,6 +700,22 @@ function submeter(){
 }
 
 // ── PAINEL CLÍNICO ─────────────────────────────────────────────────────────
+function normalizarRow(row) {
+  return {
+    data:          row.Data          || row.data          || row.timestamp || '',
+    patientCode:   row.Codigo        || row.patientCode   || row.codigo    || '',
+    nomeCrianca:   row.NomeCrianca   || row.nomeCrianca   || row.nome      || '',
+    nome_informante: row.NomeInformante || row.nome_informante || row.nomeInformante || '',
+    scoreA:        row.ScoreA        !== undefined ? row.ScoreA  : (row.scoreA  !== undefined ? row.scoreA  : '0'),
+    scoreB:        row.ScoreB        !== undefined ? row.ScoreB  : (row.scoreB  !== undefined ? row.scoreB  : '0'),
+    scoreC:        row.ScoreC        !== undefined ? row.ScoreC  : (row.scoreC  !== undefined ? row.scoreC  : '0'),
+    scoreD:        row.ScoreD        !== undefined ? row.ScoreD  : (row.scoreD  !== undefined ? row.scoreD  : '0'),
+    scoreE:        row.ScoreE        !== undefined ? row.ScoreE  : (row.scoreE  !== undefined ? row.scoreE  : '0'),
+    igae:          row.IGAE          !== undefined ? row.IGAE    : (row.igae    !== undefined ? row.igae    : '0'),
+    answers:       row.Respostas     || row.answers        || row.respostas || ''
+  };
+}
+
 function carregarDados(){
   var tbody=document.getElementById('clinico-tbody');
   tbody.innerHTML='<tr><td colspan="10" style="text-align:center;color:var(--text-light);padding:20px;">A carregar...</td></tr>';
@@ -710,8 +726,9 @@ function carregarDados(){
       var rows = Array.isArray(data) ? data : (data && data.rows ? data.rows : []);
       if(rows.length){
         rows.forEach(function(row){
-          var exists=sessions.some(function(s){return s.patientCode===row.patientCode&&s.data===row.data;});
-          if(!exists) sessions.push(row);
+          var r = normalizarRow(row);
+          var exists=sessions.some(function(s){return s.patientCode===r.patientCode&&s.data===r.data;});
+          if(!exists) sessions.push(r);
         });
       }
       renderTabela();
