@@ -549,12 +549,37 @@ function submeterQuestionario(){
 
 // ── PAINEL CLÍNICO ──
 
+function normalizarRow(r){
+  if(Array.isArray(r)) return r; // already handled by extrairCampos
+  return {
+    date:        r.Data||r.data||r.date||'',
+    patientCode: r['Código']||r.Codigo||r.patientCode||r.codigo||'',
+    nomeCrianca: r.NomeJovem||r.nomeCrianca||r['NomeCriança']||r.nome||'',
+    nomeInformante:r.NomeEE||r.nomeInformante||r['NomeEE']||'',
+    age:         r.Idade||r.age||'',
+    gender:      r.Sexo||r.gender||'',
+    relation:    r.AnoEscolar||r.relation||r['Relação']||'',
+    mdd:         r.MDD_Raw!==undefined?r.MDD_Raw:(r.mdd!==undefined?r.mdd:''),
+    mddT:        r.MDD_T!==undefined?r.MDD_T:(r.mddT!==undefined?r.mddT:''),
+    anx:         r.ANX_Raw!==undefined?r.ANX_Raw:(r.anx!==undefined?r.anx:''),
+    anxT:        r.ANX_T!==undefined?r.ANX_T:(r.anxT!==undefined?r.anxT:''),
+    total:       r.Total_Raw!==undefined?r.Total_Raw:(r.total!==undefined?r.total:''),
+    totalT:      r.Total_T!==undefined?r.Total_T:(r.totalT!==undefined?r.totalT:''),
+    sp:          r.SP!==undefined?r.SP:(r.sp!==undefined?r.sp:''),
+    sad:         r.SAD!==undefined?r.SAD:(r.sad!==undefined?r.sad:''),
+    gad:         r.GAD!==undefined?r.GAD:(r.gad!==undefined?r.gad:''),
+    pd:          r.PD!==undefined?r.PD:(r.pd!==undefined?r.pd:''),
+    ocd:         r.OCD!==undefined?r.OCD:(r.ocd!==undefined?r.ocd:''),
+    answers:     r.Respostas||r.answers||r.respostas||''
+  };
+}
+
 function carregarDados(){
   var el=document.getElementById('painel-content');
   el.innerHTML='<p style="color:var(--text-light);font-size:0.88rem">A carregar dados...</p>';
   fetch(SCRIPT_URL+'?instrumento='+SHEET_NAME+'&t='+Date.now())
     .then(function(r){return r.json();})
-    .then(function(data){window._clinico_sessions=data;renderTabela(data);})
+    .then(function(data){var arr=Array.isArray(data)?data:(data&&data.rows?data.rows:[]);arr=arr.map(normalizarRow);window._clinico_sessions=arr;renderTabela(arr);})
     .catch(function(){el.innerHTML='<p style="color:var(--text-light);font-size:0.88rem">&#9888; Não foi possível carregar os dados do servidor.</p>';});
 }
 
