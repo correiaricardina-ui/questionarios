@@ -552,7 +552,7 @@ function submeterQuestionario(){
 function carregarDados(){
   var el=document.getElementById('painel-content');
   el.innerHTML='<p style="color:var(--text-light);font-size:0.88rem">A carregar dados...</p>';
-  fetch(SCRIPT_URL+'?sheet='+SHEET_NAME+'&t='+Date.now())
+  fetch(SCRIPT_URL+'?instrumento='+SHEET_NAME+'&t='+Date.now())
     .then(function(r){return r.json();})
     .then(function(data){window._clinico_sessions=data;renderTabela(data);})
     .catch(function(){el.innerHTML='<p style="color:var(--text-light);font-size:0.88rem">&#9888; Não foi possível carregar os dados do servidor.</p>';});
@@ -591,13 +591,13 @@ function extrairCampos(row){
     };
   }
   return {
-    date:row.data||row.date,
-    patientCode:row.patientCode||row['Código']||row.codigo||'',
-    nomeCrianca:row.nomeCrianca||row['NomeCriança']||row.nome_crianca||row.childName||''  ,
-    nomeInformante:row.nomeInformante||row['NomeInformante']||row.nome_informante||'',
+    date:row.data||row.date||row['Data']||'',
+    patientCode:row.patientCode||row['Código']||row.codigo||row['Codigo']||'',
+    nomeCrianca:row.nomeCrianca||row['NomeJovem']||row['NomeCriança']||row.nome_crianca||row.childName||'',
+    nomeInformante:row.nomeInformante||row['NomeEE']||row['NomeInformante']||row.nome_informante||'',
     age:row.age||row['Idade']||'',
     gender:row.gender||row['Sexo']||'',
-    relation:row.relation||row['Relação']||'',
+    relation:row.relation||row['AnoEscolar']||row['Relação']||'',
     mdd:row.mdd||row['MDD_Raw']||'',mddT:row.mddT||row['MDD_T']||'',
     anx:row.anx||row['ANX_Raw']||'',anxT:row.anxT||row['ANX_T']||'',
     total:row.total||row['Total_Raw']||'',totalT:row.totalT||row['Total_T']||'',
