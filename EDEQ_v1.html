@@ -491,10 +491,10 @@ body { font-family: 'DM Sans', sans-serif; background: var(--gray); color: var(-
               <th>Nome</th>
               <th>Data Nasc.</th>
               <th>Sexo</th>
-              <th style="text-align:center">Restraint</th>
-              <th style="text-align:center">Eating C.</th>
-              <th style="text-align:center">Shape C.</th>
-              <th style="text-align:center">Weight C.</th>
+              <th style="text-align:center">Restrição</th>
+              <th style="text-align:center">Alim.</th>
+              <th style="text-align:center">Forma</th>
+              <th style="text-align:center">Peso</th>
               <th style="text-align:center">Global</th>
               <th>Classificação</th>
               <th class="no-print">Ações</th>
@@ -898,13 +898,35 @@ async function carregarDados() {
     var res = await fetch(SCRIPT_URL + '?instrumento='+SHEET_NAME+'&t='+Date.now());
     var data = await res.json();
     if (data && data.rows) {
-      sessoes = data.rows;
+      sessoes = data.rows.map(normalizarRow);
     }
   } catch(e) {
     // Use local data if available
   }
 
   renderTabela();
+}
+
+function normalizarRow(r) {
+  return {
+    date:          r.Data           || r.date           || r.timestamp     || '',
+    patientCode:   r['Código']      || r.Codigo         || r.patientCode   || r.codigo || '',
+    nome:          r.Nome           || r.nome           || '',
+    dataNascimento:r.DataNasc       || r.dataNascimento  || r.datanasc     || '',
+    sexo:          r.Sexo           || r.sexo           || '',
+    restraint:     r.Restraint      !== undefined ? r.Restraint      : (r.restraint      !== undefined ? r.restraint      : null),
+    eatingConcern: r.EatingConcern  !== undefined ? r.EatingConcern  : (r.eatingConcern  !== undefined ? r.eatingConcern  : null),
+    shapeConcern:  r.ShapeConcern   !== undefined ? r.ShapeConcern   : (r.shapeConcern   !== undefined ? r.shapeConcern   : null),
+    weightConcern: r.WeightConcern  !== undefined ? r.WeightConcern  : (r.weightConcern  !== undefined ? r.weightConcern  : null),
+    global:        r.Global         !== undefined ? r.Global         : (r.global         !== undefined ? r.global         : null),
+    q13_obe:       r.Q13_OBE        !== undefined ? r.Q13_OBE        : (r.q13_obe        !== undefined ? r.q13_obe        : null),
+    q14_obe_ctrl:  r.Q14_OBE_ctrl   !== undefined ? r.Q14_OBE_ctrl   : (r.q14_obe_ctrl   !== undefined ? r.q14_obe_ctrl   : null),
+    q15_dias:      r.Q15_dias       !== undefined ? r.Q15_dias       : (r.q15_dias       !== undefined ? r.q15_dias       : null),
+    q16_vomito:    r.Q16_vomito     !== undefined ? r.Q16_vomito     : (r.q16_vomito     !== undefined ? r.q16_vomito     : null),
+    q17_laxantes:  r.Q17_laxantes   !== undefined ? r.Q17_laxantes   : (r.q17_laxantes   !== undefined ? r.q17_laxantes   : null),
+    q18_exercicio: r.Q18_exercicio  !== undefined ? r.Q18_exercicio  : (r.q18_exercicio  !== undefined ? r.q18_exercicio  : null),
+    answers:       r.Respostas      || r.answers        || r.respostas     || ''
+  };
 }
 
 function renderTabela() {
@@ -959,10 +981,10 @@ function verDetalhe(idx) {
 
   // Score cards
   var cards = '<div class="score-grid">'
-    + scoreCard('Restraint', sc.R, 'sc-r')
-    + scoreCard('Eating Concern', sc.EC, 'sc-ec')
-    + scoreCard('Shape Concern', sc.SC, 'sc-sc')
-    + scoreCard('Weight Concern', sc.WC, 'sc-wc')
+    + scoreCard('Restrição Alimentar', sc.R, 'sc-r')
+    + scoreCard('Preocupação com Alimentação', sc.EC, 'sc-ec')
+    + scoreCard('Preocupação com Forma', sc.SC, 'sc-sc')
+    + scoreCard('Preocupação com Peso', sc.WC, 'sc-wc')
     + '<div class="score-card sc-global"><div class="score-card-label">Score Global</div>'
     + '<div class="score-card-val">'+(sc.global!==null?sc.global.toFixed(2):'—')+'</div>'
     + '<div class="score-card-class"><span class="badge '+cl.cls+'">'+cl.label+'</span></div>'
@@ -972,10 +994,10 @@ function verDetalhe(idx) {
   // Chart
   var chartHtml = '<div class="chart-wrap"><h4 style="color:var(--blue);margin-bottom:12px;font-size:0.9rem;">Perfil de Subescalas</h4>';
   var chartData = [
-    {label:'Restraint',      val:sc.R,  color:'#2980B9'},
-    {label:'Eating Concern', val:sc.EC, color:'#8E44AD'},
-    {label:'Shape Concern',  val:sc.SC, color:'#C0392B'},
-    {label:'Weight Concern', val:sc.WC, color:'#E67E22'},
+    {label:'Restrição Alimentar',          val:sc.R,  color:'#2980B9'},
+    {label:'Preoc. com Alimentação', val:sc.EC, color:'#8E44AD'},
+    {label:'Preoc. com Forma',       val:sc.SC, color:'#C0392B'},
+    {label:'Preoc. com Peso',        val:sc.WC, color:'#E67E22'},
   ];
   var cutoff277pct = (2.77/6*100).toFixed(1);
   chartData.forEach(function(d) {
@@ -992,8 +1014,9 @@ function verDetalhe(idx) {
 
   // Answers table
   var answersHtml = '';
-  if (s.answers) {
-    var arr = s.answers.split('|');
+  var _ans = s.answers||s.Respostas||s.respostas||'';
+  if (_ans) {
+    var arr = _ans.split('|');
     var allItems = ITEMS_1_12.concat(ITEMS_13_18).concat(ITEMS_19_28);
     allItems.sort(function(a,b){return a.n-b.n;});
     answersHtml = '<h4 style="color:var(--blue);margin:20px 0 10px;font-size:0.9rem;">Respostas por Item</h4>'
@@ -1010,8 +1033,9 @@ function verDetalhe(idx) {
 
   // Comportamentos
   var behHtml = '';
-  if (s.answers) {
-    var arr2 = s.answers.split('|');
+  var _ans2 = s.answers||s.Respostas||s.respostas||'';
+  if (_ans2) {
+    var arr2 = _ans2.split('|');
     var beh = [
       {n:13,label:'OBE (episódios de comer em excesso)'},{n:14,label:'OBE com perda de controlo'},
       {n:15,label:'Dias com OBE + perda controlo'},{n:16,label:'Vómito auto-induzido'},
