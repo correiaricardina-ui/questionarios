@@ -1052,7 +1052,10 @@ function verDetalhe(idx) {
     behHtml += '</div></div>';
   }
 
-  document.getElementById('modal-content').innerHTML = cards + chartHtml + behHtml + answersHtml;
+  var btnHtml = '<div style="margin:20px 0 8px;display:flex;gap:10px;" class="no-print">'
+    + '<button onclick="exportarRelatorioPDF('+idx+')" style="background:#3B5A7A;color:#fff;border:none;border-radius:7px;padding:8px 18px;font-size:0.84rem;cursor:pointer;font-family:DM Sans,sans-serif;">🖨️ Relatório Completo PDF</button>'
+    + '</div>';
+  document.getElementById('modal-content').innerHTML = cards + chartHtml + btnHtml + behHtml + answersHtml;
   document.getElementById('modal-overlay').classList.add('open');
 }
 
@@ -1082,6 +1085,146 @@ function fecharModalBtn() {
 // ═══════════════════════════════════════════════════════
 // EXPORT / IMPORT
 // ═══════════════════════════════════════════════════════
+
+// ── RELATÓRIO COMPLETO PDF ──────────────────────────────────────
+function exportarRelatorioPDF(idx) {
+  var s = sessoes[idx];
+  if (!s) { alert('Sessão não encontrada.'); return; }
+
+  var sc = s.answers ? calcScoresFromAnswers(s.answers)
+    : {R:parseFloat(s.restraint)||null, EC:parseFloat(s.eatingConcern)||null,
+       SC:parseFloat(s.shapeConcern)||null, WC:parseFloat(s.weightConcern)||null,
+       global:parseFloat(s.global)||null};
+
+  var cl = classGlobal(sc.global);
+  var dt = s.date ? new Date(s.date).toLocaleDateString('pt-PT') : '—';
+  var dataNasc = s.dataNascimento ? new Date(s.dataNascimento).toLocaleDateString('pt-PT') : '—';
+
+  // ── Gráfico de barras SVG ──────────────────────────────────
+  var svgW = 420, barH = 22, gap = 10, padL = 160, padT = 10;
+  var subescalas = [
+    {label:'Restrição Alimentar',       val:sc.R,  color:'#2980B9'},
+    {label:'Preoc. com Alimentação',    val:sc.EC, color:'#8E44AD'},
+    {label:'Preoc. com Forma',          val:sc.SC, color:'#C0392B'},
+    {label:'Preoc. com Peso',           val:sc.WC, color:'#E67E22'},
+  ];
+  var svgH = padT + subescalas.length * (barH + gap) + 20;
+  var svgBars = '';
+  var cutX = padL + Math.round(2.77/6*(svgW-padL-10));
+  subescalas.forEach(function(d, i) {
+    var y = padT + i*(barH+gap);
+    var w = d.val !== null ? Math.round((d.val/6)*(svgW-padL-10)) : 0;
+    var vTxt = d.val !== null ? d.val.toFixed(2) : '—';
+    svgBars += '<rect x="'+padL+'" y="'+y+'" width="'+(svgW-padL-10)+'" height="'+barH+'" rx="3" fill="#e8ecef"/>'
+      + '<rect x="'+padL+'" y="'+y+'" width="'+w+'" height="'+barH+'" rx="3" fill="'+d.color+'" opacity=".85"/>'
+      + '<line x1="'+cutX+'" y1="'+y+'" x2="'+cutX+'" y2="'+(y+barH)+'" stroke="#C0392B" stroke-width="1.5" stroke-dasharray="4,3"/>'
+      + '<text x="'+(padL-6)+'" y="'+(y+barH/2+5)+'" text-anchor="end" font-size="11" fill="#2c3e50" font-family="Arial,sans-serif">'+d.label+'</text>'
+      + '<text x="'+(padL+w+6)+'" y="'+(y+barH/2+5)+'" font-size="11" font-weight="bold" fill="'+d.color+'" font-family="Arial,sans-serif">'+vTxt+'</text>';
+  });
+  svgBars += '<text x="'+cutX+'" y="'+(svgH-2)+'" text-anchor="middle" font-size="9" fill="#C0392B" font-family="Arial,sans-serif">2.77</text>';
+  var svgGrafico = '<svg width="100%" viewBox="0 0 '+svgW+' '+svgH+'" style="max-width:'+svgW+'px;display:block;margin:6px 0 2px">'
+    + svgBars + '</svg>'
+    + '<p style="font-size:10px;color:#888;margin:0 0 12px">Linha tracejada = cutoff 2.77 · Escala 0–6</p>';
+
+  // ── Interpretação ──────────────────────────────────────────
+  var gVal = sc.global !== null ? sc.global.toFixed(2) : '—';
+  var gNivel = cl.label;
+  var interpLines = ['Score Global EDE-Q: <strong>'+gVal+'</strong> — Zona: <strong>'+gNivel+'</strong>.'];
+  [
+    {label:'Restrição Alimentar',    val:sc.R},
+    {label:'Preoc. com Alimentação', val:sc.EC},
+    {label:'Preoc. com Forma',       val:sc.SC},
+    {label:'Preoc. com Peso',        val:sc.WC},
+  ].forEach(function(d) {
+    if (d.val === null) return;
+    var z = d.val < 1.0 ? 'Sem preocupação clínica' : d.val < 2.77 ? 'Abaixo do cutoff' : d.val < 4.0 ? 'Psicopatologia relevante' : 'Clinicamente significativo';
+    interpLines.push(d.label+': <strong>'+d.val.toFixed(2)+'</strong> ('+z+').');
+  });
+
+  // ── Comportamentos 13–18 ───────────────────────────────────
+  var rawAns = s.answers||s.Respostas||s.respostas||'';
+  var arr = rawAns ? rawAns.split('|') : [];
+  var beh = [
+    {n:13,label:'Episódios de comer em excesso (OBE)'},
+    {n:14,label:'OBE com perda de controlo'},
+    {n:15,label:'Dias com OBE + perda de controlo'},
+    {n:16,label:'Vómito auto-induzido'},
+    {n:17,label:'Uso de laxantes'},
+    {n:18,label:'Exercício compulsivo'}
+  ];
+  var behRows = beh.map(function(b) {
+    var v = arr[b.n-1] !== undefined ? arr[b.n-1] : '—';
+    return '<tr><td style="padding:5px 8px;font-size:12px">'+b.label+'</td><td style="padding:5px 8px;text-align:center;font-weight:700;font-size:13px;color:#4A235A">'+v+'</td></tr>';
+  }).join('');
+
+  // ── Respostas item a item (itens 1–12 + 19–28, escala 0–6) ─
+  var allItems = ITEMS_1_12.concat(ITEMS_19_28).sort(function(a,b){return a.n-b.n;});
+  var subNames = {R:'Restrição',EC:'Preoc. Alimentação',SC:'Preoc. Forma',WC:'Preoc. Peso','SC+WC':'Forma+Peso'};
+  var itensRows = arr.length ? allItems.map(function(item, i2) {
+    var val = arr[item.n-1];
+    var sub = subNames[item.sub] || item.sub || '—';
+    var bg = i2%2===0 ? '#f8f9fa' : '#fff';
+    return '<tr style="background:'+bg+'"><td style="padding:4px 8px;font-size:11px;color:#3B5A7A;font-weight:700">'+item.n+'</td>'
+      +'<td style="padding:4px 8px;font-size:10px;color:#888">'+sub+'</td>'
+      +'<td style="padding:4px 8px;font-size:11px">'+item.text+'</td>'
+      +'<td style="padding:4px 8px;text-align:center;font-weight:700;font-size:13px;color:#3B5A7A">'+((val!==undefined&&val!=='')? val:'—')+'</td></tr>';
+  }).join('') : '';
+
+  var html = '<!DOCTYPE html><html><head><meta charset="utf-8">'
+    + '<title>EDE-Q 6.0 · Relatório · '+(s.patientCode||'')+'</title>'
+    + '<style>body{font-family:Arial,sans-serif;color:#2c3e50;margin:0;padding:28px 36px;font-size:13px}'
+    + 'h2{font-size:13px;color:#3B5A7A;margin:18px 0 6px;border-bottom:1px solid #dde3ea;padding-bottom:3px}'
+    + 'table{width:100%;border-collapse:collapse}th{background:#f0f4f8;padding:7px 10px;font-size:12px;color:#3B5A7A;text-align:left}'
+    + '@media print{button{display:none}}</style></head><body>'
+    // Cabeçalho
+    + '<div style="display:flex;justify-content:space-between;align-items:flex-start">'
+    + '<div><h1 style="font-size:18px;color:#3B5A7A;margin:0 0 2px">EDE-Q 6.0 — Eating Disorder Examination Questionnaire</h1>'
+    + '<p style="margin:2px 0;color:#666;font-size:12px">Fairburn &amp; Beglin (2008) · 28 itens</p></div>'
+    + '<div style="text-align:right;font-size:11px;color:#aaa"><div>Ricardina Correia · Cédula 8233</div><div>Psicologia Pediátrica</div></div></div>'
+    + '<hr style="border:none;border-top:2px solid #3B5A7A;margin:10px 0 14px">'
+    // Identificação
+    + '<table style="margin-bottom:14px"><tr>'
+    + '<td style="padding:3px 16px 3px 0"><strong>Código:</strong> '+(s.patientCode||'—')+'</td>'
+    + '<td style="padding:3px 16px 3px 0"><strong>Nome:</strong> '+(s.nome||'—')+'</td>'
+    + '<td style="padding:3px 16px 3px 0"><strong>Data Nasc.:</strong> '+dataNasc+'</td>'
+    + '<td style="padding:3px 16px 3px 0"><strong>Sexo:</strong> '+(s.sexo||'—')+'</td>'
+    + '<td><strong>Data Aval.:</strong> '+dt+'</td>'
+    + '</tr></table>'
+    // Score global
+    + '<h2>Resultado Global</h2>'
+    + '<div style="background:#f0f4f8;border-radius:8px;padding:12px 16px;margin-bottom:12px;display:flex;align-items:center;gap:24px">'
+    + '<div><span style="font-size:28px;font-weight:700;color:#3B5A7A">'+gVal+'</span>'
+    + '<span style="font-size:12px;color:#666"> / 6</span></div>'
+    + '<div><strong style="font-size:14px">'+gNivel+'</strong>'
+    + '<div style="font-size:11px;color:#888;margin-top:2px">Cutoff orientador ≥ 2.77 · Clinicamente significativo ≥ 4.0</div></div>'
+    + '</div>'
+    // Gráfico
+    + '<h2>Perfil de Subescalas</h2>'
+    + svgGrafico
+    // Interpretação
+    + '<h2>Interpretação</h2>'
+    + '<div style="background:#f0f4f8;border-radius:6px;padding:10px 14px;font-size:12px;line-height:1.8">'
+    + interpLines.join(' ') + ' <em style="display:block;margin-top:6px;font-size:11px;color:#aaa">Interpretação automática — integrar sempre no contexto clínico completo.</em>'
+    + '</div>'
+    // Comportamentos
+    + (behRows ? '<h2>Comportamentos (Itens 13–18 — não entram nos scores)</h2>'
+      + '<table><thead><tr><th>Comportamento</th><th style="text-align:center;width:80px">Frequência</th></tr></thead>'
+      + '<tbody>'+behRows+'</tbody></table>' : '')
+    // Respostas item a item
+    + (itensRows ? '<h2>Respostas por Item (Itens 1–12 e 19–28, escala 0–6)</h2>'
+      + '<table><thead><tr><th style="width:24px">Nº</th><th style="width:100px">Subescala</th><th>Enunciado</th><th style="text-align:center;width:50px">Resp.</th></tr></thead>'
+      + '<tbody>'+itensRows+'</tbody></table>' : '')
+    + '<div style="margin-top:24px;text-align:center"><button onclick="window.print()" '
+    + 'style="background:#3B5A7A;color:#fff;border:none;border-radius:6px;padding:8px 24px;font-size:13px;cursor:pointer">'
+    + '🖨️ Imprimir / Guardar PDF</button></div>'
+    + '</body></html>';
+
+  var w = window.open('', '_blank');
+  if (!w) { alert('Pop-up bloqueado. Permite pop-ups para este site.'); return; }
+  w.document.write(html);
+  w.document.close();
+}
+
 function exportarCSV() {
   var bom = '\uFEFF';
   var hdr = ['Data','Código','Nome','DataNasc','Sexo','Restraint','EatingConcern','ShapeConcern','WeightConcern','Global','Q13_OBE','Q14_OBE_ctrl','Q15_dias','Q16_vomito','Q17_laxantes','Q18_exercicio'];
