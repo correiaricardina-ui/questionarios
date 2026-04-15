@@ -664,6 +664,7 @@ const SYNC_KEY_TO_ABA = {
   'lds':      'LDS',
   'srs2_pais':'SRS2_IE_Pais',
   'srs2_prof':'SRS2_IE_Prof',
+  'raadsr':'RAADSR',
   'abas3_05': 'ABAS3_05',
   'abas3_05p':'ABAS3_05P',
   'cbcl':     'CBCL_618',
@@ -838,6 +839,7 @@ function initCatalog() {
     { id:'q_brief_auto', name:'BRIEF — Auto-questionário', dest:['Paciente'], link:'https://correiaricardina-ui.github.io/questionarios/BRIEF_Autoavaliacao_v2.html', syncKey:'brief_auto', area:'Funções Executivas', ageRange:'11–18 anos', objective:'Avalia funções executivas — versão auto-relato para adolescentes', domains:['INHIB','SHIFT','EC','MON','WM','PO','OM','TC','IRC','IM','GEF'] , ageMin:132, ageMax:215},
     { id:'q_srs2_pais', name:'SRS-2 — Pais/Cuid.', dest:['Mãe','Pai','Enc. Educação'], link:'https://correiaricardina-ui.github.io/questionarios/SRS2_IE_Pais_v1.html', syncKey:'srs2_pais', area:'Espectro do Autismo', ageRange:'4–18 anos', objective:'Avalia responsividade social — versão pais/cuidadores', domains:['PERC','COG','COM','MOT','PRR','CIS','Total'] , ageMin:48, ageMax:215},
     { id:'q_srs2_prof', name:'SRS-2 — Professor', dest:['Professor(a)'], link:'https://correiaricardina-ui.github.io/questionarios/SRS2_IE_Prof_v1.html', syncKey:'srs2_prof', area:'Espectro do Autismo', ageRange:'4–18 anos', objective:'Avalia responsividade social — versão professor', domains:['PERC','COG','COM','MOT','PRR','CIS','Total'] , ageMin:48, ageMax:215},
+    { id:'q_raadsr', name:'RAADS-R', dest:['Paciente'], link:'https://correiaricardina-ui.github.io/questionarios/RAADS_R_v1.html', syncKey:'raadsr', area:'Espectro do Autismo', ageRange:'Adultos (≥16 anos)', objective:'Avalia sintomas de PEA em adultos — auto-relato (Ritvo et al., 2011)', domains:['Social','Linguagem','Sensoriomotora','Circunscrita','Total'], ageMin:192, ageMax:null},
     { id:'q_lds', name:'LDS — Desenvolvimento Linguagem', dest:['Mãe','Pai','Enc. Educação'], link:'https://correiaricardina-ui.github.io/questionarios/LDS_v2.html', syncKey:'lds', area:'Linguagem', ageRange:'18–35 meses', objective:'Rastreio do desenvolvimento da linguagem — MacArthur adaptado', domains:['Vocabulário','MLU'] , ageMin:18, ageMax:35},
     { id:'q_abas3_05', name:'ABAS-3 — Pais/Cuid. (0–5)', dest:['Mãe','Pai','Enc. Educação'], link:'https://correiaricardina-ui.github.io/questionarios/ABAS3_PreEscolar.html', syncKey:'abas3_05', area:'Comportamento Adaptativo', ageRange:'0–5 anos', objective:'Avalia comportamento adaptativo — versão pais (0–5 anos)', domains:['CAG','CC','SC','PC'] , ageMin:0, ageMax:71},
     { id:'q_abas3_05p', name:'ABAS-3 — Educador (0–5)', dest:['Educador(a)'], link:'https://correiaricardina-ui.github.io/questionarios/ABAS3_PreEscolar_Educador.html', syncKey:'abas3_05p', area:'Comportamento Adaptativo', ageRange:'0–5 anos', objective:'Avalia comportamento adaptativo — versão educador (0–5 anos)', domains:['CAG','CC','SC','PC'] , ageMin:0, ageMax:71},
@@ -1201,6 +1203,7 @@ function initCatalog() {
       'q_brief_auto':    { link:'https://correiaricardina-ui.github.io/questionarios/BRIEF_Autoavaliacao_v2.html', syncKey:'brief_auto' },
       'q_srs2_pais': { link:'https://correiaricardina-ui.github.io/questionarios/SRS2_IE_Pais_v1.html', syncKey:'srs2_pais' },
       'q_srs2_prof': { link:'https://correiaricardina-ui.github.io/questionarios/SRS2_IE_Prof_v1.html', syncKey:'srs2_prof' },
+      'q_raadsr':    { link:'https://correiaricardina-ui.github.io/questionarios/RAADS_R_v1.html', syncKey:'raadsr' },
       'q_lds': { link:'https://correiaricardina-ui.github.io/questionarios/LDS_v2.html', syncKey:'lds' },
       'q_abas3_05': { link:'https://correiaricardina-ui.github.io/questionarios/ABAS3_PreEscolar.html', syncKey:'abas3_05' },
       'q_abas3_05p': { link:'https://correiaricardina-ui.github.io/questionarios/ABAS3_PreEscolar_Educador.html', syncKey:'abas3_05p' },
@@ -1332,6 +1335,10 @@ function initCatalog() {
     if(!catalog.includes('q_erc_prof')) {
       const d4 = defaults.find(d => d.id === 'q_erc_prof');
       if(d4) { store.set('q_' + d4.id, d4); catalog.push(d4.id); store.set('catalog', catalog); }
+    }
+    if(!catalog.includes('q_raadsr')) {
+      const dRaads = defaults.find(d => d.id === 'q_raadsr');
+      if(dRaads) { store.set('q_raadsr', dRaads); store.set('q_' + dRaads.id, dRaads); catalog.push(dRaads.id); store.set('catalog', catalog); }
     }
     // ERC Pais
     if(!catalog.includes('q_erc_pais')) {
@@ -1764,6 +1771,13 @@ function formatScoreSummary(scores, syncKey) {
     if(gef != null) {
       const cls = gef >= 65 ? 'color:#C0392B;font-weight:700;' : gef >= 60 ? 'color:#E67E22;font-weight:600;' : 'color:var(--green);font-weight:600;';
       return `<span style="font-size:0.78rem;${cls}">GEF T=${gef}</span>`;
+    }
+  }
+  if(syncKey === 'raadsr') {
+    const tot = scores['Total'] ?? scores['total'];
+    if(tot != null) {
+      const cls = tot >= 90 ? 'color:#C0392B;font-weight:700;' : tot >= 65 ? 'color:#E67E22;font-weight:600;' : 'color:var(--green);font-weight:600;';
+      return '<span style="font-size:0.78rem;' + cls + '">Total = ' + tot + '</span>';
     }
   }
   // SRS-2

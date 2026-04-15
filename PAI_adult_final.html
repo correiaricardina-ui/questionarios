@@ -1128,8 +1128,9 @@ function verDetalhe(idx){
     html+='</tbody></table></div></div>';
   }
   html+='<div class="no-print" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:16px;padding-top:14px;border-top:1px solid var(--gray-bdr)">';
-  html+='<button class="btn btn-secondary btn-xs" onclick="pdfRespostas('+idx+')">&#128203; Respostas PDF</button>';
+  html+='<button class="btn btn-primary btn-xs" style="font-weight:700" onclick="pdfRelatorioCompleto('+idx+')">&#128196; Relat&#243;rio Completo PDF</button>';
   html+='<button class="btn btn-secondary btn-xs" onclick="pdfInterpretacao('+idx+')">&#128202; Interpreta&#231;&#227;o PDF</button>';
+  html+='<button class="btn btn-secondary btn-xs" onclick="pdfRespostas('+idx+')">&#128203; Respostas PDF</button>';
   html+='</div>';
   html+='<p style="font-size:.7rem;color:var(--text-light);margin-top:14px;font-style:italic">Paulino, Moniz, Moura, Rijo, Morey & Simões (2024). Frontiers in Psychology, 15:1359793. N=900, Portugal. T&#8805;70=Elevado &#183; T&#8805;84=Clinicamente Significativo. Ricardina Correia &#183; C&#233;dula 8233.</p>';
   document.getElementById('modal-title').textContent='PAI &#8212; '+(s.nome_crianca||s.codigo||'Detalhe');
@@ -1242,6 +1243,130 @@ function pdfInterpretacao(idx){
   h+='<p style="font-size:9.5px;color:#888;margin-top:12px;font-style:italic">Interpreta&#231;&#227;o autom&#225;tica. N&#227;o substitui avalia&#231;&#227;o cl&#237;nica. Ricardina Correia &#183; C&#233;dula 8233.</p>';
   h+='</body></html>';
   var w=window.open('','_blank');if(!w){alert('Pop-up bloqueado.');return;}w.document.write(h);w.document.close();
+}
+
+// RELATÓRIO COMPLETO PDF
+function pdfRelatorioCompleto(idx){
+  var s=window._sessions[idx];if(!s)return;
+  var hasResp=s.respostas&&Object.keys(s.respostas).length>0;
+  var scores=s.scores||{};
+  if(hasResp) Object.assign(scores,scoreSession(s.respostas,s.sexo));
+
+  // ── gráfico SVG ──
+  var abbrs=SCORED;
+  var W=820,H=210,PL=48,PR=10,PT=18,PB=44;
+  var cW=W-PL-PR,cH=H-PT-PB,n=abbrs.length,cw=cW/n;
+  var T_MIN=30,T_MAX=110;
+  function yS(t){return PT+cH-((t-T_MIN)/(T_MAX-T_MIN))*cH;}
+  var svg='<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;font-family:Arial,sans-serif">';
+  svg+='<rect x="'+PL+'" y="'+PT+'" width="'+cW+'" height="'+cH+'" fill="#f8fafc"/>';
+  svg+='<rect x="'+PL+'" y="'+yS(T_MAX)+'" width="'+cW+'" height="'+(yS(HIGH_T)-yS(T_MAX))+'" fill="#fdecea" opacity=".25"/>';
+  svg+='<rect x="'+PL+'" y="'+yS(HIGH_T)+'" width="'+cW+'" height="'+(yS(ELEV_T)-yS(HIGH_T))+'" fill="#fef3e2" opacity=".3"/>';
+  [40,50,60,ELEV_T,HIGH_T].forEach(function(t){
+    var y=yS(t);
+    svg+='<line x1="'+PL+'" y1="'+y+'" x2="'+(PL+cW)+'" y2="'+y+'" stroke="'+(t===HIGH_T?'#c0392b':t===ELEV_T?'#e67e22':'#dde3ea')+'" stroke-width="'+(t===HIGH_T||t===ELEV_T?1.5:.6)+'" stroke-dasharray="'+(t===HIGH_T||t===ELEV_T?'4,3':'')+'" />';
+    svg+='<text x="'+(PL-3)+'" y="'+(y+3.5)+'" text-anchor="end" font-size="8" fill="#999">'+t+'</text>';
+  });
+  abbrs.forEach(function(abbr,i){
+    var sc=scores[abbr];var t=sc&&sc.t?sc.t:50;
+    var x=PL+i*cw+cw*.1,bw=cw*.8;
+    var ty=yS(Math.min(t,T_MAX)),by=yS(50),barH=Math.abs(by-ty),cY=Math.min(ty,by);
+    var cls=classifyT(abbr,t).cls;
+    var col=cls==='norm'?'#27AE60':cls==='elev'?'#E67E22':'#C0392B';
+    svg+='<rect x="'+x+'" y="'+cY+'" width="'+bw+'" height="'+Math.max(barH,2)+'" fill="'+col+'" opacity=".85" rx="2"/>';
+    svg+='<text x="'+(x+bw/2)+'" y="'+(cY-2)+'" text-anchor="middle" font-size="7.5" font-weight="700" fill="'+col+'">'+t.toFixed(0)+'</text>';
+    svg+='<text x="'+(x+bw/2)+'" y="'+(H-PB+11)+'" text-anchor="middle" font-size="8" font-weight="700" fill="#3B5A7A">'+abbr+'</text>';
+  });
+  svg+='<rect x="'+PL+'" y="'+PT+'" width="'+cW+'" height="'+cH+'" fill="none" stroke="#dde3ea" stroke-width="1"/>';
+  svg+='</svg>';
+
+  // ── tabela de scores ──
+  var linhasScores='';
+  GROUPS.forEach(function(grp){
+    linhasScores+='<tr><td colspan="5" style="background:#3B5A7A;color:white;font-weight:700;font-size:10px;padding:4px 8px">'+grp.label+'</td></tr>';
+    grp.abbrs.forEach(function(abbr,ri){
+      var sc=scores[abbr];var t=sc?sc.t:null,raw=sc?sc.raw:null;
+      var cls=classifyT(abbr,t);var col=cls.cls==='norm'?'#27AE60':cls.cls==='elev'?'#E67E22':'#C0392B';
+      var pct=t?Math.min(100,(t/120)*100):0;
+      var bar='<div style="background:#eee;border-radius:3px;height:6px;width:80px"><div style="background:'+col+';border-radius:3px;height:6px;width:'+pct+'%"></div></div>';
+      var bg=ri%2===0?'white':'#F4F6F9';
+      var interp=getInterp(abbr,cls.cls);
+      linhasScores+='<tr style="background:'+bg+'"><td style="padding:3px 7px;font-weight:700;color:#3B5A7A;font-size:10px">'+abbr+'</td>';
+      linhasScores+='<td style="padding:3px 7px;font-size:10px">'+(SCALE_META[abbr]?SCALE_META[abbr].name:abbr)+'</td>';
+      linhasScores+='<td style="padding:3px 7px;text-align:center;font-size:10px">'+(raw!==null?raw:'—')+'</td>';
+      linhasScores+='<td style="padding:3px 7px;text-align:center;font-weight:700;color:'+col+';font-size:10px">'+(t!==null?t.toFixed(1):'—')+'<br>'+bar+'</td>';
+      linhasScores+='<td style="padding:3px 7px;color:'+col+';font-size:9.5px;font-weight:600">'+cls.label+'<br><em style="color:#555;font-weight:400">'+interp+'</em></td>';
+      linhasScores+='</tr>';
+    });
+  });
+
+  // ── síntese interpretativa ──
+  var high=[],elev=[];
+  SCORED.forEach(function(abbr){
+    if(['ICN','INF','NIM','PIM'].includes(abbr))return;
+    var sc=scores[abbr];if(!sc||!sc.t)return;
+    var cls=classifyT(abbr,sc.t);
+    var nm=SCALE_META[abbr]?SCALE_META[abbr].name:abbr;
+    if(cls.cls==='high') high.push(abbr+' ('+nm+')');
+    else if(cls.cls==='elev') elev.push(abbr+' ('+nm+')');
+  });
+  var sintese='';
+  if(!high.length&&!elev.length){sintese='O perfil não apresenta escalas em nível elevado ou clinicamente significativo.';}
+  else{
+    if(high.length) sintese+='<strong>Clinicamente Significativo (T≥'+HIGH_T+'):</strong> '+high.join(', ')+'. ';
+    if(elev.length) sintese+='<strong>Elevado (T≥'+ELEV_T+'):</strong> '+elev.join(', ')+'. ';
+    if(scores['SUI']&&scores['SUI'].t>=ELEV_T) sintese+='<strong>Nota de risco:</strong> Ideação Suicida elevada — avaliação de risco necessária. ';
+  }
+
+  // ── respostas item a item ──
+  var linhasResp='';
+  if(hasResp){
+    for(var n=1;n<=TOTAL;n++){
+      var v=s.respostas[n];var labels=['F(0)','L(1)','M(2)','T(3)'];
+      var inv=INVERTED_SET[n];var sc2=v!==undefined?(inv?3-v:v):'—';
+      var bg2=n%2===0?'#F4F6F9':'white';
+      linhasResp+='<tr style="background:'+bg2+'"><td style="padding:2px 6px;color:#999;text-align:center;width:28px">'+n+'</td>';
+      linhasResp+='<td style="padding:2px 6px;font-size:9.5px">'+(ITEMS_DATA[String(n)]||'—')+'</td>';
+      linhasResp+='<td style="padding:2px 6px;text-align:center;font-weight:700;width:52px">'+(v!==undefined?labels[v]:'—')+'</td>';
+      linhasResp+='<td style="padding:2px 6px;text-align:center;width:40px;color:'+(inv?'#E67E22':'inherit')+'">'+sc2+(inv?' ↺':'')+'</td></tr>';
+    }
+  }
+
+  var dt=s.data_preenche||'—';
+  var nomeCrianca=s.nome_crianca||'—';
+  var nomeResp=s.nome_preenche||'—';
+
+  var h='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>PAI — Relatório '+s.codigo+'</title>';
+  h+='<style>';
+  h+='body{font-family:Arial,sans-serif;font-size:11px;color:#2C3E50;padding:20px;max-width:960px;margin:0 auto}';
+  h+='h1{color:#3B5A7A;font-size:15px;margin:0 0 2px}';
+  h+='h2{color:#3B5A7A;font-size:12px;margin:18px 0 7px;border-bottom:2px solid #D6E4F0;padding-bottom:3px}';
+  h+='table{width:100%;border-collapse:collapse;margin-bottom:12px}';
+  h+='th{background:#3B5A7A;color:white;padding:5px 7px;text-align:left;font-size:10px}';
+  h+='.legenda{font-size:9px;color:#888;text-align:center;margin:3px 0 12px}';
+  h+='.sintese{background:#EBF5FB;border-left:4px solid #3B5A7A;border-radius:6px;padding:10px 14px;font-size:10.5px;line-height:1.7;margin-bottom:16px}';
+  h+='.no-print{margin-bottom:14px}';
+  h+='@media print{.no-print{display:none}body{padding:10px}}';
+  h+='</style></head><body>';
+  h+='<div class="no-print"><button onclick="window.print()" style="padding:6px 16px;cursor:pointer;background:#3B5A7A;color:white;border:none;border-radius:4px;font-size:11px">🖨 Imprimir / Guardar PDF</button></div>';
+  h+='<h1>PAI — Inventário de Avaliação da Personalidade · Relatório Clínico Completo</h1>';
+  h+='<p style="color:#888;font-size:10px;margin:2px 0 14px">Código: <strong>'+s.codigo+'</strong> &nbsp;|&nbsp; Paciente: <strong>'+nomeCrianca+'</strong> &nbsp;|&nbsp; Sexo: '+(s.sexo||'—')+' &nbsp;|&nbsp; Respondente: '+nomeResp+' &nbsp;|&nbsp; Data: '+dt+' &nbsp;|&nbsp; Ricardina Correia · Cédula 8233</p>';
+  h+='<h2>1. Perfil de T-Scores</h2>';
+  h+=svg;
+  h+='<p class="legenda"><span style="color:#27AE60">■</span> Normativo &nbsp;<span style="color:#E67E22">■</span> Elevado T≥'+ELEV_T+' &nbsp;<span style="color:#C0392B">■</span> Clinicamente Significativo T≥'+HIGH_T+'</p>';
+  h+='<h2>2. Tabela de Resultados</h2>';
+  h+='<table><thead><tr><th>Sigla</th><th>Escala</th><th>Raw</th><th>T-Score</th><th>Classificação</th></tr></thead><tbody>'+linhasScores+'</tbody></table>';
+  h+='<h2>3. Síntese Interpretativa</h2>';
+  h+='<div class="sintese">'+sintese+'<br><em style="font-size:9.5px;color:#888">Interpretação automática. Não substitui avaliação clínica.</em></div>';
+  if(hasResp){
+    h+='<h2>4. Respostas Item a Item <span style="font-size:9px;font-weight:400;color:#888">(↺ = item invertido)</span></h2>';
+    h+='<table><thead><tr><th>#</th><th>Item</th><th>Resposta</th><th>Score</th></tr></thead><tbody>'+linhasResp+'</tbody></table>';
+  }
+  h+='<p style="font-size:9px;color:#aaa;margin-top:14px;font-style:italic">Paulino, Moniz, Moura, Rijo, Morey & Simões (2024). Frontiers in Psychology, 15:1359793. N=900, Portugal. Ricardina Correia · Cédula 8233.</p>';
+  h+='</body></html>';
+
+  var w=window.open('','_blank');if(!w){alert('Pop-up bloqueado. Permite pop-ups para este site.');return;}
+  w.document.write(h);w.document.close();
 }
 
 // CSV
