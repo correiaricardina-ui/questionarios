@@ -638,6 +638,9 @@ const QID_TO_ABA = {
   'q_custom_177443725011​7': 'SRS2_IE_Pais',
   'q_diva5':              'DIVA5',
   'q_eafe':               'EAFE',
+  // ── Checklist Obs. Comportamental Medicação PHDA ─────────────
+  'q_obs_phda_casa':      'OBS_PHDA_Casa',
+  'q_obs_phda_escola':    'OBS_PHDA_Escola',
   // ── v7.9 ──────────────────────────────────────────────
   'q_eat26':              'EAT26',
   // ── Conners 3 v11.0 — 4 versões ──────────────────────────
@@ -760,7 +763,10 @@ const SYNC_KEY_TO_ABA = {
   'SEQ_C':             'SEQ_C',
   // ── Collins Silhuetas — v1.0 ────────────────────────────────────────
   'collins':           'Collins_Silhuetas',
-  'Collins_Silhuetas': 'Collins_Silhuetas'
+  'Collins_Silhuetas': 'Collins_Silhuetas',
+  // ── Checklist Obs. Comportamental Medicação PHDA ─────────────────
+  'obs_phda_casa':     'OBS_PHDA_Casa',
+  'obs_phda_escola':   'OBS_PHDA_Escola'
 };
 
 // Cache em memória das respostas do Sheet (evita fetch repetidos na mesma sessão)
@@ -925,6 +931,18 @@ function initCatalog() {
       syncKey:'diva5', area:'PHDA', ageRange:'5 anos+',
       objective:'Entrevista diagnóstica para PHDA — adultos, jovens e DI (DSM-5)',
       domains:['Desatenção','Hiperatividade/Impulsividade','Diagnóstico PHDA'] , ageMin:60, ageMax:null},
+    { id:'q_obs_phda_casa', name:'Checklist Obs. Comportamental — Casa',
+      dest:['Mãe','Pai','Enc. Educação'],
+      link:'https://correiaricardina-ui.github.io/questionarios/checklist_obs_medicacao_PHDA_casa.html',
+      syncKey:'obs_phda_casa', area:'PHDA', ageRange:'Todas as idades',
+      objective:'Registo diário de comportamento em contexto de casa — comparação com/sem medicação (atenção, regulação emocional, comportamento social, atividade motora, bem-estar, efeitos adversos)',
+      domains:['Atenção & Função Executiva','Regulação Emocional','Comportamento Social','Atividade Motora','Bem-estar','Efeitos Adversos'] , ageMin:0, ageMax:null},
+    { id:'q_obs_phda_escola', name:'Checklist Obs. Comportamental — Escola',
+      dest:['Professor(a)','Educador(a)'],
+      link:'https://correiaricardina-ui.github.io/questionarios/checklist_obs_medicacao_PHDA_escola.html',
+      syncKey:'obs_phda_escola', area:'PHDA', ageRange:'Todas as idades',
+      objective:'Registo diário de comportamento em contexto escolar — comparação com/sem medicação (atenção, regulação emocional, comportamento social, atividade motora)',
+      domains:['Atenção & Função Executiva','Regulação Emocional','Comportamento Social','Atividade Motora'] , ageMin:0, ageMax:null},
     { id:'q_eafe', name:'EAFE',
       dest:['Paciente'],
       link:'https://correiaricardina-ui.github.io/questionarios/EAFE_v2.html',
@@ -2342,7 +2360,10 @@ function renderAssignments(patientId) {
                 // SEQ-C — respondente único (aluno), NomeCriança identifica
                 'SEQ_C':['NomeCriança'],
                 // Collins Silhuetas — respondente único, basta o código
-                'Collins_Silhuetas':[]
+                'Collins_Silhuetas':[],
+                // ── Checklist Obs. Comportamental Medicação PHDA ──────────
+                'OBS_PHDA_Casa':   ['NomeInformante'],
+                'OBS_PHDA_Escola': ['NomeInformante']
               };
               const RC = {
                 'SWAN':['Relação'],'BRIEF_Pais':['Relação'],'SCARED_R_PAIS':['Relação'],
