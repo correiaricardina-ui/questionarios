@@ -820,19 +820,33 @@ function renderTabelaDias(registos){
     var med=String(r['Medicação']||r['medicacao']||'').toLowerCase();
     var medBadge=med==='sim'?'<span class="badge badge-med">Com med.</span>':'<span class="badge badge-nomed">Sem med.</span>';
 
-    // Médias período
+    // Médias período — retrocompatível v35 (Score_Atencao) + v36 (Score_Manha_Atencao)
     function periodoMedia(pref){
       var vals=['Atencao','Emocao','Social','Motora','Bestar'].map(function(d){
         return parseFloat(r['Score_'+pref+'_'+d]);
       }).filter(function(v){return!isNaN(v);});
-      return vals.length?(vals.reduce(function(a,b){return a+b;},0)/vals.length):null;
+      if(vals.length)return vals.reduce(function(a,b){return a+b;},0)/vals.length;
+      // Fallback v35: dados antigos sem colunas por período — usar Score_Atencao global
+      var globVals=['Atencao','Emocao','Social','Motora','Bestar','BEstar'].map(function(d){
+        return parseFloat(r['Score_'+d]);
+      }).filter(function(v){return!isNaN(v);});
+      return globVals.length?(globVals.reduce(function(a,b){return a+b;},0)/globVals.length):null;
     }
     var mm=periodoMedia('Manha');
     var mt=periodoMedia('Tarde');
     var mn=periodoMedia('Noite');
 
-    // Scores globais
-    function scoreGlob(dom){return parseFloat(r['Score_'+dom]);}
+    // Scores globais — retrocompatível v35 (Score_BEstar) + v36 (Score_Bestar)
+    function scoreGlob(dom){
+      var v=parseFloat(r['Score_'+dom]);
+      if(!isNaN(v))return v;
+      // Fallback v35: Score_BEstar
+      if(dom==='Bestar'){var v2=parseFloat(r['Score_BEstar']);if(!isNaN(v2))return v2;}
+      // Fallback v35 sem período: calcular média dos períodos disponíveis
+      var periodos=['Manha','Tarde','Noite'];
+      var pVals=periodos.map(function(p){return parseFloat(r['Score_'+p+'_'+dom]);}).filter(function(v){return!isNaN(v);});
+      return pVals.length?(pVals.reduce(function(a,b){return a+b;},0)/pVals.length):NaN;
+    }
 
     html+='<tr>';
     html+='<td style="white-space:nowrap;font-size:.8rem">'+formatData(r['Data']||r['data']||'')+'</td>';
@@ -880,7 +894,16 @@ function gerarAnalise(){
   function mediasDom(regs){
     var m={};
     doms.forEach(function(d){
-      var vals=regs.map(function(r){return parseFloat(r['Score_'+cap(d)]);}).filter(function(v){return!isNaN(v);});
+      var vals=regs.map(function(r){
+        // v36: Score_Atencao (global calculado pelo script)
+        var v=parseFloat(r['Score_'+cap(d)]);
+        if(!isNaN(v))return v;
+        // v35 fallback: Score_BEstar (capital E)
+        if(d==='bestar'){var v2=parseFloat(r['Score_BEstar']);if(!isNaN(v2))return v2;}
+        // fallback: calcular média dos períodos por domínio
+        var ps=['Manha','Tarde','Noite'].map(function(p){return parseFloat(r['Score_'+p+'_'+cap(d)]);}).filter(function(x){return!isNaN(x);});
+        return ps.length?(ps.reduce(function(a,b){return a+b;},0)/ps.length):NaN;
+      }).filter(function(v){return!isNaN(v);});
       m[d]=vals.length?(vals.reduce(function(a,b){return a+b;},0)/vals.length):null;
     });
     return m;
@@ -907,10 +930,19 @@ function gerarAnalise(){
     Noite:mediasPeriodoDom(registos,'Noite')
   };
 
-  // Trend data para gráfico
+  // Trend data para gráfico — retrocompatível v35/v36, corrige bug ||null com score=0
   var trendData=registos.map(function(r,i){
     var sc={};
-    doms.forEach(function(d){sc[d]=parseFloat(r['Score_'+cap(d)])||null;});
+    doms.forEach(function(d){
+      // v36: Score_Atencao (global)
+      var v=parseFloat(r['Score_'+cap(d)]);
+      if(!isNaN(v)){sc[d]=v;return;}
+      // v35 fallback: Score_BEstar
+      if(d==='bestar'){var v2=parseFloat(r['Score_BEstar']);if(!isNaN(v2)){sc[d]=v2;return;}}
+      // fallback: média dos períodos
+      var ps=['Manha','Tarde','Noite'].map(function(p){return parseFloat(r['Score_'+p+'_'+cap(d)]);}).filter(function(x){return!isNaN(x);});
+      sc[d]=ps.length?(ps.reduce(function(a,b){return a+b;},0)/ps.length):null;
+    });
     return{i:i,data:r['Data']||r['data']||'',med:String(r['Medicação']||r['medicacao']||'').toLowerCase()==='sim',scores:sc};
   });
 
@@ -1079,9 +1111,15 @@ function gerarInterpretacao(registos,comMed,semMed,mTot,mCom,mSem,mPeriodos){
     linhas.push('O perfil intra-dia é <strong>relativamente estável</strong> entre manhã e tarde (Δ < 0.5 em todos os domínios).');
   }
 
-  // Consistência
+  // Consistência — retrocompatível v35/v36
   var altaVar=doms.filter(function(d){
-    var vals=registos.map(function(r){return parseFloat(r['Score_'+cap(d)]);}).filter(function(v){return!isNaN(v);});
+    var vals=registos.map(function(r){
+      var v=parseFloat(r['Score_'+cap(d)]);
+      if(!isNaN(v))return v;
+      if(d==='bestar'){var v2=parseFloat(r['Score_BEstar']);if(!isNaN(v2))return v2;}
+      var ps=['Manha','Tarde','Noite'].map(function(p){return parseFloat(r['Score_'+p+'_'+cap(d)]);}).filter(function(x){return!isNaN(x);});
+      return ps.length?(ps.reduce(function(a,b){return a+b;},0)/ps.length):NaN;
+    }).filter(function(v){return!isNaN(v);});
     if(vals.length<2)return false;
     var mean=vals.reduce(function(a,b){return a+b;})/vals.length;
     var sd=Math.sqrt(vals.reduce(function(s,v){return s+Math.pow(v-mean,2);},0)/vals.length);
@@ -1194,15 +1232,26 @@ function verDetalhe(encoded){
     var doms2=['Atencao','Emocao','Social','Motora','Bestar'];
     var vals=doms2.map(function(d){return parseFloat(r['Score_'+pref+'_'+d]);}).filter(function(v){return!isNaN(v);});
     var media=vals.length?(vals.reduce(function(a,b){return a+b;},0)/vals.length):null;
+    // Fallback v35: se não há colunas por período, usar score global (só para Manhã)
+    if(media===null&&pref==='Manha'){
+      var globVals=['Atencao','Emocao','Social','Motora','Bestar','BEstar'].map(function(d){return parseFloat(r['Score_'+d]);}).filter(function(v){return!isNaN(v);});
+      if(globVals.length)media=globVals.reduce(function(a,b){return a+b;},0)/globVals.length;
+    }
     html+='<div style="padding:10px;border-radius:9px;background:var(--blue-xpale);border:1px solid var(--blue-pale)">';
     html+='<div style="font-size:.78rem;font-weight:700;color:var(--blue);margin-bottom:5px">'+lbl+'</div>';
-    if(media===null){html+='<div style="font-size:.75rem;color:var(--text-light)">Não preenchido</div>';}
+    if(media===null){html+='<div style="font-size:.75rem;color:var(--text-light)">'+(pref==='Manha'?'Sem dados':'Não preenchido')+'</div>';}
     else{
       var cor=scoreCor(media);
       html+='<div style="font-size:1.1rem;font-weight:700;color:'+cor+';margin-bottom:4px">'+media.toFixed(2)+'</div>';
       doms2.forEach(function(d){
         if(pref==='Noite'&&d==='Social')return;
         var v=parseFloat(r['Score_'+pref+'_'+d]);
+        // v35 fallback para Manhã: usar Score_Atencao etc.
+        if(isNaN(v)&&pref==='Manha'){
+          var vg=parseFloat(r['Score_'+d]);
+          if(isNaN(vg)&&d==='Bestar')vg=parseFloat(r['Score_BEstar']);
+          if(!isNaN(vg))v=vg;
+        }
         if(isNaN(v))return;
         html+='<div style="font-size:.72rem;display:flex;justify-content:space-between;padding:2px 0"><span>'+d+'</span><span style="font-weight:600;color:'+scoreCor(v)+'">'+v.toFixed(1)+'</span></div>';
       });
