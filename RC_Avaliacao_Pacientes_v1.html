@@ -444,6 +444,7 @@ body { font-family: 'DM Sans', sans-serif; background: var(--gray-bg); color: va
         <option value="Autismo / Comportamento Social">Autismo / Comportamento Social</option>
         <option value="Comportamento">Comportamento</option>
         <option value="Comportamento Adaptativo">Comportamento Adaptativo</option>
+        <option value="Competências Sociais">Competências Sociais</option>
         <option value="Emocional / Alexitimia">Emocional / Alexitimia</option>
         <option value="Família / Parentalidade">Família / Parentalidade</option>
         <option value="Funções Executivas">Funções Executivas</option>
@@ -734,8 +735,10 @@ const SYNC_KEY_TO_ABA = {
   'sds_holland':     'SDS_Holland',
   'SDS_Holland':     'SDS_Holland',
   'SDS-Holland':     'SDS_Holland',
-  'sds':             'SDS_Holland',
-  'SDS':             'SDS_Holland',
+  // ── BAS-3 — Bateria de Socialização (Auto-avaliação) v1.0 ──────────
+  'bas3':            'BAS3',
+  'BAS3':            'BAS3',
+  'BAS-3':           'BAS3',
   // ── JTCI — v25.0 ─────────────────────────────────────────
   'jtci92':          'JTCI_92',
   'JTCI_92':         'JTCI_92',
@@ -853,6 +856,14 @@ function initCatalog() {
     { id:'q_aseba_trf',  name:'ASEBA — TRF 6-18',    dest:['Professor(a)'],              link:'https://correiaricardina-ui.github.io/questionarios/TRF_618_v1.html',   syncKey:'trf',   area:'Comportamento', ageRange:'6–18 anos', objective:'Avaliar comportamento em contexto escolar (versão professor)', domains:['Internalizante','Externalizante','Total','Problemas de Atenção','Comportamento Agressivo'] , ageMin:72, ageMax:215},
     { id:'q_aseba_ysr',  name:'ASEBA — YSR 11-18',   dest:['Paciente'],                  link:'https://correiaricardina-ui.github.io/questionarios/YSR_1118_v1.html',  syncKey:'ysr',   area:'Comportamento', ageRange:'11–18 anos', objective:'Auto-avaliação de problemas emocionais e comportamentais', domains:['Internalizante','Externalizante','Total','Ansiedade/Depressão','Isolamento','Queixas Somáticas','Problemas Sociais','Problemas de Atenção','Comportamento Agressivo'] , ageMin:132, ageMax:215},
     { id:'q_cbcl_15',    name:'ASEBA — CBCL 1½-5',   dest:['Pais','Mãe','Pai','Enc. Educação'], link:'https://correiaricardina-ui.github.io/questionarios/CBCL_15_v5.html',   syncKey:'cbcl15', area:'Comportamento', ageRange:'1½–5 anos', objective:'Avaliar problemas emocionais e comportamentais em idade pré-escolar', domains:['Internalizante','Externalizante','Total','Reatividade Emocional','Ansiedade','Queixas Somáticas','Retraimento','Problemas de Sono','Problemas de Atenção','Comportamento Agressivo'] , ageMin:18, ageMax:71},
+    // ── BAS-3 — Bateria de Socialização (Auto-avaliação) v1.0 ──────────
+    { id:'q_bas3', name:'BAS-3 — Bateria de Socialização',
+      dest:['Paciente'],
+      link:'https://correiaricardina-ui.github.io/questionarios/BAS3_v1.html',
+      syncKey:'bas3', area:'Competências Sociais', ageRange:'11–18 anos',
+      objective:'Avaliar competências sociais — auto-avaliação (Silva Moreno & Martorell Pallás, 1989/1995; adapt. CEGOC-TEA, 2005)',
+      domains:['Consideração pelos outros (Co)','Auto-controlo nas relações sociais (Ac)','Isolamento social (Is)','Ansiedade social/Timidez (At)','Liderança (Li)','Sinceridade (S)'],
+      ageMin:132, ageMax:215 },
     { id:'q_ippr', name:'IPP-R — Interesses e Preferências Profissionais',
       dest:['Jovem avaliado','Paciente'],
       link:'https://correiaricardina-ui.github.io/questionarios/IPP-R_v1.html',
@@ -1249,6 +1260,8 @@ function initCatalog() {
       'q_seqc':    { link:'https://correiaricardina-ui.github.io/questionarios/SEQC_v2.html', syncKey:'seqc' },
       // ── Collins Silhuetas — v1.0 ─────────────────────────────
       'q_collins': { link:'https://correiaricardina-ui.github.io/questionarios/Collins_Silhuetas.html', syncKey:'collins' },
+      // ── BAS-3 — Bateria de Socialização (Auto-avaliação) v1.0 ──────────
+      'q_bas3':  { link:'https://correiaricardina-ui.github.io/questionarios/BAS3_v1.html', syncKey:'bas3' },
     };
     // ── Re-store com chave correcta ('q_' + id) — corrige instalações anteriores ──
     // Garante que Conners, FAD e MAP ficam acessíveis pelo META.forEach e getCatalog
@@ -1489,6 +1502,11 @@ function initCatalog() {
     if(!catalog.includes('q_collins')) {
       const d = defaults.find(x => x.id === 'q_collins');
       if(d) { store.set('q_' + d.id, d); catalog.push('q_collins'); store.set('catalog', catalog); }
+    }
+    // BAS-3 — Bateria de Socialização v1.0
+    if(!catalog.includes('q_bas3')) {
+      const d = defaults.find(x => x.id === 'q_bas3');
+      if(d) { store.set('q_' + d.id, d); catalog.push('q_bas3'); store.set('catalog', catalog); }
     }
     }
   }
@@ -2189,6 +2207,50 @@ function formatScoreSummary(scores, syncKey) {
     }
   }
 
+  // ── BAS-3 — Bateria de Socialização (Auto-avaliação) v1.0 ──────────
+  // Facilitadoras (Co, Ac, Li): PC baixo é preocupante (≤15 clínico, ≤30 borderline)
+  // Inibidoras (Is, At): PC alto é preocupante (≥85 clínico, ≥70 borderline)
+  if(syncKey === 'bas3') {
+    const co = scores['Co_PC'] ?? scores['co_pc'] ?? null;
+    const ac = scores['Ac_PC'] ?? scores['ac_pc'] ?? null;
+    const is = scores['Is_PC'] ?? scores['is_pc'] ?? null;
+    const at = scores['At_PC'] ?? scores['at_pc'] ?? null;
+    const li = scores['Li_PC'] ?? scores['li_pc'] ?? null;
+    if(co != null || is != null || li != null || ac != null || at != null) {
+      // Detectar escalas em zona clínica/borderline
+      const facBaixas = [
+        co != null && co <= 15 ? 'Co' : null,
+        ac != null && ac <= 15 ? 'Ac' : null,
+        li != null && li <= 15 ? 'Li' : null
+      ].filter(Boolean);
+      const inibAltas = [
+        is != null && is >= 85 ? 'Is' : null,
+        at != null && at >= 85 ? 'At' : null
+      ].filter(Boolean);
+      const facBord = [
+        co != null && co > 15 && co <= 30 ? 'Co' : null,
+        ac != null && ac > 15 && ac <= 30 ? 'Ac' : null,
+        li != null && li > 15 && li <= 30 ? 'Li' : null
+      ].filter(Boolean);
+      const inibBord = [
+        is != null && is >= 70 && is < 85 ? 'Is' : null,
+        at != null && at >= 70 && at < 85 ? 'At' : null
+      ].filter(Boolean);
+      const cls = (facBaixas.length + inibAltas.length) > 0
+        ? 'color:#C0392B;font-weight:700;'
+        : (facBord.length + inibBord.length) > 0
+          ? 'color:#E67E22;font-weight:600;'
+          : 'color:var(--green);font-weight:600;';
+      const partes = [];
+      if(co != null) partes.push('Co=PC' + co);
+      if(ac != null) partes.push('Ac=PC' + ac);
+      if(is != null) partes.push('Is=PC' + is);
+      if(at != null) partes.push('At=PC' + at);
+      if(li != null) partes.push('Li=PC' + li);
+      return '<span style="font-size:0.78rem;' + cls + '">' + partes.join(' · ') + '</span>';
+    }
+  }
+
   return null;
 }
 
@@ -2353,6 +2415,8 @@ function renderAssignments(patientId) {
                 'CONNERS3P_FULL':['Relação','NomeInformante'],'CONNERS3T_FULL':['Relação','NomeInformante'],
                 'CONNERS3PS':['Relação','NomeInformante'],'CONNERS3TS':['Relação','NomeInformante'],
                 'ERC_Pais':['NomeInformante','Relação'],'ERC_Professores':['NomeInformante','Relação'],
+                // ── BAS-3 — auto-avaliação (respondente é o próprio paciente) ─
+                'BAS3':['NomeCriança','NomeRespondente','NomeInformante'],
                 'PS2_Cuidador':['NomeInformante','Relacao'],'PS2_Professor':['NomeInformante'],
                 'MAP_Parental':['NomeProgenitor','Relação'],'MAP_PI':['NomeProgenitor','Relação'],
                 'MAP_Parental_PI':['NomeProgenitor','Relação'],
