@@ -509,30 +509,37 @@ var SUBSCALAS={
   'Ansiedade Generalizada':[8,11,21,38,41,49,55,57,59],
   'Ansiedade de Separação':[7,13,19,29,36,45,50,52],
   'Fobia Social':[4,15,47,53,67,68,69],
-  'Fobia Específica (total)':[2,3,5,16,17,20,22,23,28,30,33,34,37,42,58,61,63,65,66],
+  'Fobia à Escola':[3,17,30,58],
+  'Fobia Específica (total)':[2,5,16,20,22,23,28,33,34,37,42,61,63,65,66],
   'Pert. Obsessivo-Compulsiva':[6,10,12,24,26,31,39,54,62],
   'Pert. de Stress Pós-Traumático':[25,43,46,64]
 };
-// Subtipos informativos (sem cutoff clínico próprio)
+// Subtipos informativos da Fobia Específica (sem cutoff clínico próprio — apenas para perfil)
 var SUBTIPOS_FE={
-  'Fobia à Escola':[3,17,30,58],
   'Fobia Específica — Situacional':[2,23,28,61,63],
   'Fobia Específica — Sangue':[5,16,20,33,34,42,66],
   'Fobia Específica — Animais':[22,37,65]
 };
 
-// Limiares clinicos (high) arredondados de Muris et al. 1999.
-// Zona borderline = >= 80% do limiar clinico (sem limiar borderline formal no SCARED-R).
+// Limiares baseados em Muris et al. 1999 (versão portuguesa, ficheiro de cotação oficial).
+// low  = Média - 1DP (limite inferior do intervalo normativo) → score < low marca borderline-baixo
+// high = Média + 1DP (limite superior do intervalo normativo) → score >= high marca zona clínica
+// Convenção do widget: 3 zonas (Normativo / Borderline / Clínico).
+//   score < low      → Normativo (abaixo da média populacional)
+//   low <= score < high → Normativo / Borderline (perto do limiar)
+//   score >= high    → Clínico (acima de 1DP da média)
+// Para a zona borderline visual usamos: score >= low e < high.
 var CUTOFFS={
-  'Perturbação de Pânico':{high:6, low:5},
-  'Ansiedade Generalizada':{high:10, low:8},
-  'Ansiedade de Separação':{high:8, low:7},
-  'Fobia Social':{high:8, low:7},
-  'Fobia Específica (total)':{high:11, low:9},
-  'Pert. Obsessivo-Compulsiva':{high:7, low:6},
-  'Pert. de Stress Pós-Traumático':{high:4, low:3}
+  'Perturbação de Pânico':{low:1.22, high:9.92},
+  'Ansiedade Generalizada':{low:4.38, high:11.54},
+  'Ansiedade de Separação':{low:3.49, high:9.83},
+  'Fobia Social':{low:3.15, high:9.21},
+  'Fobia à Escola':{low:0.5, high:3.0},
+  'Fobia Específica (total)':{low:2.83, high:13.13},
+  'Pert. Obsessivo-Compulsiva':{low:5.20, high:11.50},
+  'Pert. de Stress Pós-Traumático':{low:1.25, high:5.23}
 };
-var TOTAL_CUTOFF=51;
+var TOTAL_CUTOFF=71;
 
 function showPage(id){
   document.querySelectorAll('.page').forEach(function(p){p.style.display='none'});
@@ -811,7 +818,7 @@ function verDetalhe(idx){
     return                  {cls:'badge-normative',label:'Normativo',color:'#27AE60'};
   }
 
-  var subsOrdem=['Perturbação de Pânico','Ansiedade Generalizada','Ansiedade de Separação','Fobia Social','Fobia Específica (total)','Pert. Obsessivo-Compulsiva','Pert. de Stress Pós-Traumático'];
+  var subsOrdem=['Perturbação de Pânico','Ansiedade Generalizada','Ansiedade de Separação','Fobia Social','Fobia à Escola','Fobia Específica (total)','Pert. Obsessivo-Compulsiva','Pert. de Stress Pós-Traumático'];
 
   var profileRows='';
   subsOrdem.forEach(function(sub){
@@ -863,7 +870,7 @@ function verDetalhe(idx){
   });
   var chartCutoffs=subsOrdem.map(function(s){return CUTOFFS[s]?CUTOFFS[s].high:8;});
 
-  var totalCls=total>=TOTAL_CUTOFF?'var(--red)':total>=35?'var(--orange)':'var(--green)';
+  var totalCls=total>=TOTAL_CUTOFF?'var(--red)':total>=Math.round(TOTAL_CUTOFF*0.7)?'var(--orange)':'var(--green)';
   var totalBadge=total>=TOTAL_CUTOFF?
     '<span class="badge badge-clinical">Clinicamente significativo</span>':
     '<span class="badge badge-normative">Sem indicação clínica</span>';
@@ -877,8 +884,8 @@ function verDetalhe(idx){
   var partes=[];
   partes.push('O score total é de <strong>'+total+' pontos</strong> (máx. 138), '+
     (total>=TOTAL_CUTOFF?
-      'situando-se <strong style="color:var(--red)">acima do limiar clínico</strong> (≥ 51), o que sugere a presença de sintomatologia ansiosa clinicamente significativa.':
-      'situando-se <strong style="color:var(--green)">abaixo do limiar clínico</strong> (< 51), não evidenciando perturbação de ansiedade clinicamente significativa de momento.'));
+      'situando-se <strong style="color:var(--red)">acima do limiar clínico</strong> (≥ '+TOTAL_CUTOFF+'), o que sugere a presença de sintomatologia ansiosa clinicamente significativa.':
+      'situando-se <strong style="color:var(--green)">abaixo do limiar clínico</strong> (< '+TOTAL_CUTOFF+'), não evidenciando perturbação de ansiedade clinicamente significativa de momento.'));
   if(emClinico.length>0)
     partes.push('As seguintes subescalas situam-se na <strong style="color:var(--red)">zona clínica</strong>: '+emClinico.join(', ')+'.');
   if(emBorderline.length>0)
@@ -898,7 +905,7 @@ function verDetalhe(idx){
       '<div>'+
         '<div style="font-size:.8rem;color:var(--text-light);">Score Total (máx. 138)</div>'+
         '<div style="margin-top:4px;">'+totalBadge+'</div>'+
-        '<div style="font-size:.76rem;color:var(--text-light);margin-top:2px;">Limiar clínico: ≥ 51 pontos</div>'+
+        '<div style="font-size:.76rem;color:var(--text-light);margin-top:2px;">Limiar clínico: ≥ 71 pontos</div>'+
       '</div>'+
     '</div>'+
     '<div style="font-weight:700;font-size:.93rem;color:var(--blue);border-bottom:2px solid var(--blue-pale);padding-bottom:6px;margin-bottom:14px;">📊 Perfil Gráfico</div>'+
@@ -926,7 +933,7 @@ function verDetalhe(idx){
       partes.join('<br><br>')+
     '</div>'+
     '<div style="font-size:.74rem;color:var(--text-light);border-top:1px solid var(--gray-bdr);padding-top:8px;margin-bottom:16px;">'+
-      'Limiares clínicos baseados em Muris et al. (1999). Score total ≥ 51 indica ansiedade clinicamente significativa. Versão portuguesa experimental: Pereira &amp; Barros (2010).'+
+      'Limiares clínicos baseados em Muris et al. (1999). Score total ≥ 71 indica ansiedade clinicamente significativa. Versão portuguesa experimental: Pereira &amp; Barros (2010).'+
     '</div>'+
     (answers.length>0 ? (function(){
       var labels=['Nunca','Algumas vezes','Muitas vezes'];
@@ -1039,11 +1046,68 @@ function exportarRelatorioCompletoPDF(idx){
   var totalZone=total>=TOTAL_CUTOFF?'Clinicamente significativo':'Sem indicação clínica';
   var totalCor=total>=TOTAL_CUTOFF?'#C0392B':'#27AE60';
 
-  var subsOrdem=['Perturbação de Pânico','Ansiedade Generalizada','Ansiedade de Separação','Fobia Social','Fobia Específica (total)','Pert. Obsessivo-Compulsiva','Pert. de Stress Pós-Traumático'];
+  var subsOrdem=['Perturbação de Pânico','Ansiedade Generalizada','Ansiedade de Separação','Fobia Social','Fobia à Escola','Fobia Específica (total)','Pert. Obsessivo-Compulsiva','Pert. de Stress Pós-Traumático'];
   var scores={};
   for(var sub in SUBSCALAS){var itens=SUBSCALAS[sub];var sc=0;itens.forEach(function(i){sc+=answers[i-1]||0;});scores[sub]=sc;}
   var scoresFE={};
   for(var sub in SUBTIPOS_FE){var itens=SUBTIPOS_FE[sub];var sc=0;itens.forEach(function(i){sc+=answers[i-1]||0;});scoresFE[sub]=sc;}
+
+  // ===== GRÁFICO SVG (perfil de barras horizontais) =====
+  // Imprime sem dependências externas, funciona em qualquer browser/PDF
+  var chartW=720, rowH=32, padTop=20, padBot=30, padLeft=180, padRight=40;
+  var chartH=padTop+padBot+subsOrdem.length*rowH;
+  var plotW=chartW-padLeft-padRight;
+  // Escala: usar o máximo absoluto da subescala com max mais alto (Fobia Específica = 30)
+  var maxScale=Math.max.apply(null, subsOrdem.map(function(s){return SUBSCALAS[s]?SUBSCALAS[s].length*2:20;}));
+  // Eixo X com marcas a cada 5
+  var xAxis='';
+  for(var t=0; t<=maxScale; t+=5){
+    var x=padLeft+(t/maxScale)*plotW;
+    xAxis+='<line x1="'+x+'" y1="'+padTop+'" x2="'+x+'" y2="'+(chartH-padBot+4)+'" stroke="#e8ecf0" stroke-width="1"/>';
+    xAxis+='<text x="'+x+'" y="'+(chartH-padBot+18)+'" text-anchor="middle" font-size="10" fill="#6B7A8D" font-family="sans-serif">'+t+'</text>';
+  }
+  var bars='';
+  subsOrdem.forEach(function(sub,i){
+    var sc=scores[sub]||0;
+    var co=CUTOFFS[sub]||{low:2,high:8};
+    var maxSc=SUBSCALAS[sub].length*2;
+    var y=padTop+i*rowH+rowH/2;
+    var barColor=sc>=co.high?'#C0392B':sc>=co.low?'#E67E22':'#27AE60';
+    var barW=(sc/maxScale)*plotW;
+    var maxBarW=(maxSc/maxScale)*plotW;
+    // Label da subescala (truncado se necessário)
+    var label=sub.length>26?sub.slice(0,24)+'…':sub;
+    bars+='<text x="'+(padLeft-8)+'" y="'+(y+4)+'" text-anchor="end" font-size="11" fill="#2C3E50" font-family="sans-serif">'+label+'</text>';
+    // Fundo da barra (até ao máximo possível da subescala)
+    bars+='<rect x="'+padLeft+'" y="'+(y-9)+'" width="'+maxBarW+'" height="18" fill="#f0f3f7" rx="3"/>';
+    // Barra do score
+    bars+='<rect x="'+padLeft+'" y="'+(y-9)+'" width="'+Math.max(2,barW)+'" height="18" fill="'+barColor+'" rx="3" opacity="0.85"/>';
+    // Marcas dos cutoffs (low e high)
+    var lowX=padLeft+(co.low/maxScale)*plotW;
+    var highX=padLeft+(co.high/maxScale)*plotW;
+    if(co.low<=maxSc) bars+='<line x1="'+lowX+'" y1="'+(y-12)+'" x2="'+lowX+'" y2="'+(y+12)+'" stroke="#E67E22" stroke-width="1.5" stroke-dasharray="3,2"/>';
+    if(co.high<=maxSc) bars+='<line x1="'+highX+'" y1="'+(y-12)+'" x2="'+highX+'" y2="'+(y+12)+'" stroke="#C0392B" stroke-width="1.5" stroke-dasharray="3,2"/>';
+    // Valor do score à direita da barra
+    bars+='<text x="'+(padLeft+barW+6)+'" y="'+(y+4)+'" font-size="11" font-weight="700" fill="'+barColor+'" font-family="sans-serif">'+sc+'/'+maxSc+'</text>';
+  });
+  // Legenda
+  var legY=chartH-8;
+  var legenda=
+    '<g font-family="sans-serif" font-size="9" fill="#6B7A8D">'+
+      '<rect x="'+padLeft+'" y="'+(legY-8)+'" width="10" height="10" fill="#27AE60" opacity="0.85"/>'+
+      '<text x="'+(padLeft+14)+'" y="'+legY+'">Normativo</text>'+
+      '<rect x="'+(padLeft+90)+'" y="'+(legY-8)+'" width="10" height="10" fill="#E67E22" opacity="0.85"/>'+
+      '<text x="'+(padLeft+104)+'" y="'+legY+'">Borderline</text>'+
+      '<rect x="'+(padLeft+185)+'" y="'+(legY-8)+'" width="10" height="10" fill="#C0392B" opacity="0.85"/>'+
+      '<text x="'+(padLeft+199)+'" y="'+legY+'">Clínico</text>'+
+      '<line x1="'+(padLeft+260)+'" y1="'+(legY-8)+'" x2="'+(padLeft+260)+'" y2="'+(legY+2)+'" stroke="#E67E22" stroke-width="1.5" stroke-dasharray="3,2"/>'+
+      '<text x="'+(padLeft+266)+'" y="'+legY+'">Limiar borderline (Média−1DP)</text>'+
+      '<line x1="'+(padLeft+440)+'" y1="'+(legY-8)+'" x2="'+(padLeft+440)+'" y2="'+(legY+2)+'" stroke="#C0392B" stroke-width="1.5" stroke-dasharray="3,2"/>'+
+      '<text x="'+(padLeft+446)+'" y="'+legY+'">Limiar clínico (Média+1DP)</text>'+
+    '</g>';
+  var svgChart='<svg viewBox="0 0 '+chartW+' '+(chartH+10)+'" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:'+chartW+'px;height:auto;display:block;margin:0 auto 14px;">'+
+    xAxis+bars+legenda+
+  '</svg>';
 
   var tableRows='';
   subsOrdem.forEach(function(sub){
@@ -1078,8 +1142,8 @@ function exportarRelatorioCompletoPDF(idx){
   });
   var partes=[];
   partes.push('O score total é de <strong>'+total+' pontos</strong> (máx. 138), '+
-    (total>=TOTAL_CUTOFF?'situando-se <strong style="color:#C0392B">acima do limiar clínico</strong> (≥ 51), sugerindo sintomatologia ansiosa clinicamente significativa.':
-    'situando-se <strong style="color:#27AE60">abaixo do limiar clínico</strong> (< 51), sem evidência de perturbação de ansiedade clinicamente significativa.'));
+    (total>=TOTAL_CUTOFF?'situando-se <strong style="color:#C0392B">acima do limiar clínico</strong> (≥ '+TOTAL_CUTOFF+'), sugerindo sintomatologia ansiosa clinicamente significativa.':
+    'situando-se <strong style="color:#27AE60">abaixo do limiar clínico</strong> (< '+TOTAL_CUTOFF+'), sem evidência de perturbação de ansiedade clinicamente significativa.'));
   if(emClinico.length>0) partes.push('Subescalas em <strong style="color:#C0392B">zona clínica</strong>: '+emClinico.join(', ')+'.');
   if(emBorderline.length>0) partes.push('Subescalas em <strong style="color:#E67E22">zona borderline</strong> (requer monitorização): '+emBorderline.join(', ')+'.');
   if(emClinico.length===0&&emBorderline.length===0) partes.push('Todas as subescalas situam-se dentro dos limites normativos.');
@@ -1106,22 +1170,26 @@ function exportarRelatorioCompletoPDF(idx){
     'p.meta{color:#6B7A8D;font-size:10px;margin-bottom:12px;}'+
     '.total-box{background:#EBF2F8;border-radius:6px;padding:10px 14px;margin-bottom:14px;display:flex;align-items:center;gap:14px;}'+
     '.total-num{font-size:26px;font-weight:700;}'+
+    '.chart-box{background:#fff;border:1px solid #e8ecf0;border-radius:6px;padding:10px;margin-bottom:14px;}'+
     'table{width:100%;border-collapse:collapse;margin-bottom:12px;}'+
     'th{background:#D6E4F0;padding:5px 8px;text-align:left;color:#3B5A7A;font-size:10px;}'+
     '.interp{background:#EBF2F8;border:1px solid #D6E4F0;border-radius:6px;padding:10px 12px;line-height:1.65;margin-bottom:12px;font-size:10.5px;}'+
     '.nota{font-size:9px;color:#6B7A8D;border-top:1px solid #eee;padding-top:6px;margin-top:4px;}'+
-    '.no-print{margin-bottom:14px;}@media print{.no-print{display:none}}'+
+    '.no-print{margin-bottom:14px;}@media print{.no-print{display:none} body{padding:12px}}'+
+    '@media print{h2{page-break-after:avoid} table{page-break-inside:auto} tr{page-break-inside:avoid;page-break-after:auto}}'+
     '</style></head><body>'+
-    '<div class="no-print"><button onclick="window.print()">🖨 Imprimir / Guardar PDF</button></div>'+
+    '<div class="no-print"><button onclick="window.print()" style="padding:8px 16px;background:#3B5A7A;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:12px;">🖨 Imprimir / Guardar PDF</button></div>'+
     '<h1>SCARED-R (Criança) — Relatório Clínico Completo</h1>'+
     '<p class="meta">'+metaInfo+' · Ricardina Correia · Cédula 8233 · Psicologia Pediátrica</p>'+
     '<div class="total-box">'+
       '<div class="total-num" style="color:'+totalCor+'">'+total+'</div>'+
       '<div><div style="font-size:10px;color:#6B7A8D;">Score Total (máx. 138)</div>'+
       '<div style="margin-top:3px;font-weight:700;font-size:11px;color:'+totalCor+'">'+totalZone+'</div>'+
-      '<div style="font-size:9px;color:#6B7A8D;margin-top:2px;">Limiar clínico: ≥ 51 pontos</div></div>'+
+      '<div style="font-size:9px;color:#6B7A8D;margin-top:2px;">Limiar clínico: ≥ 71 pontos</div></div>'+
     '</div>'+
-    '<h2>📋 Perfil por Subescala</h2>'+
+    '<h2>📊 Perfil Gráfico</h2>'+
+    '<div class="chart-box">'+svgChart+'</div>'+
+    '<h2>📋 Tabela de Perfil por Subescala</h2>'+
     '<table><thead><tr>'+
     '<th>Subescala</th><th style="text-align:center">Score / Máx.</th>'+
     '<th>Perfil</th><th style="text-align:center">Zona</th>'+
@@ -1132,7 +1200,10 @@ function exportarRelatorioCompletoPDF(idx){
     '<table><thead><tr>'+
     '<th style="text-align:center;width:28px;">#</th><th>Item</th><th style="text-align:center">Resposta</th>'+
     '</tr></thead><tbody>'+itemRows+'</tbody></table>' : '')+
-    '<div class="nota">Limiares clínicos baseados em Muris et al. (1999). Score total ≥ 51 indica ansiedade clinicamente significativa. Versão portuguesa experimental: Pereira &amp; Barros (2010).</div>'+
+    '<div class="nota">Limiares baseados em Muris et al. (1999), versão portuguesa de Pereira &amp; Barros (2010). '+
+    'Limites das subescalas: <strong>borderline</strong> = score ≥ Média−1DP normativa; <strong>clínico</strong> = score ≥ Média+1DP normativa. '+
+    'Limiar clínico do score total ≥ 71 indica sintomatologia ansiosa clinicamente significativa. '+
+    'Esta interpretação é automática e deve ser integrada no contexto clínico completo da avaliação.</div>'+
     '</body></html>';
 
   var w=window.open('','_blank');
