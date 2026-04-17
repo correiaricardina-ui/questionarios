@@ -184,10 +184,17 @@ tr:hover td{background:#fafbfd}
           <label>Ano escolar</label>
           <select id="respondent-relation" class="form-input">
             <option value="">Selecionar...</option>
-            <option value="Mãe">Mãe</option>
-            <option value="Pai">Pai</option>
-            <option value="Avó/Avô">Avó/Avô</option>
-            <option value="Outro cuidador">Outro cuidador</option>
+            <option value="3º ano">3º ano</option>
+            <option value="4º ano">4º ano</option>
+            <option value="5º ano">5º ano</option>
+            <option value="6º ano">6º ano</option>
+            <option value="7º ano">7º ano</option>
+            <option value="8º ano">8º ano</option>
+            <option value="9º ano">9º ano</option>
+            <option value="10º ano">10º ano</option>
+            <option value="11º ano">11º ano</option>
+            <option value="12º ano">12º ano</option>
+            <option value="Outro">Outro</option>
           </select>
         </div>
 
@@ -355,8 +362,8 @@ function tentarLogin(){
 
 function avancarParaQuestoes(){
   var code=document.getElementById('patient-code').value.trim().toUpperCase();
-  var nomeJovem=document.getElementById('nome-jovem').value.trim();
-  var nomeEE=document.getElementById('nome-ee').value.trim();
+  var nomeJovem=document.getElementById('nome-crianca').value.trim();
+  var nomeEE=document.getElementById('nome-informante').value.trim();
   var age=parseInt(document.getElementById('patient-age').value);
   var gender=document.getElementById('patient-gender').value;
   var anoEscolar=document.getElementById('respondent-relation').value;
@@ -444,8 +451,8 @@ function submeterQuestionario(){
   document.getElementById('submit-error').style.display='none';
 
   var code=document.getElementById('patient-code').value.trim().toUpperCase();
-  var nomeJovem=document.getElementById('nome-jovem').value.trim();
-  var nomeEE=document.getElementById('nome-ee').value.trim();
+  var nomeJovem=document.getElementById('nome-crianca').value.trim();
+  var nomeEE=document.getElementById('nome-informante').value.trim();
   var age=document.getElementById('patient-age').value;
   var gender=document.getElementById('patient-gender').value;
   var anoEscolar=document.getElementById('respondent-relation').value;
