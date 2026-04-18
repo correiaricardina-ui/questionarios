@@ -770,7 +770,11 @@ const SYNC_KEY_TO_ABA = {
   'Collins_Silhuetas': 'Collins_Silhuetas',
   // ── Checklist Obs. Comportamental Medicação PHDA ─────────────────
   'obs_phda_casa':     'OBS_PHDA_Casa',
-  'obs_phda_escola':   'OBS_PHDA_Escola'
+  'obs_phda_escola':   'OBS_PHDA_Escola',
+  // ── PPGR-J — Pressão Percebida em Guarda-Redes Jovens v1.0 ─────────
+  'ppgrj':             'PPGRJ',
+  'PPGRJ':             'PPGRJ',
+  'PPGR-J':            'PPGRJ'
 };
 
 // Cache em memória das respostas do Sheet (evita fetch repetidos na mesma sessão)
@@ -1154,6 +1158,14 @@ function initCatalog() {
       objective:'Avalia a insatisfação com a imagem corporal através de silhuetas — percepção real vs. ideal (Collins, 1991)',
       domains:['Silhueta Real','Silhueta Ideal','Insatisfação','IMC'],
       ageMin:72, ageMax:215 },
+    // ── PPGR-J — Pressão Percebida em Guarda-Redes Jovens v1.0 ───────────
+    { id:'q_ppgrj', name:'PPGR-J — Pressão Percebida em Guarda-Redes Jovens',
+      dest:['Atleta','Jovem avaliado','Paciente'],
+      link:'https://correiaricardina-ui.github.io/questionarios/PPGRJ_v1.html',
+      syncKey:'ppgrj', area:'Psicologia do Desporto', ageRange:'≥ 12 anos (guarda-redes)',
+      objective:'Avalia a vivência multidimensional da pressão de desempenho em guarda-redes jovens (Correia, 2026 — clínico-exploratório, sem validação psicométrica formal)',
+      domains:['AAC — Ativação Ansiogénica','MEF — Medo do Erro','PFE — Pressão Externa','APP — Autoexigência','EEIP — Exposição/Identidade','RPRM — Recuperação Pós-Erro','TOTAL','Normalizado 0-100'],
+      ageMin:144, ageMax:null },
   ];
   // Garantir que TODOS os defaults estão no catálogo, sempre
   // (funciona em RC novos e em RC existentes — nunca perde questionários)
@@ -1262,6 +1274,8 @@ function initCatalog() {
       'q_collins': { link:'https://correiaricardina-ui.github.io/questionarios/Collins_Silhuetas.html', syncKey:'collins' },
       // ── BAS-3 — Bateria de Socialização (Auto-avaliação) v1.0 ──────────
       'q_bas3':  { link:'https://correiaricardina-ui.github.io/questionarios/BAS3_v1.html', syncKey:'bas3' },
+      // ── PPGR-J — Pressão Percebida em Guarda-Redes Jovens v1.0 ─────────
+      'q_ppgrj': { link:'https://correiaricardina-ui.github.io/questionarios/PPGRJ_v1.html', syncKey:'ppgrj' },
     };
     // ── Re-store com chave correcta ('q_' + id) — corrige instalações anteriores ──
     // Garante que Conners, FAD e MAP ficam acessíveis pelo META.forEach e getCatalog
@@ -1507,6 +1521,11 @@ function initCatalog() {
     if(!catalog.includes('q_bas3')) {
       const d = defaults.find(x => x.id === 'q_bas3');
       if(d) { store.set('q_' + d.id, d); catalog.push('q_bas3'); store.set('catalog', catalog); }
+    }
+    // PPGR-J — Pressão Percebida em Guarda-Redes Jovens v1.0
+    if(!catalog.includes('q_ppgrj')) {
+      const d = defaults.find(x => x.id === 'q_ppgrj');
+      if(d) { store.set('q_' + d.id, d); catalog.push('q_ppgrj'); store.set('catalog', catalog); }
     }
     }
   }
@@ -2250,6 +2269,26 @@ function formatScoreSummary(scores, syncKey) {
       return '<span style="font-size:0.78rem;' + cls + '">' + partes.join(' · ') + '</span>';
     }
   }
+  // ── PPGR-J — Pressão Percebida em Guarda-Redes Jovens ────────────
+  if(syncKey === 'ppgrj') {
+    const total = scores['TOTAL'] ?? scores['total'];
+    const norm  = scores['NORM']  ?? scores['norm'] ?? scores['Normalizado'];
+    const dimPred = scores['DIM_PRED'] ?? scores['dimPred'] ?? '';
+    if(total != null || norm != null) {
+      // Limiar pelo Normalizado (0-100): ≥60 Elevado/Muito Elevado, ≥40 Médio
+      const v = norm != null ? Number(norm) : null;
+      const cls = v != null
+        ? (v >= 60 ? 'color:#C0392B;font-weight:700;' :
+           v >= 40 ? 'color:#E67E22;font-weight:600;' :
+                     'color:var(--green);font-weight:600;')
+        : 'color:var(--blue);font-weight:600;';
+      const partes = [];
+      if(total != null) partes.push('Total=' + total);
+      if(norm  != null) partes.push('Norm=' + norm);
+      if(dimPred)       partes.push('Pred=' + dimPred);
+      return '<span style="font-size:0.78rem;' + cls + '">' + partes.join(' · ') + '</span>';
+    }
+  }
 
   return null;
 }
@@ -2441,7 +2480,9 @@ function renderAssignments(patientId) {
                 'Collins_Silhuetas':[],
                 // ── Checklist Obs. Comportamental Medicação PHDA ──────────
                 'OBS_PHDA_Casa':   ['NomeInformante'],
-                'OBS_PHDA_Escola': ['NomeInformante']
+                'OBS_PHDA_Escola': ['NomeInformante'],
+                // ── PPGR-J — Pressão Percebida em Guarda-Redes Jovens ─────
+                'PPGRJ':           ['NomeRespondente','NomeCriança','NomeCrianca']
               };
               const RC = {
                 'SWAN':['Relação'],'BRIEF_Pais':['Relação'],'SCARED_R_PAIS':['Relação'],
@@ -2718,7 +2759,8 @@ async function syncAndMark(patientId, idx) {
           'QC_Coparentalidade':['NomeRespondente','Respondente'],
           'IPP_R':['NomeRespondente'],
           'SDS_Holland':['NomeCriança'],
-          'NEOPIR':['NomeInformante']
+          'NEOPIR':['NomeInformante'],
+          'PPGRJ':['NomeRespondente','NomeCriança','NomeCrianca']
         };
         const RC2 = {
           'SWAN':['Relação'],'BRIEF_Pais':['Relação'],'SCARED_R_PAIS':['Relação'],
