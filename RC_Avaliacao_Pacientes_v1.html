@@ -774,7 +774,10 @@ const SYNC_KEY_TO_ABA = {
   // ── PPGR-J — Pressão Percebida em Guarda-Redes Jovens v1.0 ─────────
   'ppgrj':             'PPGRJ',
   'PPGRJ':             'PPGRJ',
-  'PPGR-J':            'PPGRJ'
+  'PPGR-J':            'PPGRJ',
+  // ── CCBQ — Children's Coping Behaviors Questionnaire v1.0 ─────────
+  'ccbq':              'CCBQ',
+  'CCBQ':              'CCBQ'
 };
 
 // Cache em memória das respostas do Sheet (evita fetch repetidos na mesma sessão)
@@ -1166,6 +1169,14 @@ function initCatalog() {
       objective:'Avalia a vivência multidimensional da pressão de desempenho em guarda-redes jovens (Correia, 2026 — clínico-exploratório, sem validação psicométrica formal)',
       domains:['AAC — Ativação Ansiogénica','MEF — Medo do Erro','PFE — Pressão Externa','APP — Autoexigência','EEIP — Exposição/Identidade','RPRM — Recuperação Pós-Erro','TOTAL','Normalizado 0-100'],
       ageMin:144, ageMax:null },
+    // ── CCBQ — Children's Coping Behaviors Questionnaire v1.0 ────────
+    { id:'q_ccbq', name:'CCBQ — Comportamentos de Coping em Crianças',
+      dest:['Paciente','Criança avaliada','Jovem avaliado'],
+      link:'https://correiaricardina-ui.github.io/questionarios/CCBQ_v1.html',
+      syncKey:'ccbq', area:'Coping / Estratégias de Confronto', ageRange:'≥ 6 anos',
+      objective:'Avalia a frequência de utilização de três padrões de coping perante acontecimentos stressantes — Diversão (F-I), Amelioratório (F-II) e Destrutivo (F-III) (Hernandez, 2008 — adaptação PT exploratória)',
+      domains:['F-I Diversão','F-II Amelioratório','F-III Destrutivo','Compósito'],
+      ageMin:72, ageMax:null },
   ];
   // Garantir que TODOS os defaults estão no catálogo, sempre
   // (funciona em RC novos e em RC existentes — nunca perde questionários)
@@ -1276,6 +1287,7 @@ function initCatalog() {
       'q_bas3':  { link:'https://correiaricardina-ui.github.io/questionarios/BAS3_v1.html', syncKey:'bas3' },
       // ── PPGR-J — Pressão Percebida em Guarda-Redes Jovens v1.0 ─────────
       'q_ppgrj': { link:'https://correiaricardina-ui.github.io/questionarios/PPGRJ_v1.html', syncKey:'ppgrj' },
+      'q_ccbq':  { link:'https://correiaricardina-ui.github.io/questionarios/CCBQ_v1.html',  syncKey:'ccbq'  },
     };
     // ── Re-store com chave correcta ('q_' + id) — corrige instalações anteriores ──
     // Garante que Conners, FAD e MAP ficam acessíveis pelo META.forEach e getCatalog
@@ -1526,6 +1538,11 @@ function initCatalog() {
     if(!catalog.includes('q_ppgrj')) {
       const d = defaults.find(x => x.id === 'q_ppgrj');
       if(d) { store.set('q_' + d.id, d); catalog.push('q_ppgrj'); store.set('catalog', catalog); }
+    }
+    // CCBQ — Children's Coping Behaviors Questionnaire v1.0
+    if(!catalog.includes('q_ccbq')) {
+      const d = defaults.find(x => x.id === 'q_ccbq');
+      if(d) { store.set('q_' + d.id, d); catalog.push('q_ccbq'); store.set('catalog', catalog); }
     }
     }
   }
@@ -2289,6 +2306,30 @@ function formatScoreSummary(scores, syncKey) {
       return '<span style="font-size:0.78rem;' + cls + '">' + partes.join(' · ') + '</span>';
     }
   }
+  // ── CCBQ — Children's Coping Behaviors Questionnaire ─────────────
+  if(syncKey === 'ccbq') {
+    const f1 = scores['F1_Media'] ?? scores['f1_media'] ?? scores['F1Media'];
+    const f2 = scores['F2_Media'] ?? scores['f2_media'] ?? scores['F2Media'];
+    const f3 = scores['F3_Media'] ?? scores['f3_media'] ?? scores['F3Media'];
+    const perfil = scores['Perfil'] ?? scores['perfil'] ?? '';
+    if(f1 != null || f2 != null || f3 != null) {
+      // Alerta clínico: F-III Destrutivo é o marcador de risco principal.
+      // Bandas (média-item): ≥3.26 Elevada, ≥2.51 Moderada, <2.51 Baixa/Muito baixa.
+      const f3n = f3 != null ? Number(f3) : null;
+      const cls = f3n != null
+        ? (f3n >= 3.26 ? 'color:#C0392B;font-weight:700;' :
+           f3n >= 2.51 ? 'color:#E67E22;font-weight:600;' :
+                         'color:var(--green);font-weight:600;')
+        : 'color:var(--blue);font-weight:600;';
+      const fmt = function(v){ return v != null ? Number(v).toFixed(2) : '—'; };
+      const partes = [];
+      if(f1 != null) partes.push('F-I=' + fmt(f1));
+      if(f2 != null) partes.push('F-II=' + fmt(f2));
+      if(f3 != null) partes.push('F-III=' + fmt(f3));
+      if(perfil)     partes.push(perfil);
+      return '<span style="font-size:0.78rem;' + cls + '">' + partes.join(' · ') + '</span>';
+    }
+  }
 
   return null;
 }
@@ -2482,7 +2523,9 @@ function renderAssignments(patientId) {
                 'OBS_PHDA_Casa':   ['NomeInformante'],
                 'OBS_PHDA_Escola': ['NomeInformante'],
                 // ── PPGR-J — Pressão Percebida em Guarda-Redes Jovens ─────
-                'PPGRJ':           ['NomeRespondente','NomeCriança','NomeCrianca']
+                'PPGRJ':           ['NomeRespondente','NomeCriança','NomeCrianca'],
+                // ── CCBQ — respondente é o próprio paciente (auto-resposta) ─
+                'CCBQ':            ['NomeRespondente','NomeCriança','NomeCrianca']
               };
               const RC = {
                 'SWAN':['Relação'],'BRIEF_Pais':['Relação'],'SCARED_R_PAIS':['Relação'],
@@ -2760,7 +2803,8 @@ async function syncAndMark(patientId, idx) {
           'IPP_R':['NomeRespondente'],
           'SDS_Holland':['NomeCriança'],
           'NEOPIR':['NomeInformante'],
-          'PPGRJ':['NomeRespondente','NomeCriança','NomeCrianca']
+          'PPGRJ':['NomeRespondente','NomeCriança','NomeCrianca'],
+          'CCBQ':['NomeRespondente','NomeCriança','NomeCrianca']
         };
         const RC2 = {
           'SWAN':['Relação'],'BRIEF_Pais':['Relação'],'SCARED_R_PAIS':['Relação'],
