@@ -655,7 +655,10 @@ const QID_TO_ABA = {
   // ── Anamnese Complementar ─────────────────────────────────
   'q_anamnese':           'Anamnese_Complementar',
   'q_pai_a':               'PAIA',
-  'q_pai_adult':           'PAI'
+  'q_pai_adult':           'PAI',
+  // ── Kidcope — Crianças + Adolescentes (Spirito, Stark & Williams, 1988) ──
+  'q_kidcope_cr':          'KIDCOPE_CR',
+  'q_kidcope_ad':          'KIDCOPE_AD'
 };
 
 
@@ -777,7 +780,12 @@ const SYNC_KEY_TO_ABA = {
   'PPGR-J':            'PPGRJ',
   // ── CCBQ — Children's Coping Behaviors Questionnaire v1.0 ─────────
   'ccbq':              'CCBQ',
-  'CCBQ':              'CCBQ'
+  'CCBQ':              'CCBQ',
+  // ── Kidcope — Crianças 7–12 e Adolescentes 13–18 (Spirito et al., 1988) ──
+  'kidcope_cr':        'KIDCOPE_CR',
+  'KIDCOPE_CR':        'KIDCOPE_CR',
+  'kidcope_ad':        'KIDCOPE_AD',
+  'KIDCOPE_AD':        'KIDCOPE_AD'
 };
 
 // Cache em memória das respostas do Sheet (evita fetch repetidos na mesma sessão)
@@ -1177,6 +1185,22 @@ function initCatalog() {
       objective:'Avalia a frequência de utilização de três padrões de coping perante acontecimentos stressantes — Diversão (F-I), Amelioratório (F-II) e Destrutivo (F-III) (Hernandez, 2008 — adaptação PT exploratória)',
       domains:['F-I Diversão','F-II Amelioratório','F-III Destrutivo','Compósito'],
       ageMin:72, ageMax:null },
+    // ── Kidcope — Crianças (7–12 anos) v1.0 ─────────────────────────
+    { id:'q_kidcope_cr', name:'Kidcope — Crianças (7–12 anos)',
+      dest:['Paciente','Criança avaliada'],
+      link:'https://correiaricardina-ui.github.io/questionarios/Kidcope_Criancas_v1.html',
+      syncKey:'kidcope_cr', area:'Coping / Regulação emocional', ageRange:'7–12 anos',
+      objective:'Avalia estratégias de coping face a situações de stress (uso binário Sim/Não + eficácia 0–2); perfil integrado A-E-D com 27 combinações clínicas (Spirito, Stark & Williams, 1988)',
+      domains:['Estilo Adaptativo','Estilo Evitativo','Estilo Disfuncional','Índice Global','Perfil A-E-D'],
+      ageMin:84, ageMax:155 },
+    // ── Kidcope — Adolescentes (13–18 anos) v1.0 ────────────────────
+    { id:'q_kidcope_ad', name:'Kidcope — Adolescentes (13–18 anos)',
+      dest:['Paciente','Jovem avaliado'],
+      link:'https://correiaricardina-ui.github.io/questionarios/Kidcope_Adolescentes_v1.html',
+      syncKey:'kidcope_ad', area:'Coping / Regulação emocional', ageRange:'13–18 anos',
+      objective:'Avalia frequência (0–3) e eficácia percebida (0–4) de estratégias de coping; inclui flags de discrepância Frequência-Eficácia e perfil integrado A-E-D (Spirito, Stark & Williams, 1988)',
+      domains:['Estilo Adaptativo','Estilo Evitativo','Estilo Disfuncional','Índice Global','Flags F-E','Perfil A-E-D'],
+      ageMin:156, ageMax:227 },
   ];
   // Garantir que TODOS os defaults estão no catálogo, sempre
   // (funciona em RC novos e em RC existentes — nunca perde questionários)
@@ -1288,6 +1312,9 @@ function initCatalog() {
       // ── PPGR-J — Pressão Percebida em Guarda-Redes Jovens v1.0 ─────────
       'q_ppgrj': { link:'https://correiaricardina-ui.github.io/questionarios/PPGRJ_v1.html', syncKey:'ppgrj' },
       'q_ccbq':  { link:'https://correiaricardina-ui.github.io/questionarios/CCBQ_v1.html',  syncKey:'ccbq'  },
+      // ── Kidcope — Crianças + Adolescentes v1.0 ────────────────
+      'q_kidcope_cr': { link:'https://correiaricardina-ui.github.io/questionarios/Kidcope_Criancas_v1.html',     syncKey:'kidcope_cr' },
+      'q_kidcope_ad': { link:'https://correiaricardina-ui.github.io/questionarios/Kidcope_Adolescentes_v1.html', syncKey:'kidcope_ad' },
     };
     // ── Re-store com chave correcta ('q_' + id) — corrige instalações anteriores ──
     // Garante que Conners, FAD e MAP ficam acessíveis pelo META.forEach e getCatalog
@@ -1543,6 +1570,16 @@ function initCatalog() {
     if(!catalog.includes('q_ccbq')) {
       const d = defaults.find(x => x.id === 'q_ccbq');
       if(d) { store.set('q_' + d.id, d); catalog.push('q_ccbq'); store.set('catalog', catalog); }
+    }
+    // Kidcope — Crianças (7–12) v1.0
+    if(!catalog.includes('q_kidcope_cr')) {
+      const d = defaults.find(x => x.id === 'q_kidcope_cr');
+      if(d) { store.set('q_' + d.id, d); catalog.push('q_kidcope_cr'); store.set('catalog', catalog); }
+    }
+    // Kidcope — Adolescentes (13–18) v1.0
+    if(!catalog.includes('q_kidcope_ad')) {
+      const d = defaults.find(x => x.id === 'q_kidcope_ad');
+      if(d) { store.set('q_' + d.id, d); catalog.push('q_kidcope_ad'); store.set('catalog', catalog); }
     }
     }
   }
@@ -2331,6 +2368,32 @@ function formatScoreSummary(scores, syncKey) {
     }
   }
 
+  // ── Kidcope — Crianças (7–12) e Adolescentes (13–18) ─────────────
+  // Apresenta o Índice Global por estilo (A/E/D) e a chave do perfil A-E-D.
+  // Alerta: estilo Disfuncional é o marcador de risco principal.
+  // Bandas (Índice Global): <34 Baixo · 34–66 Moderado · >66 Elevado.
+  if(syncKey === 'kidcope_cr' || syncKey === 'kidcope_ad') {
+    const aI = scores['A_indice'] ?? scores['a_indice'];
+    const eI = scores['E_indice'] ?? scores['e_indice'];
+    const dI = scores['D_indice'] ?? scores['d_indice'];
+    const chave = scores['Perfil_Chave'] ?? scores['perfil_chave'] ?? '';
+    if(aI != null || eI != null || dI != null) {
+      const dn = dI != null ? Number(dI) : null;
+      const cls = dn != null
+        ? (dn > 66 ? 'color:#C0392B;font-weight:700;' :
+           dn >= 34 ? 'color:#E67E22;font-weight:600;' :
+                      'color:var(--green);font-weight:600;')
+        : 'color:var(--blue);font-weight:600;';
+      const fmt = function(v){ return v != null ? Math.round(Number(v)) : '—'; };
+      const partes = [];
+      if(aI != null) partes.push('A=' + fmt(aI));
+      if(eI != null) partes.push('E=' + fmt(eI));
+      if(dI != null) partes.push('D=' + fmt(dI));
+      if(chave)      partes.push(chave);
+      return '<span style="font-size:0.78rem;' + cls + '">' + partes.join(' · ') + '</span>';
+    }
+  }
+
   return null;
 }
 
@@ -2525,7 +2588,10 @@ function renderAssignments(patientId) {
                 // ── PPGR-J — Pressão Percebida em Guarda-Redes Jovens ─────
                 'PPGRJ':           ['NomeRespondente','NomeCriança','NomeCrianca'],
                 // ── CCBQ — respondente é o próprio paciente (auto-resposta) ─
-                'CCBQ':            ['NomeRespondente','NomeCriança','NomeCrianca']
+                'CCBQ':            ['NomeRespondente','NomeCriança','NomeCrianca'],
+                // ── Kidcope — auto-resposta (criança/adolescente) ─────────
+                'KIDCOPE_CR':      ['NomeInformante','NomeCriança','NomeCrianca'],
+                'KIDCOPE_AD':      ['NomeInformante','NomeCriança','NomeCrianca']
               };
               const RC = {
                 'SWAN':['Relação'],'BRIEF_Pais':['Relação'],'SCARED_R_PAIS':['Relação'],
@@ -2804,7 +2870,10 @@ async function syncAndMark(patientId, idx) {
           'SDS_Holland':['NomeCriança'],
           'NEOPIR':['NomeInformante'],
           'PPGRJ':['NomeRespondente','NomeCriança','NomeCrianca'],
-          'CCBQ':['NomeRespondente','NomeCriança','NomeCrianca']
+          'CCBQ':['NomeRespondente','NomeCriança','NomeCrianca'],
+          // ── Kidcope — auto-resposta (criança/adolescente) ──────────
+          'KIDCOPE_CR':['NomeInformante','NomeCriança','NomeCrianca'],
+          'KIDCOPE_AD':['NomeInformante','NomeCriança','NomeCrianca']
         };
         const RC2 = {
           'SWAN':['Relação'],'BRIEF_Pais':['Relação'],'SCARED_R_PAIS':['Relação'],
