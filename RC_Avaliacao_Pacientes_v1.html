@@ -658,7 +658,8 @@ const QID_TO_ABA = {
   'q_pai_adult':           'PAI',
   // ── Kidcope — Crianças + Adolescentes (Spirito, Stark & Williams, 1988) ──
   'q_kidcope_cr':          'KIDCOPE_CR',
-  'q_kidcope_ad':          'KIDCOPE_AD'
+  'q_kidcope_ad':          'KIDCOPE_AD',
+  'q_anamnese_hp':         'ANAMNESE_HP'
 };
 
 
@@ -785,7 +786,10 @@ const SYNC_KEY_TO_ABA = {
   'kidcope_cr':        'KIDCOPE_CR',
   'KIDCOPE_CR':        'KIDCOPE_CR',
   'kidcope_ad':        'KIDCOPE_AD',
-  'KIDCOPE_AD':        'KIDCOPE_AD'
+  'KIDCOPE_AD':        'KIDCOPE_AD',
+  // ── Anamnese — História Prévia (Ricardina Correia, 2026) ──────────
+  'anamnese_hp':       'ANAMNESE_HP',
+  'ANAMNESE_HP':       'ANAMNESE_HP'
 };
 
 // Cache em memória das respostas do Sheet (evita fetch repetidos na mesma sessão)
@@ -1114,6 +1118,15 @@ function initCatalog() {
       objective:'Recolher história clínica, desenvolvimento e funcionamento quotidiano',
       domains:['História Clínica','Desenvolvimento Precoce','Funcionamento Executivo','Regulação Emocional'],
       ageMin:0, ageMax:999 },
+    { id:'q_anamnese_hp', name:'Anamnese — História Prévia',
+      dest:['Mãe','Pai','Enc. Educação'],
+      link:'https://correiaricardina-ui.github.io/questionarios/Anamnese_HP_v1.html',
+      syncKey:'anamnese_hp',
+      area:'História Clínica / Anamnese',
+      ageRange:'0–18 anos',
+      objective:'Recolha qualitativa de história clínica, desenvolvimento, familiar, escolar e relacional prévia à consulta',
+      domains:['História Clínica','Desenvolvimento','Estrutura Familiar','História Escolar','Relacionamentos'],
+      ageMin:0, ageMax:999 },
     // ── Perfil Sensorial 2 v1.0 ──────────────────────────────────────────
     { id:'q_ps2pais', name:'PS2 — Questionário do Cuidador',
       dest:['Mãe','Pai','Enc. Educação','Cuidador(a)'],
@@ -1292,6 +1305,8 @@ function initCatalog() {
       'q_fad_60': { link:'https://correiaricardina-ui.github.io/questionarios/FAD_60_v1.html',  syncKey:'fad_60' },
       // ── Anamnese Complementar ────────────────────────────
       'q_anamnese': { link:'https://correiaricardina-ui.github.io/questionarios/Anamnese_complementar_v2.html', syncKey:'anamnese_complementar' },
+      // ── Anamnese — História Prévia (Ricardina Correia, 2026) ──
+      'q_anamnese_hp': { link:'https://correiaricardina-ui.github.io/questionarios/Anamnese_HP_v1.html', syncKey:'anamnese_hp' },
       // ── Perfil Sensorial 2 v1.0 ──────────────────────────────────────────
       'q_ps2pais':   { link:'https://correiaricardina-ui.github.io/questionarios/PS2_Pais_v1.html',   syncKey:'ps2pais' },
       'q_ps2escola': { link:'https://correiaricardina-ui.github.io/questionarios/PS2_Escola_v1.html', syncKey:'ps2escola' },
@@ -1500,6 +1515,10 @@ function initCatalog() {
     if(!catalog.includes('q_anamnese')) {
       const d = defaults.find(x => x.id === 'q_anamnese');
       if(d) { store.set('q_' + d.id, d); catalog.push('q_anamnese'); store.set('catalog', catalog); }
+    }
+    if(!catalog.includes('q_anamnese_hp')) {
+      const d = defaults.find(x => x.id === 'q_anamnese_hp');
+      if(d) { store.set('q_' + d.id, d); catalog.push('q_anamnese_hp'); store.set('catalog', catalog); }
     }
     if(!catalog.includes('q_ps2pais')) {
       const d = defaults.find(x => x.id === 'q_ps2pais');
@@ -2037,6 +2056,9 @@ function formatScoreSummary(scores, syncKey) {
     if(resp != null) return '<span style="font-size:0.78rem;color:var(--blue-mid);">&#128203; ' + resp + ' / 28 perguntas</span>';
     return '<span style="font-size:0.78rem;color:var(--blue-mid);">&#128203; Anamnese</span>';
   }
+  if(syncKey === 'anamnese_hp') {
+    return '<span style="font-size:0.78rem;color:var(--green);font-weight:600;">&#10003; Anamnese preenchida</span>';
+  }
   // PS2 — Perfil Sensorial 2 (Cuidador e Escola)
   if(syncKey === 'ps2pais') {
     const pr = scores['Procura'] ?? scores['procura'] ?? null;
@@ -2567,6 +2589,7 @@ function renderAssignments(patientId) {
                 'MAP_1518':['NomeProgenitor','Relação'],'MAP_Parental_1518':['NomeProgenitor','Relação'],
                 'QEDP':['Informante','NomeInformante'],
                 'Anamnese_Complementar':['NomeRespondente'],
+                'ANAMNESE_HP':['NomeRespondente','Relação'],
                 'PAIA':['NomeRespondente'],
                 'PAI':['NomeRespondente'],
                 'IPP_R':['NomeRespondente'],
@@ -2873,7 +2896,9 @@ async function syncAndMark(patientId, idx) {
           'CCBQ':['NomeRespondente','NomeCriança','NomeCrianca'],
           // ── Kidcope — auto-resposta (criança/adolescente) ──────────
           'KIDCOPE_CR':['NomeInformante','NomeCriança','NomeCrianca'],
-          'KIDCOPE_AD':['NomeInformante','NomeCriança','NomeCrianca']
+          'KIDCOPE_AD':['NomeInformante','NomeCriança','NomeCrianca'],
+          // ── Anamnese — História Prévia (Ricardina Correia, 2026) ──
+          'ANAMNESE_HP':['NomeRespondente','Relação']
         };
         const RC2 = {
           'SWAN':['Relação'],'BRIEF_Pais':['Relação'],'SCARED_R_PAIS':['Relação'],
