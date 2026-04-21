@@ -317,6 +317,7 @@ tr:last-child td{border-bottom:none}
       <h2 style="font-family:'DM Serif Display',serif;color:var(--blue)">Painel Clínico — 12–14 anos</h2>
       <div style="display:flex;gap:8px;flex-wrap:wrap" class="no-print">
         <button class="btn btn-secondary" onclick="showPage('page-home')">← Início</button>
+        <button class="btn btn-secondary" onclick="syncData(true)" id="btn-sync" title="Sincronizar com o Google Sheet">↺ Sincronizar</button>
         <button class="btn btn-primary" onclick="compararPerfis()">⚖ Comparar Perfis</button>
         <button class="btn btn-secondary" onclick="exportarTudo()">↓ Exportar JSON</button>
       </div>
@@ -632,7 +633,69 @@ function submeterFormulario(){
 }
 
 function guardarSessoes(){try{localStorage.setItem('rc_map_1214',JSON.stringify(sessoes));}catch(e){}}
-function carregarSessoes(){try{var raw=localStorage.getItem('rc_map_1214');if(raw)sessoes=JSON.parse(raw);}catch(e){sessoes=[];}if(document.getElementById('sessoes-container'))renderSessoes();}
+function carregarSessoes(){
+  try{var raw=localStorage.getItem('rc_map_1214');if(raw)sessoes=JSON.parse(raw);}catch(e){sessoes=[];}
+  if(document.getElementById('sessoes-container')){
+    if(sessoes.length){renderSessoes();}
+    else{document.getElementById('sessoes-container').innerHTML='<div class="card" style="text-align:center;padding:40px;color:var(--text-light)"><div style="font-size:2rem;margin-bottom:12px">↻</div><p>A sincronizar com o Google Sheet...</p></div>';}
+  }
+  syncData(false);
+}
+
+function syncData(manual){
+  var btn=document.getElementById('btn-sync');
+  if(btn&&manual){var _orig=btn.textContent;btn.textContent='↻ A sincronizar...';btn.disabled=true;setTimeout(function(){if(btn){btn.textContent=_orig;btn.disabled=false;}},3000);}
+  try{
+    fetch(SCRIPT_URL+'?instrumento=MAP_Parental_1214&t='+Date.now())
+      .then(function(r){return r.json();})
+      .then(function(data){
+        var rows=Array.isArray(data)?data:(data&&data.rows?data.rows:[]);
+        var existing={};
+        sessoes.forEach(function(s){
+          var id=s.id||{};
+          var k=(id.patientCode||'')+'|'+(id.nome||'')+'|'+(id.data||'');
+          existing[k.toLowerCase()]=true;
+        });
+        rows.forEach(function(row){
+          var dc=row.dados_completos||row['Dados_Completos']||row['DadosCompletos']||row.dadosCompletos||'';
+          var sessao=null;
+          if(dc){
+            try{sessao=(typeof dc==='string')?JSON.parse(dc):dc;}catch(e){sessao=null;}
+          }
+          if(!sessao||!sessao.id){
+            sessao={
+              id:{
+                patientCode:String(row['Código']||row.Codigo||row.patientCode||'').toUpperCase().trim(),
+                nome:String(row['NomeProgenitor']||row.nomeProgenitor||'').trim(),
+                relacao:String(row['Relação']||row.Relacao||row.relacao||'').trim(),
+                data:String(row['Data']||row.data||'').trim(),
+                idadesFilhos:String(row['IdadesFilhos']||row.idadesFilhos||'').trim(),
+                sitFamiliar:String(row['SituaçãoFamiliar']||row['SituacaoFamiliar']||row.sitFamiliar||'').trim(),
+                obs:''
+              },
+              s2:{likert:{},principios:String(row['Princípios']||row.Principios||row.principios||'').trim()},
+              s3:{},s4:{},s5:{},s6:{},
+              s7:{urgentes:String(row.s7_urgentes||'').trim(),inadmissiveis:String(row.s7_inadmissiveis||'').trim(),rotinasFund:String(row.s7_rotinasFund||'').trim(),mudancas:String(row.s7_mudancas||'').trim()},
+              ts:null
+            };
+          }
+          var id=sessao.id||{};
+          var k=(id.patientCode||'')+'|'+(id.nome||'')+'|'+(id.data||'');
+          if(!existing[k.toLowerCase()]){
+            sessoes.push(sessao);
+            existing[k.toLowerCase()]=true;
+          }
+        });
+        try{localStorage.setItem('rc_map_1214',JSON.stringify(sessoes));}catch(e){}
+        if(document.getElementById('sessoes-container'))renderSessoes();
+      })
+      .catch(function(e){
+        if(document.getElementById('sessoes-container'))renderSessoes();
+      });
+  }catch(e){
+    if(document.getElementById('sessoes-container'))renderSessoes();
+  }
+}
 
 function renderSessoes(){
   var c=document.getElementById('sessoes-container');
@@ -678,8 +741,50 @@ function verDetalhe(i){
     if(s.s7.rotinasFund)html+='<p style="font-size:.85rem;margin-bottom:8px"><strong>Rotinas fundamentais:</strong> '+s.s7.rotinasFund+'</p>';
     if(s.s7.mudancas)html+='<p style="font-size:.85rem;margin-bottom:8px"><strong>Mudanças desejadas:</strong> '+s.s7.mudancas+'</p>';
   }
+  // Botão imprimir / PDF no fundo (dentro do modal-body para ser captado pelo popup)
+  html+='<div class="no-print" style="margin-top:24px;padding-top:16px;border-top:1px solid var(--gray-bdr);display:flex;gap:8px;justify-content:flex-end">';
+  html+='<button class="btn btn-secondary" onclick="imprimirRelatorio('+i+')" style="font-size:.88rem">🖨 Imprimir / PDF</button>';
+  html+='<button class="btn btn-secondary" onclick="exportarSessao('+i+')" style="font-size:.88rem">↓ Exportar JSON</button>';
+  html+='</div>';
   document.getElementById('modal-body').innerHTML=html;
   document.getElementById('modal-overlay').style.display='flex';
+}
+function imprimirRelatorio(i){
+  var s=sessoes[i]; if(!s) return;
+  var titulo='Mapeamento Parental Sistémico — Adolescência (12–14 anos)';
+  var subtitulo=(s.id.patientCode||'')+(s.id.nome?' — '+s.id.nome:'')+(s.id.relacao?' ('+s.id.relacao+')':'');
+  var corpo=document.getElementById('modal-body').innerHTML;
+  var w=window.open('','_blank');
+  if(!w){alert('Pop-up bloqueado. Permite pop-ups para este site.');return;}
+  w.document.write('<html><head><meta charset="UTF-8"><title>'+titulo+'</title>');
+  w.document.write('<style>');
+  w.document.write('body{font-family:DM Sans,Arial,sans-serif;color:#2C3E50;padding:32px;max-width:900px;margin:0 auto;font-size:13px}');
+  w.document.write('h1{font-size:1.4rem;color:#3B5A7A;margin-bottom:4px}');
+  w.document.write('h2{font-size:1rem;color:#3B5A7A;font-weight:400;margin-bottom:24px}');
+  w.document.write('h3{font-size:1rem;color:#3B5A7A;margin:20px 0 8px;border-bottom:2px solid #D6E4F0;padding-bottom:4px}');
+  w.document.write('table{width:100%;border-collapse:collapse;margin-bottom:16px;font-size:12px}');
+  w.document.write('th{background:#EBF2F8;color:#3B5A7A;padding:6px 8px;text-align:left;font-weight:600}');
+  w.document.write('td{padding:6px 8px;border-bottom:1px solid #DDE3EA;vertical-align:top}');
+  w.document.write('p{margin:0 0 6px;font-size:12px;line-height:1.5}');
+  w.document.write('.no-print{display:none}');
+  w.document.write('.footer{margin-top:40px;padding-top:12px;border-top:1px solid #DDE3EA;font-size:11px;color:#999;text-align:right}');
+  w.document.write('@media print{body{padding:16px}.no-print{display:none!important}}');
+  w.document.write('</style></head><body>');
+  w.document.write('<h1>'+titulo+'</h1>');
+  w.document.write('<h2>'+subtitulo+'</h2>');
+  w.document.write(corpo);
+  w.document.write('<div class="footer">Ricardina Correia · Cédula 8233 · Psicologia Pediátrica &nbsp;|&nbsp; '+new Date().toLocaleDateString("pt-PT")+'<br><em>Documento gerado automaticamente — integrar sempre no contexto clínico completo.</em></div>');
+  w.document.write('</body></html>');
+  w.document.close();
+  setTimeout(function(){w.print();},400);
+}
+function exportarSessao(i){
+  var s=sessoes[i]; if(!s) return;
+  var blob=new Blob([JSON.stringify(s,null,2)],{type:'application/json'});
+  var a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='MAP_1214_'+(s.id&&s.id.patientCode||'s'+(i+1))+'_'+(s.id&&s.id.relacao||'').replace(/\s/g,'_')+'.json';
+  a.click();
 }
 function fecharModal(e){if(e.target===document.getElementById('modal-overlay'))document.getElementById('modal-overlay').style.display='none';}
 
