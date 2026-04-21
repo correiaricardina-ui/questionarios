@@ -287,6 +287,7 @@ tr:last-child td{border-bottom:none}
       <h2 style="font-family:'DM Serif Display',serif;color:var(--blue)">Painel Clínico — Primeira Infância</h2>
       <div style="display:flex;gap:8px;flex-wrap:wrap" class="no-print">
         <button class="btn btn-secondary" onclick="showPage('page-home')">← Início</button>
+        <button class="btn btn-secondary" onclick="syncData(true)" id="btn-sync" title="Sincronizar com o Google Sheet">↺ Sincronizar</button>
         <button class="btn btn-primary" onclick="compararPerfis()">⚖ Comparar Perfis</button>
         <button class="btn btn-secondary" onclick="exportarTudo()">↓ Exportar JSON</button>
       </div>
@@ -594,7 +595,78 @@ function submeterFormulario(){
 }
 
 function guardarSessoes(){try{localStorage.setItem('rc_map_pi',JSON.stringify(sessoes));}catch(e){}}
-function carregarSessoes(){try{var raw=localStorage.getItem('rc_map_pi');if(raw)sessoes=JSON.parse(raw);}catch(e){sessoes=[];}if(document.getElementById('sessoes-container'))renderSessoes();}
+function carregarSessoes(){
+  try{var raw=localStorage.getItem('rc_map_pi');if(raw)sessoes=JSON.parse(raw);}catch(e){sessoes=[];}
+  // Render imediato com o que há em localStorage (evita flash vazio se já houver sessões locais)
+  if(document.getElementById('sessoes-container')){
+    if(sessoes.length){renderSessoes();}
+    else{document.getElementById('sessoes-container').innerHTML='<div class="card" style="text-align:center;padding:40px;color:var(--text-light)"><div style="font-size:2rem;margin-bottom:12px">↻</div><p>A sincronizar com o Google Sheet...</p></div>';}
+  }
+  // Sincronizar com o Sheet (merge com localStorage)
+  syncData(false);
+}
+
+function syncData(manual){
+  var btn=document.getElementById('btn-sync');
+  if(btn&&manual){var _orig=btn.textContent;btn.textContent='↻ A sincronizar...';btn.disabled=true;setTimeout(function(){if(btn){btn.textContent=_orig;btn.disabled=false;}},3000);}
+  try{
+    fetch(SCRIPT_URL+'?instrumento=MAP_Parental_PI&t='+Date.now())
+      .then(function(r){return r.json();})
+      .then(function(data){
+        var rows=Array.isArray(data)?data:(data&&data.rows?data.rows:[]);
+        // Construir chaves das sessões já existentes (localStorage)
+        var existing={};
+        sessoes.forEach(function(s){
+          var id=s.id||{};
+          var k=(id.patientCode||'')+'|'+(id.nome||'')+'|'+(id.data||'');
+          existing[k.toLowerCase()]=true;
+        });
+        // Reconstruir cada linha do Sheet em sessão completa
+        rows.forEach(function(row){
+          var dc=row.dados_completos||row['Dados_Completos']||row['DadosCompletos']||row.dadosCompletos||'';
+          var sessao=null;
+          if(dc){
+            try{sessao=(typeof dc==='string')?JSON.parse(dc):dc;}catch(e){sessao=null;}
+          }
+          if(!sessao||!sessao.id){
+            // Fallback: reconstruir a partir das colunas individuais do Sheet
+            sessao={
+              id:{
+                patientCode:String(row['Código']||row.Codigo||row.patientCode||'').toUpperCase().trim(),
+                nome:String(row['NomeProgenitor']||row.nomeProgenitor||'').trim(),
+                relacao:String(row['Relação']||row.Relacao||row.relacao||'').trim(),
+                data:String(row['Data']||row.data||'').trim(),
+                idadesFilhos:String(row['IdadesFilhos']||row.idadesFilhos||'').trim(),
+                sitFamiliar:String(row['SituaçãoFamiliar']||row['SituacaoFamiliar']||row.sitFamiliar||'').trim(),
+                contextoCuidados:String(row['ContextoCuidado']||row['ContextoCuidados']||row.contextoCuidados||'').trim(),
+                nomeCrianca:String(row['NomeCriança']||row['NomeCrianca']||row.nomeCrianca||'').trim(),
+                obs:''
+              },
+              s2:{likert:{},principios:String(row['Princípios']||row.Principios||row.principios||'').trim()},
+              s3:{},s4:{},s5:{},
+              s6:{q1:String(row.s6_q1||'').trim(),q2:String(row.s6_q2||'').trim(),q3:String(row.s6_q3||'').trim(),q4:String(row.s6_q4||'').trim()},
+              s7:{urgentes:String(row.s7_urgentes||'').trim(),inadmissiveis:String(row.s7_inadmissiveis||'').trim(),rotinasFund:String(row.s7_rotinasFund||'').trim(),mudancas:String(row.s7_mudancas||'').trim()},
+              ts:null
+            };
+          }
+          var id=sessao.id||{};
+          var k=(id.patientCode||'')+'|'+(id.nome||'')+'|'+(id.data||'');
+          if(!existing[k.toLowerCase()]){
+            sessoes.push(sessao);
+            existing[k.toLowerCase()]=true;
+          }
+        });
+        // Guardar merged para não voltar a descarregar tudo na próxima visita
+        try{localStorage.setItem('rc_map_pi',JSON.stringify(sessoes));}catch(e){}
+        if(document.getElementById('sessoes-container'))renderSessoes();
+      })
+      .catch(function(e){
+        if(document.getElementById('sessoes-container'))renderSessoes();
+      });
+  }catch(e){
+    if(document.getElementById('sessoes-container'))renderSessoes();
+  }
+}
 
 function renderSessoes(){
   var c=document.getElementById('sessoes-container');
