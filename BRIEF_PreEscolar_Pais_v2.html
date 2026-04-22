@@ -721,13 +721,16 @@ function submeter(){
   var payload={
     instrumento:SHEET_NAME,
       Data:fillDate,
-      CodigoPaciente:code,
-      NomeCrianca:nome,
-      DataNascimento:dob,
-      Genero:gen,
-      Escola:school,
+      /* Identificação — enviar em TODAS as variantes para compatibilidade com Apps Script */
+      CodigoPaciente:code, patientCode:code, codigo:code,
+      NomeCrianca:nome, childName:nome, nomeCrianca:nome,
+      DataNascimento:dob, DataNasc:dob, dob:dob,
+      Genero:gen, gender:gen, sexo:gen,
+      Escola:school, school:school,
       NomeInformante:document.getElementById('respondent-name')?document.getElementById('respondent-name').value.trim():'',
-      Relacao:rel,
+      nomeRespondente:document.getElementById('respondent-name')?document.getElementById('respondent-name').value.trim():'',
+      nome_preenche:document.getElementById('respondent-name')?document.getElementById('respondent-name').value.trim():'',
+      Relacao:rel, relacao:rel,
       INHIB_raw:sc.INHIB,
       SHIFT_raw:sc.SHIFT,
       ECON_raw:sc.ECON,
@@ -817,14 +820,20 @@ function carregarDados(){
             ISCI_T:row[21],FI_T:row[22],EMI_T:row[23],GEC_T:row[24],
             incon:row[25],neg:row[26],answers:row[27],source:'sheets'};
         } else {
-          return{date:row['Data']||row['date'],patientCode:row['CodigoPaciente']||row['patientCode'],
-            childName:row['NomeCrianca']||row['childName'],dob:row['DataNascimento']||row['dob'],
-            gender:row['Genero']||row['gender'],school:row['Escola']||row['school'],rel:row['Relacao']||row['rel'],
+          return{date:row['Data']||row['date'],
+            patientCode:row['Código']||row['Codigo']||row['CodigoPaciente']||row['patientCode']||'',
+            childName:row['NomeCriança']||row['Nome Criança']||row['NomeCrianca']||row['Nome']||row['childName']||'',
+            dob:row['DataNasc']||row['DataNascimento']||row['Nasc']||row['dob']||'',
+            gender:row['Género']||row['Genero']||row['gender']||'',
+            school:row['Escola']||row['Ano']||row['school']||'',
+            rel:row['Relação']||row['Relacao']||row['rel']||'',
             INHIB_raw:row['INHIB_raw'],SHIFT_raw:row['SHIFT_raw'],ECON_raw:row['ECON_raw'],WM_raw:row['WM_raw'],PO_raw:row['PO_raw'],
             ISCI_raw:row['ISCI_raw'],FI_raw:row['FI_raw'],EMI_raw:row['EMI_raw'],GEC_raw:row['GEC_raw'],
             INHIB_T:row['INHIB_T'],SHIFT_T:row['SHIFT_T'],ECON_T:row['ECON_T'],WM_T:row['WM_T'],PO_T:row['PO_T'],
             ISCI_T:row['ISCI_T'],FI_T:row['FI_T'],EMI_T:row['EMI_T'],GEC_T:row['GEC_T'],
-            incon:row['Inconsistencia'],neg:row['Negatividade'],answers:row['Respostas'],source:'sheets'};
+            incon:row['Inconsistencia']||row['Inconsistência']||row['Incon'],
+            neg:row['Negatividade']||row['Neg'],
+            answers:row['Respostas']||row['answers']||'',source:'sheets'};
         }
       });
       renderTabela(window._clinico_sessions);
