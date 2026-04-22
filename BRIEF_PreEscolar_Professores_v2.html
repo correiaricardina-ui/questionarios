@@ -747,14 +747,31 @@ function carregarDados(){
             INHIB_T:row[16],SHIFT_T:row[17],ECON_T:row[18],WM_T:row[19],PO_T:row[20],
             ISCI_T:row[21],FI_T:row[22],EMI_T:row[23],GEC_T:row[24],incon:row[25],neg:row[26],answers:row[27],source:'sheets'};
         } else {
-          return{date:row['Data']||row['date'],patientCode:row['CodigoPaciente']||row['patientCode'],
-            childName:row['NomeCrianca']||row['childName'],dob:row['DataNascimento']||row['dob'],
-            gender:row['Genero']||row['gender'],school:row['Escola']||row['school'],teacher:row['Professor']||row['teacher'],
-            INHIB_raw:row['INHIB_raw'],SHIFT_raw:row['SHIFT_raw'],ECON_raw:row['ECON_raw'],WM_raw:row['WM_raw'],PO_raw:row['PO_raw'],
-            ISCI_raw:row['ISCI_raw'],FI_raw:row['FI_raw'],EMI_raw:row['EMI_raw'],GEC_raw:row['GEC_raw'],
-            INHIB_T:row['INHIB_T'],SHIFT_T:row['SHIFT_T'],ECON_T:row['ECON_T'],WM_T:row['WM_T'],PO_T:row['PO_T'],
-            ISCI_T:row['ISCI_T'],FI_T:row['FI_T'],EMI_T:row['EMI_T'],GEC_T:row['GEC_T'],
-            incon:row['Inconsistencia'],neg:row['Negatividade'],answers:row['Respostas'],source:'sheets'};
+          return{
+            date:row['Data']||row['data']||row['date']||row['Date']||'',
+            patientCode:row['CodigoPaciente']||row['C\u00f3digoPaciente']||row['Codigo']||row['C\u00f3digo']||row['codigo']||row['patientCode']||row['PatientCode']||'',
+            childName:row['NomeCrianca']||row['NomeCrian\u00e7a']||row['Nome']||row['nome']||row['childName']||row['ChildName']||'',
+            dob:row['DataNascimento']||row['Nasc']||row['nasc']||row['DataNasc']||row['dob']||'',
+            gender:row['Genero']||row['G\u00e9nero']||row['genero']||row['gender']||row['Sexo']||'',
+            school:row['Escola']||row['escola']||row['school']||'',
+            teacher:row['Professor']||row['professor']||row['NomeInformante']||row['Informante']||row['teacher']||'',
+            INHIB_raw:row['INHIB_raw']||row['INHIB_r']||row['INHIB']||'',
+            SHIFT_raw:row['SHIFT_raw']||row['SHIFT_r']||row['SHIFT']||'',
+            ECON_raw:row['ECON_raw']||row['ECON_r']||row['ECON']||'',
+            WM_raw:row['WM_raw']||row['WM_r']||row['WM']||'',
+            PO_raw:row['PO_raw']||row['PO_r']||row['PO']||'',
+            ISCI_raw:row['ISCI_raw']||row['ISCI_r']||row['ISCI']||'',
+            FI_raw:row['FI_raw']||row['FI_r']||row['FI']||'',
+            EMI_raw:row['EMI_raw']||row['EMI_r']||row['EMI']||'',
+            GEC_raw:row['GEC_raw']||row['GEC_r']||row['GEC']||'',
+            INHIB_T:row['INHIB_T']||'',SHIFT_T:row['SHIFT_T']||'',ECON_T:row['ECON_T']||'',
+            WM_T:row['WM_T']||'',PO_T:row['PO_T']||'',
+            ISCI_T:row['ISCI_T']||'',FI_T:row['FI_T']||'',EMI_T:row['EMI_T']||'',GEC_T:row['GEC_T']||'',
+            incon:row['Inconsistencia']||row['Inconsist\u00eancia']||row['Incon']||'',
+            neg:row['Negatividade']||row['Neg']||'',
+            answers:row['Respostas']||row['respostas']||row['answers']||'',
+            source:'sheets'
+          };
         }
       });
       renderTabela(window._clinico_sessions);
@@ -793,8 +810,11 @@ function calcAge(dobStr){
   if(m<0){y--;m+=12;}return y+'a '+m+'m';
 }
 
+var sessaoActual = null;
+
 function verDetalhe(idx){
   var r=(window._clinico_sessions||[])[idx];if(!r)return;
+  sessaoActual = r;
   var agInfo=getAgeGroupInfo(r.dob,r.gender);
   var ag=agInfo.group;
   var ciData=ag&&CI[ag]?CI[ag]:{};
@@ -821,6 +841,10 @@ function verDetalhe(idx){
     '<div style="font-size:0.82rem;color:var(--text-light);">Data: '+(r.date?new Date(r.date).toLocaleDateString('pt-PT'):'')+' &middot; Professor: '+(r.teacher||'--')+' &middot; Escola: '+(r.school||'--')+'</div>'+
     '<div style="font-size:0.78rem;color:var(--text-light);margin-top:2px;">Grupo normativo: '+(ag||'N/D')+' &middot; Teacher Sample (Gioia et al., 2003)</div></div>'+
     '<button onclick="document.getElementById(&quot;modal-detalhe&quot;).remove()" style="background:none;border:none;font-size:1.4rem;cursor:pointer;color:var(--text-light);">&#10005;</button></div>'+
+    '<div class="no-print" style="display:flex;gap:8px;margin-bottom:16px;padding:10px 14px;background:#EBF2F8;border-radius:8px;flex-wrap:wrap;">'+
+      '<button class="btn btn-secondary" style="padding:6px 12px;font-size:0.82rem;" onclick="exportarInterpretacaoPDF(sessaoActual)">&#128202; Relat\u00f3rio Completo (PDF/Imprimir)</button>'+
+      '<button class="btn btn-secondary" style="padding:6px 12px;font-size:0.82rem;" onclick="exportarRespostasPDF(sessaoActual)">&#128203; Respostas por Item (PDF)</button>'+
+    '</div>'+
     (agInfo.aprox?'<div style="margin-bottom:12px;padding:10px 14px;background:#FEF9E7;border-left:3px solid #E67E22;border-radius:0 8px 8px 0;font-size:0.82rem;color:#7D6608"><strong>\u26a0 Nota de cota\u00e7\u00e3o:</strong> A crian\u00e7a tem '+agInfo.months+' meses (fora do intervalo normativo do BRIEF Pr\u00e9-Escolar: 24\u201371 meses). A cota\u00e7\u00e3o foi comparada com as normas do grupo <strong>'+agInfo.limiteRef+'</strong> \u2014 limite m\u00e1ximo da escala. Interpretar com cautela cl\u00ednica.</div>':'')+warnHtml+
     '<h4 style="color:var(--blue);font-size:0.9rem;margin:16px 0 8px;">Escalas Cl\u00ednicas</h4>'+
     '<table style="width:100%;border-collapse:collapse;font-size:0.85rem;margin-bottom:16px;">'+
@@ -977,83 +1001,177 @@ document.addEventListener('DOMContentLoaded',function(){
   document.getElementById('fill-date').value=new Date().toISOString().slice(0,10);
 });
 
+/* Helper: converte sessao.answers (string "1:MF|2:AV") ou sessao._answers (objecto) em mapa {n: valor} */
+function _parseAnswersMap(sessao){
+  if(!sessao) return {};
+  if(sessao._answers && typeof sessao._answers === 'object') return sessao._answers;
+  if(typeof sessao.answers === 'string' && sessao.answers.length){
+    var map={};
+    sessao.answers.split('|').forEach(function(pair){
+      var pts=pair.split(':');
+      if(pts.length===2) map[parseInt(pts[0])]=pts[1];
+    });
+    return map;
+  }
+  if(sessao.answers && typeof sessao.answers === 'object') return sessao.answers;
+  return {};
+}
+
 function exportarRespostasPDF(sessao) {
-  if (!sessao) { alert('Seleccione primeiro uma sess\u00e3o.'); return; }
-  var dt = sessao.Data ? new Date(sessao.Data).toLocaleDateString('pt-PT') : (sessao.fillDate||'—');
-  var answers = sessao._answers || sessao.answers || {};
+  if (!sessao) { alert('Seleccione primeiro uma sess\u00e3o (clicar em "Ver \u2192").'); return; }
+  var dt = sessao.date ? new Date(sessao.date).toLocaleDateString('pt-PT') : '\u2014';
+  var answers = _parseAnswersMap(sessao);
   var rows = '';
   if(ITEMS && ITEMS.length){
     rows = ITEMS.map(function(it,i){
-      var v = answers[it.n] || '—';
+      var v = answers[it.n] || '\u2014';
       return '<tr><td style="padding:3px 6px;border-bottom:1px solid #f0f0f0;color:#999;text-align:center">'+(i+1)+'</td>'+
         '<td style="padding:3px 6px;border-bottom:1px solid #f0f0f0;font-size:10px">'+it.t+'</td>'+
         '<td style="padding:3px 6px;border-bottom:1px solid #f0f0f0;text-align:center;font-weight:700">'+v+'</td></tr>';
     }).join('');
   }
-  var html='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Respostas</title>'+
+  var html='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>BRIEF-P Prof \u2014 Respostas</title>'+
     '<style>body{font-family:Arial,sans-serif;font-size:11px;padding:20px}table{width:100%;border-collapse:collapse}'+
-    'th{background:#D6E4F0;padding:5px 8px;color:#3B5A7A}.np{margin-bottom:12px}@media print{.np{display:none}}</style></head><body>'+
-    '<div class="np"><button onclick="window.print()">&#128424; Imprimir / PDF</button></div>'+
-    '<h2 style="color:#3B5A7A">BRIEF Pré-Escolar Professores — Respostas por Item</h2>'+
-    '<p style="color:#6B7A8D">Código: <strong>'+(sessao.CodigoPaciente||sessao.code||'—')+'</strong>'+
-    (sessao.NomeCrianca?' | Criança: <strong>'+sessao.NomeCrianca+'</strong>':'')+
-    (sessao.NomeInformante||sessao.Professor?' | Professor: <strong>'+(sessao.NomeInformante||sessao.Professor)+'</strong>':'')+
-    ' | Data: '+dt+' | Ricardina Correia · Cédula 8233</p>'+
-    '<table><thead><tr><th>#</th><th>Item</th><th>Resp.</th></tr></thead><tbody>'+rows+'</tbody></table>'+
+    'th{background:#D6E4F0;padding:5px 8px;color:#3B5A7A;text-align:left}.np{margin-bottom:12px}'+
+    '.np button{background:#3B5A7A;color:white;border:none;padding:8px 16px;border-radius:6px;cursor:pointer;font-size:12px}'+
+    '@media print{.np{display:none}}</style></head><body>'+
+    '<div class="np"><button onclick="window.print()">&#128424; Imprimir / Guardar PDF</button></div>'+
+    '<h2 style="color:#3B5A7A">BRIEF Pr\u00e9-Escolar Professores \u2014 Respostas por Item</h2>'+
+    '<p style="color:#6B7A8D">C\u00f3digo: <strong>'+(sessao.patientCode||'\u2014')+'</strong>'+
+    (sessao.childName?' | Crian\u00e7a: <strong>'+sessao.childName+'</strong>':'')+
+    (sessao.teacher?' | Professor: <strong>'+sessao.teacher+'</strong>':'')+
+    (sessao.school?' | Escola: <strong>'+sessao.school+'</strong>':'')+
+    ' | Data: '+dt+' | Ricardina Correia \u00b7 C\u00e9dula 8233</p>'+
+    '<table><thead><tr><th style="width:32px;text-align:center">#</th><th>Item</th><th style="width:70px;text-align:center">Resp.</th></tr></thead><tbody>'+rows+'</tbody></table>'+
+    '<p style="margin-top:18px;font-size:9px;color:#999;font-style:italic">Legenda: MF = Muitas Vezes/Frequentemente \u00b7 AV = \u00c0s Vezes \u00b7 N = Nunca</p>'+
     '</body></html>';
-  var w=window.open('','_blank'); if(!w){alert('Pop-up bloqueado.');return;}
+  var w=window.open('','_blank'); if(!w){alert('Pop-up bloqueado. Permitir pop-ups deste site.');return;}
   w.document.write(html); w.document.close();
 }
 
 function exportarInterpretacaoPDF(sessao) {
-  if (!sessao) { alert('Seleccione primeiro uma sess\u00e3o.'); return; }
-  var dt = sessao.Data ? new Date(sessao.Data).toLocaleDateString('pt-PT') : (sessao.fillDate||'—');
+  if (!sessao) { alert('Seleccione primeiro uma sess\u00e3o (clicar em "Ver \u2192").'); return; }
+  var dt = sessao.date ? new Date(sessao.date).toLocaleDateString('pt-PT') : '\u2014';
+  var agInfo = getAgeGroupInfo(sessao.dob, sessao.gender);
+  var ag = agInfo.group;
+  var ciData = ag && CI[ag] ? CI[ag] : {};
+
   var escalas = [
-    {k:'INHIB',label:'Inibição (INHIB)'},{k:'SHIFT',label:'Mudança (SHIFT)'},
-    {k:'ECON',label:'Controlo Emocional (ECON)'},{k:'WM',label:'Memória de Trabalho (WM)'},
-    {k:'PO',label:'Planificação/Organização (P/O)'}
+    {k:'INHIB',label:'Inib\u00e3o (INHIB)'},{k:'SHIFT',label:'Mudan\u00e7a (SHIFT)'},
+    {k:'ECON',label:'Controlo Emocional (ECON)'},{k:'WM',label:'Mem\u00f3ria de Trabalho (WM)'},
+    {k:'PO',label:'Planifica\u00e7\u00e3o/Organiza\u00e7\u00e3o (P/O)'}
   ];
   var indices = [
-    {k:'ISCI',label:'ISCI (Auto-controlo inibitório)'},{k:'FI',label:'FI (Flexibilidade)'},
-    {k:'EMI',label:'EMI (Metacognição Emergente)'},{k:'GEC',label:'<strong>GEF (Global)</strong>',hl:true}
+    {k:'ISCI',label:'ISCI (Inib\u00e3o + CE)'},{k:'FI',label:'IF (Mudan\u00e7a + CE)'},
+    {k:'EMI',label:'IME (MT + P/O)'},{k:'GEC',label:'<strong>GEF (Global)</strong>',hl:true}
   ];
-  var linhasEsc = escalas.map(function(e){
-    var t=parseInt(sessao[e.k+'_T'])||0; if(!t)return '';
+
+  function rowT(e){
+    var raw=sessao[e.k+'_raw']||'\u2014';
+    var t=parseInt(sessao[e.k+'_T'])||0;
+    var ci=ciData[e.k]?'\u00b1'+ciData[e.k]:'';
+    if(!t) return '<tr><td style="padding:5px 8px;border-bottom:1px solid #eee">'+e.label+'</td><td style="text-align:center">'+raw+'</td><td style="text-align:center;color:#999">\u2014</td><td style="text-align:center;color:#999">'+ci+'</td><td style="color:#999">\u2014</td></tr>';
     var cor=t>=65?'#C0392B':t>=60?'#E67E22':'#27AE60';
-    var zona=t>=65?'Clínico':t>=60?'Borderline':'Normativo';
+    var zona=t>=65?'Cl\u00ednico':t>=60?'Borderline':'Normativo';
     var pct=Math.min(100,Math.round(((t-30)/70)*100));
-    return '<tr><td style="padding:5px 8px;border-bottom:1px solid #eee">'+e.label+'</td>'+
-      '<td style="text-align:center;font-weight:700;color:'+cor+'">'+t+'</td>'+
-      '<td><div style="background:#eee;border-radius:3px;height:8px;width:100px"><div style="background:'+cor+';border-radius:3px;height:8px;width:'+pct+'%"></div></div></td>'+
-      '<td style="color:'+cor+';font-weight:600">'+zona+'</td></tr>';
-  }).join('');
-  var linhasIdx = indices.map(function(e){
-    var t=parseInt(sessao[e.k+'_T'])||0; if(!t)return '';
-    var cor=t>=65?'#C0392B':t>=60?'#E67E22':'#27AE60';
-    var zona=t>=65?'Clínico':t>=60?'Borderline':'Normativo';
     return '<tr'+(e.hl?' style="background:#EBF2F8"':'')+'>'+
       '<td style="padding:5px 8px;border-bottom:1px solid #eee">'+e.label+'</td>'+
-      '<td style="text-align:center;font-weight:700;color:'+cor+'">'+t+'</td>'+
-      '<td style="color:'+cor+';font-weight:600">'+zona+'</td></tr>';
-  }).join('');
+      '<td style="text-align:center;font-weight:600;border-bottom:1px solid #eee">'+raw+'</td>'+
+      '<td style="text-align:center;font-weight:700;color:'+cor+';border-bottom:1px solid #eee">'+t+'</td>'+
+      '<td style="text-align:center;font-size:10px;color:#6B7A8D;border-bottom:1px solid #eee">'+ci+'</td>'+
+      '<td style="border-bottom:1px solid #eee"><div style="display:inline-block;background:#eee;border-radius:3px;height:8px;width:90px;vertical-align:middle;margin-right:8px"><div style="background:'+cor+';border-radius:3px;height:8px;width:'+pct+'%"></div></div><span style="color:'+cor+';font-weight:600">'+zona+'</span></td>'+
+      '</tr>';
+  }
+
+  var linhasEsc = escalas.map(rowT).join('');
+  var linhasIdx = indices.map(rowT).join('');
+
+  /* Interpretação automática */
   var gec=parseInt(sessao.GEC_T)||0;
-  var gecZona=gec>=65?'clínica':gec>=60?'borderline':'normativa';
-  var html='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>BRIEF-P Prof — Interpretação</title>'+
-    '<style>body{font-family:Arial,sans-serif;font-size:12px;color:#2C3E50;padding:24px;max-width:900px;margin:0 auto}'+
-    'h1{color:#3B5A7A;font-size:16px}h2{color:#3B5A7A;font-size:13px;margin:18px 0 8px;border-bottom:2px solid #D6E4F0;padding-bottom:4px}'+
-    'table{width:100%;border-collapse:collapse;margin-bottom:16px}th{background:#D6E4F0;padding:6px 8px;text-align:left;color:#3B5A7A;font-size:11px}'+
-    '.no-print{margin-bottom:16px}@media print{.no-print{display:none}}</style></head><body>'+
+  var gecZona=gec>=65?'cl\u00ednica':gec>=60?'borderline':'normativa';
+  var clinicas=[], borderlines=[];
+  escalas.forEach(function(e){
+    var t=parseInt(sessao[e.k+'_T'])||0;
+    if(t>=65) clinicas.push(e.label);
+    else if(t>=60) borderlines.push(e.label);
+  });
+  var interp = '';
+  if(gec){
+    interp = 'GEF na zona <strong>'+gecZona+'</strong> (T='+gec+').';
+    if(clinicas.length) interp += ' Escalas cl\u00ednicas: <strong>'+clinicas.join(', ')+'</strong>.';
+    if(borderlines.length) interp += ' Borderline: <strong>'+borderlines.join(', ')+'</strong>.';
+    if(!clinicas.length && !borderlines.length) interp += ' Nenhuma escala individual na zona cl\u00ednica ou borderline.';
+  }
+
+  /* Warnings */
+  var warnHtml = '';
+  if(sessao.incon && Number(sessao.incon)>=6) warnHtml+='<div style="margin-bottom:10px;padding:8px 12px;background:#FEF3E2;border-left:3px solid #E67E22;border-radius:0 6px 6px 0;font-size:11px;color:#7D4A0F">&#9888; \u00cdndice de Inconsist\u00eancia elevado ('+sessao.incon+' \u2265 6) \u2014 validade das respostas questionada.</div>';
+  if(sessao.neg && Number(sessao.neg)>=7) warnHtml+='<div style="margin-bottom:10px;padding:8px 12px;background:#FEF3E2;border-left:3px solid #E67E22;border-radius:0 6px 6px 0;font-size:11px;color:#7D4A0F">&#9888; \u00cdndice de Negatividade elevado ('+sessao.neg+' \u2265 7) \u2014 poss\u00edvel vi\u00e9s de resposta negativa.</div>';
+
+  /* Nota de cotação aproximada (fora dos 24–71 meses) */
+  var aproxHtml = '';
+  if(agInfo.aprox) aproxHtml = '<div style="margin-bottom:10px;padding:8px 12px;background:#FEF9E7;border-left:3px solid #E67E22;border-radius:0 6px 6px 0;font-size:11px;color:#7D6608"><strong>\u26a0 Nota de cota\u00e7\u00e3o:</strong> Crian\u00e7a com '+agInfo.months+' meses (fora do intervalo normativo 24\u201371 meses). Normas usadas: grupo <strong>'+agInfo.limiteRef+'</strong>. Interpretar com cautela cl\u00ednica.</div>';
+
+  /* Respostas por item */
+  var answers = _parseAnswersMap(sessao);
+  var itemRows = '';
+  if(ITEMS && ITEMS.length && Object.keys(answers).length){
+    itemRows = ITEMS.map(function(it,i){
+      var v = answers[it.n] || '\u2014';
+      return '<tr><td style="padding:3px 6px;border-bottom:1px solid #f0f0f0;color:#999;text-align:center;font-size:10px">'+(i+1)+'</td>'+
+        '<td style="padding:3px 6px;border-bottom:1px solid #f0f0f0;font-size:10px">'+it.t+'</td>'+
+        '<td style="padding:3px 6px;border-bottom:1px solid #f0f0f0;text-align:center;font-weight:700;font-size:10px">'+v+'</td></tr>';
+    }).join('');
+  }
+
+  var html='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>BRIEF-P Prof \u2014 Relat\u00f3rio Completo</title>'+
+    '<style>body{font-family:Arial,sans-serif;font-size:12px;color:#2C3E50;padding:24px;max-width:920px;margin:0 auto}'+
+    'h1{color:#3B5A7A;font-size:17px;margin-bottom:4px}h2{color:#3B5A7A;font-size:13px;margin:20px 0 8px;border-bottom:2px solid #D6E4F0;padding-bottom:4px}'+
+    '.meta{color:#6B7A8D;font-size:11px;margin-bottom:14px}'+
+    'table{width:100%;border-collapse:collapse;margin-bottom:12px}'+
+    'th{background:#D6E4F0;padding:6px 8px;text-align:left;color:#3B5A7A;font-size:11px;border-bottom:2px solid #3B5A7A}'+
+    'td{font-size:11px}'+
+    '.no-print{margin-bottom:16px}'+
+    '.no-print button{background:#3B5A7A;color:white;border:none;padding:8px 16px;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600}'+
+    '.interp{background:#EBF2F8;border-radius:8px;padding:14px 18px;font-size:12px;line-height:1.5;margin:14px 0}'+
+    '.footer{font-size:10px;color:#6B7A8D;border-top:1px solid #D6E4F0;padding-top:10px;margin-top:20px}'+
+    '@media print{.no-print{display:none}body{padding:14px}}'+
+    '</style></head><body>'+
     '<div class="no-print"><button onclick="window.print()">&#128424; Imprimir / Guardar PDF</button></div>'+
-    '<h1>BRIEF Pré-Escolar Professores — Relatório de Avaliação</h1>'+
-    '<p>Código: <strong>'+(sessao.CodigoPaciente||sessao.code||'—')+'</strong>'+
-    (sessao.NomeCrianca?' &nbsp;|&nbsp; Criança: <strong>'+sessao.NomeCrianca+'</strong>':'')+
-    (sessao.NomeInformante||sessao.Professor?' &nbsp;|&nbsp; Professor: <strong>'+(sessao.NomeInformante||sessao.Professor)+'</strong>':'')+
-    ' &nbsp;|&nbsp; Data: '+dt+' &nbsp;|&nbsp; Ricardina Correia · Cédula 8233</p>';
-  if(linhasEsc) html+='<h2>Escalas Clínicas</h2><table><thead><tr><th>Escala</th><th>T</th><th>Perfil</th><th>Zona</th></tr></thead><tbody>'+linhasEsc+'</tbody></table>';
-  if(linhasIdx) html+='<h2>Índices Compostos</h2><table><thead><tr><th>Índice</th><th>T</th><th>Zona</th></tr></thead><tbody>'+linhasIdx+'</tbody></table>';
-  if(gec) html+='<div style="background:#EBF2F8;border-radius:8px;padding:12px 16px;font-size:.85rem">GEF na zona <strong>'+gecZona+'</strong> (T='+gec+'). <span style="font-size:.78rem;color:#6B7A8D;font-style:italic">Interpretação automática — integrar sempre no contexto clínico completo.</span></div>';
-  html+='</body></html>';
-  var w=window.open('','_blank'); if(!w){alert('Pop-up bloqueado.');return;}
+    '<h1>BRIEF Pr\u00e9-Escolar Professores \u2014 Relat\u00f3rio de Avalia\u00e7\u00e3o</h1>'+
+    '<div class="meta">'+
+      'Crian\u00e7a: <strong>'+(sessao.childName||'\u2014')+'</strong>'+
+      ' &middot; C\u00f3digo: <strong>'+(sessao.patientCode||'\u2014')+'</strong>'+
+      ' &middot; Nasc.: '+(sessao.dob||'\u2014')+
+      ' &middot; G\u00e9nero: '+(sessao.gender||'\u2014')+
+      '<br>Data: '+dt+
+      (sessao.teacher?' &middot; Professor: <strong>'+sessao.teacher+'</strong>':'')+
+      (sessao.school?' &middot; Escola: '+sessao.school:'')+
+      '<br>Grupo normativo: <strong>'+(ag||'N/D')+'</strong> &middot; Teacher Sample (Gioia et al., 2003) &middot; Ricardina Correia \u00b7 C\u00e9dula 8233'+
+    '</div>'+
+    aproxHtml + warnHtml;
+
+  html += '<h2>Escalas Cl\u00ednicas</h2>'+
+    '<table><thead><tr><th>Escala</th><th style="text-align:center">Bruto</th><th style="text-align:center">T</th><th style="text-align:center">IC 90%</th><th>Perfil &middot; Zona</th></tr></thead><tbody>'+linhasEsc+'</tbody></table>';
+
+  html += '<h2>\u00cdndices Compostos</h2>'+
+    '<table><thead><tr><th>\u00cdndice</th><th style="text-align:center">Bruto</th><th style="text-align:center">T</th><th style="text-align:center">IC 90%</th><th>Perfil &middot; Zona</th></tr></thead><tbody>'+linhasIdx+'</tbody></table>';
+
+  html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;font-size:11px">'+
+    '<div style="background:#F6F7F9;border-radius:6px;padding:8px 12px"><span style="color:#6B7A8D;font-weight:600">Inconsist\u00eancia:</span> '+(sessao.incon||'0')+' <span style="color:#6B7A8D">(limiar \u2265 6)</span></div>'+
+    '<div style="background:#F6F7F9;border-radius:6px;padding:8px 12px"><span style="color:#6B7A8D;font-weight:600">Negatividade:</span> '+(sessao.neg||'0')+' <span style="color:#6B7A8D">(limiar \u2265 7)</span></div>'+
+    '</div>';
+
+  if(interp) html += '<h2>Interpreta\u00e7\u00e3o Sum\u00e1ria</h2><div class="interp">'+interp+' <span style="font-size:10px;color:#6B7A8D;font-style:italic;display:block;margin-top:8px">Interpreta\u00e7\u00e3o autom\u00e1tica \u2014 integrar sempre no contexto cl\u00ednico completo e nas preocupa\u00e7\u00f5es referidas.</span></div>';
+
+  html += '<div class="footer">T \u2265 65 = Cl\u00ednico &middot; T 60\u201364 = Borderline &middot; T &lt; 60 = Normativo &middot; BRIEF-P Teacher Sample (Gioia et al., 2003)</div>';
+
+  if(itemRows) html += '<h2 style="page-break-before:always">Respostas por Item ('+ITEMS.length+' itens)</h2>'+
+    '<table><thead><tr><th style="width:32px;text-align:center">#</th><th>Item</th><th style="width:70px;text-align:center">Resp.</th></tr></thead><tbody>'+itemRows+'</tbody></table>'+
+    '<p style="margin-top:12px;font-size:9px;color:#999;font-style:italic">Legenda: MF = Muitas Vezes/Frequentemente \u00b7 AV = \u00c0s Vezes \u00b7 N = Nunca</p>';
+
+  html += '</body></html>';
+  var w=window.open('','_blank'); if(!w){alert('Pop-up bloqueado. Permitir pop-ups deste site.');return;}
   w.document.write(html); w.document.close();
 }
 </script>
