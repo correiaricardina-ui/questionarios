@@ -449,6 +449,7 @@ body { font-family: 'DM Sans', sans-serif; background: var(--gray-bg); color: va
         <option value="Família / Parentalidade">Família / Parentalidade</option>
         <option value="Funções Executivas">Funções Executivas</option>
         <option value="Linguagem">Linguagem</option>
+        <option value="Perfecionismo">Perfecionismo</option>
         <option value="PHDA">PHDA</option>
         <option value="Regulação Emocional">Regulação Emocional</option>
         <option value="Outro">Outro</option>
@@ -661,7 +662,11 @@ const QID_TO_ABA = {
   'q_kidcope_ad':          'KIDCOPE_AD',
   'q_anamnese_hp':         'ANAMNESE_HP',
   // ── ISC-24 — Inventário de Somatização para Crianças (Ferreira et al., 2014) ──
-  'q_isc24':               'ISC24'
+  'q_isc24':               'ISC24',
+  // ── EMP-H&F — Perfeccionismo Multidimensional (Hewitt & Flett, 1991) ──
+  'q_emp_hf':              'EMP_HF',
+  // ── EMP-F — Perfeccionismo Multidimensional (Frost et al., 1990) ──
+  'q_emp_f':               'EMP_F'
 };
 
 
@@ -798,7 +803,16 @@ const SYNC_KEY_TO_ABA = {
   'ISC-24':            'ISC24',
   // ── QEA — Questionário de Esquemas para Adolescentes (Santos, Rijo & Pinto-Gouveia, 2009) ──
   'qea':               'QEA',
-  'QEA':               'QEA'
+  'QEA':               'QEA',
+  // ── EMP-H&F — Perfeccionismo Multidimensional (Hewitt & Flett, 1991) ─────
+  'emp_hf':            'EMP_HF',
+  'EMP_HF':            'EMP_HF',
+  'EMP-HF':            'EMP_HF',
+  'EMP-H&F':           'EMP_HF',
+  // ── EMP-F — Perfeccionismo Multidimensional (Frost et al., 1990) ─────────
+  'emp_f':             'EMP_F',
+  'EMP_F':             'EMP_F',
+  'EMP-F':             'EMP_F'
 };
 
 // Cache em memória das respostas do Sheet (evita fetch repetidos na mesma sessão)
@@ -1239,6 +1253,22 @@ function initCatalog() {
       objective:'Avalia 18 esquemas precoces mal-adaptativos em adolescentes — auto-relato (Santos, Rijo & Pinto-Gouveia, 2009); ponto de corte clínico: média ≥ 3,5',
       domains:['IS','EMA','PER','PE','AB','AP','AS','VUL','DA','IEMOC','SUB','GR','FR','DEP','DF','REC','AI','PESS','MVD','LEV','AE','Média Global'],
       ageMin:120, ageMax:299 },
+    // ── EMP-H&F — Escala Multidimensional de Perfeccionismo (Hewitt & Flett, 1991) v1.0 ──
+    { id:'q_emp_hf', name:'EMP-H&F — Perfeccionismo (Hewitt & Flett)',
+      dest:['Paciente','Jovem avaliado'],
+      link:'https://correiaricardina-ui.github.io/questionarios/EMP_HF_v1.html',
+      syncKey:'emp_hf', area:'Perfecionismo', ageRange:'Adolescentes / Adultos (≥ 12 anos)',
+      objective:'Avalia perfeccionismo em três dimensões — auto-orientado (PAO), socialmente prescrito (PSP) e orientado para os outros (POO); versão reduzida de 32 itens (Hewitt & Flett, 1991)',
+      domains:['PAO — Auto-Orientado','PSP — Socialmente Prescrito','POO — Orientado para Outros','Total EMP-H&F'],
+      ageMin:144, ageMax:null },
+    // ── EMP-F — Escala Multidimensional de Perfeccionismo (Frost et al., 1990) v1.0 ──
+    { id:'q_emp_f', name:'EMP-F — Perfeccionismo (Frost)',
+      dest:['Paciente','Jovem avaliado'],
+      link:'https://correiaricardina-ui.github.io/questionarios/EMP_F_v1.html',
+      syncKey:'emp_f', area:'Perfecionismo', ageRange:'Adolescentes / Adultos (≥ 12 anos)',
+      objective:'Avalia perfeccionismo em seis dimensões (Frost et al., 1990) — preocupação com erros, dúvidas sobre ações, expectativas parentais, críticas parentais, padrões pessoais e organização; versão reduzida de 24 itens',
+      domains:['CM — Preocupações com Erros','DA — Dúvidas sobre Ações','PE — Expectativas Parentais','PC — Críticas Parentais','PS — Padrões Pessoais','O — Organização'],
+      ageMin:144, ageMax:null },
   ];
   // Garantir que TODOS os defaults estão no catálogo, sempre
   // (funciona em RC novos e em RC existentes — nunca perde questionários)
@@ -1359,6 +1389,10 @@ function initCatalog() {
       'q_isc24':      { link:'https://correiaricardina-ui.github.io/questionarios/ISC24.html', syncKey:'isc24' },
       // ── QEA — Questionário de Esquemas para Adolescentes v1.0 ──────────
       'q_qea':        { link:'https://correiaricardina-ui.github.io/questionarios/QEA_questionario.html', syncKey:'qea' },
+      // ── EMP-H&F — Escala Multidimensional de Perfeccionismo v1.0 ────────
+      'q_emp_hf':     { link:'https://correiaricardina-ui.github.io/questionarios/EMP_HF_v1.html', syncKey:'emp_hf' },
+      // ── EMP-F — Escala Multidimensional de Perfeccionismo (Frost) v1.0 ──
+      'q_emp_f':      { link:'https://correiaricardina-ui.github.io/questionarios/EMP_F_v1.html', syncKey:'emp_f' },
     };
     // ── Re-store com chave correcta ('q_' + id) — corrige instalações anteriores ──
     // Garante que Conners, FAD e MAP ficam acessíveis pelo META.forEach e getCatalog
@@ -1638,6 +1672,16 @@ function initCatalog() {
     if(!catalog.includes('q_qea')) {
       const d = defaults.find(x => x.id === 'q_qea');
       if(d) { store.set('q_' + d.id, d); catalog.push('q_qea'); store.set('catalog', catalog); }
+    }
+    // EMP-H&F — Escala Multidimensional de Perfeccionismo (Hewitt & Flett) v1.0
+    if(!catalog.includes('q_emp_hf')) {
+      const d = defaults.find(x => x.id === 'q_emp_hf');
+      if(d) { store.set('q_' + d.id, d); catalog.push('q_emp_hf'); store.set('catalog', catalog); }
+    }
+    // EMP-F — Escala Multidimensional de Perfeccionismo (Frost) v1.0
+    if(!catalog.includes('q_emp_f')) {
+      const d = defaults.find(x => x.id === 'q_emp_f');
+      if(d) { store.set('q_' + d.id, d); catalog.push('q_emp_f'); store.set('catalog', catalog); }
     }
     }
   }
@@ -2141,6 +2185,51 @@ function formatScoreSummary(scores, syncKey) {
         ? ` · R=${parseFloat(r).toFixed(2)} EC=${parseFloat(ec).toFixed(2)} SC=${parseFloat(sc).toFixed(2)} WC=${parseFloat(wc).toFixed(2)}`
         : '';
       return '<span style="font-size:0.78rem;' + cls + '">Global=' + g.toFixed(2) + sub + '</span>';
+    }
+  }
+  // ── EMP-H&F — Perfeccionismo Multidimensional (Hewitt & Flett, 1991) ──
+  if(syncKey === 'emp_hf') {
+    const totM = scores['TOTAL_media'] ?? scores['total_media'] ?? scores['Total_media'] ?? scores['mediaTotal'] ?? null;
+    const paoM = scores['PAO_media']   ?? scores['pao_media']   ?? null;
+    const pspM = scores['PSP_media']   ?? scores['psp_media']   ?? null;
+    const pooM = scores['POO_media']   ?? scores['poo_media']   ?? null;
+    if(totM != null) {
+      const t = parseFloat(totM);
+      const cls = t >= 4.50 ? 'color:#C0392B;font-weight:700;'
+                : t >= 3.00 ? 'color:#E67E22;font-weight:600;'
+                : 'color:var(--green);font-weight:600;';
+      const nivel = t >= 4.50 ? 'Elevado' : t >= 3.00 ? 'Moderado' : 'Baixo';
+      const sub = (paoM != null && pspM != null && pooM != null)
+        ? ` · PAO=${parseFloat(paoM).toFixed(2)} PSP=${parseFloat(pspM).toFixed(2)} POO=${parseFloat(pooM).toFixed(2)}`
+        : '';
+      return `<span style="font-size:0.78rem;${cls}">Total=${t.toFixed(2)} · ${nivel}${sub}</span>`;
+    }
+  }
+  // ── EMP-F — Perfeccionismo Multidimensional (Frost et al., 1990) ──────
+  // Sem total global — interpretação por subescala. Cut-offs específicos:
+  // CM/DA/PE ≥3.0 · PC ≥2.5 · PS ≥3.5 · O ≥4.2 → Elevado
+  if(syncKey === 'emp_f') {
+    const cm = scores['CM_media'] ?? scores['cm_media'] ?? null;
+    const da = scores['DA_media'] ?? scores['da_media'] ?? null;
+    const pe = scores['PE_media'] ?? scores['pe_media'] ?? null;
+    const pc = scores['PC_media'] ?? scores['pc_media'] ?? null;
+    const ps = scores['PS_media'] ?? scores['ps_media'] ?? null;
+    const o  = scores['O_media']  ?? scores['o_media']  ?? null;
+    if(cm != null || da != null || pe != null || pc != null) {
+      const thr = { CM:[2.0,3.0], DA:[2.0,3.0], PE:[2.0,3.0], PC:[1.5,2.5] };
+      let elev = 0;
+      [['CM',cm],['DA',da],['PE',pe],['PC',pc]].forEach(([k,v])=>{
+        if(v != null && parseFloat(v) >= thr[k][1]) elev++;
+      });
+      const cls = elev >= 2 ? 'color:#C0392B;font-weight:700;'
+                : elev === 1 ? 'color:#E67E22;font-weight:600;'
+                : 'color:var(--green);font-weight:600;';
+      const perfil = elev >= 2 ? 'Desadapt. dominante' : elev === 1 ? '1 desadapt. elevada' : 'Sem elevações';
+      const parts = [];
+      if(cm != null) parts.push('CM=' + parseFloat(cm).toFixed(2));
+      if(da != null) parts.push('DA=' + parseFloat(da).toFixed(2));
+      if(pc != null) parts.push('PC=' + parseFloat(pc).toFixed(2));
+      return `<span style="font-size:0.78rem;${cls}">${perfil} · ${parts.join(' ')}</span>`;
     }
   }
   // Genérico
@@ -2697,7 +2786,11 @@ function renderAssignments(patientId) {
                 // ── ISC-24 — múltiplos respondentes possíveis (próprio, pais, EE) ──
                 'ISC24':           ['NomeRespondente','Relação','NomeCriança','NomeCrianca'],
                 // ── QEA — auto-relato (adolescente) ───────────────────────
-                'QEA':             ['NomeInformante','NomeCrianca','NomeCriança']
+                'QEA':             ['NomeInformante','NomeCrianca','NomeCriança'],
+                // ── EMP-H&F — auto-relato (adolescentes / adultos) ────────
+                'EMP_HF':          ['NomeRespondente','NomeCriança','NomeCrianca','NomeInformante'],
+                // ── EMP-F (Frost) — auto-relato (adolescentes / adultos) ──
+                'EMP_F':           ['NomeRespondente','NomeCriança','NomeCrianca','NomeInformante']
               };
               const RC = {
                 'SWAN':['Relação'],'BRIEF_Pais':['Relação'],'SCARED_R_PAIS':['Relação'],
@@ -3426,7 +3519,7 @@ document.addEventListener('DOMContentLoaded', () => {
   store.del('pw');
   // Forçar re-leitura do META em cada arranque — limpa chaves com prefixo errado
   (function forceMetaRefresh() {
-    const META_VERSION = 'v25_abril2026';
+    const META_VERSION = 'v26_abril2026_perfecionismo';
     if(localStorage.getItem('cns_meta_version') !== META_VERSION) {
       // Limpar chaves de metadados de questionários para forçar recriação
       Object.keys(localStorage)
