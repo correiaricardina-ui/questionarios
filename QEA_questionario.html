@@ -1,0 +1,1435 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QEA — Questionário de Esquemas para Adolescentes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<style>
+:root {
+  --blue:        #3B5A7A;
+  --blue-mid:    #5B7FA6;
+  --blue-light:  #A8C4D8;
+  --blue-pale:   #D6E4F0;
+  --blue-xpale:  #EBF2F8;
+  --gray:        #F4F6F9;
+  --gray-bdr:    #DDE3EA;
+  --text:        #2C3E50;
+  --text-light:  #6B7A8D;
+  --red:         #C0392B;
+  --green:       #27AE60;
+  --orange:      #E67E22;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'DM Sans', sans-serif; background: var(--gray); color: var(--text); min-height: 100vh; }
+
+.app-header {
+  background: var(--blue); color: white; padding: 12px 28px;
+  display: flex; align-items: center; justify-content: space-between;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+.app-title    { font-size: 1.1rem; font-weight: 700; letter-spacing: 0.3px; }
+.app-subtitle { font-size: 0.78rem; opacity: 0.75; margin-top: 2px; }
+.header-right { font-size: 0.78rem; opacity: 0.75; text-align: right; }
+
+.container { max-width: 920px; margin: 0 auto; padding: 24px; }
+
+.card {
+  background: white; border-radius: 12px; padding: 28px;
+  box-shadow: 0 2px 8px rgba(59,90,122,0.08); border: 1px solid var(--gray-bdr);
+}
+
+.btn { border: none; border-radius: 8px; padding: 10px 20px; font-weight: 600;
+       font-family: 'DM Sans', sans-serif; cursor: pointer; font-size: 0.9rem; transition: opacity 0.15s; }
+.btn:hover      { opacity: 0.88; }
+.btn-primary    { background: var(--blue); color: white; }
+.btn-secondary  { background: var(--blue-pale); color: var(--blue); }
+.btn-ghost      { background: transparent; color: white; border: 1px solid rgba(255,255,255,0.4); }
+.btn-xs         { padding: 4px 10px; font-size: 0.78rem; }
+
+.badge            { border-radius: 6px; padding: 2px 10px; font-size: 0.75rem; font-weight: 600; display:inline-block; }
+.badge-clinical   { background: #fdecea; color: var(--red); }
+.badge-borderline { background: #fef3e2; color: var(--orange); }
+.badge-normative  { background: #eafaf1; color: var(--green); }
+
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.55);
+                 display: none; align-items: flex-start; justify-content: center;
+                 z-index: 1000; padding: 16px; overflow-y: auto; }
+.modal-overlay.active { display: flex; }
+.modal-box     { background: white; border-radius: 16px; padding: 28px;
+                 max-width: 860px; width: 100%;
+                 box-shadow: 0 12px 48px rgba(0,0,0,0.25); margin: 0 auto; }
+
+.landing-card  { max-width: 560px; margin: 60px auto; text-align: center; }
+.landing-icon  { font-size: 2.8rem; margin-bottom: 16px; }
+.landing-title { font-family: 'DM Serif Display', serif; font-size: 1.8rem; color: var(--blue); margin-bottom: 8px; }
+.landing-sub   { color: var(--text-light); margin-bottom: 32px; line-height:1.6; }
+.landing-btns  { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+.landing-btn   { flex: 1; min-width: 200px; max-width: 240px; padding: 20px 16px;
+                 border-radius: 12px; background: var(--blue-xpale); border: 1px solid var(--blue-pale);
+                 cursor: pointer; text-align: center; transition: all 0.2s; }
+.landing-btn:hover      { background: var(--blue-pale); transform: translateY(-2px); }
+.landing-btn-icon  { font-size: 1.8rem; margin-bottom: 8px; }
+.landing-btn-title { font-weight: 600; color: var(--blue); font-size: 1rem; }
+.landing-btn-sub   { font-size: 0.8rem; color: var(--text-light); margin-top: 4px; }
+
+.login-card  { max-width: 400px; margin: 80px auto; text-align: center; }
+.login-icon  { font-size: 2.4rem; margin-bottom: 12px; }
+.login-title { font-family: 'DM Serif Display', serif; font-size: 1.4rem; color: var(--blue); margin-bottom: 6px; }
+.login-sub   { color: var(--text-light); font-size: 0.85rem; margin-bottom: 24px; }
+.login-field { text-align: left; margin-bottom: 16px; }
+.login-field label { font-size: 0.82rem; font-weight: 600; color: var(--text-light); display: block; margin-bottom: 4px; }
+.login-input { width: 100%; padding: 10px 14px; border: 1.5px solid var(--gray-bdr);
+               border-radius: 8px; font-size: 0.95rem; font-family: 'DM Sans', sans-serif;
+               outline: none; transition: border-color 0.2s; }
+.login-input:focus { border-color: var(--blue-mid); }
+.login-error { color: var(--red); font-size: 0.82rem; margin-top: 8px; display: none; }
+.login-back  { font-size: 0.82rem; color: var(--text-light); margin-top: 16px;
+               cursor: pointer; text-decoration: underline; }
+
+.progress-bar { height:8px; background: var(--gray-bdr); border-radius:4px; overflow:hidden; margin-bottom:8px; }
+.progress-fill { height:100%; background: var(--blue); border-radius:4px; transition: width .3s; }
+
+.q-item { padding: 16px 0; border-bottom: 1px solid var(--gray-bdr); }
+.q-item:last-child { border-bottom: none; }
+.q-item-text { font-size: 0.95rem; line-height: 1.55; margin-bottom: 12px; color: var(--text); }
+.q-item-num { font-weight: 700; color: var(--blue); margin-right: 8px; }
+.q-options { display: flex; gap: 6px; flex-wrap: wrap; }
+.q-opt { flex: 1; min-width: 44px; }
+.q-opt input { display: none; }
+.q-opt label { display: block; padding: 10px 8px; text-align: center;
+               background: var(--gray); border: 1.5px solid var(--gray-bdr);
+               border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 0.95rem;
+               color: var(--text-light); transition: all .15s; }
+.q-opt label:hover { background: var(--blue-xpale); border-color: var(--blue-pale); color: var(--blue); }
+.q-opt input:checked + label { background: var(--blue); border-color: var(--blue); color: white; box-shadow: 0 2px 6px rgba(59,90,122,0.25); }
+.q-item.answered { background: linear-gradient(to right, rgba(39,174,96,0.04), transparent); border-left: 3px solid var(--green); padding-left: 12px; margin-left: -15px; }
+
+table.clinic-tbl { width:100%; border-collapse: collapse; font-size:0.88rem; }
+table.clinic-tbl th { background: var(--blue-pale); color: var(--blue); text-align:left; padding: 10px 12px; font-weight:600; font-size:0.82rem; }
+table.clinic-tbl td { padding: 10px 12px; border-bottom: 1px solid var(--gray-bdr); }
+table.clinic-tbl tr:hover td { background: var(--blue-xpale); }
+
+.page { display: none; }
+
+@media print {
+  .app-header, .no-print { display: none !important; }
+  body { background: white; }
+  .card { box-shadow: none; border: 1px solid #ddd; }
+}
+
+@media (max-width: 640px) {
+  .container { padding: 16px; }
+  .app-header { padding: 10px 16px; }
+  .header-right { font-size: 0.7rem; }
+  .app-title { font-size: 0.95rem; }
+  .q-opt label { padding: 8px 6px; font-size: 0.88rem; }
+  .landing-btn { min-width: 160px; }
+}
+</style>
+</head>
+<body>
+
+<header class="app-header">
+  <div style="display:flex;align-items:center;gap:14px;">
+    <!-- ⚠ LOGO_RC_PLACEHOLDER: substituir o SVG abaixo pelo <img src="data:image/png;base64,..."> do LOGO_RC_BASE64.txt antes do deployment -->
+    <svg width="44" height="44" viewBox="0 0 44 44" xmlns="http://www.w3.org/2000/svg" aria-label="Ricardina Correia" style="filter:brightness(1.1)">
+      <g fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M14 12c-2.5 0-4.5 2-4.5 4.5 0 1 .3 1.9.9 2.7-1.4.9-2.4 2.5-2.4 4.3 0 2.4 1.7 4.4 4 4.8v2.2c0 1.5 1.2 2.7 2.7 2.7s2.7-1.2 2.7-2.7V14.7c0-1.5-1.2-2.7-2.7-2.7z"/>
+        <path d="M30 12c2.5 0 4.5 2 4.5 4.5 0 1-.3 1.9-.9 2.7 1.4.9 2.4 2.5 2.4 4.3 0 2.4-1.7 4.4-4 4.8v2.2c0 1.5-1.2 2.7-2.7 2.7s-2.7-1.2-2.7-2.7V14.7c0-1.5 1.2-2.7 2.7-2.7z"/>
+        <path d="M22 26c-1.6-1.8-4.2-1.8-5.5 0-1.1 1.5-.5 3.5.9 4.8L22 35l4.6-4.2c1.4-1.3 2-3.3.9-4.8-1.3-1.8-3.9-1.8-5.5 0z" fill="white"/>
+      </g>
+    </svg>
+    <div>
+      <div class="app-title">QEA — Questionário de Esquemas para Adolescentes</div>
+      <div class="app-subtitle">Young, 2005 · Adaptação: Santos, Rijo & Pinto-Gouveia (2009)</div>
+    </div>
+  </div>
+  <div class="header-right">
+    Ricardina Correia · Cédula 8233<br>
+    <span style="font-size:0.72rem;opacity:0.85;">Psicologia Pediátrica</span>
+  </div>
+</header>
+
+<!-- ═══════════════════════════ PAGE HOME ═══════════════════════════ -->
+<div id="page-home" class="page">
+  <div class="container">
+    <div class="card landing-card">
+      <div class="landing-icon">🧠</div>
+      <div class="landing-title">QEA</div>
+      <p class="landing-sub">
+        Questionário de Esquemas para Adolescentes<br>
+        <span style="font-size:.8rem">Santos, Rijo &amp; Pinto-Gouveia (2009) · 54 itens · 12–18 anos</span>
+      </p>
+      <div class="landing-btns">
+        <div class="landing-btn" onclick="iniciarQuestionario()">
+          <div class="landing-btn-icon">📝</div>
+          <div class="landing-btn-title">Preencher questionário</div>
+          <div class="landing-btn-sub">Para o adolescente</div>
+        </div>
+        <div class="landing-btn" onclick="showClinico()">
+          <div class="landing-btn-icon">🔒</div>
+          <div class="landing-btn-title">Painel Clínico</div>
+          <div class="landing-btn-sub">Acesso restrito · Ricardina Correia</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════ PAGE QUESTIONARIO ═══════════════════════════ -->
+<div id="page-questionario" class="page">
+  <div class="container" style="max-width:760px">
+
+    <!-- ━━━━━━━ SECÇÃO 1 — IDENTIFICAÇÃO ━━━━━━━ -->
+    <div id="section-1">
+      <div class="card" style="margin-bottom:20px">
+
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:20px" class="no-print">
+          <div style="display:flex;align-items:center;gap:6px">
+            <div style="width:28px;height:28px;border-radius:50%;background:var(--blue);color:white;display:flex;align-items:center;justify-content:center;font-size:.82rem;font-weight:700">1</div>
+            <span style="font-size:.82rem;font-weight:600;color:var(--blue)">Identificação</span>
+          </div>
+          <div style="flex:1;height:2px;background:var(--gray-bdr)"></div>
+          <div style="display:flex;align-items:center;gap:6px">
+            <div style="width:28px;height:28px;border-radius:50%;background:var(--gray-bdr);color:var(--text-light);display:flex;align-items:center;justify-content:center;font-size:.82rem;font-weight:700">2</div>
+            <span style="font-size:.82rem;color:var(--text-light)">Questionário</span>
+          </div>
+        </div>
+
+        <h2 style="font-family:'DM Serif Display',serif;color:var(--blue);font-size:1.3rem;margin-bottom:6px">
+          Identificação
+        </h2>
+        <p style="font-size:.85rem;color:var(--text-light);margin-bottom:20px;line-height:1.5">
+          Antes de começar, preenche estes dados. São necessários para a Dra. Ricardina Correia poder associar as tuas respostas ao teu processo de avaliação.
+        </p>
+
+        <div style="margin-bottom:16px">
+          <label style="font-size:.82rem;font-weight:600;color:var(--text-light);display:block;margin-bottom:4px">
+            Código do paciente <span style="font-weight:400">(fornecido pela psicóloga)</span>
+          </label>
+          <input type="text" id="patient-code" class="login-input"
+                 placeholder="ex: MV14062013"
+                 style="text-transform:uppercase" oninput="this.value=this.value.toUpperCase()">
+          <div style="font-size:.75rem;color:var(--text-light);margin-top:4px">
+            Iniciais + data nasc. (DDMMAAAA). Ex: <em>MV14062013</em>
+          </div>
+        </div>
+
+        <div style="margin-bottom:16px">
+          <label style="font-size:.82rem;font-weight:600;color:var(--text-light);display:block;margin-bottom:4px">
+            Nome da criança/adolescente
+          </label>
+          <input type="text" id="nome-crianca" class="login-input" placeholder="ex: Maria Silva">
+        </div>
+
+        <div style="margin-bottom:16px">
+          <label style="font-size:.82rem;font-weight:600;color:var(--text-light);display:block;margin-bottom:4px">
+            Nome do respondente <span style="font-weight:400">(quem está a preencher)</span>
+          </label>
+          <input type="text" id="nome_informante" class="login-input" placeholder="Normalmente o próprio adolescente">
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
+          <div>
+            <label style="font-size:.82rem;font-weight:600;color:var(--text-light);display:block;margin-bottom:4px">
+              Idade
+            </label>
+            <input type="number" id="idade" class="login-input" min="10" max="25" placeholder="ex: 15">
+          </div>
+          <div>
+            <label style="font-size:.82rem;font-weight:600;color:var(--text-light);display:block;margin-bottom:4px">
+              Sexo
+            </label>
+            <select id="sexo" class="login-input">
+              <option value="">— Selecionar —</option>
+              <option value="Feminino">Feminino</option>
+              <option value="Masculino">Masculino</option>
+              <option value="Outro/NR">Outro / prefiro não responder</option>
+            </select>
+          </div>
+        </div>
+
+        <div style="margin-bottom:4px">
+          <label style="font-size:.82rem;font-weight:600;color:var(--text-light);display:block;margin-bottom:4px">
+            Ano de escolaridade <span style="font-weight:400">(opcional)</span>
+          </label>
+          <input type="text" id="ano-escolaridade" class="login-input" placeholder="ex: 9.º ano">
+        </div>
+
+      </div>
+
+      <div style="display:flex;justify-content:space-between;margin-top:4px;gap:12px" class="no-print">
+        <button class="btn btn-secondary" onclick="showPage('page-home')">← Voltar</button>
+        <button class="btn btn-primary" onclick="avancarParaQuestoes()">Avançar →</button>
+      </div>
+    </div>
+
+    <!-- ━━━━━━━ SECÇÃO 2 — QUESTÕES ━━━━━━━ -->
+    <div id="section-2" style="display:none">
+
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px" class="no-print">
+        <div style="display:flex;align-items:center;gap:6px">
+          <div style="width:28px;height:28px;border-radius:50%;background:var(--green);color:white;display:flex;align-items:center;justify-content:center;font-size:.82rem;font-weight:700">✓</div>
+          <span style="font-size:.82rem;color:var(--text-light)">Identificação</span>
+        </div>
+        <div style="flex:1;height:2px;background:var(--blue)"></div>
+        <div style="display:flex;align-items:center;gap:6px">
+          <div style="width:28px;height:28px;border-radius:50%;background:var(--blue);color:white;display:flex;align-items:center;justify-content:center;font-size:.82rem;font-weight:700">2</div>
+          <span style="font-size:.82rem;font-weight:600;color:var(--blue)">Questionário (54 itens)</span>
+        </div>
+      </div>
+
+      <!-- Barra de progresso global -->
+      <div class="progress-bar no-print">
+        <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+      </div>
+      <div style="text-align:right;font-size:.78rem;color:var(--text-light);margin-bottom:12px" id="progress-text">0 / 54 respondidas</div>
+
+      <!-- Indicador de bloco -->
+      <div id="bloco-progress-bar" style="margin-bottom:12px" class="no-print">
+        <div style="display:flex;justify-content:space-between;font-size:.75rem;color:var(--text-light);margin-bottom:4px;">
+          <span id="bloco-label">Parte 1 de 3</span>
+          <span id="bloco-pct-text">0 / 18 respondidas</span>
+        </div>
+        <div style="height:6px;background:var(--gray-bdr);border-radius:4px;overflow:hidden;">
+          <div id="bloco-fill" style="height:100%;background:var(--blue-mid);border-radius:4px;transition:width .3s;width:0%"></div>
+        </div>
+      </div>
+
+      <!-- Legenda sticky obrigatória (Secção 29 da skill) -->
+      <div id="legenda-escala" style="position:sticky;top:0;z-index:20;background:var(--blue-xpale);border:1px solid var(--blue-pale);border-radius:8px;padding:10px 14px;margin-bottom:12px;font-size:.78rem;line-height:1.5">
+        <div style="font-weight:600;color:var(--blue);margin-bottom:4px">Escala de resposta:</div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:4px 12px;color:var(--text-light)">
+          <span><strong style="color:var(--text)">1</strong> — Não tem nada a ver</span>
+          <span><strong style="color:var(--text)">2</strong> — Tem muito pouco a ver</span>
+          <span><strong style="color:var(--text)">3</strong> — Tem um pouco a ver</span>
+          <span><strong style="color:var(--text)">4</strong> — É parecido</span>
+          <span><strong style="color:var(--text)">5</strong> — É muito parecido</span>
+          <span><strong style="color:var(--text)">6</strong> — É exatamente assim</span>
+        </div>
+      </div>
+
+      <div class="card" id="q-card">
+        <p id="q-intro" style="font-size:.88rem;color:var(--text-light);margin-bottom:20px;line-height:1.6">
+          Lê cada frase com atenção e escolhe o número que melhor descreve a tua forma de sentir e pensar. Não há respostas certas nem erradas — responde sinceramente, de acordo com aquilo que sentes.
+        </p>
+        <div id="q-container"></div>
+      </div>
+
+      <div style="display:flex;justify-content:space-between;margin-top:20px;gap:12px;flex-wrap:wrap" class="no-print">
+        <button class="btn btn-secondary" id="btn-voltar-ident" onclick="voltarParaIdentificacao()">← Identificação</button>
+        <div style="display:flex;gap:12px;flex-wrap:wrap">
+          <button class="btn btn-secondary" id="btn-bloco-ant" onclick="blocoAnterior()" style="display:none">← Anterior</button>
+          <button class="btn btn-primary" id="btn-bloco-seg" onclick="proximoBloco()">Seguinte →</button>
+          <button class="btn btn-primary" id="btn-submeter" onclick="submeter()" style="display:none">Submeter →</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════════════════ PAGE OBRIGADO ═══════════════════════════ -->
+<div id="page-obrigado" class="page">
+  <div class="container" style="max-width:600px">
+    <div class="card" style="text-align:center;margin:60px auto;">
+      <div style="font-size:3rem;margin-bottom:16px;">✅</div>
+      <div style="font-family:'DM Serif Display',serif;font-size:1.8rem;color:var(--blue);margin-bottom:12px;">
+        Obrigado pelo preenchimento!
+      </div>
+      <div style="color:var(--text-light);line-height:1.6">
+        As tuas respostas foram registadas com sucesso.
+      </div>
+      <div style="margin-top:28px">
+        <button class="btn btn-secondary" onclick="showPage('page-home');window.scrollTo(0,0)">
+          ← Página inicial
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════ PAGE LOGIN ═══════════════════════════ -->
+<div id="page-login" class="page">
+  <div class="container">
+    <div class="card login-card">
+      <div class="login-icon">🔒</div>
+      <div class="login-title">Painel Clínico</div>
+      <div class="login-sub">Acesso restrito · Ricardina Correia</div>
+      <div class="login-field">
+        <label>Palavra-passe</label>
+        <input type="password" id="login-pw" class="login-input" placeholder="••••••••"
+               onkeydown="if(event.key==='Enter') tentarLogin()">
+      </div>
+      <button class="btn btn-primary" style="width:100%" onclick="tentarLogin()">Entrar</button>
+      <div id="login-error" class="login-error">Palavra-passe incorreta. Tente novamente.</div>
+      <div class="login-back" onclick="showPage('page-home')">← Voltar</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════ PAGE CLÍNICO ═══════════════════════════ -->
+<div id="page-clinico" class="page">
+  <div class="container">
+    <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:20px;gap:12px;flex-wrap:wrap" class="no-print">
+      <div>
+        <h1 style="font-family:'DM Serif Display',serif;color:var(--blue);font-size:1.6rem">Painel Clínico · QEA</h1>
+        <div style="color:var(--text-light);font-size:.85rem">Ricardina Correia · Cédula 8233 · Psicologia Pediátrica</div>
+      </div>
+      <button class="btn btn-secondary btn-xs" onclick="showPage('page-home')">← Sair</button>
+    </div>
+
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px" class="no-print">
+      <button class="btn btn-secondary btn-xs" onclick="carregarDados()">↺ Sincronizar</button>
+      <button class="btn btn-secondary btn-xs" onclick="importarCSV()">⬆ Importar</button>
+      <button class="btn btn-secondary btn-xs" onclick="exportarCSV()">⬇ Exportar CSV</button>
+      <button class="btn btn-secondary btn-xs" onclick="exportarPDF()">📄 Exportar PDF</button>
+      <button class="btn btn-secondary btn-xs" onclick="window.print()">🖨 Imprimir</button>
+      <button class="btn btn-secondary btn-xs" onclick="exportarRespostasPDF(sessaoActual)">📋 Respostas PDF</button>
+      <button class="btn btn-secondary btn-xs" onclick="exportarInterpretacaoPDF(sessaoActual)">📊 Interpretação PDF</button>
+      <input type="file" id="import-file-input" accept=".csv" style="display:none" onchange="processarFicheiroImportado(this)">
+    </div>
+    <div id="import-feedback" style="margin-bottom:12px;display:none"></div>
+
+    <div class="card" style="padding:0;overflow:hidden">
+      <div style="overflow-x:auto">
+        <table class="clinic-tbl" id="tbl-sessoes">
+          <thead>
+            <tr>
+              <th>Data</th>
+              <th>Código / Nome</th>
+              <th>Respondente</th>
+              <th>Total QEA</th>
+              <th style="text-align:center">Esquemas prev.</th>
+              <th>Esquema dominante</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="tbody-sessoes">
+            <tr><td colspan="7" style="text-align:center;color:var(--text-light);padding:24px">A carregar…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════ MODAL DETALHE ═══════════════════════════ -->
+<div id="modal-detalhe" class="modal-overlay" onclick="if(event.target===this) fecharModal()">
+  <div class="modal-box">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:16px">
+      <h2 id="modal-titulo" style="font-family:'DM Serif Display',serif;color:var(--blue);font-size:1.3rem">Detalhe</h2>
+      <button class="btn btn-secondary btn-xs" onclick="fecharModal()">Fechar</button>
+    </div>
+    <div id="modal-body"></div>
+  </div>
+</div>
+
+
+<script>
+/* ══════════════════════════════════════════════════════════════════
+   QEA — Questionário de Esquemas para Adolescentes
+   Santos, Rijo & Pinto-Gouveia (2009) · 54 itens / 18 esquemas
+   ══════════════════════════════════════════════════════════════════ */
+
+// ---------- CONFIGURAÇÃO GERAL ----------
+var SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxX2_Ry7VRH6jr7eGBMmtmyZFXZc69blwdO5bqJK0j69HRSexpXXPuEfDC5OHQRMLLL/exec';
+var SHEET_NAME = 'QEA';
+var PASSWORD = 'CNS2024';
+var N_ITENS = 54;
+var STORAGE_KEY = 'qea_sessions_v1';
+
+// ---------- AVISO FICHEIRO LOCAL ----------
+(function(){
+  if(location.protocol === 'file:'){
+    var banner = document.createElement('div');
+    banner.style.cssText = 'background:#C0392B;color:white;text-align:center;padding:10px 20px;font-size:.85rem;font-family:\"DM Sans\",sans-serif;font-weight:600;position:sticky;top:0;z-index:9999';
+    banner.innerHTML = '\u26A0 Ficheiro aberto localmente \u2014 os dados podem n\u00E3o ser enviados para o servidor. Ser\u00E1 descarregado um CSV de seguran\u00E7a.';
+    document.body.insertBefore(banner, document.body.firstChild);
+  }
+})();
+
+// ---------- TEXTOS DOS 54 ITENS ----------
+var ITEMS = [
+  "Nenhuma pessoa de quem eu goste pode gostar de mim se ficar a conhecer os meus defeitos e pontos fracos.",
+  "N\u00E3o acredito nas minhas capacidades para resolver problemas que possam aparecer.",
+  "Para que as outras pessoas respeitem os meus sentimentos e os meus direitos, \u00E9 preciso que eu me esforce muito.",
+  "Sou sempre eu que acabo por tomar conta das pessoas que me s\u00E3o mais chegadas.",
+  "Custa-me muito mostrar aos outros aquilo que sinto (mesmo sentimentos positivos como o carinho, afecto ou amizade).",
+  "Tenho que ser o melhor em tudo o que fa\u00E7o; n\u00E3o aceito ficar em segundo lugar.",
+  "Quando quero alguma coisa dos outros, tenho muita dificuldade em aceitar um \"n\u00E3o\" como resposta.",
+  "Mesmo quando as coisas parecem estar a correr bem, tenho sempre a ideia que isso n\u00E3o vai durar muito tempo. \u201CEra sorte a mais\u201D.",
+  "Sempre que cometer um erro, mere\u00E7o ser castigado.",
+  "N\u00E3o tenho tido pessoas que me d\u00EAem carinho, apoio e afecto.",
+  "Preocupo-me muito com a possibilidade de perder as pessoas de quem gosto e preciso.",
+  "N\u00E3o vejo a vida da mesma forma que os outros; sinto-me afastado das outras pessoas.",
+  "Ningu\u00E9m de quem eu gosto vai querer ficar comigo se me conhecer tal como eu sou na realidade.",
+  "Preciso muito da ajuda dos outros para conseguir fazer as coisas do dia-a-dia.",
+  "Sinto que uma desgra\u00E7a pode atingir-me a qualquer momento (um terramoto, uma doen\u00E7a, etc.).",
+  "Eu e os meus pais somos muito pr\u00F3ximos. Sabemos tudo acerca da vida e dos problemas uns dos outros.",
+  "No meu grupo de amigos, sinto que tenho de fazer tudo o que eles querem, sen\u00E3o, eles podem-se chatear comigo, gozarem-me ou p\u00F4r-me de lado.",
+  "Sou uma boa pessoa, porque me preocupo mais com os outros do que comigo pr\u00F3prio.",
+  "Tenho vergonha de mostrar aquilo que sinto \u00E0s outras pessoas.",
+  "Esfor\u00E7o-me por ser sempre o melhor naquilo que fa\u00E7o, n\u00E3o me chega ser apenas bom.",
+  "Sinto que sou especial (sou melhor). N\u00E3o devia ser obrigado a aceitar muitas das regras que s\u00E3o impostas aos outros.",
+  "N\u00E3o tenho for\u00E7a de vontade suficiente para me obrigar a fazer as coisas aborrecidas do dia-a-dia.",
+  "D\u00E1-me mais gozo conquistar algo se isso for uma coisa em que os outros reparem.",
+  "Quando acontece alguma coisa boa, fico sempre \u00E0 espera que aconte\u00E7a algo de mau a seguir.",
+  "Preocupa-me que as pessoas de quem mais gosto me deixem ou me abandonem.",
+  "Mais tarde ou mais cedo, vou acabar por ser tra\u00EDdo por algu\u00E9m.",
+  "Sinto que n\u00E3o perten\u00E7o a grupo nenhum; sou um solit\u00E1rio.",
+  "Na escola, a maioria das pessoas tem mais capacidades do que eu.",
+  "Sou imaturo; n\u00E3o me sei orientar sozinho.",
+  "N\u00E3o h\u00E1 segredos l\u00E1 em casa. Se n\u00E3o contar sempre tudo aos meus pais sinto-me mal com isso. Parece que os estou a trair.",
+  "No meu grupo nunca sigo a minha vontade, fa\u00E7o sempre aquilo que os outros querem que eu fa\u00E7a.",
+  "Tenho muita dificuldade em continuar uma tarefa se n\u00E3o tiver logo a recompensa. Coisas que d\u00E3o muito trabalho n\u00E3o s\u00E3o para mim.",
+  "Sinto-me pouco importante quando n\u00E3o recebo muita aten\u00E7\u00E3o dos outros.",
+  "Todo o cuidado \u00E9 pouco; quase sempre alguma coisa corre mal.",
+  "Se n\u00E3o cumprir com os meus deveres, mere\u00E7o sofrer as consequ\u00EAncias.",
+  "N\u00E3o tenho tido ningu\u00E9m que me ou\u00E7a com aten\u00E7\u00E3o, que me compreenda ou que perceba o que realmente sinto e preciso.",
+  "Quando sinto que algu\u00E9m de quem eu gosto se est\u00E1 a afastar de mim, sinto-me desesperado, com medo de o/a perder.",
+  "Sinto que sou desconfiado quanto \u00E0s inten\u00E7\u00F5es das outras pessoas.",
+  "Sinto-me isolado e afastado das outras pessoas.",
+  "Sinto que nunca ningu\u00E9m me vai amar tal como sou na realidade.",
+  "N\u00E3o sou t\u00E3o bom na escola como a maioria das pessoas. Os outros fazem tudo melhor do que eu.",
+  "Sinto que mere\u00E7o tratamento especial: n\u00E3o devia ter que obedecer \u00E0s regras que as outras pessoas t\u00EAm que seguir.",
+  "N\u00E3o interessa porque \u00E9 que errei. Se o fiz, \u00E9 justo que sofra as consequ\u00EAncias e seja punido.",
+  "N\u00E3o tenho tido ningu\u00E9m ao meu lado que esteja dispon\u00EDvel para me dar conselhos e me ajudar a decidir quando n\u00E3o sei o que hei-de fazer.",
+  "Preocupa-me perder tudo o que tenho e ficar sem nada.",
+  "Habitualmente tento descobrir as segundas inten\u00E7\u00F5es dos outros ou o verdadeiro motivo pelo qual fazem certas coisas.",
+  "Na escola, n\u00E3o sou t\u00E3o inteligente como a maior parte dos meus colegas.",
+  "Tenho muita dificuldade em acabar as coisas que comecei, raramente as consigo levar at\u00E9 ao fim.",
+  "Preocupa-me vir a ter uma doen\u00E7a grave, apesar do m\u00E9dico dizer que estou bem.",
+  "Eu e os meus pais estamos t\u00E3o ligados que parece que somos a mesma pessoa.",
+  "Dizem-me muitas vezes para me preocupar mais comigo do que com os outros, que fa\u00E7o demais pelos outros.",
+  "As pessoas acham que n\u00E3o sou capaz de dizer ou mostrar o que sinto.",
+  "N\u00E3o me posso desleixar nas coisas que s\u00E3o da minha responsabilidade. Para mim, n\u00E3o h\u00E1 espa\u00E7o para erros.",
+  "Para me sentir uma pessoa com valor, tenho que receber muitos elogios dos outros."
+];
+
+// ---------- DEFINIÇÃO DOS 18 ESQUEMAS ----------
+// code, nome, itens (1-based), domínio (Young), domínio 2ª ordem (Santos, 2009)
+var ESQUEMAS = [
+  { code:'IS',   nome:'Isolamento Social/Alienação',                itens:[12,27,39],    dom:'Distanciamento/Rejeição',             d2:'MVD' },
+  { code:'EMA',  nome:'Emaranhamento',                              itens:[16,30,50],    dom:'Autonomia/Desempenho Deteriorados',    d2:'LEV' },
+  { code:'PER',  nome:'Padrões Excessivos/Rígidos de Realização',   itens:[6,20,53],     dom:'Sobrevigilância/Inibição',             d2:'AE'  },
+  { code:'PE',   nome:'Privação Emocional',                         itens:[10,36,44],    dom:'Distanciamento/Rejeição',             d2:'MVD' },
+  { code:'AB',   nome:'Abandono',                                   itens:[11,25,37,45], dom:'Distanciamento/Rejeição',             d2:'LEV' },
+  { code:'AP',   nome:'Auto-Punição',                               itens:[9,35,43],     dom:'Sobrevigilância/Inibição',             d2:'LEV' },
+  { code:'AS',   nome:'Auto-Sacrifício',                            itens:[4,18,51],     dom:'Influência nos Outros',                d2:'LEV' },
+  { code:'VUL',  nome:'Vulnerabilidade ao Mal e à Doença',          itens:[3,15,49],     dom:'Autonomia/Desempenho Deteriorados',    d2:'LEV' },
+  { code:'DA',   nome:'Desconfiança/Abuso',                         itens:[26,38,46],    dom:'Distanciamento/Rejeição',             d2:'MVD' },
+  { code:'IEMOC',nome:'Inibição Emocional',                         itens:[5,19,52],     dom:'Sobrevigilância/Inibição',             d2:'MVD' },
+  { code:'SUB',  nome:'Subjugação ao Grupo',                        itens:[17,31],       dom:'Influência nos Outros',                d2:'MVD' },
+  { code:'GR',   nome:'Grandiosidade',                              itens:[21,32,42],    dom:'Limites Deteriorados',                 d2:'AE'  },
+  { code:'FR',   nome:'Fracasso',                                   itens:[2,28,41,47],  dom:'Autonomia/Desempenho Deteriorados',    d2:'MVD' },
+  { code:'DEP',  nome:'Dependência/Incompetência Funcional',        itens:[14,29,48],    dom:'Autonomia/Desempenho Deteriorados',    d2:'MVD' },
+  { code:'DF',   nome:'Defeito/Incapacidade de ser Amado',          itens:[1,13,40],     dom:'Distanciamento/Rejeição',             d2:'MVD' },
+  { code:'REC',  nome:'Procura de Aprovação/Reconhecimento',        itens:[23,33,54],    dom:'Influência nos Outros',                d2:'AE'  },
+  { code:'AI',   nome:'Auto-controlo/Auto-disciplina Insuficientes',itens:[7,22],        dom:'Limites Deteriorados',                 d2:'AE'  },
+  { code:'PESS', nome:'Pessimismo',                                 itens:[8,24,34],     dom:'Sobrevigilância/Inibição',             d2:'MVD' }
+];
+
+var DOMINIOS2 = {
+  MVD: 'Menos Valia e Desligamento',
+  LEV: 'Ligação Excessiva e Vulnerabilidade Pessoal',
+  AE:  'Auto-engrandecimento'
+};
+
+// 3 blocos de 18 itens
+var BLOCOS = [
+  { label:'Parte 1 de 3', inicio:0,  fim:17 },
+  { label:'Parte 2 de 3', inicio:18, fim:35 },
+  { label:'Parte 3 de 3', inicio:36, fim:53 }
+];
+
+// ---------- ESTADO ----------
+var respostasActuais = new Array(N_ITENS).fill(null);
+var blocoActual = 0;
+var sessoes = [];
+var sessaoActual = null;
+
+// ---------- NAVEGAÇÃO DE PÁGINAS ----------
+function showPage(id){
+  var pages = document.querySelectorAll('.page');
+  for (var i=0; i<pages.length; i++) pages[i].style.display = 'none';
+  var el = document.getElementById(id);
+  if (el) el.style.display = 'block';
+  window.scrollTo(0,0);
+}
+
+function showClinico(){
+  showPage('page-login');
+  setTimeout(function(){ var el=document.getElementById('login-pw'); if(el) el.focus(); }, 100);
+}
+
+function tentarLogin(){
+  var pw = document.getElementById('login-pw').value;
+  if (pw === PASSWORD){
+    document.getElementById('login-error').style.display = 'none';
+    document.getElementById('login-pw').value = '';
+    showPage('page-clinico');
+    carregarDados();
+  } else {
+    document.getElementById('login-error').style.display = 'block';
+    document.getElementById('login-pw').value = '';
+    document.getElementById('login-pw').focus();
+  }
+}
+
+// ---------- INÍCIO DO QUESTIONÁRIO ----------
+function iniciarQuestionario(){
+  respostasActuais = new Array(N_ITENS).fill(null);
+  blocoActual = 0;
+  document.getElementById('section-1').style.display = 'block';
+  document.getElementById('section-2').style.display = 'none';
+  showPage('page-questionario');
+}
+
+function avancarParaQuestoes(){
+  var code = document.getElementById('patient-code').value.trim().toUpperCase();
+  if (!code){ alert('Por favor indique o c\u00F3digo do paciente.'); return; }
+  if (!/^[A-Z][A-Z][A-Z]?\d\d\d\d\d\d\d\d$/.test(code)){
+    alert('C\u00F3digo inv\u00E1lido.\n\nDevem ser 2 ou 3 iniciais + data de nascimento (DDMMAAAA).\nExemplo: MV14062013');
+    return;
+  }
+  var nomeCrianca = document.getElementById('nome-crianca').value.trim();
+  if (!nomeCrianca){ alert('Por favor indique o nome da crian\u00E7a/adolescente.'); return; }
+  var nomeInformante = document.getElementById('nome_informante').value.trim();
+  if (!nomeInformante){ alert('Por favor indique o nome do respondente.'); return; }
+  var idade = document.getElementById('idade').value;
+  if (!idade || idade < 10 || idade > 25){ alert('Por favor indique uma idade v\u00E1lida.'); return; }
+  var sexo = document.getElementById('sexo').value;
+  if (!sexo){ alert('Por favor selecione o sexo.'); return; }
+
+  blocoActual = 0;
+  renderBloco(0);
+  document.getElementById('section-1').style.display = 'none';
+  document.getElementById('section-2').style.display = 'block';
+  window.scrollTo(0,0);
+}
+
+function voltarParaIdentificacao(){
+  document.getElementById('section-2').style.display = 'none';
+  document.getElementById('section-1').style.display = 'block';
+  window.scrollTo(0,0);
+}
+
+// ---------- RENDER DOS ITENS ----------
+function renderBloco(idx){
+  var bloco = BLOCOS[idx];
+  var html = '';
+  for (var i=bloco.inicio; i<=bloco.fim; i++){
+    var valor = respostasActuais[i];
+    var answered = valor !== null && valor !== undefined ? ' answered' : '';
+    html += '<div class="q-item'+answered+'" id="q-item-'+i+'">';
+    html += '<div class="q-item-text"><span class="q-item-num">'+(i+1)+'.</span>'+escapeHtml(ITEMS[i])+'</div>';
+    html += '<div class="q-options">';
+    for (var v=1; v<=6; v++){
+      var checked = (valor === v) ? ' checked' : '';
+      html += '<div class="q-opt">';
+      html += '<input type="radio" id="i'+i+'v'+v+'" name="item'+i+'" value="'+v+'"'+checked+' onchange="onResposta('+i+','+v+')">';
+      html += '<label for="i'+i+'v'+v+'">'+v+'</label>';
+      html += '</div>';
+    }
+    html += '</div></div>';
+  }
+  document.getElementById('q-container').innerHTML = html;
+  document.getElementById('bloco-label').textContent = bloco.label;
+  atualizarProgresso();
+
+  document.getElementById('btn-bloco-ant').style.display = idx > 0 ? 'inline-flex' : 'none';
+  document.getElementById('btn-bloco-seg').style.display = idx < BLOCOS.length - 1 ? 'inline-flex' : 'none';
+  document.getElementById('btn-submeter').style.display  = idx === BLOCOS.length - 1 ? 'inline-flex' : 'none';
+
+  window.scrollTo(0,0);
+}
+
+function onResposta(idx, valor){
+  respostasActuais[idx] = valor;
+  var el = document.getElementById('q-item-'+idx);
+  if (el) el.classList.add('answered');
+  atualizarProgresso();
+}
+
+function atualizarProgresso(){
+  var total = N_ITENS;
+  var respondidas = respostasActuais.filter(function(r){ return r !== null && r !== undefined; }).length;
+  document.getElementById('progress-text').textContent = respondidas + ' / ' + total + ' respondidas';
+  document.getElementById('progress-fill').style.width = (respondidas/total*100) + '%';
+
+  var bloco = BLOCOS[blocoActual];
+  var bTotal = bloco.fim - bloco.inicio + 1;
+  var bResp = 0;
+  for (var i=bloco.inicio; i<=bloco.fim; i++){
+    if (respostasActuais[i] !== null && respostasActuais[i] !== undefined) bResp++;
+  }
+  document.getElementById('bloco-pct-text').textContent = bResp + ' / ' + bTotal + ' respondidas';
+  document.getElementById('bloco-fill').style.width = (bResp/bTotal*100) + '%';
+}
+
+function proximoBloco(){
+  var bloco = BLOCOS[blocoActual];
+  var faltam = [];
+  for (var i=bloco.inicio; i<=bloco.fim; i++){
+    if (respostasActuais[i] === null || respostasActuais[i] === undefined) faltam.push(i+1);
+  }
+  if (faltam.length > 0){
+    alert('Antes de avan\u00E7ar, responde a todos os itens desta parte.\nEm falta: '+faltam.join(', '));
+    return;
+  }
+  blocoActual++;
+  renderBloco(blocoActual);
+}
+
+function blocoAnterior(){
+  if (blocoActual > 0){
+    blocoActual--;
+    renderBloco(blocoActual);
+  }
+}
+
+// ---------- COTAÇÃO ----------
+function cotarResultados(respostas){
+  var esquemas = {};
+  var totalQEA = 0;
+  ESQUEMAS.forEach(function(e){
+    var soma = 0, n = 0;
+    e.itens.forEach(function(it){
+      var r = respostas[it-1];
+      if (r !== null && r !== undefined && !isNaN(r)){
+        soma += r; n++;
+      }
+    });
+    var media = n > 0 ? soma/n : 0;
+    esquemas[e.code] = {
+      total: soma,
+      media: Math.round(media*100)/100,
+      n: n,
+      prevalente: media >= 3.5,
+      classif: classificar(media)
+    };
+    totalQEA += soma;
+  });
+
+  var dominios = { MVD:[], LEV:[], AE:[] };
+  ESQUEMAS.forEach(function(e){
+    dominios[e.d2].push(esquemas[e.code].media);
+  });
+  var dom2 = {};
+  Object.keys(dominios).forEach(function(k){
+    var arr = dominios[k];
+    var sum = arr.reduce(function(a,b){ return a+b; }, 0);
+    var m = arr.length > 0 ? sum/arr.length : 0;
+    dom2[k] = { media: Math.round(m*100)/100, classif: classificar(m) };
+  });
+
+  var mediaGlobal = 0;
+  var somaMedias = 0;
+  ESQUEMAS.forEach(function(e){ somaMedias += esquemas[e.code].media; });
+  mediaGlobal = Math.round((somaMedias/ESQUEMAS.length)*100)/100;
+
+  var nPrev = 0;
+  Object.keys(esquemas).forEach(function(k){ if (esquemas[k].prevalente) nPrev++; });
+
+  var esqDominante = null;
+  var maiorMedia = -1;
+  ESQUEMAS.forEach(function(e){
+    if (esquemas[e.code].media > maiorMedia){
+      maiorMedia = esquemas[e.code].media;
+      esqDominante = e.nome;
+    }
+  });
+
+  return {
+    esquemas: esquemas,
+    dominios2: dom2,
+    totalQEA: totalQEA,
+    mediaGlobal: mediaGlobal,
+    nPrevalentes: nPrev,
+    esqDominante: esqDominante
+  };
+}
+
+function classificar(media){
+  if (!media || media < 1) return '—';
+  if (media < 2.5) return 'Não prevalente';
+  if (media < 3.5) return 'Subclínico / Emergente';
+  if (media < 4.5) return 'Prevalente (clinicamente significativo)';
+  return 'Intensamente prevalente';
+}
+
+function corClassif(classif){
+  if (classif === 'Não prevalente') return '#27AE60';
+  if (classif === 'Subclínico / Emergente') return '#E67E22';
+  if (classif === 'Prevalente (clinicamente significativo)') return '#C0392B';
+  if (classif === 'Intensamente prevalente') return '#8E1E0F';
+  return '#6B7A8D';
+}
+
+// ---------- SUBMISSÃO ----------
+function submeter(){
+  var faltam = [];
+  for (var i=0; i<N_ITENS; i++){
+    if (respostasActuais[i] === null || respostasActuais[i] === undefined) faltam.push(i+1);
+  }
+  if (faltam.length > 0){
+    alert('Itens sem resposta: '+faltam.join(', ')+'.\nVolta atr\u00E1s e completa.');
+    return;
+  }
+
+  var code = document.getElementById('patient-code').value.trim().toUpperCase();
+  var nomeCrianca = document.getElementById('nome-crianca').value.trim();
+  var nomeInformante = document.getElementById('nome_informante').value.trim();
+  var idade = document.getElementById('idade').value;
+  var sexo = document.getElementById('sexo').value;
+  var ano = document.getElementById('ano-escolaridade').value.trim();
+
+  var scores = cotarResultados(respostasActuais);
+
+  var payload = {
+    instrumento: SHEET_NAME,
+    patientCode: code,
+    NomeCrianca: nomeCrianca,
+    NomeInformante: nomeInformante,
+    Idade: idade,
+    Sexo: sexo,
+    AnoEscolaridade: ano,
+    TotalQEA: scores.totalQEA,
+    MediaGlobal: scores.mediaGlobal,
+    NPrevalentes: scores.nPrevalentes,
+    EsquemaDominante: scores.esqDominante
+  };
+  ESQUEMAS.forEach(function(e){
+    payload[e.code+'_Total'] = scores.esquemas[e.code].total;
+    payload[e.code+'_Media'] = scores.esquemas[e.code].media;
+  });
+  payload.MVD_Media = scores.dominios2.MVD.media;
+  payload.LEV_Media = scores.dominios2.LEV.media;
+  payload.AE_Media  = scores.dominios2.AE.media;
+  payload.Respostas = JSON.stringify(respostasActuais);
+
+  // Enviar para Apps Script
+  try {
+    fetch(SCRIPT_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+  } catch(e){ /* silent */ }
+
+  // Fallback CSV quando file:// ou offline
+  try {
+    if (location.protocol === 'file:' || !navigator.onLine){
+      var bom = '\uFEFF';
+      var hd = ['Data','Codigo','NomeCrianca','NomeInformante','Idade','Sexo','AnoEscolaridade','TotalQEA','MediaGlobal','NPrevalentes','EsquemaDominante'];
+      ESQUEMAS.forEach(function(e){ hd.push(e.code+'_Total'); hd.push(e.code+'_Media'); });
+      hd.push('MVD_Media','LEV_Media','AE_Media','Respostas');
+      var row = [new Date().toLocaleDateString('pt-PT'), code, nomeCrianca, nomeInformante, idade, sexo, ano,
+                 scores.totalQEA, scores.mediaGlobal, scores.nPrevalentes, scores.esqDominante];
+      ESQUEMAS.forEach(function(e){ row.push(scores.esquemas[e.code].total); row.push(scores.esquemas[e.code].media); });
+      row.push(scores.dominios2.MVD.media, scores.dominios2.LEV.media, scores.dominios2.AE.media, payload.Respostas);
+      var csv = bom + hd.join(';') + '\r\n' + row.map(function(v){ return '"'+String(v==null?'':v).replace(/"/g,'""')+'"'; }).join(';');
+      var blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+      var a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'QEA_' + code + '_' + new Date().toISOString().slice(0,10) + '.csv';
+      document.body.appendChild(a); a.click();
+      document.body.removeChild(a);
+    }
+  } catch(e){ /* silent */ }
+
+  // Guardar em localStorage para painel local
+  try {
+    var store = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+    store.push({
+      date: new Date().toISOString(),
+      Data: new Date().toLocaleDateString('pt-PT'),
+      patientCode: code, NomeCrianca: nomeCrianca, NomeInformante: nomeInformante,
+      Idade: idade, Sexo: sexo, AnoEscolaridade: ano,
+      scores: scores, respostas: respostasActuais.slice(), answers: respostasActuais.slice()
+    });
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(store));
+  } catch(e){ /* silent */ }
+
+  showPage('page-obrigado');
+}
+
+// ---------- CARREGAMENTO DE DADOS NO PAINEL ----------
+function carregarDados(){
+  var tbody = document.getElementById('tbody-sessoes');
+  tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--text-light);padding:24px">A sincronizar com o servidor…</td></tr>';
+
+  // Dados locais
+  var localSessions = [];
+  try {
+    localSessions = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+  } catch(e){ localSessions = []; }
+
+  // Fetch ao Apps Script
+  fetch(SCRIPT_URL + '?instrumento=' + SHEET_NAME + '&t=' + Date.now())
+    .then(function(res){ return res.json(); })
+    .then(function(data){
+      var rows = Array.isArray(data) ? data : (data && data.rows ? data.rows : []);
+      var remote = rows.map(parseSessaoSheet).filter(Boolean);
+      // Merge: local + remote deduplicado por code+data
+      var merged = mergeSessoes(localSessions, remote);
+      sessoes = merged;
+      renderTabela();
+    })
+    .catch(function(err){
+      console.error('Erro sync:', err);
+      sessoes = localSessions;
+      renderTabela();
+      mostrarAviso('N\u00E3o foi poss\u00EDvel contactar o servidor. A mostrar dados locais.');
+    });
+}
+
+function parseSessaoSheet(row){
+  if (!row) return null;
+  var code = row['C\u00F3digo'] || row['Codigo'] || row.patientCode || row.Codigo || '';
+  if (!code) return null;
+  var data = String(row['Data'] || row.Data || '');
+  if (data.indexOf('T') >= 0){
+    var dt = new Date(data);
+    if (!isNaN(dt)) data = dt.toLocaleDateString('pt-PT');
+  }
+  // Reconstruir scores
+  var esquemasObj = {};
+  ESQUEMAS.forEach(function(e){
+    var total = parseFloat(row[e.code+'_Total']);
+    var media = parseFloat(row[e.code+'_Media']);
+    if (!isNaN(media)){
+      esquemasObj[e.code] = {
+        total: isNaN(total) ? 0 : total,
+        media: media,
+        n: e.itens.length,
+        prevalente: media >= 3.5,
+        classif: classificar(media)
+      };
+    }
+  });
+  var dom2 = {
+    MVD: { media: parseFloat(row.MVD_Media) || 0, classif: classificar(parseFloat(row.MVD_Media)||0) },
+    LEV: { media: parseFloat(row.LEV_Media) || 0, classif: classificar(parseFloat(row.LEV_Media)||0) },
+    AE:  { media: parseFloat(row.AE_Media)  || 0, classif: classificar(parseFloat(row.AE_Media)||0) }
+  };
+  var totalQEA = parseFloat(row.TotalQEA) || 0;
+  var mediaGlobal = parseFloat(row.MediaGlobal) || 0;
+  var nPrev = parseFloat(row.NPrevalentes) || 0;
+  var esqDom = row.EsquemaDominante || '';
+
+  // Reconstruir respostas
+  var respostas = null;
+  try {
+    if (row.Respostas){
+      respostas = JSON.parse(row.Respostas);
+    }
+  } catch(e){ respostas = null; }
+
+  return {
+    date: data, Data: data,
+    patientCode: code,
+    NomeCrianca: row.NomeCrianca || row['Nome Crian\u00E7a'] || '',
+    NomeInformante: row.NomeInformante || row['Nome Informante'] || '',
+    Idade: row.Idade || '',
+    Sexo: row.Sexo || '',
+    AnoEscolaridade: row.AnoEscolaridade || '',
+    scores: {
+      esquemas: esquemasObj, dominios2: dom2,
+      totalQEA: totalQEA, mediaGlobal: mediaGlobal,
+      nPrevalentes: nPrev, esqDominante: esqDom
+    },
+    respostas: respostas, answers: respostas,
+    _remote: true
+  };
+}
+
+function mergeSessoes(locais, remotos){
+  var seen = {};
+  var out = [];
+  locais.forEach(function(s){
+    var key = (s.patientCode||'') + '|' + (s.Data||s.date||'').slice(0,10);
+    if (!seen[key]){ seen[key] = true; out.push(s); }
+  });
+  remotos.forEach(function(s){
+    var key = (s.patientCode||'') + '|' + (s.Data||s.date||'').slice(0,10);
+    if (!seen[key]){ seen[key] = true; out.push(s); }
+  });
+  // Ordenar por data desc
+  out.sort(function(a,b){
+    var da = new Date(a.date||a.Data);
+    var db = new Date(b.date||b.Data);
+    return db - da;
+  });
+  return out;
+}
+
+function renderTabela(){
+  var tbody = document.getElementById('tbody-sessoes');
+  if (!sessoes.length){
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--text-light);padding:24px">Sem sessões registadas.</td></tr>';
+    return;
+  }
+  var html = '';
+  sessoes.forEach(function(s, idx){
+    var sc = s.scores || {};
+    var totalQEA = sc.totalQEA || 0;
+    var nPrev = sc.nPrevalentes != null ? sc.nPrevalentes : 0;
+    var dom = sc.esqDominante || '—';
+    var corPrev = nPrev >= 5 ? 'var(--red)' : nPrev >= 3 ? 'var(--orange)' : 'var(--green)';
+    html += '<tr>';
+    html += '<td>'+escapeHtml(s.Data||s.date||'')+'</td>';
+    html += '<td><strong>'+escapeHtml(s.patientCode||'')+'</strong>';
+    if (s.NomeCrianca) html += '<br><span style="font-size:.75rem;color:var(--text-light)">'+escapeHtml(s.NomeCrianca)+'</span>';
+    html += '</td>';
+    html += '<td>'+escapeHtml(s.NomeInformante||'—')+'</td>';
+    html += '<td style="font-weight:600">'+totalQEA+'</td>';
+    html += '<td style="text-align:center;font-weight:700;color:'+corPrev+'">'+nPrev+' / 18</td>';
+    html += '<td style="font-size:.82rem">'+escapeHtml(dom)+'</td>';
+    html += '<td><button class="btn btn-secondary btn-xs" onclick="verDetalhe('+idx+')">Ver →</button></td>';
+    html += '</tr>';
+  });
+  tbody.innerHTML = html;
+}
+
+function mostrarAviso(msg){
+  var fb = document.getElementById('import-feedback');
+  fb.innerHTML = '<div style="background:#fef3e2;border:1px solid #E67E22;color:#8E4A0D;padding:10px 14px;border-radius:8px;font-size:.85rem">⚠ '+escapeHtml(msg)+'</div>';
+  fb.style.display = 'block';
+  setTimeout(function(){ fb.style.display = 'none'; }, 5000);
+}
+
+// ---------- MODAL DETALHE ----------
+function verDetalhe(idx){
+  var s = sessoes[idx];
+  if (!s) return;
+  sessaoActual = s;
+  var sc = s.scores || {};
+
+  document.getElementById('modal-titulo').textContent =
+    'Detalhe · ' + (s.patientCode||'') +
+    (s.NomeCrianca ? ' — ' + s.NomeCrianca : '') +
+    (s.NomeInformante ? ' · ' + s.NomeInformante : '');
+
+  var body = '';
+
+  // Cabeçalho com info geral
+  body += '<div style="background:var(--blue-xpale);border-radius:8px;padding:14px 18px;margin-bottom:18px;display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;font-size:.85rem">';
+  body += '<div><span style="color:var(--text-light)">Data:</span> <strong>'+escapeHtml(s.Data||s.date||'')+'</strong></div>';
+  body += '<div><span style="color:var(--text-light)">Idade:</span> <strong>'+escapeHtml(String(s.Idade||'—'))+'</strong></div>';
+  body += '<div><span style="color:var(--text-light)">Sexo:</span> <strong>'+escapeHtml(s.Sexo||'—')+'</strong></div>';
+  body += '<div><span style="color:var(--text-light)">Ano:</span> <strong>'+escapeHtml(s.AnoEscolaridade||'—')+'</strong></div>';
+  body += '</div>';
+
+  // Bloco de scores globais
+  body += '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:20px">';
+  body += '<div style="background:white;border:1px solid var(--gray-bdr);border-radius:8px;padding:14px;text-align:center"><div style="font-size:.75rem;color:var(--text-light);margin-bottom:4px">Total QEA</div><div style="font-size:1.6rem;font-weight:700;color:var(--blue)">'+(sc.totalQEA||0)+'</div><div style="font-size:.7rem;color:var(--text-light)">54–324</div></div>';
+  body += '<div style="background:white;border:1px solid var(--gray-bdr);border-radius:8px;padding:14px;text-align:center"><div style="font-size:.75rem;color:var(--text-light);margin-bottom:4px">Média global</div><div style="font-size:1.6rem;font-weight:700;color:var(--blue)">'+(sc.mediaGlobal!=null?sc.mediaGlobal.toFixed(2):'—')+'</div><div style="font-size:.7rem;color:var(--text-light)">1–6</div></div>';
+  body += '<div style="background:white;border:1px solid var(--gray-bdr);border-radius:8px;padding:14px;text-align:center"><div style="font-size:.75rem;color:var(--text-light);margin-bottom:4px">Esquemas prevalentes</div><div style="font-size:1.6rem;font-weight:700;color:'+(sc.nPrevalentes>=5?'var(--red)':sc.nPrevalentes>=3?'var(--orange)':'var(--green)')+'">'+(sc.nPrevalentes||0)+' / 18</div><div style="font-size:.7rem;color:var(--text-light)">Média ≥ 3,5</div></div>';
+  body += '</div>';
+
+  // Tabela de esquemas
+  body += '<h3 style="font-family:\'DM Serif Display\',serif;color:var(--blue);font-size:1.1rem;margin-bottom:10px">Perfil de Esquemas (ordenado por média decrescente)</h3>';
+  body += '<div style="overflow-x:auto;margin-bottom:20px"><table style="width:100%;border-collapse:collapse;font-size:.82rem">';
+  body += '<thead><tr style="background:var(--blue-pale);color:var(--blue)"><th style="padding:8px;text-align:left">Esquema</th><th style="padding:8px">Média</th><th style="padding:8px;width:140px">Intensidade</th><th style="padding:8px;text-align:left">Classificação</th></tr></thead><tbody>';
+  var esqsOrdenados = ESQUEMAS.slice().sort(function(a,b){
+    var ma = (sc.esquemas && sc.esquemas[a.code]) ? sc.esquemas[a.code].media : 0;
+    var mb = (sc.esquemas && sc.esquemas[b.code]) ? sc.esquemas[b.code].media : 0;
+    return mb - ma;
+  });
+  esqsOrdenados.forEach(function(e){
+    var d = sc.esquemas && sc.esquemas[e.code] ? sc.esquemas[e.code] : {media:0, classif:'—'};
+    var cor = corClassif(d.classif);
+    var pct = Math.min(100, Math.max(0, ((d.media-1)/5)*100));
+    body += '<tr>';
+    body += '<td style="padding:6px 8px;border-bottom:1px solid var(--gray-bdr)">'+escapeHtml(e.nome)+'<br><span style="font-size:.7rem;color:var(--text-light)">'+escapeHtml(e.dom)+'</span></td>';
+    body += '<td style="padding:6px 8px;border-bottom:1px solid var(--gray-bdr);text-align:center;font-weight:700;color:'+cor+'">'+(d.media?d.media.toFixed(2):'—')+'</td>';
+    body += '<td style="padding:6px 8px;border-bottom:1px solid var(--gray-bdr)">';
+    body += '<div style="background:#eee;border-radius:3px;height:10px;position:relative"><div style="background:'+cor+';border-radius:3px;height:10px;width:'+pct+'%"></div><div style="position:absolute;top:-2px;left:calc(50% - 1px);width:2px;height:14px;background:#C0392B;opacity:.5" title="corte 3,5"></div></div>';
+    body += '</td>';
+    body += '<td style="padding:6px 8px;border-bottom:1px solid var(--gray-bdr);font-size:.78rem;color:'+cor+';font-weight:600">'+escapeHtml(d.classif)+'</td>';
+    body += '</tr>';
+  });
+  body += '</tbody></table></div>';
+
+  // Tabela de domínios de 2.ª ordem
+  body += '<h3 style="font-family:\'DM Serif Display\',serif;color:var(--blue);font-size:1.1rem;margin-bottom:10px">Domínios de 2.ª ordem (Santos, 2009)</h3>';
+  body += '<div style="overflow-x:auto;margin-bottom:20px"><table style="width:100%;border-collapse:collapse;font-size:.85rem">';
+  body += '<thead><tr style="background:var(--blue-pale);color:var(--blue)"><th style="padding:8px;text-align:left">Domínio</th><th style="padding:8px">Média</th><th style="padding:8px;text-align:left">Classificação</th></tr></thead><tbody>';
+  ['MVD','LEV','AE'].forEach(function(k){
+    var d = sc.dominios2 && sc.dominios2[k] ? sc.dominios2[k] : {media:0, classif:'—'};
+    var cor = corClassif(d.classif);
+    body += '<tr>';
+    body += '<td style="padding:8px;border-bottom:1px solid var(--gray-bdr)"><strong>'+DOMINIOS2[k]+'</strong></td>';
+    body += '<td style="padding:8px;border-bottom:1px solid var(--gray-bdr);text-align:center;font-weight:700;color:'+cor+'">'+(d.media?d.media.toFixed(2):'—')+'</td>';
+    body += '<td style="padding:8px;border-bottom:1px solid var(--gray-bdr);color:'+cor+';font-weight:600">'+escapeHtml(d.classif)+'</td>';
+    body += '</tr>';
+  });
+  body += '</tbody></table></div>';
+
+  // Interpretação qualitativa dinâmica
+  body += buildInterpretacao(sc);
+
+  // Botão respostas detalhadas
+  body += '<div style="margin-top:16px">';
+  body += '<button class="btn btn-secondary btn-xs" onclick="toggleRespostas()">Ver respostas item-a-item</button>';
+  body += '</div>';
+  body += '<div id="respostas-detalhe" style="display:none;margin-top:12px">'+buildRespostasHtml(s)+'</div>';
+
+  document.getElementById('modal-body').innerHTML = body;
+  document.getElementById('modal-detalhe').classList.add('active');
+}
+
+function toggleRespostas(){
+  var el = document.getElementById('respostas-detalhe');
+  el.style.display = (el.style.display === 'none' ? 'block' : 'none');
+}
+
+function buildRespostasHtml(s){
+  var resp = s.respostas || s.answers;
+  if (!resp || !resp.length){
+    return '<div style="color:var(--text-light);font-size:.85rem;font-style:italic">Respostas item-a-item não disponíveis para esta sessão.</div>';
+  }
+  var html = '<div style="background:var(--gray);border-radius:8px;padding:12px;max-height:360px;overflow-y:auto">';
+  html += '<table style="width:100%;font-size:.78rem;border-collapse:collapse">';
+  html += '<thead><tr style="background:var(--blue-pale);color:var(--blue);position:sticky;top:0"><th style="padding:6px;text-align:left;width:40px">#</th><th style="padding:6px;text-align:left">Item</th><th style="padding:6px;width:60px">Resp.</th></tr></thead><tbody>';
+  for (var i=0; i<ITEMS.length; i++){
+    var r = resp[i];
+    html += '<tr><td style="padding:4px 6px;border-bottom:1px solid #eee;color:var(--text-light)">'+(i+1)+'</td>';
+    html += '<td style="padding:4px 6px;border-bottom:1px solid #eee">'+escapeHtml(ITEMS[i])+'</td>';
+    html += '<td style="padding:4px 6px;border-bottom:1px solid #eee;text-align:center;font-weight:700;color:var(--blue)">'+(r!=null?r:'—')+'</td></tr>';
+  }
+  html += '</tbody></table></div>';
+  return html;
+}
+
+function buildInterpretacao(sc){
+  var parts = [];
+  var intens = [], prev = [], sub = [];
+  ESQUEMAS.forEach(function(e){
+    var d = sc.esquemas && sc.esquemas[e.code];
+    if (!d) return;
+    if (d.classif === 'Intensamente prevalente') intens.push(e.nome + ' (M=' + d.media.toFixed(2) + ')');
+    else if (d.classif === 'Prevalente (clinicamente significativo)') prev.push(e.nome + ' (M=' + d.media.toFixed(2) + ')');
+    else if (d.classif === 'Subclínico / Emergente') sub.push(e.nome + ' (M=' + d.media.toFixed(2) + ')');
+  });
+
+  var mg = sc.mediaGlobal || 0;
+  parts.push('A pontuação global média é de <strong>' + mg.toFixed(2) + '</strong> (escala 1–6). ');
+
+  if (intens.length > 0){
+    parts.push('<strong style="color:var(--red)">Esquemas intensamente prevalentes</strong> (média ≥ 4,5): ' + intens.join(', ') + '. ');
+  }
+  if (prev.length > 0){
+    parts.push('<strong style="color:#C0392B">Esquemas prevalentes</strong> (média 3,5–4,49): ' + prev.join(', ') + '. ');
+  }
+  if (sub.length > 0){
+    parts.push('<span style="color:var(--orange)">Esquemas em nível subclínico</span> (média 2,5–3,49): ' + sub.join(', ') + '. ');
+  }
+  if (intens.length === 0 && prev.length === 0){
+    parts.push('Nenhum esquema atinge o ponto de corte clínico de 3,5 — perfil esquemático não prevalente.');
+  }
+
+  // Domínio dominante
+  if (sc.dominios2){
+    var maior = null, mv = -1;
+    ['MVD','LEV','AE'].forEach(function(k){
+      if (sc.dominios2[k] && sc.dominios2[k].media > mv){
+        mv = sc.dominios2[k].media;
+        maior = k;
+      }
+    });
+    if (maior){
+      parts.push('<br><br>O domínio de 2.ª ordem com maior ativação é <strong>' + DOMINIOS2[maior] + '</strong> (média ' + mv.toFixed(2) + ').');
+    }
+  }
+
+  parts.push('<br><br><span style="font-size:.75rem;color:var(--text-light);font-style:italic">Esta interpretação é automática e descritiva. A leitura clínica deve integrar o perfil global, os processos de coping (manutenção, evitamento, compensação), a história desenvolvimental e a articulação com outros instrumentos e observação clínica.</span>');
+
+  return '<div style="background:var(--blue-xpale);border-radius:8px;padding:14px 18px;font-size:.88rem;line-height:1.65">' +
+         '<div style="font-weight:600;color:var(--blue);margin-bottom:8px">Síntese interpretativa</div>' +
+         parts.join(' ') + '</div>';
+}
+
+function fecharModal(){
+  document.getElementById('modal-detalhe').classList.remove('active');
+  sessaoActual = null;
+}
+
+// ---------- EXPORTAÇÕES ----------
+function exportarCSV(){
+  if (!sessoes.length){ alert('Sem sessões para exportar.'); return; }
+  var bom = '\uFEFF';
+  var hd = ['Data','Codigo','NomeCrianca','NomeInformante','Idade','Sexo','AnoEscolaridade','TotalQEA','MediaGlobal','NPrevalentes','EsquemaDominante'];
+  ESQUEMAS.forEach(function(e){ hd.push(e.code+'_Total'); hd.push(e.code+'_Media'); });
+  hd.push('MVD_Media','LEV_Media','AE_Media');
+  var lines = [hd.join(';')];
+  sessoes.forEach(function(s){
+    var sc = s.scores || {};
+    var row = [s.Data||s.date||'', s.patientCode||'', s.NomeCrianca||'', s.NomeInformante||'',
+               s.Idade||'', s.Sexo||'', s.AnoEscolaridade||'',
+               sc.totalQEA||'', sc.mediaGlobal||'', sc.nPrevalentes||'', sc.esqDominante||''];
+    ESQUEMAS.forEach(function(e){
+      var d = sc.esquemas && sc.esquemas[e.code] ? sc.esquemas[e.code] : {total:'', media:''};
+      row.push(d.total); row.push(d.media);
+    });
+    row.push(sc.dominios2 && sc.dominios2.MVD ? sc.dominios2.MVD.media : '');
+    row.push(sc.dominios2 && sc.dominios2.LEV ? sc.dominios2.LEV.media : '');
+    row.push(sc.dominios2 && sc.dominios2.AE  ? sc.dominios2.AE.media  : '');
+    lines.push(row.map(function(v){ return '"'+String(v==null?'':v).replace(/"/g,'""')+'"'; }).join(';'));
+  });
+  var blob = new Blob([bom + lines.join('\r\n')], {type:'text/csv;charset=utf-8;'});
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'QEA_sessoes_' + new Date().toISOString().slice(0,10) + '.csv';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+}
+
+function importarCSV(){
+  document.getElementById('import-file-input').click();
+}
+
+function processarFicheiroImportado(input){
+  var file = input.files[0];
+  if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function(e){
+    var text = String(e.target.result).replace(/^\uFEFF/, '');
+    var lines = text.split(/\r?\n/).filter(Boolean);
+    if (lines.length < 2){ alert('Ficheiro vazio.'); return; }
+    var sep = (lines[0].indexOf(';') > -1) ? ';' : ',';
+    var hd = lines[0].split(sep).map(function(h){ return h.replace(/^"|"$/g,'').trim(); });
+    var importados = 0;
+    var store = [];
+    try { store = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); } catch(e){ store=[]; }
+    var seen = {};
+    store.forEach(function(s){ seen[(s.patientCode||'')+'|'+(s.Data||s.date||'').slice(0,10)] = true; });
+    for (var i=1; i<lines.length; i++){
+      var cells = parseCsvLine(lines[i], sep);
+      var obj = {};
+      hd.forEach(function(h, k){ obj[h] = cells[k] || ''; });
+      var code = obj.Codigo || obj['C\u00F3digo'] || '';
+      var data = obj.Data || '';
+      var key = code + '|' + data.slice(0,10);
+      if (!code || seen[key]) continue;
+      // Reconstruir scores a partir das colunas
+      var esq = {};
+      ESQUEMAS.forEach(function(e){
+        var t = parseFloat(obj[e.code+'_Total']);
+        var m = parseFloat(obj[e.code+'_Media']);
+        if (!isNaN(m)){
+          esq[e.code] = { total: isNaN(t)?0:t, media: m, n: e.itens.length, prevalente: m>=3.5, classif: classificar(m) };
+        }
+      });
+      var ses = {
+        date: data, Data: data,
+        patientCode: code, NomeCrianca: obj.NomeCrianca||'', NomeInformante: obj.NomeInformante||'',
+        Idade: obj.Idade||'', Sexo: obj.Sexo||'', AnoEscolaridade: obj.AnoEscolaridade||'',
+        scores: {
+          esquemas: esq,
+          dominios2: {
+            MVD: { media: parseFloat(obj.MVD_Media)||0, classif: classificar(parseFloat(obj.MVD_Media)||0) },
+            LEV: { media: parseFloat(obj.LEV_Media)||0, classif: classificar(parseFloat(obj.LEV_Media)||0) },
+            AE:  { media: parseFloat(obj.AE_Media)||0,  classif: classificar(parseFloat(obj.AE_Media)||0) }
+          },
+          totalQEA: parseFloat(obj.TotalQEA)||0,
+          mediaGlobal: parseFloat(obj.MediaGlobal)||0,
+          nPrevalentes: parseFloat(obj.NPrevalentes)||0,
+          esqDominante: obj.EsquemaDominante||''
+        }
+      };
+      store.push(ses);
+      seen[key] = true;
+      importados++;
+    }
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(store)); } catch(e){}
+    alert('Importados '+importados+' registos novos.');
+    carregarDados();
+  };
+  reader.readAsText(file, 'utf-8');
+  input.value = '';
+}
+
+function parseCsvLine(line, sep){
+  var out = [], cur = '', inQ = false;
+  for (var i=0; i<line.length; i++){
+    var c = line[i];
+    if (c === '"'){
+      if (inQ && line[i+1] === '"'){ cur += '"'; i++; }
+      else inQ = !inQ;
+    } else if (c === sep && !inQ){
+      out.push(cur); cur = '';
+    } else { cur += c; }
+  }
+  out.push(cur);
+  return out;
+}
+
+function exportarPDF(){
+  // Imprime a tabela actual (usa window.print com CSS @media print)
+  var html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>QEA — Sessões</title>';
+  html += '<style>body{font-family:sans-serif;padding:24px;color:#2C3E50} h2{color:#3B5A7A} table{width:100%;border-collapse:collapse;font-size:11px} th{background:#D6E4F0;color:#3B5A7A;text-align:left;padding:6px 8px} td{padding:6px 8px;border-bottom:1px solid #eee}</style></head><body>';
+  html += '<h2>QEA — Sessões registadas</h2>';
+  html += '<p style="color:#6B7A8D;font-size:11px">Ricardina Correia · Cédula 8233 · Psicologia Pediátrica · '+new Date().toLocaleDateString('pt-PT')+'</p>';
+  html += '<table><thead><tr><th>Data</th><th>Código</th><th>Nome</th><th>Respondente</th><th>Total QEA</th><th>Prev.</th><th>Dominante</th></tr></thead><tbody>';
+  sessoes.forEach(function(s){
+    var sc = s.scores || {};
+    html += '<tr><td>'+escapeHtml(s.Data||s.date||'')+'</td><td><strong>'+escapeHtml(s.patientCode||'')+'</strong></td>';
+    html += '<td>'+escapeHtml(s.NomeCrianca||'')+'</td><td>'+escapeHtml(s.NomeInformante||'')+'</td>';
+    html += '<td>'+(sc.totalQEA||0)+'</td><td>'+(sc.nPrevalentes||0)+'/18</td><td>'+escapeHtml(sc.esqDominante||'')+'</td></tr>';
+  });
+  html += '</tbody></table></body></html>';
+  var w = window.open('','_blank');
+  if (!w){ alert('Pop-up bloqueado.'); return; }
+  w.document.write(html); w.document.close();
+  setTimeout(function(){ w.print(); }, 500);
+}
+
+function exportarRespostasPDF(sessao){
+  if (!sessao){ alert('Selecione primeiro uma sessão (clique em "Ver →").'); return; }
+  var resp = sessao.respostas || sessao.answers;
+  if (!resp){ alert('Sem respostas item-a-item para esta sessão.'); return; }
+  var linhas = '';
+  for (var i=0; i<ITEMS.length; i++){
+    linhas += '<tr><td style="padding:4px 8px;border-bottom:1px solid #eee;color:#6B7A8D">'+(i+1)+'</td>';
+    linhas += '<td style="padding:4px 8px;border-bottom:1px solid #eee">'+escapeHtml(ITEMS[i])+'</td>';
+    linhas += '<td style="padding:4px 8px;border-bottom:1px solid #eee;text-align:center;font-weight:600">'+(resp[i]!=null?resp[i]:'—')+'</td></tr>';
+  }
+  var html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Respostas — '+escapeHtml(sessao.patientCode||'')+'</title>';
+  html += '<style>body{font-family:sans-serif;font-size:12px;color:#2C3E50;padding:24px} h2{color:#3B5A7A;margin-bottom:4px} p{color:#6B7A8D;margin-bottom:20px} table{width:100%;border-collapse:collapse} th{background:#D6E4F0;padding:6px 8px;text-align:left;color:#3B5A7A} .no-print{margin-bottom:20px} @media print{.no-print{display:none}}</style>';
+  html += '</head><body><div class="no-print"><button onclick="window.print()">🖨 Imprimir / Guardar PDF</button></div>';
+  html += '<h2>QEA — Respostas por Item</h2>';
+  html += '<p>Paciente: <strong>'+escapeHtml(sessao.patientCode||'')+'</strong>';
+  if (sessao.NomeCrianca) html += ' · '+escapeHtml(sessao.NomeCrianca);
+  html += ' · Data: '+escapeHtml(sessao.Data||sessao.date||'');
+  html += ' · Ricardina Correia · Cédula 8233</p>';
+  html += '<table><thead><tr><th style="width:40px">#</th><th>Item</th><th style="width:70px">Resposta</th></tr></thead><tbody>'+linhas+'</tbody></table>';
+  html += '</body></html>';
+  var w = window.open('','_blank');
+  if (!w){ alert('Pop-up bloqueado.'); return; }
+  w.document.write(html); w.document.close();
+}
+
+function exportarInterpretacaoPDF(sessao){
+  if (!sessao){ alert('Selecione primeiro uma sessão (clique em "Ver →").'); return; }
+  var sc = sessao.scores || {};
+  var html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Interpretação QEA — '+escapeHtml(sessao.patientCode||'')+'</title>';
+  html += '<style>body{font-family:sans-serif;font-size:12px;color:#2C3E50;padding:24px;max-width:800px;margin:0 auto} h2{color:#3B5A7A;font-size:1.4rem;margin-bottom:4px} h3{color:#3B5A7A;margin-top:24px;margin-bottom:10px} p{color:#6B7A8D;margin-bottom:16px;line-height:1.5} table{width:100%;border-collapse:collapse;margin-bottom:16px} th{background:#D6E4F0;padding:6px 8px;text-align:left;color:#3B5A7A;font-size:11px} td{padding:6px 8px;border-bottom:1px solid #eee;font-size:11px} .summary{background:#EBF2F8;padding:14px 18px;border-radius:8px;margin:12px 0;line-height:1.6} .no-print{margin-bottom:20px} @media print{.no-print{display:none}}</style>';
+  html += '</head><body><div class="no-print"><button onclick="window.print()">🖨 Imprimir / Guardar PDF</button></div>';
+  html += '<h2>QEA — Interpretação</h2>';
+  html += '<p>Paciente: <strong>'+escapeHtml(sessao.patientCode||'')+'</strong>';
+  if (sessao.NomeCrianca) html += ' · '+escapeHtml(sessao.NomeCrianca);
+  html += ' · Idade: '+escapeHtml(String(sessao.Idade||'—'));
+  html += ' · Sexo: '+escapeHtml(sessao.Sexo||'—');
+  html += ' · Data: '+escapeHtml(sessao.Data||sessao.date||'');
+  html += '<br>Ricardina Correia · Cédula 8233 · Psicologia Pediátrica</p>';
+
+  // Scores globais
+  html += '<h3>Indicadores globais</h3>';
+  html += '<table><tr><td style="width:50%"><strong>Total QEA</strong></td><td>'+(sc.totalQEA||0)+' (intervalo 54–324)</td></tr>';
+  html += '<tr><td><strong>Média global</strong></td><td>'+(sc.mediaGlobal!=null?sc.mediaGlobal.toFixed(2):'—')+' (escala 1–6)</td></tr>';
+  html += '<tr><td><strong>Esquemas prevalentes (M ≥ 3,5)</strong></td><td>'+(sc.nPrevalentes||0)+' / 18</td></tr>';
+  html += '<tr><td><strong>Esquema dominante</strong></td><td>'+escapeHtml(sc.esqDominante||'—')+'</td></tr></table>';
+
+  // Perfil
+  html += '<h3>Perfil de Esquemas</h3>';
+  html += '<table><thead><tr><th>Esquema</th><th>Domínio</th><th style="text-align:center">Média</th><th>Classificação</th></tr></thead><tbody>';
+  var ord = ESQUEMAS.slice().sort(function(a,b){
+    var ma = (sc.esquemas && sc.esquemas[a.code]) ? sc.esquemas[a.code].media : 0;
+    var mb = (sc.esquemas && sc.esquemas[b.code]) ? sc.esquemas[b.code].media : 0;
+    return mb - ma;
+  });
+  ord.forEach(function(e){
+    var d = sc.esquemas && sc.esquemas[e.code] ? sc.esquemas[e.code] : {media:0, classif:'—'};
+    var cor = corClassif(d.classif);
+    html += '<tr><td>'+escapeHtml(e.nome)+'</td><td style="font-size:10px;color:#6B7A8D">'+escapeHtml(e.dom)+'</td>';
+    html += '<td style="text-align:center;font-weight:700;color:'+cor+'">'+(d.media?d.media.toFixed(2):'—')+'</td>';
+    html += '<td style="color:'+cor+';font-weight:600">'+escapeHtml(d.classif)+'</td></tr>';
+  });
+  html += '</tbody></table>';
+
+  // Domínios 2ª ordem
+  html += '<h3>Domínios de 2.ª ordem (Santos, 2009)</h3>';
+  html += '<table><thead><tr><th>Domínio</th><th style="text-align:center">Média</th><th>Classificação</th></tr></thead><tbody>';
+  ['MVD','LEV','AE'].forEach(function(k){
+    var d = sc.dominios2 && sc.dominios2[k] ? sc.dominios2[k] : {media:0, classif:'—'};
+    var cor = corClassif(d.classif);
+    html += '<tr><td><strong>'+DOMINIOS2[k]+'</strong></td>';
+    html += '<td style="text-align:center;font-weight:700;color:'+cor+'">'+(d.media?d.media.toFixed(2):'—')+'</td>';
+    html += '<td style="color:'+cor+';font-weight:600">'+escapeHtml(d.classif)+'</td></tr>';
+  });
+  html += '</tbody></table>';
+
+  // Síntese
+  html += '<h3>Síntese interpretativa</h3>';
+  html += '<div class="summary">'+buildInterpretacaoTexto(sc)+'</div>';
+
+  // Respostas
+  if (sessao.respostas || sessao.answers){
+    var resp = sessao.respostas || sessao.answers;
+    html += '<h3>Respostas item-a-item</h3>';
+    html += '<table><thead><tr><th style="width:40px">#</th><th>Item</th><th style="width:60px;text-align:center">Resp.</th></tr></thead><tbody>';
+    for (var i=0; i<ITEMS.length; i++){
+      html += '<tr><td>'+(i+1)+'</td><td style="font-size:10.5px">'+escapeHtml(ITEMS[i])+'</td>';
+      html += '<td style="text-align:center;font-weight:700">'+(resp[i]!=null?resp[i]:'—')+'</td></tr>';
+    }
+    html += '</tbody></table>';
+  }
+
+  html += '</body></html>';
+  var w = window.open('','_blank');
+  if (!w){ alert('Pop-up bloqueado.'); return; }
+  w.document.write(html); w.document.close();
+}
+
+function buildInterpretacaoTexto(sc){
+  // Versão em texto simples (sem HTML) usada no PDF de interpretação
+  var intens = [], prev = [], sub = [];
+  ESQUEMAS.forEach(function(e){
+    var d = sc.esquemas && sc.esquemas[e.code];
+    if (!d) return;
+    if (d.classif === 'Intensamente prevalente') intens.push(e.nome+' (M='+d.media.toFixed(2)+')');
+    else if (d.classif === 'Prevalente (clinicamente significativo)') prev.push(e.nome+' (M='+d.media.toFixed(2)+')');
+    else if (d.classif === 'Subclínico / Emergente') sub.push(e.nome+' (M='+d.media.toFixed(2)+')');
+  });
+  var parts = [];
+  parts.push('A pontuação global média é de <strong>'+(sc.mediaGlobal||0).toFixed(2)+'</strong> (escala 1–6).');
+  if (intens.length) parts.push('<br><br>Esquemas intensamente prevalentes (M ≥ 4,5): '+intens.join(', ')+'.');
+  if (prev.length) parts.push('<br><br>Esquemas prevalentes (M 3,5–4,49): '+prev.join(', ')+'.');
+  if (sub.length) parts.push('<br><br>Esquemas em nível subclínico (M 2,5–3,49): '+sub.join(', ')+'.');
+  if (!intens.length && !prev.length){
+    parts.push('<br><br>Nenhum esquema atinge o ponto de corte clínico de 3,5 — perfil esquemático não prevalente.');
+  }
+  if (sc.dominios2){
+    var maior = null, mv = -1;
+    ['MVD','LEV','AE'].forEach(function(k){ if (sc.dominios2[k] && sc.dominios2[k].media > mv){ mv = sc.dominios2[k].media; maior = k; } });
+    if (maior) parts.push('<br><br>Domínio de 2.ª ordem mais ativado: <strong>'+DOMINIOS2[maior]+'</strong> (média '+mv.toFixed(2)+').');
+  }
+  parts.push('<br><br><span style="font-size:10px;color:#6B7A8D;font-style:italic">Interpretação automática e descritiva. A leitura clínica integral é da responsabilidade do psicólogo e deve considerar o perfil global, processos de coping, história desenvolvimental e articulação com outros instrumentos.</span>');
+  return parts.join('');
+}
+
+// ---------- UTILITÁRIOS ----------
+function escapeHtml(s){
+  return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ---------- ARRANQUE ----------
+document.addEventListener('DOMContentLoaded', function(){
+  var params = new URLSearchParams(window.location.search);
+  if (params.get('clinico') === PASSWORD){
+    showPage('page-clinico');
+    carregarDados();
+    return;
+  }
+  showPage('page-home');
+});
+</script>
+
+</body>
+</html>

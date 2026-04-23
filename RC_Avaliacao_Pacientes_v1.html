@@ -795,7 +795,10 @@ const SYNC_KEY_TO_ABA = {
   // ── ISC-24 — Inventário de Somatização para Crianças (Ferreira et al., 2014) ──
   'isc24':             'ISC24',
   'ISC24':             'ISC24',
-  'ISC-24':            'ISC24'
+  'ISC-24':            'ISC24',
+  // ── QEA — Questionário de Esquemas para Adolescentes (Santos, Rijo & Pinto-Gouveia, 2009) ──
+  'qea':               'QEA',
+  'QEA':               'QEA'
 };
 
 // Cache em memória das respostas do Sheet (evita fetch repetidos na mesma sessão)
@@ -1228,6 +1231,14 @@ function initCatalog() {
       objective:'Avalia presença e intensidade de sintomas somáticos nas últimas 2 semanas (24 itens; Ferreira, Martins, Monteiro & Pereira, 2014 — adaptação portuguesa do CSI-24)',
       domains:['Pontuação Total','Cardiopulmonar','Pseudoneurológico','Gastrointestinal','Dor'],
       ageMin:96, ageMax:227 },
+    // ── QEA — Questionário de Esquemas para Adolescentes v1.0 ────────────
+    { id:'q_qea', name:'QEA — Esquemas para Adolescentes',
+      dest:['Paciente','Jovem avaliado'],
+      link:'https://correiaricardina-ui.github.io/questionarios/QEA_v1.html',
+      syncKey:'qea', area:'Personalidade / Esquemas Precoces', ageRange:'10–25 anos',
+      objective:'Avalia 18 esquemas precoces mal-adaptativos em adolescentes — auto-relato (Santos, Rijo & Pinto-Gouveia, 2009); ponto de corte clínico: média ≥ 3,5',
+      domains:['IS','EMA','PER','PE','AB','AP','AS','VUL','DA','IEMOC','SUB','GR','FR','DEP','DF','REC','AI','PESS','MVD','LEV','AE','Média Global'],
+      ageMin:120, ageMax:299 },
   ];
   // Garantir que TODOS os defaults estão no catálogo, sempre
   // (funciona em RC novos e em RC existentes — nunca perde questionários)
@@ -1346,6 +1357,8 @@ function initCatalog() {
       'q_kidcope_ad': { link:'https://correiaricardina-ui.github.io/questionarios/Kidcope_Adolescentes_v1.html', syncKey:'kidcope_ad' },
       // ── ISC-24 — Inventário de Somatização para Crianças v1.0 ──────────
       'q_isc24':      { link:'https://correiaricardina-ui.github.io/questionarios/ISC24.html', syncKey:'isc24' },
+      // ── QEA — Questionário de Esquemas para Adolescentes v1.0 ──────────
+      'q_qea':        { link:'https://correiaricardina-ui.github.io/questionarios/QEA_v1.html', syncKey:'qea' },
     };
     // ── Re-store com chave correcta ('q_' + id) — corrige instalações anteriores ──
     // Garante que Conners, FAD e MAP ficam acessíveis pelo META.forEach e getCatalog
@@ -1620,6 +1633,11 @@ function initCatalog() {
     if(!catalog.includes('q_isc24')) {
       const d = defaults.find(x => x.id === 'q_isc24');
       if(d) { store.set('q_' + d.id, d); catalog.push('q_isc24'); store.set('catalog', catalog); }
+    }
+    // QEA — Questionário de Esquemas para Adolescentes v1.0
+    if(!catalog.includes('q_qea')) {
+      const d = defaults.find(x => x.id === 'q_qea');
+      if(d) { store.set('q_' + d.id, d); catalog.push('q_qea'); store.set('catalog', catalog); }
     }
     }
   }
@@ -2456,6 +2474,27 @@ function formatScoreSummary(scores, syncKey) {
     }
   }
 
+  // ── QEA — Questionário de Esquemas para Adolescentes (Santos, Rijo & Pinto-Gouveia, 2009) ──
+  // Apresenta Média Global (1-6) + N.º esquemas prevalentes + Esquema dominante.
+  // Ponto de corte clínico: média ≥ 3,5.
+  // Cores: verde < 2.5 · laranja 2.5-3.49 · vermelho ≥ 3.5.
+  if(syncKey === 'qea') {
+    const media = scores['MediaGlobal'] ?? scores['mediaGlobal'] ?? scores['media_global'] ?? scores['media'];
+    const n     = scores['NPrevalentes'] ?? scores['nPrevalentes'] ?? scores['n_prevalentes'];
+    const esq   = scores['EsquemaDominante'] ?? scores['esquemaDominante'] ?? scores['esqDominante'] ?? '';
+    if(media != null && media !== '') {
+      const v = parseFloat(media);
+      if(!isNaN(v)) {
+        const cls = v >= 3.5 ? 'color:#C0392B;font-weight:700;' :
+                    v >= 2.5 ? 'color:#E67E22;font-weight:600;' :
+                               'color:var(--green);font-weight:600;';
+        const nStr   = (n != null && n !== '') ? ' · N prev=' + n : '';
+        const esqStr = esq ? ' · ' + esq : '';
+        return '<span style="font-size:0.78rem;' + cls + '">Média=' + v.toFixed(2) + nStr + esqStr + '</span>';
+      }
+    }
+  }
+
   return null;
 }
 
@@ -2656,7 +2695,9 @@ function renderAssignments(patientId) {
                 'KIDCOPE_CR':      ['NomeInformante','NomeCriança','NomeCrianca'],
                 'KIDCOPE_AD':      ['NomeInformante','NomeCriança','NomeCrianca'],
                 // ── ISC-24 — múltiplos respondentes possíveis (próprio, pais, EE) ──
-                'ISC24':           ['NomeRespondente','Relação','NomeCriança','NomeCrianca']
+                'ISC24':           ['NomeRespondente','Relação','NomeCriança','NomeCrianca'],
+                // ── QEA — auto-relato (adolescente) ───────────────────────
+                'QEA':             ['NomeInformante','NomeCrianca','NomeCriança']
               };
               const RC = {
                 'SWAN':['Relação'],'BRIEF_Pais':['Relação'],'SCARED_R_PAIS':['Relação'],
