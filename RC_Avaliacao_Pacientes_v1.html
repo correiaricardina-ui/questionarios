@@ -659,7 +659,9 @@ const QID_TO_ABA = {
   // ── Kidcope — Crianças + Adolescentes (Spirito, Stark & Williams, 1988) ──
   'q_kidcope_cr':          'KIDCOPE_CR',
   'q_kidcope_ad':          'KIDCOPE_AD',
-  'q_anamnese_hp':         'ANAMNESE_HP'
+  'q_anamnese_hp':         'ANAMNESE_HP',
+  // ── ISC-24 — Inventário de Somatização para Crianças (Ferreira et al., 2014) ──
+  'q_isc24':               'ISC24'
 };
 
 
@@ -789,7 +791,11 @@ const SYNC_KEY_TO_ABA = {
   'KIDCOPE_AD':        'KIDCOPE_AD',
   // ── Anamnese — História Prévia (Ricardina Correia, 2026) ──────────
   'anamnese_hp':       'ANAMNESE_HP',
-  'ANAMNESE_HP':       'ANAMNESE_HP'
+  'ANAMNESE_HP':       'ANAMNESE_HP',
+  // ── ISC-24 — Inventário de Somatização para Crianças (Ferreira et al., 2014) ──
+  'isc24':             'ISC24',
+  'ISC24':             'ISC24',
+  'ISC-24':            'ISC24'
 };
 
 // Cache em memória das respostas do Sheet (evita fetch repetidos na mesma sessão)
@@ -1214,6 +1220,14 @@ function initCatalog() {
       objective:'Avalia frequência (0–3) e eficácia percebida (0–4) de estratégias de coping; inclui flags de discrepância Frequência-Eficácia e perfil integrado A-E-D (Spirito, Stark & Williams, 1988)',
       domains:['Estilo Adaptativo','Estilo Evitativo','Estilo Disfuncional','Índice Global','Flags F-E','Perfil A-E-D'],
       ageMin:156, ageMax:227 },
+    // ── ISC-24 — Inventário de Somatização para Crianças v1.0 ────────────
+    { id:'q_isc24', name:'ISC-24 — Somatização',
+      dest:['Paciente','Criança avaliada','Jovem avaliado','Mãe','Pai','Enc. Educação'],
+      link:'https://correiaricardina-ui.github.io/questionarios/ISC24.html',
+      syncKey:'isc24', area:'Psicossomática / Somatização', ageRange:'8–18 anos',
+      objective:'Avalia presença e intensidade de sintomas somáticos nas últimas 2 semanas (24 itens; Ferreira, Martins, Monteiro & Pereira, 2014 — adaptação portuguesa do CSI-24)',
+      domains:['Pontuação Total','Cardiopulmonar','Pseudoneurológico','Gastrointestinal','Dor'],
+      ageMin:96, ageMax:227 },
   ];
   // Garantir que TODOS os defaults estão no catálogo, sempre
   // (funciona em RC novos e em RC existentes — nunca perde questionários)
@@ -1330,6 +1344,8 @@ function initCatalog() {
       // ── Kidcope — Crianças + Adolescentes v1.0 ────────────────
       'q_kidcope_cr': { link:'https://correiaricardina-ui.github.io/questionarios/Kidcope_Criancas_v1.html',     syncKey:'kidcope_cr' },
       'q_kidcope_ad': { link:'https://correiaricardina-ui.github.io/questionarios/Kidcope_Adolescentes_v1.html', syncKey:'kidcope_ad' },
+      // ── ISC-24 — Inventário de Somatização para Crianças v1.0 ──────────
+      'q_isc24':      { link:'https://correiaricardina-ui.github.io/questionarios/ISC24.html', syncKey:'isc24' },
     };
     // ── Re-store com chave correcta ('q_' + id) — corrige instalações anteriores ──
     // Garante que Conners, FAD e MAP ficam acessíveis pelo META.forEach e getCatalog
@@ -1599,6 +1615,11 @@ function initCatalog() {
     if(!catalog.includes('q_kidcope_ad')) {
       const d = defaults.find(x => x.id === 'q_kidcope_ad');
       if(d) { store.set('q_' + d.id, d); catalog.push('q_kidcope_ad'); store.set('catalog', catalog); }
+    }
+    // ISC-24 — Inventário de Somatização para Crianças v1.0
+    if(!catalog.includes('q_isc24')) {
+      const d = defaults.find(x => x.id === 'q_isc24');
+      if(d) { store.set('q_' + d.id, d); catalog.push('q_isc24'); store.set('catalog', catalog); }
     }
     }
   }
@@ -2416,6 +2437,25 @@ function formatScoreSummary(scores, syncKey) {
     }
   }
 
+  // ── ISC-24 — Inventário de Somatização para Crianças (Ferreira et al., 2014) ──
+  // Apresenta PT (0-96) + Classificação baseada em z-score vs norma idade×género.
+  // Cores: verde Muito Baixo/Médio · laranja Elevado · vermelho Muito Elevado.
+  if(syncKey === 'isc24') {
+    const pt  = scores['PT']   ?? scores['pt']   ?? scores['total'];
+    const z   = scores['z_score'] ?? scores['Z_Score'] ?? scores['z'];
+    const cls_txt = scores['classificacao'] ?? scores['Classificacao'] ?? '';
+    if(pt != null) {
+      const isMuitoElev = String(cls_txt).indexOf('Muito Elevado') >= 0;
+      const isElev     = !isMuitoElev && String(cls_txt).indexOf('Elevado') >= 0;
+      const cls = isMuitoElev ? 'color:#C0392B;font-weight:700;' :
+                  isElev      ? 'color:#E67E22;font-weight:600;' :
+                                'color:var(--green);font-weight:600;';
+      const zStr = (z != null && z !== '') ? ' · z=' + Number(z).toFixed(2) : '';
+      return '<span style="font-size:0.78rem;' + cls + '">PT=' + pt + zStr +
+             (cls_txt ? ' · ' + cls_txt : '') + '</span>';
+    }
+  }
+
   return null;
 }
 
@@ -2614,7 +2654,9 @@ function renderAssignments(patientId) {
                 'CCBQ':            ['NomeRespondente','NomeCriança','NomeCrianca'],
                 // ── Kidcope — auto-resposta (criança/adolescente) ─────────
                 'KIDCOPE_CR':      ['NomeInformante','NomeCriança','NomeCrianca'],
-                'KIDCOPE_AD':      ['NomeInformante','NomeCriança','NomeCrianca']
+                'KIDCOPE_AD':      ['NomeInformante','NomeCriança','NomeCrianca'],
+                // ── ISC-24 — múltiplos respondentes possíveis (próprio, pais, EE) ──
+                'ISC24':           ['NomeRespondente','Relação','NomeCriança','NomeCrianca']
               };
               const RC = {
                 'SWAN':['Relação'],'BRIEF_Pais':['Relação'],'SCARED_R_PAIS':['Relação'],
@@ -2898,7 +2940,9 @@ async function syncAndMark(patientId, idx) {
           'KIDCOPE_CR':['NomeInformante','NomeCriança','NomeCrianca'],
           'KIDCOPE_AD':['NomeInformante','NomeCriança','NomeCrianca'],
           // ── Anamnese — História Prévia (Ricardina Correia, 2026) ──
-          'ANAMNESE_HP':['NomeRespondente','Relação']
+          'ANAMNESE_HP':['NomeRespondente','Relação'],
+          // ── ISC-24 — múltiplos respondentes possíveis (próprio, pais, EE) ──
+          'ISC24':['NomeRespondente','Relação','NomeCriança','NomeCrianca']
         };
         const RC2 = {
           'SWAN':['Relação'],'BRIEF_Pais':['Relação'],'SCARED_R_PAIS':['Relação'],

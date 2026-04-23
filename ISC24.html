@@ -1,0 +1,1295 @@
+<!DOCTYPE html>
+<!--
+  ISC-24 — Inventário de Somatização para Crianças
+  Adaptação portuguesa do CSI-24 (Ferreira, Martins, Monteiro & Pereira, 2014)
+  Autora: Ricardina Correia · Cédula 8233 · Psicologia Pediátrica
+  Skill RC v27 — abril 2026
+-->
+<html lang="pt-PT">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ISC-24 — Inventário de Somatização para Crianças</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<style>
+:root{
+  --blue:#3B5A7A; --blue-mid:#5B7FA6; --blue-light:#A8C4D8;
+  --blue-pale:#D6E4F0; --blue-xpale:#EBF2F8;
+  --gray:#F4F6F9; --gray-bdr:#DDE3EA;
+  --text:#2C3E50; --text-light:#6B7A8D;
+  --red:#C0392B; --green:#27AE60; --orange:#E67E22;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:var(--gray);color:var(--text);min-height:100vh}
+
+.app-header{background:var(--blue);color:white;padding:12px 28px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 8px rgba(0,0,0,.15)}
+.app-title{font-size:1.1rem;font-weight:700;letter-spacing:.3px}
+.app-subtitle{font-size:.78rem;opacity:.75;margin-top:2px}
+.header-right{font-size:.78rem;opacity:.75;text-align:right}
+
+.container{max-width:720px;margin:0 auto;padding:24px 16px}
+.card{background:white;border-radius:12px;padding:28px;box-shadow:0 2px 8px rgba(59,90,122,.08);border:1px solid var(--gray-bdr)}
+
+.btn{border:none;border-radius:8px;padding:10px 20px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;font-size:.9rem;transition:opacity .15s}
+.btn:hover{opacity:.88}
+.btn-primary{background:var(--blue);color:white}
+.btn-secondary{background:var(--blue-pale);color:var(--blue)}
+.btn-ghost{background:transparent;color:white;border:1px solid rgba(255,255,255,.4)}
+.btn-xs{padding:4px 10px;font-size:.78rem}
+
+.badge{border-radius:6px;padding:2px 10px;font-size:.75rem;font-weight:600;display:inline-block}
+.badge-clinical{background:#fdecea;color:var(--red)}
+.badge-borderline{background:#fef3e2;color:var(--orange)}
+.badge-normative{background:#eafaf1;color:var(--green)}
+
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:flex-start;justify-content:center;z-index:1000;padding:16px;overflow-y:auto}
+.modal-box{background:white;border-radius:16px;padding:28px;max-width:860px;width:100%;box-shadow:0 12px 48px rgba(0,0,0,.25);margin:0 auto}
+
+.landing-card{max-width:560px;margin:60px auto;text-align:center}
+.landing-icon{font-size:2.8rem;margin-bottom:16px}
+.landing-title{font-family:'DM Serif Display',serif;font-size:1.8rem;color:var(--blue);margin-bottom:8px}
+.landing-sub{color:var(--text-light);margin-bottom:32px}
+.landing-btns{display:flex;gap:16px;justify-content:center;flex-wrap:wrap}
+.landing-btn{flex:1;min-width:200px;max-width:240px;padding:20px 16px;border-radius:12px;background:var(--blue-xpale);border:1px solid var(--blue-pale);cursor:pointer;text-align:center;transition:all .2s}
+.landing-btn:hover{background:var(--blue-pale);transform:translateY(-2px)}
+.landing-btn-icon{font-size:1.8rem;margin-bottom:8px}
+.landing-btn-title{font-weight:600;color:var(--blue);font-size:1rem}
+.landing-btn-sub{font-size:.8rem;color:var(--text-light);margin-top:4px}
+
+.login-card{max-width:400px;margin:80px auto;text-align:center}
+.login-icon{font-size:2.4rem;margin-bottom:12px}
+.login-title{font-family:'DM Serif Display',serif;font-size:1.4rem;color:var(--blue);margin-bottom:6px}
+.login-sub{color:var(--text-light);font-size:.85rem;margin-bottom:24px}
+.login-field{text-align:left;margin-bottom:16px}
+.login-field label{font-size:.82rem;font-weight:600;color:var(--text-light);display:block;margin-bottom:4px}
+.login-input{width:100%;padding:10px 14px;border:1.5px solid var(--gray-bdr);border-radius:8px;font-size:.95rem;font-family:'DM Sans',sans-serif;outline:none;transition:border-color .2s}
+.login-input:focus{border-color:var(--blue-mid)}
+.login-error{color:var(--red);font-size:.82rem;margin-top:8px;display:none}
+.login-back{font-size:.82rem;color:var(--text-light);margin-top:16px;cursor:pointer;text-decoration:underline}
+
+.progress-bar{background:var(--gray-bdr);height:6px;border-radius:4px;overflow:hidden;margin-bottom:16px}
+.progress-fill{background:var(--blue);height:100%;width:0%;transition:width .3s;border-radius:4px}
+
+.q-table{width:100%;border-collapse:collapse;margin-top:8px}
+.q-table thead tr{position:sticky;top:0;z-index:10;background:white;border-bottom:2px solid var(--blue-pale);box-shadow:0 2px 4px rgba(0,0,0,.03)}
+.q-table th{padding:10px 6px;font-size:.78rem;color:var(--blue);font-weight:600;text-align:center}
+.q-table th.q-item-h{text-align:left;color:var(--text-light);font-weight:500;width:44%;padding-left:12px}
+.q-table tbody tr{border-bottom:1px solid var(--gray-bdr)}
+.q-table tbody tr:hover{background:var(--blue-xpale)}
+.q-table td{padding:10px 6px;vertical-align:middle}
+.q-table td.q-item{font-size:.92rem;line-height:1.45;padding-left:12px;color:var(--text)}
+.q-table td.q-item .q-num{display:inline-block;font-weight:700;color:var(--blue-mid);min-width:26px}
+.q-table td.q-cell{text-align:center}
+.q-table td.q-cell input[type="radio"]{width:18px;height:18px;cursor:pointer;accent-color:var(--blue)}
+
+.alert-offline{background:#fdecea;border:1px solid var(--red);color:var(--red);padding:10px 14px;border-radius:8px;font-size:.85rem;margin-bottom:16px}
+
+.table-clin{width:100%;border-collapse:collapse;margin-bottom:16px;font-size:.88rem}
+.table-clin th{background:var(--blue-xpale);color:var(--blue);padding:8px 10px;text-align:left;font-weight:600}
+.table-clin td{padding:8px 10px;border-bottom:1px solid var(--gray-bdr)}
+.table-clin tr:hover td{background:var(--blue-xpale)}
+
+@media print{
+  .app-header,.no-print{display:none!important}
+  body{background:white}
+  .card{box-shadow:none;border:1px solid #ddd}
+}
+@media (max-width:640px){
+  .q-table th{padding:8px 2px;font-size:.68rem}
+  .q-table td{padding:8px 2px}
+  .q-table td.q-item{font-size:.82rem}
+  .q-table th.q-item-h{width:36%}
+  .q-table td.q-cell input[type="radio"]{width:16px;height:16px}
+  .container{padding:16px 10px}
+  .card{padding:18px}
+}
+</style>
+</head>
+<body>
+
+<header class="app-header">
+  <div style="display:flex;align-items:center;gap:16px;">
+    <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMjAgNjQiIHdpZHRoPSIxMjAiIGhlaWdodD0iNjQiPgo8ZyBmaWxsPSJub25lIiBzdHJva2U9IiNmZmZmZmYiIHN0cm9rZS13aWR0aD0iMi4yIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiPgogIDwhLS0gQ8OpcmVicm8gZXN0aWxpemFkbyAobGFkbyBlc3F1ZXJkbykgLS0+CiAgPHBhdGggZD0iTTI2LDE2IEMxOCwxNiAxNCwyMiAxNSwyOCBDMTAsMzAgMTAsMzggMTUsNDAgQzE0LDQ2IDIwLDUwIDI2LDQ4IEMyOCw1MiAzNiw1MiAzOCw0OCBDNDIsNTAgNDYsNDQgNDQsNDAgQzQ4LDM4IDQ4LDMwIDQ0LDI4IEM0NiwyMiA0MiwxNiAzNCwxNiBDMzIsMTQgMjgsMTQgMjYsMTYgWiIgZmlsbD0iI2ZmZmZmZiIgZmlsbC1vcGFjaXR5PSIwLjE4Ii8+CiAgPHBhdGggZD0iTTMwLDE4IEwzMCw0NiBNMjIsMjIgQzI2LDI0IDI2LDI4IDIyLDMwIE0yMiwzNCBDMjYsMzYgMjYsNDAgMjIsNDIgTTM4LDIyIEMzNCwyNCAzNCwyOCAzOCwzMCBNMzgsMzQgQzM0LDM2IDM0LDQwIDM4LDQyIi8+CiAgPCEtLSBDb3Jhw6fDo28gZXN0aWxpemFkbyAobGFkbyBkaXJlaXRvLCBsaWdhZG8gYW8gY8OpcmVicm8pIC0tPgogIDxwYXRoIGQ9Ik03MCwyNCBDNzAsMTggNzgsMTYgODIsMjIgQzg2LDE2IDk0LDE4IDk0LDI0IEM5NCwzMiA4Miw0NCA4Miw0NCBDODIsNDQgNzAsMzIgNzAsMjQgWiIgZmlsbD0iI2ZmZmZmZiIgZmlsbC1vcGFjaXR5PSIwLjg1IiBzdHJva2U9IiNmZmZmZmYiLz4KICA8IS0tIExpbmhhIGRlIGxpZ2HDp8OjbyBjw6lyZWJyby1jb3Jhw6fDo28gLS0+CiAgPHBhdGggZD0iTTQ4LDMyIEw2OCwzMiIgc3Ryb2tlLWRhc2hhcnJheT0iMiwzIiBzdHJva2Utd2lkdGg9IjEuNSIvPgo8L2c+CjxnIGZpbGw9IiNmZmZmZmYiIGZvbnQtZmFtaWx5PSInRE0gU2VyaWYgRGlzcGxheScsIHNlcmlmIiBmb250LXNpemU9IjIyIiBmb250LXdlaWdodD0iNzAwIj4KICA8dGV4dCB4PSI1NCIgeT0iNjIiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtc2l6ZT0iMTQiIGxldHRlci1zcGFjaW5nPSIyIj5SQzwvdGV4dD4KPC9nPgo8L3N2Zz4=" alt="Ricardina Correia"
+         style="height:48px;width:auto;display:block;filter:brightness(1.1);"
+         onerror="this.style.display='none'">
+    <div>
+      <div class="app-title">ISC-24</div>
+      <div class="app-subtitle">Inventário de Somatização para Crianças</div>
+    </div>
+  </div>
+  <div class="header-right">
+    Ricardina Correia · Cédula 8233<br>
+    <span style="font-size:0.72rem;opacity:0.85;">Psicologia Pediátrica</span>
+  </div>
+</header>
+
+<!-- ============================================================ -->
+<!-- PAGE-HOME -->
+<!-- ============================================================ -->
+<div id="page-home" class="page">
+  <div class="container">
+    <div class="card landing-card">
+      <div class="landing-icon">💙</div>
+      <div class="landing-title">ISC-24</div>
+      <p class="landing-sub">
+        Inventário de Somatização para Crianças<br>
+        <span style="font-size:.8rem">Ferreira et al., 2014 · 24 itens · 8 aos 18 anos</span>
+      </p>
+      <div class="landing-btns">
+        <div class="landing-btn" onclick="showPage('page-questionario')">
+          <div class="landing-btn-icon">📝</div>
+          <div class="landing-btn-title">Preencher questionário</div>
+          <div class="landing-btn-sub">Para a criança/adolescente</div>
+        </div>
+        <div class="landing-btn" onclick="showClinico()">
+          <div class="landing-btn-icon">🔒</div>
+          <div class="landing-btn-title">Painel Clínico</div>
+          <div class="landing-btn-sub">Acesso restrito · Ricardina Correia</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- PAGE-QUESTIONARIO -->
+<!-- ============================================================ -->
+<div id="page-questionario" class="page" style="display:none">
+  <div class="container" style="max-width:820px">
+    <div id="offline-banner" class="alert-offline no-print" style="display:none">
+      ⚠️ Estás a abrir este ficheiro localmente. As respostas serão descarregadas em CSV em vez de enviadas online.
+    </div>
+
+    <!-- SECÇÃO 1 — Identificação -->
+    <div id="section-1">
+      <div class="card" style="margin-bottom:20px">
+        <!-- Indicador de progresso de secções -->
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:20px" class="no-print">
+          <div style="display:flex;align-items:center;gap:6px">
+            <div style="width:28px;height:28px;border-radius:50%;background:var(--blue);color:white;display:flex;align-items:center;justify-content:center;font-size:.82rem;font-weight:700">1</div>
+            <span style="font-size:.82rem;font-weight:600;color:var(--blue)">Identificação</span>
+          </div>
+          <div style="flex:1;height:2px;background:var(--gray-bdr)"></div>
+          <div style="display:flex;align-items:center;gap:6px">
+            <div style="width:28px;height:28px;border-radius:50%;background:var(--gray-bdr);color:var(--text-light);display:flex;align-items:center;justify-content:center;font-size:.82rem;font-weight:700">2</div>
+            <span style="font-size:.82rem;color:var(--text-light)">Questionário</span>
+          </div>
+        </div>
+
+        <h2 style="font-family:'DM Serif Display',serif;color:var(--blue);font-size:1.3rem;margin-bottom:20px">Identificação</h2>
+
+        <!-- Código do paciente -->
+        <div style="margin-bottom:16px">
+          <label style="font-size:.82rem;font-weight:600;color:var(--text-light);display:block;margin-bottom:4px">
+            Código do paciente <span style="font-weight:400">(fornecido pela psicóloga)</span>
+          </label>
+          <input type="text" id="patient-code" class="login-input"
+                 placeholder="ex: MV14062013"
+                 style="text-transform:uppercase" oninput="this.value=this.value.toUpperCase()">
+          <div style="font-size:.75rem;color:var(--text-light);margin-top:4px">
+            Iniciais do nome + data de nascimento (DDMMAAAA). Ex: <em>Maria Valente</em> nascida a 14/06/2013 → <strong>MV14062013</strong>
+          </div>
+        </div>
+
+        <!-- Nome da criança -->
+        <div style="margin-bottom:16px">
+          <label style="font-size:.82rem;font-weight:600;color:var(--text-light);display:block;margin-bottom:4px">Nome da criança/adolescente</label>
+          <input type="text" id="nome-crianca" class="login-input" placeholder="ex: Maria Silva">
+        </div>
+
+        <!-- Nome do respondente -->
+        <div style="margin-bottom:16px">
+          <label style="font-size:.82rem;font-weight:600;color:var(--text-light);display:block;margin-bottom:4px">
+            Nome do respondente <span style="font-weight:400">(quem preencheu)</span>
+          </label>
+          <input type="text" id="nome-informante" class="login-input" placeholder="ex: Maria Silva (se foi a própria) ou Ana Silva (se foi a mãe)">
+        </div>
+
+        <!-- Relação -->
+        <div style="margin-bottom:16px">
+          <label style="font-size:.82rem;font-weight:600;color:var(--text-light);display:block;margin-bottom:4px">Relação com a criança</label>
+          <select id="relacao" class="login-input">
+            <option value="">-- seleccionar --</option>
+            <option value="Próprio">Próprio (criança/adolescente)</option>
+            <option value="Mãe">Mãe</option>
+            <option value="Pai">Pai</option>
+            <option value="Encarregado de Educação">Encarregado de Educação</option>
+            <option value="Outro">Outro</option>
+          </select>
+        </div>
+
+        <!-- Idade -->
+        <div style="margin-bottom:16px;display:flex;gap:12px;flex-wrap:wrap">
+          <div style="flex:1;min-width:140px">
+            <label style="font-size:.82rem;font-weight:600;color:var(--text-light);display:block;margin-bottom:4px">Idade (anos)</label>
+            <input type="number" id="idade" class="login-input" min="8" max="18" placeholder="8-18">
+          </div>
+          <div style="flex:1;min-width:140px">
+            <label style="font-size:.82rem;font-weight:600;color:var(--text-light);display:block;margin-bottom:4px">Género</label>
+            <select id="genero" class="login-input">
+              <option value="">-- seleccionar --</option>
+              <option value="Masculino">Masculino</option>
+              <option value="Feminino">Feminino</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Ano escolaridade (opcional) -->
+        <div style="margin-bottom:4px">
+          <label style="font-size:.82rem;font-weight:600;color:var(--text-light);display:block;margin-bottom:4px">
+            Ano de escolaridade <span style="font-weight:400">(opcional)</span>
+          </label>
+          <input type="text" id="ano-escolar" class="login-input" placeholder="ex: 6.º ano">
+        </div>
+      </div>
+
+      <div style="display:flex;justify-content:space-between;margin-top:4px" class="no-print">
+        <button class="btn btn-secondary" onclick="showPage('page-home')">← Voltar</button>
+        <button class="btn btn-primary" onclick="avancarParaQuestoes()">Avançar →</button>
+      </div>
+    </div>
+
+    <!-- SECÇÃO 2 — Questões -->
+    <div id="section-2" style="display:none">
+      <!-- Indicador de progresso de secções -->
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px" class="no-print">
+        <div style="display:flex;align-items:center;gap:6px">
+          <div style="width:28px;height:28px;border-radius:50%;background:var(--green);color:white;display:flex;align-items:center;justify-content:center;font-size:.82rem;font-weight:700">✓</div>
+          <span style="font-size:.82rem;color:var(--text-light)">Identificação</span>
+        </div>
+        <div style="flex:1;height:2px;background:var(--blue)"></div>
+        <div style="display:flex;align-items:center;gap:6px">
+          <div style="width:28px;height:28px;border-radius:50%;background:var(--blue);color:white;display:flex;align-items:center;justify-content:center;font-size:.82rem;font-weight:700">2</div>
+          <span style="font-size:.82rem;font-weight:600;color:var(--blue)">Questionário (24 itens)</span>
+        </div>
+      </div>
+
+      <!-- Barra de progresso global -->
+      <div class="no-print" style="margin-bottom:4px;display:flex;justify-content:space-between;font-size:.78rem;color:var(--text-light)">
+        <span>Progresso</span>
+        <span id="progress-text">0 / 24 respondidas</span>
+      </div>
+      <div class="progress-bar no-print">
+        <div id="progress-fill" class="progress-fill"></div>
+      </div>
+
+      <div class="card" style="margin-bottom:20px">
+        <div style="margin-bottom:16px;padding:12px 14px;background:var(--blue-xpale);border-left:3px solid var(--blue);border-radius:6px;font-size:.9rem;line-height:1.55">
+          <strong style="color:var(--blue)">Instrução:</strong>
+          Nas duas últimas semanas, quanto é que cada sintoma te aborreceu?
+        </div>
+
+        <div style="overflow-x:auto">
+          <table class="q-table">
+            <thead>
+              <tr>
+                <th class="q-item-h">Item</th>
+                <th>Nunca<br><span style="font-weight:400;color:var(--text-light)">(0)</span></th>
+                <th>Um pouco<br><span style="font-weight:400;color:var(--text-light)">(1)</span></th>
+                <th>Algumas vezes<br><span style="font-weight:400;color:var(--text-light)">(2)</span></th>
+                <th>Muito<br><span style="font-weight:400;color:var(--text-light)">(3)</span></th>
+                <th>Muitíssimo<br><span style="font-weight:400;color:var(--text-light)">(4)</span></th>
+              </tr>
+            </thead>
+            <tbody id="itens-tbody">
+              <!-- preenchido por renderItens() -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div style="display:flex;justify-content:space-between;gap:12px;margin-top:4px;flex-wrap:wrap" class="no-print">
+        <button class="btn btn-secondary" onclick="voltarParaIdentificacao()">← Identificação</button>
+        <button class="btn btn-primary" id="btn-submeter" onclick="submeter()">Submeter →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- PAGE-OBRIGADO -->
+<!-- ============================================================ -->
+<div id="page-obrigado" class="page" style="display:none">
+  <div style="padding:16px">
+    <div class="card" style="max-width:600px;margin:60px auto;text-align:center">
+      <div style="font-size:3rem;margin-bottom:16px">✅</div>
+      <div style="font-family:'DM Serif Display',serif;font-size:1.8rem;color:var(--blue);margin-bottom:12px">Obrigado pelo preenchimento!</div>
+      <div style="color:var(--text-light);line-height:1.6">As suas respostas foram registadas com sucesso.</div>
+      <div style="margin-top:28px">
+        <button class="btn btn-secondary" onclick="showPage('page-home');window.scrollTo(0,0)">← Página inicial</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- PAGE-LOGIN -->
+<!-- ============================================================ -->
+<div id="page-login" class="page" style="display:none">
+  <div class="container">
+    <div class="card login-card">
+      <div class="login-icon">🔒</div>
+      <div class="login-title">Painel Clínico</div>
+      <div class="login-sub">Acesso restrito · Ricardina Correia</div>
+      <div class="login-field">
+        <label>Palavra-passe</label>
+        <input type="password" id="login-pw" class="login-input" placeholder="••••••••"
+               onkeydown="if(event.key==='Enter') tentarLogin()">
+      </div>
+      <button class="btn btn-primary" style="width:100%" onclick="tentarLogin()">Entrar</button>
+      <div id="login-error" class="login-error">Palavra-passe incorreta. Tente novamente.</div>
+      <div class="login-back" onclick="showPage('page-home')">← Voltar ao questionário</div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- PAGE-CLINICO -->
+<!-- ============================================================ -->
+<div id="page-clinico" class="page" style="display:none">
+  <div style="max-width:920px;margin:0 auto;padding:24px 16px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:10px">
+      <h2 style="font-family:'DM Serif Display',serif;color:var(--blue);font-size:1.6rem">Painel Clínico — ISC-24</h2>
+      <button class="btn btn-secondary btn-xs" onclick="showPage('page-home')">← Sair</button>
+    </div>
+
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px" class="no-print">
+      <button class="btn btn-secondary" style="padding:6px 14px;font-size:.82rem" onclick="carregarDados()">↺ Sincronizar</button>
+      <button class="btn btn-secondary" style="padding:6px 14px;font-size:.82rem" onclick="importarCSV()">⬆ Importar</button>
+      <button class="btn btn-secondary" style="padding:6px 14px;font-size:.82rem" onclick="exportarCSV()">⬇ Exportar CSV</button>
+      <button class="btn btn-secondary" style="padding:6px 14px;font-size:.82rem" onclick="exportarPDF()">📄 Exportar PDF</button>
+      <button class="btn btn-secondary" style="padding:6px 14px;font-size:.82rem" onclick="window.print()">🖨 Imprimir</button>
+      <button class="btn btn-secondary" style="padding:6px 14px;font-size:.82rem" onclick="exportarRespostasPDF(sessaoActual)">📋 Respostas PDF</button>
+      <button class="btn btn-secondary" style="padding:6px 14px;font-size:.82rem" onclick="exportarInterpretacaoPDF(sessaoActual)">📊 Exportar Interpretação PDF</button>
+      <input type="file" id="import-file-input" accept=".csv" style="display:none" onchange="processarFicheiroImportado(this)">
+    </div>
+    <div id="import-feedback" style="margin-bottom:12px;display:none"></div>
+
+    <div class="card" style="padding:18px">
+      <div id="clinico-count" style="font-size:.85rem;color:var(--text-light);margin-bottom:10px">Sem sessões.</div>
+      <div style="overflow-x:auto">
+        <table class="table-clin" id="tabela-sessoes">
+          <thead>
+            <tr>
+              <th>Data</th><th>Código</th><th>Criança</th><th>Respondente</th>
+              <th style="text-align:center">PT</th><th>Classificação</th><th style="text-align:right">Ações</th>
+            </tr>
+          </thead>
+          <tbody id="tabela-sessoes-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal -->
+<div id="modal" style="display:none"></div>
+
+<script>
+// =============================================================
+// CONSTANTES
+// =============================================================
+var SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxX2_Ry7VRH6jr7eGBMmtmyZFXZc69blwdO5bqJK0j69HRSexpXXPuEfDC5OHQRMLLL/exec';
+var SHEET_NAME = 'ISC24';
+var PASSWORD = 'CNS2024';
+var LOCAL_KEY = 'ISC24_sessions';
+var INSTR = 'ISC-24';
+
+// Itens do ISC-24 (ordem exacta do instrumento)
+var ITEMS = [
+  'Dores de cabeça.',
+  'Sensação de desmaio ou tontura.',
+  'Dor no coração ou peito.',
+  'Sensação de falta de energia ou movimentos lentos.',
+  'Dor na parte inferior das costas.',
+  'Dores musculares.',
+  'Dificuldade em respirar (quando não estás a fazer exercício físico).',
+  'Períodos de calor ou frio (sem motivo, sentir subitamente calor ou frio).',
+  'Entorpecimento ou formigueiro em partes do corpo.',
+  'Fraqueza (sensação de fraqueza) em partes do corpo.',
+  'Sensação de braços e pernas pesadas (quando elas parecem estar muito pesadas para se mexerem).',
+  'Náuseas ou estômago cheio (sensação de poder vomitar ou ter o estômago cheio).',
+  'Prisão de ventre (quando é muito difícil fazer cocó).',
+  'Desarranjo intestinal ou diarreia.',
+  'Dor no estômago ou abdómen (dores de estômago).',
+  'Coração que bate muito rápido (mesmo quando não estás a fazer exercício físico).',
+  'Dificuldade em engolir.',
+  'Perder a voz.',
+  'Visão turva (quando as coisas parecem turvas, mesmo com óculos).',
+  'Vómito (ou vomitar).',
+  'Sensação de inchaço ou com gases.',
+  'A comida enjoa-te.',
+  'Dor nos joelhos, cotovelos ou articulações.',
+  'Dor nos braços ou pernas.'
+];
+
+// Clusters descritivos (Ferreira et al., 2014 - solução 7-fatores exploratória)
+// NOTA: itens 1-based aqui, mas indexados 0-based nas respostas
+var CLUSTERS = [
+  {code:'C1', name:'Cardiopulmonar / Autonómico', items:[2,3,7,8,9,16], alpha:.83},
+  {code:'C2', name:'Pseudoneurológico / Fadiga', items:[4,10,11], alpha:.78},
+  {code:'C3', name:'Dor articular / Conversivo sensorial', items:[18,19,23,24], alpha:.76},
+  {code:'C4', name:'Gastrointestinal alto', items:[12,15,21,22], alpha:.75},
+  {code:'C5', name:'Conversivo digestivo', items:[17,20], alpha:.70},
+  {code:'C6', name:'Dor musculoesquelética / Cefaleias', items:[1,5,6], alpha:.69},
+  {code:'C7', name:'Gastrointestinal baixo', items:[13,14], alpha:.56}
+];
+
+// Normas (Ferreira et al., 2014) - M e DP por faixa etária × género
+// Quando faixa ou género não cobertos, recorrer a Total ou aproximação
+function getNorma(idade, genero){
+  idade = parseInt(idade, 10);
+  if(isNaN(idade)) return null;
+  // 8-9 anos: norma única (amostra pequena, M=4.10 DP=5.47)
+  if(idade <= 9) return {M:4.10, DP:5.47, grupo:'8-9 anos'};
+  if(idade <= 11) return {M:5.18, DP:5.07, grupo:'10-11 anos'};
+  if(idade <= 15){
+    if(genero === 'Masculino') return {M:6.16, DP:6.47, grupo:'12-15 anos (♂)'};
+    if(genero === 'Feminino')  return {M:10.01, DP:10.96, grupo:'12-15 anos (♀)'};
+    return {M:9.03, DP:11.06, grupo:'12-15 anos'};
+  }
+  if(idade <= 18){
+    if(genero === 'Masculino') return {M:6.16, DP:6.47, grupo:'16-18 anos (♂)'};
+    if(genero === 'Feminino')  return {M:10.97, DP:8.08, grupo:'16-18 anos (♀)'};
+    return {M:10.97, DP:8.08, grupo:'16-18 anos'};
+  }
+  return null;
+}
+
+// Classificação a partir de z-score
+function classificar(z){
+  if(z === null || z === undefined || isNaN(z)) return '—';
+  if(z <= -1) return 'Muito Baixo';
+  if(z <  1)  return 'Médio (dentro da norma)';
+  if(z <  2)  return 'Elevado (alerta clínico)';
+  return 'Muito Elevado (clinicamente significativo)';
+}
+
+// Percentil aproximado via CDF normal (aproximação de Abramowitz & Stegun)
+function zToPercentil(z){
+  if(z === null || z === undefined || isNaN(z)) return null;
+  if(z <= -3.5) return 1;
+  if(z >=  3.5) return 99;
+  var b1 =  0.319381530, b2 = -0.356563782, b3 = 1.781477937;
+  var b4 = -1.821255978, b5 =  1.330274429, p = 0.2316419;
+  var a = Math.abs(z);
+  var t = 1 / (1 + p * a);
+  var phi = Math.exp(-a*a/2) / Math.sqrt(2 * Math.PI);
+  var poly = b1*t + b2*t*t + b3*t*t*t + b4*t*t*t*t + b5*t*t*t*t*t;
+  var cdf = 1 - phi * poly;
+  if(z < 0) cdf = 1 - cdf;
+  return Math.max(1, Math.min(99, Math.round(cdf * 100)));
+}
+
+// =============================================================
+// NAVEGAÇÃO
+// =============================================================
+function showPage(id){
+  var pages = document.querySelectorAll('.page');
+  for(var i=0;i<pages.length;i++) pages[i].style.display = 'none';
+  var el = document.getElementById(id);
+  if(el) el.style.display = 'block';
+  window.scrollTo(0, 0);
+}
+
+// =============================================================
+// RESPOSTAS ACTUAIS (em memória)
+// =============================================================
+var respostasActuais = new Array(24).fill(null);
+
+function renderItens(){
+  var tbody = document.getElementById('itens-tbody');
+  var html = '';
+  for(var i=0; i<ITEMS.length; i++){
+    var n = i + 1;
+    html += '<tr>';
+    html += '<td class="q-item"><span class="q-num">' + n + '.</span> ' + ITEMS[i] + '</td>';
+    for(var v=0; v<=4; v++){
+      html += '<td class="q-cell"><input type="radio" name="item-' + i + '" value="' + v +
+              '" onchange="onItemChange(' + i + ',' + v + ')"></td>';
+    }
+    html += '</tr>';
+  }
+  tbody.innerHTML = html;
+  atualizarProgresso();
+}
+
+function onItemChange(idx, valor){
+  respostasActuais[idx] = valor;
+  atualizarProgresso();
+}
+
+function atualizarProgresso(){
+  var respondidas = respostasActuais.filter(function(r){ return r !== null && r !== undefined; }).length;
+  var pct = (respondidas / 24) * 100;
+  var ptxt = document.getElementById('progress-text');
+  var pfill = document.getElementById('progress-fill');
+  if(ptxt) ptxt.textContent = respondidas + ' / 24 respondidas';
+  if(pfill) pfill.style.width = pct + '%';
+}
+
+// =============================================================
+// SECÇÃO 1 → SECÇÃO 2
+// =============================================================
+function avancarParaQuestoes(){
+  var code = document.getElementById('patient-code').value.trim().toUpperCase();
+  if(!code){ alert('Por favor indique o código do paciente.'); return; }
+  // Regex de validação sem quantificadores problemáticos em f-strings (aqui não usamos Python mas mantemos o padrão)
+  if(!/^[A-Z][A-Z][A-Z]?\d\d\d\d\d\d\d\d$/.test(code)){
+    alert('Código inválido.\n\nDevem ser 2 ou 3 iniciais + data de nascimento (DDMMAAAA).\nExemplo: MV14062013 ou DDL25072014');
+    return;
+  }
+  var nomeCrianca = document.getElementById('nome-crianca').value.trim();
+  if(!nomeCrianca){ alert('Por favor indique o nome da criança/adolescente.'); return; }
+
+  var nomeInf = document.getElementById('nome-informante').value.trim();
+  if(!nomeInf){ alert('Por favor indique o nome do respondente.'); return; }
+
+  var relacao = document.getElementById('relacao').value;
+  if(!relacao){ alert('Por favor indique a relação com a criança.'); return; }
+
+  var idade = document.getElementById('idade').value;
+  if(!idade || idade < 8 || idade > 18){
+    alert('Idade inválida. O ISC-24 destina-se a crianças/adolescentes dos 8 aos 18 anos.');
+    return;
+  }
+
+  var genero = document.getElementById('genero').value;
+  if(!genero){ alert('Por favor indique o género.'); return; }
+
+  document.getElementById('section-1').style.display = 'none';
+  document.getElementById('section-2').style.display = 'block';
+  renderItens();
+  window.scrollTo(0, 0);
+}
+
+function voltarParaIdentificacao(){
+  document.getElementById('section-2').style.display = 'none';
+  document.getElementById('section-1').style.display = 'block';
+  window.scrollTo(0, 0);
+}
+
+// =============================================================
+// SCORING
+// =============================================================
+function calcularScores(respostas){
+  // respostas = array de 24 valores 0-4
+  var PT = 0;
+  for(var i=0;i<24;i++) PT += respostas[i];
+  var media = PT / 24;
+  var nSint = respostas.filter(function(r){ return r >= 1; }).length;
+  var nIntenso = respostas.filter(function(r){ return r >= 3; }).length;
+
+  // Cluster scores
+  var clusterScores = {};
+  for(var c=0; c<CLUSTERS.length; c++){
+    var cl = CLUSTERS[c];
+    var soma = 0;
+    for(var k=0; k<cl.items.length; k++){
+      soma += respostas[cl.items[k] - 1]; // items 1-based
+    }
+    clusterScores[cl.code + '_soma'] = soma;
+    clusterScores[cl.code + '_media'] = +(soma / cl.items.length).toFixed(2);
+  }
+
+  return {
+    PT: PT,
+    media_item: +media.toFixed(2),
+    n_sintomas: nSint,
+    n_intensos: nIntenso,
+    clusters: clusterScores
+  };
+}
+
+function calcularInterpretacao(PT, idade, genero){
+  var norma = getNorma(idade, genero);
+  if(!norma) return {M:null, DP:null, z:null, percentil:null, classificacao:'—', grupoNorma:'—'};
+  var z = (PT - norma.M) / norma.DP;
+  return {
+    M: norma.M, DP: norma.DP,
+    z: +z.toFixed(2),
+    percentil: zToPercentil(z),
+    classificacao: classificar(z),
+    grupoNorma: norma.grupo
+  };
+}
+
+// =============================================================
+// SUBMETER
+// =============================================================
+function submeter(){
+  // Validar todas as respostas
+  var naoRespondidos = [];
+  for(var i=0; i<24; i++){
+    if(respostasActuais[i] === null || respostasActuais[i] === undefined) naoRespondidos.push(i+1);
+  }
+  if(naoRespondidos.length > 0){
+    alert('Itens sem resposta: ' + naoRespondidos.join(', ') + '.\nPor favor complete antes de submeter.');
+    return;
+  }
+
+  var code = document.getElementById('patient-code').value.trim().toUpperCase();
+  var nomeCrianca = document.getElementById('nome-crianca').value.trim();
+  var nomeInf = document.getElementById('nome-informante').value.trim();
+  var relacao = document.getElementById('relacao').value;
+  var idade = document.getElementById('idade').value;
+  var genero = document.getElementById('genero').value;
+  var anoEsc = document.getElementById('ano-escolar').value.trim();
+
+  var scores = calcularScores(respostasActuais);
+  var interp = calcularInterpretacao(scores.PT, idade, genero);
+
+  // ✅ Payload — SEM chave 'data' no top-level (ver Secção 31 skill v27)
+  var payload = {
+    instrumento: SHEET_NAME,
+    patientCode: code,
+    nomeCrianca: nomeCrianca,
+    nomeRespondente: nomeInf,
+    relacao: relacao,
+    idade: idade,
+    genero: genero,
+    anoEscolar: anoEsc,
+    PT: scores.PT,
+    media_item: scores.media_item,
+    n_sintomas: scores.n_sintomas,
+    n_intensos: scores.n_intensos,
+    z_score: interp.z,
+    percentil: interp.percentil,
+    classificacao: interp.classificacao,
+    grupo_norma: interp.grupoNorma,
+    // Clusters (flat)
+    C1_soma: scores.clusters.C1_soma, C1_media: scores.clusters.C1_media,
+    C2_soma: scores.clusters.C2_soma, C2_media: scores.clusters.C2_media,
+    C3_soma: scores.clusters.C3_soma, C3_media: scores.clusters.C3_media,
+    C4_soma: scores.clusters.C4_soma, C4_media: scores.clusters.C4_media,
+    C5_soma: scores.clusters.C5_soma, C5_media: scores.clusters.C5_media,
+    C6_soma: scores.clusters.C6_soma, C6_media: scores.clusters.C6_media,
+    C7_soma: scores.clusters.C7_soma, C7_media: scores.clusters.C7_media,
+    // Respostas item-a-item
+    answers: respostasActuais.join('|'),
+    Respostas: JSON.stringify(respostasActuais)
+  };
+
+  var isLocal = window.location.protocol === 'file:';
+
+  // Guardar localmente sempre
+  try{
+    var all = JSON.parse(localStorage.getItem(LOCAL_KEY) || '{}');
+    var dateStr = new Date().toLocaleDateString('pt-PT');
+    var key = code + '_' + Date.now();
+    all[key] = Object.assign({}, payload, {localDate: dateStr, ts: Date.now()});
+    localStorage.setItem(LOCAL_KEY, JSON.stringify(all));
+  }catch(e){ /* silencioso */ }
+
+  if(isLocal){
+    // Fallback CSV download
+    descarregarCSV(payload);
+    showPage('page-obrigado');
+    return;
+  }
+
+  // Enviar ao Sheet
+  fetch(SCRIPT_URL, {
+    method:'POST',
+    mode:'no-cors',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify(payload)
+  }).then(function(){
+    showPage('page-obrigado');
+  }).catch(function(e){
+    // Se falhar, descarrega CSV
+    descarregarCSV(payload);
+    showPage('page-obrigado');
+  });
+}
+
+function descarregarCSV(payload){
+  var headers = Object.keys(payload);
+  var row = headers.map(function(h){
+    var v = payload[h];
+    if(v === null || v === undefined) return '';
+    v = String(v).replace(/"/g, '""');
+    if(v.indexOf(',') >= 0 || v.indexOf(';') >= 0 || v.indexOf('\n') >= 0 || v.indexOf('"') >= 0) v = '"' + v + '"';
+    return v;
+  });
+  var csv = '\uFEFF' + headers.join(';') + '\n' + row.join(';');
+  var blob = new Blob([csv], {type:'text/csv;charset=utf-8'});
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = SHEET_NAME + '_' + payload.patientCode + '_' + Date.now() + '.csv';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+// =============================================================
+// LOGIN CLÍNICO
+// =============================================================
+function showClinico(){
+  showPage('page-login');
+  setTimeout(function(){ var el=document.getElementById('login-pw'); if(el) el.focus(); }, 100);
+}
+
+function tentarLogin(){
+  var pw = document.getElementById('login-pw').value;
+  if(pw === PASSWORD){
+    document.getElementById('login-error').style.display = 'none';
+    document.getElementById('login-pw').value = '';
+    showPage('page-clinico');
+    carregarDados();
+  } else {
+    document.getElementById('login-error').style.display = 'block';
+    document.getElementById('login-pw').value = '';
+    document.getElementById('login-pw').focus();
+  }
+}
+
+// =============================================================
+// PAINEL CLÍNICO
+// =============================================================
+var sessoes = [];
+var sessaoActual = null;
+
+function parseSessao(row){
+  // Aceita tanto o formato do localStorage como o do Sheet (colunas PT)
+  var s = {
+    data:         row['Data'] || row.localDate || row.data || '',
+    patientCode:  row['Código'] || row['Código Paciente'] || row.patientCode || row.codigo || '',
+    nomeCrianca:  row['NomeCriança'] || row['NomeCrianca'] || row.nomeCrianca || '',
+    nomeRespondente: row['NomeRespondente'] || row.nomeRespondente || '',
+    relacao:      row['Relação'] || row.relacao || '',
+    idade:        row['Idade'] || row.idade || '',
+    genero:       row['Género'] || row['Genero'] || row.genero || '',
+    anoEscolar:   row['Ano'] || row.anoEscolar || '',
+    PT:           parseInt(row['PT'] || row.PT || 0, 10),
+    media_item:   parseFloat(row['Media_Item'] || row.media_item || 0),
+    n_sintomas:   parseInt(row['N_Sintomas'] || row.n_sintomas || 0, 10),
+    n_intensos:   parseInt(row['N_Intensos'] || row.n_intensos || 0, 10),
+    z_score:      parseFloat(row['Z_Score'] || row.z_score || 0),
+    percentil:    parseInt(row['Percentil'] || row.percentil || 0, 10),
+    classificacao: row['Classificacao'] || row.classificacao || '—',
+    grupo_norma:  row['Grupo_Norma'] || row.grupo_norma || '—',
+    clusters: {
+      C1_soma: parseInt(row['C1_Soma']||row.C1_soma||0,10), C1_media: parseFloat(row['C1_Media']||row.C1_media||0),
+      C2_soma: parseInt(row['C2_Soma']||row.C2_soma||0,10), C2_media: parseFloat(row['C2_Media']||row.C2_media||0),
+      C3_soma: parseInt(row['C3_Soma']||row.C3_soma||0,10), C3_media: parseFloat(row['C3_Media']||row.C3_media||0),
+      C4_soma: parseInt(row['C4_Soma']||row.C4_soma||0,10), C4_media: parseFloat(row['C4_Media']||row.C4_media||0),
+      C5_soma: parseInt(row['C5_Soma']||row.C5_soma||0,10), C5_media: parseFloat(row['C5_Media']||row.C5_media||0),
+      C6_soma: parseInt(row['C6_Soma']||row.C6_soma||0,10), C6_media: parseFloat(row['C6_Media']||row.C6_media||0),
+      C7_soma: parseInt(row['C7_Soma']||row.C7_soma||0,10), C7_media: parseFloat(row['C7_Media']||row.C7_media||0)
+    }
+  };
+  // Reconstruir respostas item-a-item
+  try{
+    var raw = row['Respostas'] || row.Respostas || row.respostas || row.answers || '';
+    if(raw && typeof raw === 'string' && raw.charAt(0) === '['){
+      s.respostas = JSON.parse(raw);
+    } else if(raw && typeof raw === 'string' && raw.indexOf('|') >= 0){
+      s.respostas = raw.split('|').map(function(v){ return parseInt(v,10); });
+    } else if(Array.isArray(raw)){
+      s.respostas = raw;
+    }
+  } catch(e){ /* sem respostas */ }
+  return s;
+}
+
+function carregarDados(){
+  // Fonte 1: Sheet
+  fetch(SCRIPT_URL + '?instrumento=' + SHEET_NAME + '&t=' + Date.now())
+  .then(function(r){ return r.json(); })
+  .then(function(data){
+    var rows = Array.isArray(data) ? data : (data && data.rows ? data.rows : []);
+    var fromSheet = rows.map(parseSessao);
+    // Juntar com localStorage (evitar duplicados por patientCode+data)
+    var local = [];
+    try{
+      var all = JSON.parse(localStorage.getItem(LOCAL_KEY) || '{}');
+      for(var k in all) if(all.hasOwnProperty(k)) local.push(parseSessao(all[k]));
+    } catch(e){}
+    var map = {};
+    fromSheet.concat(local).forEach(function(s){
+      var key = s.patientCode + '|' + (s.data || s.localDate || '');
+      if(!map[key]) map[key] = s;
+    });
+    sessoes = Object.keys(map).map(function(k){ return map[k]; });
+    sessoes.sort(function(a,b){ return (b.data || '').localeCompare(a.data || ''); });
+    renderTabela();
+  }).catch(function(){
+    // Offline — só localStorage
+    var local = [];
+    try{
+      var all = JSON.parse(localStorage.getItem(LOCAL_KEY) || '{}');
+      for(var k in all) if(all.hasOwnProperty(k)) local.push(parseSessao(all[k]));
+    } catch(e){}
+    sessoes = local;
+    renderTabela();
+  });
+}
+
+function renderTabela(){
+  var body = document.getElementById('tabela-sessoes-body');
+  var count = document.getElementById('clinico-count');
+  if(!sessoes.length){
+    body.innerHTML = '';
+    count.textContent = 'Sem sessões.';
+    return;
+  }
+  count.textContent = sessoes.length + ' sessão(ões) registada(s).';
+  var html = '';
+  for(var i=0;i<sessoes.length;i++){
+    var s = sessoes[i];
+    var zona = s.classificacao || '—';
+    var cor = zona.indexOf('Muito Elevado') >= 0 ? 'var(--red)'
+            : zona.indexOf('Elevado') >= 0 ? 'var(--orange)'
+            : zona.indexOf('Muito Baixo') >= 0 ? 'var(--blue-mid)'
+            : 'var(--green)';
+    html += '<tr>' +
+      '<td>' + (s.data || '—') + '</td>' +
+      '<td><strong>' + (s.patientCode||'—') + '</strong></td>' +
+      '<td>' + (s.nomeCrianca||'—') + '</td>' +
+      '<td>' + (s.nomeRespondente||'—') + ' <span style="color:var(--text-light);font-size:.78rem">(' + (s.relacao||'—') + ')</span></td>' +
+      '<td style="text-align:center;font-weight:700">' + (s.PT!==undefined?s.PT:'—') + '</td>' +
+      '<td style="color:' + cor + ';font-weight:600">' + zona + '</td>' +
+      '<td style="text-align:right"><button class="btn btn-primary btn-xs" onclick="verDetalhe(' + i + ')">Ver →</button></td>' +
+    '</tr>';
+  }
+  body.innerHTML = html;
+}
+
+function verDetalhe(i){
+  sessaoActual = sessoes[i];
+  abrirModal(sessaoActual);
+}
+
+function abrirModal(s){
+  var modal = document.getElementById('modal');
+  modal.innerHTML =
+    '<div class="modal-overlay" onclick="if(event.target===this) fecharModal()">' +
+      '<div class="modal-box">' +
+        '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:16px">' +
+          '<div>' +
+            '<div style="font-family:DM Serif Display,serif;color:var(--blue);font-size:1.3rem">' + (s.nomeCrianca||'—') + '</div>' +
+            '<div style="font-size:.82rem;color:var(--text-light)">Código: <strong>' + s.patientCode + '</strong> · Data: ' + (s.data||'—') + ' · Idade: ' + (s.idade||'—') + ' anos · ' + (s.genero||'—') + '</div>' +
+            '<div style="font-size:.82rem;color:var(--text-light)">Respondente: ' + (s.nomeRespondente||'—') + ' (' + (s.relacao||'—') + ')</div>' +
+          '</div>' +
+          '<button class="btn btn-secondary btn-xs" onclick="fecharModal()">✕ Fechar</button>' +
+        '</div>' +
+        buildResultsHTML(s) +
+      '</div>' +
+    '</div>';
+  modal.style.display = 'block';
+}
+
+function fecharModal(){
+  var m = document.getElementById('modal');
+  m.style.display = 'none'; m.innerHTML = '';
+}
+
+function buildResultsHTML(s){
+  // === Tabela principal ===
+  var zona = s.classificacao || '—';
+  var cor = zona.indexOf('Muito Elevado') >= 0 ? 'var(--red)'
+          : zona.indexOf('Elevado') >= 0 ? 'var(--orange)'
+          : zona.indexOf('Muito Baixo') >= 0 ? 'var(--blue-mid)'
+          : 'var(--green)';
+  var badge = zona.indexOf('Muito Elevado') >= 0 ? 'badge-clinical'
+            : zona.indexOf('Elevado') >= 0 ? 'badge-borderline'
+            : 'badge-normative';
+
+  var pct = Math.min(100, Math.round((s.PT / 96) * 100));
+  var globalBlock =
+    '<h3 style="font-family:DM Serif Display,serif;color:var(--blue);font-size:1.1rem;margin-bottom:10px">Pontuação Global</h3>' +
+    '<div style="overflow-x:auto"><table class="table-clin" style="font-size:.85rem">' +
+      '<thead><tr><th>Indicador</th><th style="text-align:center">Valor</th><th>Referência</th></tr></thead>' +
+      '<tbody>' +
+        '<tr><td>Pontuação Total (PT)</td><td style="text-align:center;font-weight:700;font-size:1.05rem;color:' + cor + '">' + s.PT + '</td><td>0 a 96</td></tr>' +
+        '<tr><td>Média por item</td><td style="text-align:center;font-weight:600">' + (s.media_item||0).toFixed(2) + '</td><td>0 a 4</td></tr>' +
+        '<tr><td>Nº de sintomas presentes (≥1)</td><td style="text-align:center">' + s.n_sintomas + '</td><td>0 a 24</td></tr>' +
+        '<tr><td>Nº de sintomas intensos (≥3)</td><td style="text-align:center">' + s.n_intensos + '</td><td>0 a 24</td></tr>' +
+      '</tbody>' +
+    '</table></div>' +
+    '<div style="background:var(--gray);padding:12px 14px;border-radius:8px;margin-bottom:14px">' +
+      '<div style="font-size:.85rem;color:var(--text-light);margin-bottom:6px">Intensidade relativa (PT / 96)</div>' +
+      '<div style="background:var(--gray-bdr);border-radius:4px;height:10px"><div style="background:' + cor + ';border-radius:4px;height:10px;width:' + pct + '%"></div></div>' +
+    '</div>';
+
+  // === Comparação normativa ===
+  var normaBlock =
+    '<h3 style="font-family:DM Serif Display,serif;color:var(--blue);font-size:1.1rem;margin-bottom:10px">Comparação Normativa</h3>' +
+    '<div style="overflow-x:auto"><table class="table-clin" style="font-size:.85rem">' +
+      '<tbody>' +
+        '<tr><td>Grupo de referência</td><td><strong>' + (s.grupo_norma||'—') + '</strong></td></tr>' +
+        '<tr><td>Média (M) do grupo</td><td>' + (s.classificacao!=='—' ? 'M ≈ (ver base técnica)' : '—') + '</td></tr>' +
+        '<tr><td>Z-score</td><td style="font-weight:700;color:' + cor + '">' + (s.z_score!==undefined?s.z_score:'—') + '</td></tr>' +
+        '<tr><td>Percentil aproximado</td><td>' + (s.percentil || '—') + 'º</td></tr>' +
+        '<tr><td>Classificação</td><td><span class="badge ' + badge + '">' + zona + '</span></td></tr>' +
+      '</tbody>' +
+    '</table></div>';
+
+  // === Perfil por cluster ===
+  var clusterRows = '';
+  for(var c=0; c<CLUSTERS.length; c++){
+    var cl = CLUSTERS[c];
+    var soma = s.clusters ? (s.clusters[cl.code + '_soma'] || 0) : 0;
+    var media = s.clusters ? (s.clusters[cl.code + '_media'] || 0) : 0;
+    var leitura = media < 0.5 ? 'Baixo' : media < 1.5 ? 'Ligeiro' : media < 2.5 ? 'Moderado' : 'Acentuado';
+    var cCor = media < 0.5 ? 'var(--green)' : media < 1.5 ? 'var(--blue-mid)' : media < 2.5 ? 'var(--orange)' : 'var(--red)';
+    var pctCl = Math.min(100, Math.round(media/4 * 100));
+    clusterRows +=
+      '<tr>' +
+        '<td><strong>' + cl.code + '</strong> — ' + cl.name + '</td>' +
+        '<td style="text-align:center">' + soma + '</td>' +
+        '<td style="text-align:center;font-weight:700;color:' + cCor + '">' + media.toFixed(2) + '</td>' +
+        '<td><div style="background:var(--gray-bdr);border-radius:3px;height:8px;width:100px"><div style="background:' + cCor + ';border-radius:3px;height:8px;width:' + pctCl + '%"></div></div></td>' +
+        '<td style="color:' + cCor + ';font-weight:600">' + leitura + '</td>' +
+      '</tr>';
+  }
+  var clusterBlock =
+    '<h3 style="font-family:DM Serif Display,serif;color:var(--blue);font-size:1.1rem;margin:18px 0 10px">Perfil descritivo por cluster</h3>' +
+    '<div style="overflow-x:auto"><table class="table-clin" style="font-size:.85rem">' +
+      '<thead><tr><th>Cluster</th><th style="text-align:center">Soma</th><th style="text-align:center">Média</th><th>Perfil</th><th>Leitura</th></tr></thead>' +
+      '<tbody>' + clusterRows + '</tbody>' +
+    '</table></div>' +
+    '<div style="font-size:.78rem;color:var(--text-light);font-style:italic;margin-bottom:10px">' +
+      'Os clusters derivam da solução exploratória 7-fatores (Ferreira et al., 2014) e têm uso descritivo. A solução validada é unifatorial (pontuação total).' +
+    '</div>';
+
+  // === Narrativa interpretativa ===
+  var narrativa;
+  if(zona.indexOf('Muito Baixo') >= 0){
+    narrativa = 'Pontuação total (' + s.PT + ') substancialmente abaixo da média do grupo de referência (z=' + s.z_score + '; percentil≈' + s.percentil + 'º). Não se identificam queixas somáticas significativas nas últimas 2 semanas.';
+  } else if(zona.indexOf('Muito Elevado') >= 0){
+    narrativa = 'Pontuação total (' + s.PT + ') muito elevada relativamente ao grupo de referência (z=' + s.z_score + '; percentil≈' + s.percentil + 'º). Padrão sugestivo de expressão somática clinicamente significativa. Recomenda-se: avaliação clínica aprofundada, despiste rigoroso de causa orgânica, avaliação de comorbilidade psicopatológica (ansiedade, depressão, trauma, alexitimia), e ponderação de critérios diagnósticos para Perturbação de Sintomas Somáticos (DSM-5 / CID-11).';
+  } else if(zona.indexOf('Elevado') >= 0){
+    narrativa = 'Pontuação total (' + s.PT + ') elevada relativamente ao grupo de referência (z=' + s.z_score + '; percentil≈' + s.percentil + 'º). Frequência aumentada de queixas somáticas — sinal de alerta. Recomenda-se análise dos clusters predominantes, despiste de coocorrência ansioso-depressiva e eventos de vida stressantes, e articulação com avaliação médica para exclusão de causa orgânica.';
+  } else {
+    narrativa = 'Pontuação total (' + s.PT + ') dentro da variabilidade normativa do grupo de referência (z=' + s.z_score + '; percentil≈' + s.percentil + 'º). Padrão situa-se em valores esperados para a idade e género. Recomenda-se análise qualitativa do perfil por cluster e dos itens mais pontuados.';
+  }
+
+  var narrBlock =
+    '<div style="background:var(--blue-xpale);border-radius:8px;padding:12px 16px;font-size:.88rem;line-height:1.65;color:var(--text);margin-top:14px">' +
+      narrativa +
+      '<div style="font-size:.76rem;color:var(--text-light);font-style:italic;margin-top:8px">Esta interpretação é automática e deve ser integrada no contexto clínico completo da avaliação. O ISC-24 não substitui diagnóstico médico.</div>' +
+    '</div>';
+
+  // === Respostas detalhadas ===
+  var respBlock = '';
+  if(s.respostas && s.respostas.length){
+    var respRows = '';
+    for(var r=0; r<ITEMS.length; r++){
+      var v = s.respostas[r];
+      var rotulo = v===0?'Nunca': v===1?'Um pouco': v===2?'Algumas vezes': v===3?'Muito': v===4?'Muitíssimo':'—';
+      var rCor = v>=3 ? 'var(--red)' : v===2 ? 'var(--orange)' : v>=1 ? 'var(--blue-mid)' : 'var(--text-light)';
+      respRows +=
+        '<tr>' +
+          '<td style="color:var(--text-light);text-align:center;width:32px">' + (r+1) + '</td>' +
+          '<td style="font-size:.85rem">' + ITEMS[r] + '</td>' +
+          '<td style="text-align:center;font-weight:700;color:' + rCor + '">' + (v!==undefined?v:'—') + '</td>' +
+          '<td style="font-size:.8rem;color:' + rCor + '">' + rotulo + '</td>' +
+        '</tr>';
+    }
+    respBlock =
+      '<details style="margin-top:18px"><summary style="cursor:pointer;font-weight:600;color:var(--blue);padding:8px 0">Ver respostas detalhadas</summary>' +
+      '<div style="overflow-x:auto;margin-top:10px"><table class="table-clin" style="font-size:.82rem"><thead><tr><th>#</th><th>Item</th><th style="text-align:center">Resp.</th><th>Significado</th></tr></thead><tbody>' + respRows + '</tbody></table></div>' +
+      '</details>';
+  }
+
+  return globalBlock + normaBlock + clusterBlock + narrBlock + respBlock;
+}
+
+// =============================================================
+// EXPORTAÇÕES
+// =============================================================
+function exportarCSV(){
+  if(!sessoes.length){ alert('Sem sessões para exportar.'); return; }
+  var headers = ['Data','Código','NomeCriança','NomeRespondente','Relação','Idade','Género','Ano',
+                 'PT','Media_Item','N_Sintomas','N_Intensos','Z_Score','Percentil','Classificacao','Grupo_Norma',
+                 'C1_Soma','C1_Media','C2_Soma','C2_Media','C3_Soma','C3_Media','C4_Soma','C4_Media',
+                 'C5_Soma','C5_Media','C6_Soma','C6_Media','C7_Soma','C7_Media','Respostas'];
+  var rows = sessoes.map(function(s){
+    var answers = s.respostas ? JSON.stringify(s.respostas) : '';
+    return [s.data, s.patientCode, s.nomeCrianca, s.nomeRespondente, s.relacao, s.idade, s.genero, s.anoEscolar,
+            s.PT, s.media_item, s.n_sintomas, s.n_intensos, s.z_score, s.percentil, s.classificacao, s.grupo_norma,
+            (s.clusters&&s.clusters.C1_soma)||0, (s.clusters&&s.clusters.C1_media)||0,
+            (s.clusters&&s.clusters.C2_soma)||0, (s.clusters&&s.clusters.C2_media)||0,
+            (s.clusters&&s.clusters.C3_soma)||0, (s.clusters&&s.clusters.C3_media)||0,
+            (s.clusters&&s.clusters.C4_soma)||0, (s.clusters&&s.clusters.C4_media)||0,
+            (s.clusters&&s.clusters.C5_soma)||0, (s.clusters&&s.clusters.C5_media)||0,
+            (s.clusters&&s.clusters.C6_soma)||0, (s.clusters&&s.clusters.C6_media)||0,
+            (s.clusters&&s.clusters.C7_soma)||0, (s.clusters&&s.clusters.C7_media)||0, answers];
+  });
+  var csv = '\uFEFF' + headers.join(';') + '\n' +
+    rows.map(function(r){ return r.map(function(v){
+      if(v === null || v === undefined) return '';
+      v = String(v).replace(/"/g,'""');
+      if(v.indexOf(';') >= 0 || v.indexOf(',') >= 0 || v.indexOf('\n') >= 0 || v.indexOf('"') >= 0) v = '"' + v + '"';
+      return v;
+    }).join(';'); }).join('\n');
+  var blob = new Blob([csv], {type:'text/csv;charset=utf-8'});
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url; a.download = SHEET_NAME + '_export_' + Date.now() + '.csv';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function exportarPDF(){
+  if(!sessoes.length){ alert('Sem sessões para exportar.'); return; }
+  var rows = sessoes.map(function(s){
+    return '<tr>' +
+      '<td style="padding:6px 8px;border-bottom:1px solid #eee">' + (s.data||'—') + '</td>' +
+      '<td style="padding:6px 8px;border-bottom:1px solid #eee"><strong>' + (s.patientCode||'—') + '</strong></td>' +
+      '<td style="padding:6px 8px;border-bottom:1px solid #eee">' + (s.nomeCrianca||'—') + '</td>' +
+      '<td style="padding:6px 8px;border-bottom:1px solid #eee;text-align:center;font-weight:700">' + (s.PT||0) + '</td>' +
+      '<td style="padding:6px 8px;border-bottom:1px solid #eee">' + (s.classificacao||'—') + '</td>' +
+    '</tr>';
+  }).join('');
+  var html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>ISC-24 — Sessões</title>' +
+    '<style>body{font-family:sans-serif;font-size:12px;color:#2C3E50;padding:24px;max-width:900px;margin:0 auto}' +
+    'h1{color:#3B5A7A;font-size:16px;margin-bottom:4px}' +
+    'p{color:#6B7A8D;margin-bottom:16px;font-size:11px}' +
+    'table{width:100%;border-collapse:collapse}' +
+    'th{background:#D6E4F0;padding:8px;text-align:left;color:#3B5A7A;font-size:11px}' +
+    '.no-print{margin-bottom:16px}@media print{.no-print{display:none}}</style></head><body>' +
+    '<div class="no-print"><button onclick="window.print()">🖨 Imprimir / Guardar PDF</button></div>' +
+    '<h1>ISC-24 — Sessões registadas</h1>' +
+    '<p>Ricardina Correia · Cédula 8233 · Psicologia Pediátrica · Exportado em ' + new Date().toLocaleDateString('pt-PT') + '</p>' +
+    '<table><thead><tr><th>Data</th><th>Código</th><th>Criança</th><th>PT</th><th>Classificação</th></tr></thead>' +
+    '<tbody>' + rows + '</tbody></table></body></html>';
+  var w = window.open('', '_blank');
+  if(!w){ alert('Pop-up bloqueado. Permite pop-ups para este site.'); return; }
+  w.document.write(html); w.document.close();
+}
+
+function exportarRespostasPDF(sessao){
+  if(!sessao){ alert('Selecciona primeiro uma sessão (clica em "Ver →").'); return; }
+  if(!sessao.respostas || !sessao.respostas.length){ alert('Sem respostas item-a-item disponíveis para esta sessão.'); return; }
+  var linhas = sessao.respostas.map(function(r, i){
+    var rotulo = r===0?'Nunca': r===1?'Um pouco': r===2?'Algumas vezes': r===3?'Muito': r===4?'Muitíssimo':'—';
+    return '<tr>' +
+      '<td style="padding:4px 8px;border-bottom:1px solid #eee;color:#6B7A8D;text-align:center">' + (i+1) + '</td>' +
+      '<td style="padding:4px 8px;border-bottom:1px solid #eee">' + ITEMS[i] + '</td>' +
+      '<td style="padding:4px 8px;border-bottom:1px solid #eee;text-align:center;font-weight:700">' + r + '</td>' +
+      '<td style="padding:4px 8px;border-bottom:1px solid #eee;color:#6B7A8D">' + rotulo + '</td>' +
+    '</tr>';
+  }).join('');
+  var html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Respostas — ' + sessao.patientCode + '</title>' +
+    '<style>body{font-family:sans-serif;font-size:12px;color:#2C3E50;padding:24px}' +
+    'h2{color:#3B5A7A;margin-bottom:4px} p{color:#6B7A8D;margin-bottom:20px}' +
+    'table{width:100%;border-collapse:collapse} th{background:#D6E4F0;padding:6px 8px;text-align:left;color:#3B5A7A}' +
+    '.no-print{margin-bottom:20px}@media print{.no-print{display:none}}</style></head><body>' +
+    '<div class="no-print"><button onclick="window.print()">🖨 Imprimir / Guardar PDF</button></div>' +
+    '<h2>ISC-24 — Respostas por Item</h2>' +
+    '<p>Paciente: <strong>' + (sessao.nomeCrianca||'—') + '</strong> (' + (sessao.patientCode||'—') + ') · ' +
+    'Data: ' + (sessao.data||'—') + ' · Ricardina Correia · Cédula 8233</p>' +
+    '<table><thead><tr><th style="width:32px;text-align:center">#</th><th>Item</th><th style="text-align:center">Resp.</th><th>Significado</th></tr></thead>' +
+    '<tbody>' + linhas + '</tbody></table></body></html>';
+  var w = window.open('', '_blank');
+  if(!w){ alert('Pop-up bloqueado. Permite pop-ups para este site.'); return; }
+  w.document.write(html); w.document.close();
+}
+
+function exportarInterpretacaoPDF(sessao){
+  if(!sessao){ alert('Selecciona primeiro uma sessão (clica em "Ver →").'); return; }
+
+  // Linhas globais
+  var zona = sessao.classificacao || '—';
+  var cor = zona.indexOf('Muito Elevado') >= 0 ? '#C0392B'
+          : zona.indexOf('Elevado') >= 0 ? '#E67E22'
+          : zona.indexOf('Muito Baixo') >= 0 ? '#5B7FA6'
+          : '#27AE60';
+
+  var linhasGlobais =
+    '<tr><td style="padding:5px 8px;border-bottom:1px solid #eee">Pontuação Total (PT)</td>' +
+    '<td style="padding:5px 8px;border-bottom:1px solid #eee;text-align:center;font-weight:700;color:' + cor + '">' + sessao.PT + '</td>' +
+    '<td style="padding:5px 8px;border-bottom:1px solid #eee">0 a 96</td></tr>' +
+    '<tr><td style="padding:5px 8px;border-bottom:1px solid #eee">Z-score</td>' +
+    '<td style="padding:5px 8px;border-bottom:1px solid #eee;text-align:center;font-weight:600">' + (sessao.z_score!==undefined?sessao.z_score:'—') + '</td>' +
+    '<td style="padding:5px 8px;border-bottom:1px solid #eee">Norma: ' + (sessao.grupo_norma||'—') + '</td></tr>' +
+    '<tr><td style="padding:5px 8px;border-bottom:1px solid #eee">Percentil</td>' +
+    '<td style="padding:5px 8px;border-bottom:1px solid #eee;text-align:center;font-weight:600">' + (sessao.percentil||'—') + 'º</td>' +
+    '<td style="padding:5px 8px;border-bottom:1px solid #eee">-</td></tr>' +
+    '<tr><td style="padding:5px 8px;border-bottom:1px solid #eee">Classificação</td>' +
+    '<td style="padding:5px 8px;border-bottom:1px solid #eee;text-align:center;font-weight:700;color:' + cor + '">' + zona + '</td>' +
+    '<td style="padding:5px 8px;border-bottom:1px solid #eee">Baseado em z-score</td></tr>';
+
+  // Linhas por cluster
+  var linhasCluster = '';
+  for(var c=0; c<CLUSTERS.length; c++){
+    var cl = CLUSTERS[c];
+    var soma = sessao.clusters ? (sessao.clusters[cl.code + '_soma'] || 0) : 0;
+    var media = sessao.clusters ? (sessao.clusters[cl.code + '_media'] || 0) : 0;
+    var leitura = media < 0.5 ? 'Baixo' : media < 1.5 ? 'Ligeiro' : media < 2.5 ? 'Moderado' : 'Acentuado';
+    var cCor = media < 0.5 ? '#27AE60' : media < 1.5 ? '#5B7FA6' : media < 2.5 ? '#E67E22' : '#C0392B';
+    var pctCl = Math.min(100, Math.round(media/4 * 100));
+    linhasCluster +=
+      '<tr>' +
+        '<td style="padding:5px 8px;border-bottom:1px solid #eee"><strong>' + cl.code + '</strong> — ' + cl.name + '</td>' +
+        '<td style="padding:5px 8px;border-bottom:1px solid #eee;text-align:center">' + soma + '</td>' +
+        '<td style="padding:5px 8px;border-bottom:1px solid #eee;text-align:center;font-weight:700;color:' + cCor + '">' + media.toFixed(2) + '</td>' +
+        '<td style="padding:5px 8px;border-bottom:1px solid #eee">' +
+          '<div style="background:#eee;border-radius:3px;height:8px;width:100px"><div style="background:' + cCor + ';border-radius:3px;height:8px;width:' + pctCl + '%"></div></div>' +
+        '</td>' +
+        '<td style="padding:5px 8px;border-bottom:1px solid #eee;color:' + cCor + ';font-weight:600">' + leitura + '</td>' +
+      '</tr>';
+  }
+
+  // Respostas item-a-item (se disponíveis)
+  var respostasHtml = '';
+  if(sessao.respostas && sessao.respostas.length){
+    respostasHtml = sessao.respostas.map(function(r, i){
+      var rotulo = r===0?'Nunca': r===1?'Um pouco': r===2?'Algumas vezes': r===3?'Muito': r===4?'Muitíssimo':'—';
+      return '<tr>' +
+        '<td style="padding:3px 6px;border-bottom:1px solid #f0f0f0;color:#999;text-align:center">' + (i+1) + '</td>' +
+        '<td style="padding:3px 6px;border-bottom:1px solid #f0f0f0;font-size:11px">' + ITEMS[i] + '</td>' +
+        '<td style="padding:3px 6px;border-bottom:1px solid #f0f0f0;text-align:center;font-weight:700">' + r + '</td>' +
+        '<td style="padding:3px 6px;border-bottom:1px solid #f0f0f0;color:#6B7A8D;font-size:11px">' + rotulo + '</td>' +
+      '</tr>';
+    }).join('');
+  }
+
+  // Narrativa
+  var narrativa;
+  if(zona.indexOf('Muito Baixo') >= 0){
+    narrativa = 'Pontuação total abaixo da média do grupo de referência. Não se identificam queixas somáticas significativas.';
+  } else if(zona.indexOf('Muito Elevado') >= 0){
+    narrativa = 'Pontuação total muito elevada. Padrão sugestivo de expressão somática clinicamente significativa. Recomenda-se avaliação clínica aprofundada, despiste de causa orgânica, e avaliação de comorbilidade psicopatológica.';
+  } else if(zona.indexOf('Elevado') >= 0){
+    narrativa = 'Pontuação total elevada. Sinal de alerta que justifica análise dos clusters predominantes, despiste de coocorrência ansioso-depressiva e articulação com avaliação médica.';
+  } else {
+    narrativa = 'Pontuação total dentro da variabilidade normativa para a idade e género. Recomenda-se análise qualitativa do perfil.';
+  }
+
+  var html = '<!DOCTYPE html><html><head><meta charset="UTF-8">' +
+    '<title>Interpretação — ' + sessao.patientCode + '</title>' +
+    '<style>' +
+    'body{font-family:Arial,sans-serif;font-size:12px;color:#2C3E50;padding:24px;max-width:900px;margin:0 auto}' +
+    'h1{color:#3B5A7A;font-size:16px;margin-bottom:4px}' +
+    'h2{color:#3B5A7A;font-size:13px;margin:18px 0 8px;border-bottom:2px solid #D6E4F0;padding-bottom:4px}' +
+    'p{color:#6B7A8D;margin-bottom:16px;font-size:11px}' +
+    'table{width:100%;border-collapse:collapse;margin-bottom:16px}' +
+    'th{background:#D6E4F0;padding:6px 8px;text-align:left;color:#3B5A7A;font-size:11px}' +
+    '.no-print{margin-bottom:16px}' +
+    '@media print{.no-print{display:none}body{padding:12px}}' +
+    '</style></head><body>' +
+    '<div class="no-print"><button onclick="window.print()" style="padding:6px 14px;cursor:pointer">🖨 Imprimir / Guardar PDF</button></div>' +
+    '<h1>ISC-24 — Relatório de Avaliação</h1>' +
+    '<p>Código: <strong>' + sessao.patientCode + '</strong> ' +
+    (sessao.nomeCrianca ? '&nbsp;|&nbsp; Criança: <strong>' + sessao.nomeCrianca + '</strong>' : '') +
+    (sessao.nomeRespondente ? '&nbsp;|&nbsp; Respondente: <strong>' + sessao.nomeRespondente + '</strong> (' + (sessao.relacao||'') + ')' : '') +
+    '&nbsp;|&nbsp; Idade: ' + (sessao.idade||'—') + ' anos · ' + (sessao.genero||'—') +
+    '&nbsp;|&nbsp; Data: ' + (sessao.data||'—') +
+    '&nbsp;|&nbsp; Ricardina Correia · Cédula 8233</p>' +
+    '<h2>Pontuação Global e Comparação Normativa</h2>' +
+    '<table><thead><tr><th>Indicador</th><th style="text-align:center">Valor</th><th>Referência</th></tr></thead>' +
+    '<tbody>' + linhasGlobais + '</tbody></table>' +
+    '<h2>Perfil por Cluster (descritivo)</h2>' +
+    '<table><thead><tr><th>Cluster</th><th style="text-align:center">Soma</th><th style="text-align:center">Média</th><th>Perfil</th><th>Leitura</th></tr></thead>' +
+    '<tbody>' + linhasCluster + '</tbody></table>' +
+    '<h2>Síntese Interpretativa</h2>' +
+    '<div style="background:#EBF2F8;border-radius:6px;padding:12px 16px;font-size:12px;line-height:1.6">' + narrativa + '</div>' +
+    (respostasHtml ?
+      '<h2>Respostas por Item</h2>' +
+      '<table><thead><tr><th style="text-align:center;width:32px">#</th><th>Item</th><th style="text-align:center">Resp.</th><th>Significado</th></tr></thead>' +
+      '<tbody>' + respostasHtml + '</tbody></table>' : '') +
+    '<p style="margin-top:24px;font-style:italic;color:#999">Interpretação automática — integrar sempre no contexto clínico completo da avaliação. O ISC-24 não substitui diagnóstico médico.</p>' +
+    '</body></html>';
+  var w = window.open('', '_blank');
+  if(!w){ alert('Pop-up bloqueado. Permite pop-ups para este site.'); return; }
+  w.document.write(html); w.document.close();
+}
+
+// =============================================================
+// IMPORTAR CSV
+// =============================================================
+function importarCSV(){
+  document.getElementById('import-file-input').click();
+}
+
+function processarFicheiroImportado(input){
+  var file = input.files && input.files[0];
+  if(!file) return;
+  var reader = new FileReader();
+  reader.onload = function(e){
+    var text = e.target.result.replace(/^\uFEFF/, '');
+    var rows = text.split(/\r?\n/).filter(Boolean);
+    if(rows.length < 2){ showImportFeedback('Ficheiro vazio ou sem dados.', 'red'); return; }
+    // Detectar separador
+    var header = rows[0];
+    var sep = header.indexOf(';') >= 0 ? ';' : ',';
+    var headers = header.split(sep).map(function(h){ return h.trim(); });
+    var existing = {};
+    try{
+      var all = JSON.parse(localStorage.getItem(LOCAL_KEY) || '{}');
+      for(var k in all){ if(all.hasOwnProperty(k)){
+        existing[all[k].patientCode + '|' + (all[k].localDate || all[k].data || '')] = true;
+      }}
+    }catch(err){}
+    var importados = 0, duplicados = 0;
+    var current = {};
+    try{ current = JSON.parse(localStorage.getItem(LOCAL_KEY) || '{}'); }catch(err){}
+    for(var i=1; i<rows.length; i++){
+      var cells = parseCSVLine(rows[i], sep);
+      if(cells.length !== headers.length) continue;
+      var obj = {};
+      for(var j=0; j<headers.length; j++) obj[headers[j]] = cells[j];
+      var code = obj['Código'] || obj['Código Paciente'] || obj.patientCode || '';
+      var dta = obj['Data'] || obj.localDate || '';
+      if(!code) continue;
+      if(existing[code + '|' + dta]){ duplicados++; continue; }
+      var s = parseSessao(obj);
+      current[code + '_' + Date.now() + '_' + i] = s;
+      importados++;
+    }
+    localStorage.setItem(LOCAL_KEY, JSON.stringify(current));
+    showImportFeedback(importados + ' registo(s) importado(s). ' + duplicados + ' duplicado(s) ignorado(s).', 'green');
+    carregarDados();
+  };
+  reader.readAsText(file, 'UTF-8');
+}
+
+function parseCSVLine(line, sep){
+  var out = [], cur = '', inQ = false;
+  for(var i=0; i<line.length; i++){
+    var ch = line.charAt(i);
+    if(ch === '"'){
+      if(inQ && line.charAt(i+1) === '"'){ cur += '"'; i++; }
+      else inQ = !inQ;
+    } else if(ch === sep && !inQ){ out.push(cur); cur = ''; }
+    else cur += ch;
+  }
+  out.push(cur);
+  return out;
+}
+
+function showImportFeedback(msg, color){
+  var el = document.getElementById('import-feedback');
+  el.textContent = msg;
+  el.style.cssText = 'margin-bottom:12px;padding:10px 14px;border-radius:8px;font-size:.85rem;' +
+    (color === 'green' ? 'background:#eafaf1;color:#27AE60;border:1px solid #27AE60' :
+                         'background:#fdecea;color:#C0392B;border:1px solid #C0392B');
+  el.style.display = 'block';
+  setTimeout(function(){ el.style.display = 'none'; }, 6000);
+}
+
+// =============================================================
+// INICIALIZAÇÃO
+// =============================================================
+document.addEventListener('DOMContentLoaded', function(){
+  // Aviso se ficheiro local
+  if(window.location.protocol === 'file:'){
+    var b = document.getElementById('offline-banner');
+    if(b) b.style.display = 'block';
+  }
+  // Auto-login via ?clinico=CNS2024
+  var params = new URLSearchParams(window.location.search);
+  if(params.get('clinico') === PASSWORD){
+    showPage('page-clinico');
+    carregarDados();
+    return;
+  }
+  showPage('page-home');
+});
+</script>
+</body>
+</html>
