@@ -670,7 +670,13 @@ const QID_TO_ABA = {
   // ── OCI-CV-R — Inventário Obsessivo-Compulsivo Revisto para Crianças (Abramovitch et al., 2022) ──
   'q_ocicvr':              'OCI_CV_R',
   // ── OCI-R — Inventário Obsessivo-Compulsivo Revisto (Foa et al., 2002 · versão PT Cardoso, 2015) ──
-  'q_ocir':                'OCI_R'
+  'q_ocir':                'OCI_R',
+  // ── COMPA — Escala de Avaliação da Comunicação na Parentalidade (Portugal & Alberto, 2014) ──
+  'q_compap':              'COMPA_P',
+  'q_compa_a_pai':         'COMPA_A_Pai',
+  'q_compa_a_mae':         'COMPA_A_Mae',
+  'q_compa_c_pai':         'COMPA_C_Pai',
+  'q_compa_c_mae':         'COMPA_C_Mae'
 };
 
 
@@ -700,6 +706,9 @@ const SYNC_KEY_TO_ABA = {
   'map_1214':          'MAP_Parental_1214',
   'map_1518':          'MAP_Parental_1518',
   'erc_pais':          'ERC_Pais',
+  // ── DERS — Dificuldades de Regulação Emocional (Gratz & Roemer, 2004; PT: Pinto Gouveia & Veloso, 2007; Coutinho et al., 2010) ──
+  'ders':              'DERS',
+  'DERS':              'DERS',
   'brief_pe_pais': 'BRIEF_PreEscolar_Pais',
   'brief_pe_prof': 'BRIEF_PreEscolar_Professores',
   'brief_auto':    'BRIEF_Autoavaliacao',
@@ -824,7 +833,19 @@ const SYNC_KEY_TO_ABA = {
   // ── OCI-R — Inventário Obsessivo-Compulsivo Revisto (Foa et al., 2002 · versão PT Cardoso, 2015) ─
   'ocir':              'OCI_R',
   'OCI_R':             'OCI_R',
-  'OCI-R':             'OCI_R'
+  'OCI-R':             'OCI_R',
+  // ── COMPA — Escala de Avaliação da Comunicação na Parentalidade (Portugal & Alberto, 2014) ──
+  'compap':            'COMPA_P',
+  'COMPA_P':           'COMPA_P',
+  'COMPA-P':           'COMPA_P',
+  'compa_a_pai':       'COMPA_A_Pai',
+  'COMPA_A_Pai':       'COMPA_A_Pai',
+  'compa_a_mae':       'COMPA_A_Mae',
+  'COMPA_A_Mae':       'COMPA_A_Mae',
+  'compa_c_pai':       'COMPA_C_Pai',
+  'COMPA_C_Pai':       'COMPA_C_Pai',
+  'compa_c_mae':       'COMPA_C_Mae',
+  'COMPA_C_Mae':       'COMPA_C_Mae'
 };
 
 // Cache em memória das respostas do Sheet (evita fetch repetidos na mesma sessão)
@@ -992,6 +1013,14 @@ function initCatalog() {
       syncKey:'erc_pais', area:'Regulação Emocional', ageRange:'3–18 anos',
       objective:'Avalia a regulação emocional da criança — versão pais/cuidadores',
       domains:['Labilidade/Negatividade (L/N)','Regulação Emocional (RE)','Total ERC'] , ageMin:36, ageMax:215},
+    // ── DERS — Dificuldades de Regulação Emocional (Gratz & Roemer, 2004) ─
+    { id:'q_ders', name:'DERS — Dificuldades de Regulação Emocional',
+      dest:['Paciente'],
+      link:'https://correiaricardina-ui.github.io/questionarios/DERS_v1.html',
+      syncKey:'ders', area:'Regulação Emocional', ageRange:'14 anos+',
+      objective:'Avalia dificuldades multidimensionais na regulação emocional — auto-relato (adolescentes 14–17 e adultos)',
+      domains:['Não-Aceitação','Objetivos','Impulsos','Consciência','Estratégias','Clareza','Total'],
+      ageMin:168, ageMax:null },
     { id:'q_diva5', name:'DIVA-5',
       dest:['Clínico'],
       link:'https://correiaricardina-ui.github.io/questionarios/DIVA5_v1.html',
@@ -1091,6 +1120,42 @@ function initCatalog() {
       objective:'Avaliação do funcionamento familiar em 7 subescalas — 60 itens (Epstein et al., 1983)',
       domains:['PS','CO','RO','AR','AI','BC','GF'],
       ageMin:0, ageMax:999 },
+    // ── COMPA — Escala de Avaliação da Comunicação na Parentalidade (Portugal & Alberto, 2014) ──
+    { id:'q_compap', name:'COMPA — Progenitores',
+      dest:['Mãe','Pai','Enc. Educação'],
+      link:'https://correiaricardina-ui.github.io/questionarios/COMPA_P.html',
+      syncKey:'compap', area:'Funcionamento/Dinâmica Familiar', ageRange:'Progenitores',
+      objective:'Perceção do progenitor sobre a comunicação parento-filial — 44 itens',
+      domains:['F1 Afeto/Apoio','F2 Disponibilidade Parental','F3 Metacomunicação','F4 Confiança P→F','F5 Confiança F→P','Total'],
+      ageMin:0, ageMax:999 },
+    { id:'q_compa_a_pai', name:'COMPA — Adolescente (em relação ao Pai)',
+      dest:['Paciente'],
+      link:'https://correiaricardina-ui.github.io/questionarios/COMPA_A_Pai.html',
+      syncKey:'compa_a_pai', area:'Funcionamento/Dinâmica Familiar', ageRange:'12–16 anos',
+      objective:'Perceção do adolescente sobre a comunicação com o pai — 39 itens',
+      domains:['F1 Disponibilidade Parental','F2 Confiança F→P','F3 Afeto/Apoio','F4 Metacomunicação','F5 Padrão Negativo','Total Positivo'],
+      ageMin:144, ageMax:203 },
+    { id:'q_compa_a_mae', name:'COMPA — Adolescente (em relação à Mãe)',
+      dest:['Paciente'],
+      link:'https://correiaricardina-ui.github.io/questionarios/COMPA_A_Mae.html',
+      syncKey:'compa_a_mae', area:'Funcionamento/Dinâmica Familiar', ageRange:'12–16 anos',
+      objective:'Perceção do adolescente sobre a comunicação com a mãe — 39 itens',
+      domains:['F1 Disponibilidade Parental','F2 Confiança F→P','F3 Afeto/Apoio','F4 Metacomunicação','F5 Padrão Negativo','Total Positivo'],
+      ageMin:144, ageMax:203 },
+    { id:'q_compa_c_pai', name:'COMPA — Criança (em relação ao Pai)',
+      dest:['Paciente'],
+      link:'https://correiaricardina-ui.github.io/questionarios/COMPA_C_Pai.html',
+      syncKey:'compa_c_pai', area:'Funcionamento/Dinâmica Familiar', ageRange:'7–11 anos',
+      objective:'Perceção da criança sobre a comunicação com o pai — 16 itens',
+      domains:['F1 Disponibilidade Parental','F2 Afeto/Apoio','Total'],
+      ageMin:84, ageMax:143 },
+    { id:'q_compa_c_mae', name:'COMPA — Criança (em relação à Mãe)',
+      dest:['Paciente'],
+      link:'https://correiaricardina-ui.github.io/questionarios/COMPA_C_Mae.html',
+      syncKey:'compa_c_mae', area:'Funcionamento/Dinâmica Familiar', ageRange:'7–11 anos',
+      objective:'Perceção da criança sobre a comunicação com a mãe — 16 itens',
+      domains:['F1 Disponibilidade Parental','F2 Afeto/Apoio','Total'],
+      ageMin:84, ageMax:143 },
     // ── NOVO v7.9 — EAT-26 ──────────────────────────────────────────────
     { id:'q_eat26', name:'EAT-26',
       dest:['Paciente'],
@@ -1368,6 +1433,8 @@ function initCatalog() {
       'q_abas3_prof':  { link:'https://correiaricardina-ui.github.io/questionarios/ABAS3_Professor_v2.html', syncKey:'abas3_prof'  },
       'q_abas3_adult': { link:'https://correiaricardina-ui.github.io/questionarios/ABAS3_Autorrelato_v1.html', syncKey:'abas3_adult' },
       'q_erc_pais':         { link:'https://correiaricardina-ui.github.io/questionarios/ERC_Pais_v1.html', syncKey:'erc_pais' },
+      // ── DERS — Dificuldades de Regulação Emocional ─────────
+      'q_ders':             { link:'https://correiaricardina-ui.github.io/questionarios/DERS_v1.html', syncKey:'ders' },
       'q_diva5':             { link:'https://correiaricardina-ui.github.io/questionarios/DIVA5_v1.html', syncKey:'diva5' },
       'q_eafe':              { link:'https://correiaricardina-ui.github.io/questionarios/EAFE_v2.html', syncKey:'eafe' },
       'q_ece_fea':           { link:'https://correiaricardina-ui.github.io/questionarios/ECE-FEA.html', syncKey:'ece_fea' },
@@ -1425,6 +1492,12 @@ function initCatalog() {
       'q_ocicvr':     { link:'https://correiaricardina-ui.github.io/questionarios/OCI_CV_R_v1.html', syncKey:'ocicvr' },
       // ── OCI-R — Inventário Obsessivo-Compulsivo Revisto (adultos) v1.0 ──
       'q_ocir':       { link:'https://correiaricardina-ui.github.io/questionarios/OCI_R_v1.html', syncKey:'ocir' },
+      // ── COMPA — Escala de Avaliação da Comunicação na Parentalidade (Portugal & Alberto, 2014) ──
+      'q_compap':       { link:'https://correiaricardina-ui.github.io/questionarios/COMPA_P.html',       syncKey:'compap' },
+      'q_compa_a_pai':  { link:'https://correiaricardina-ui.github.io/questionarios/COMPA_A_Pai.html',   syncKey:'compa_a_pai' },
+      'q_compa_a_mae':  { link:'https://correiaricardina-ui.github.io/questionarios/COMPA_A_Mae.html',   syncKey:'compa_a_mae' },
+      'q_compa_c_pai':  { link:'https://correiaricardina-ui.github.io/questionarios/COMPA_C_Pai.html',   syncKey:'compa_c_pai' },
+      'q_compa_c_mae':  { link:'https://correiaricardina-ui.github.io/questionarios/COMPA_C_Mae.html',   syncKey:'compa_c_mae' },
     };
     // ── Re-store com chave correcta ('q_' + id) — corrige instalações anteriores ──
     // Garante que Conners, FAD e MAP ficam acessíveis pelo META.forEach e getCatalog
@@ -1515,6 +1588,11 @@ function initCatalog() {
     if(!catalog.includes('q_raadsr')) {
       const dRaads = defaults.find(d => d.id === 'q_raadsr');
       if(dRaads) { store.set('q_raadsr', dRaads); store.set('q_' + dRaads.id, dRaads); catalog.push(dRaads.id); store.set('catalog', catalog); }
+    }
+    // DERS — Dificuldades de Regulação Emocional
+    if(!catalog.includes('q_ders')) {
+      const dDers = defaults.find(d => d.id === 'q_ders');
+      if(dDers) { store.set('q_ders', dDers); store.set('q_' + dDers.id, dDers); catalog.push('q_ders'); store.set('catalog', catalog); }
     }
     // ERC Pais
     if(!catalog.includes('q_erc_pais')) {
@@ -1714,6 +1792,27 @@ function initCatalog() {
     if(!catalog.includes('q_emp_f')) {
       const d = defaults.find(x => x.id === 'q_emp_f');
       if(d) { store.set('q_' + d.id, d); catalog.push('q_emp_f'); store.set('catalog', catalog); }
+    }
+    // ── COMPA — Escala de Avaliação da Comunicação na Parentalidade (Portugal & Alberto, 2014) ──
+    if(!catalog.includes('q_compap')) {
+      const d = defaults.find(x => x.id === 'q_compap');
+      if(d) { store.set('q_' + d.id, d); catalog.push('q_compap'); store.set('catalog', catalog); }
+    }
+    if(!catalog.includes('q_compa_a_pai')) {
+      const d = defaults.find(x => x.id === 'q_compa_a_pai');
+      if(d) { store.set('q_' + d.id, d); catalog.push('q_compa_a_pai'); store.set('catalog', catalog); }
+    }
+    if(!catalog.includes('q_compa_a_mae')) {
+      const d = defaults.find(x => x.id === 'q_compa_a_mae');
+      if(d) { store.set('q_' + d.id, d); catalog.push('q_compa_a_mae'); store.set('catalog', catalog); }
+    }
+    if(!catalog.includes('q_compa_c_pai')) {
+      const d = defaults.find(x => x.id === 'q_compa_c_pai');
+      if(d) { store.set('q_' + d.id, d); catalog.push('q_compa_c_pai'); store.set('catalog', catalog); }
+    }
+    if(!catalog.includes('q_compa_c_mae')) {
+      const d = defaults.find(x => x.id === 'q_compa_c_mae');
+      if(d) { store.set('q_' + d.id, d); catalog.push('q_compa_c_mae'); store.set('catalog', catalog); }
     }
     }
   }
@@ -1973,6 +2072,23 @@ function formatScoreSummary(scores, syncKey) {
     const re  = scores.re  ?? scores.re_score  ?? scores.RE     ?? '—';
     const tot = scores.total ?? scores.total_score               ?? '—';
     return `<span style="font-size:0.78rem;color:var(--blue)">L/N=${ln} · RE=${re} · Total=${tot}</span>`;
+  }
+  // DERS — Dificuldades de Regulação Emocional
+  if(syncKey === 'ders') {
+    const tot = scores['TOT_Raw'] ?? scores['tot_raw'] ?? scores['Total'] ?? scores['total'];
+    const z   = scores['TOT_Z']   ?? scores['tot_z']   ?? scores['Z_Total'];
+    if(tot != null) {
+      const zNum = (z != null && z !== '') ? parseFloat(z) : null;
+      let cls = 'color:var(--green);font-weight:600;';
+      if(zNum != null && !isNaN(zNum)) {
+        if(zNum >= 1.5)      cls = 'color:#C0392B;font-weight:700;';
+        else if(zNum >= 1.0) cls = 'color:#E67E22;font-weight:600;';
+        else if(zNum <= -1.0)cls = 'color:#5B7FA6;font-weight:600;';
+      }
+      const zTxt = (zNum != null && !isNaN(zNum)) ? ' (z=' + (zNum>=0?'+':'') + zNum.toFixed(2) + ')' : '';
+      return `<span style="font-size:0.78rem;${cls}">Total = ${tot}${zTxt}</span>`;
+    }
+    return '<span style="font-size:0.78rem;color:var(--text-light)">DERS</span>';
   }
   // CTRF-15
   if(syncKey === 'ctrf15') {
@@ -2679,6 +2795,33 @@ function formatScoreSummary(scores, syncKey) {
     }
   }
 
+  // ── COMPA — Escala de Avaliação da Comunicação na Parentalidade ──
+  // syncKeys: compap, compa_a_pai, compa_a_mae, compa_c_pai, compa_c_mae
+  // Score 1.00–5.00. Cut-offs: <2 Muito Baixo · <3 Baixo · <3.75 Médio · <4.5 Elevado · ≥4.5 Muito Elevado
+  if(syncKey === 'compap' || syncKey === 'compa_a_pai' || syncKey === 'compa_a_mae' ||
+     syncKey === 'compa_c_pai' || syncKey === 'compa_c_mae') {
+    const total = scores['Total'] ?? scores['total'];
+    if(total != null && total !== '') {
+      const v = parseFloat(total);
+      if(!isNaN(v)) {
+        const cls = v < 2.00 ? 'color:#C0392B;font-weight:700;' :
+                    v < 3.00 ? 'color:#E67E22;font-weight:600;' :
+                    v < 3.75 ? 'color:var(--blue-mid);font-weight:600;' :
+                               'color:var(--green);font-weight:600;';
+        const labelTotal = (syncKey === 'compa_a_pai' || syncKey === 'compa_a_mae')
+                           ? 'Total Positivo'
+                           : 'Total';
+        // Mostrar também F5 para COMPA-A (valência negativa)
+        let extra = '';
+        if(syncKey === 'compa_a_pai' || syncKey === 'compa_a_mae') {
+          const f5 = scores['F5'] ?? scores['f5'];
+          if(f5 != null && f5 !== '') extra = ' · F5=' + parseFloat(f5).toFixed(2);
+        }
+        return '<span style="font-size:0.78rem;' + cls + '">' + labelTotal + ' = ' + v.toFixed(2) + extra + '</span>';
+      }
+    }
+  }
+
   return null;
 }
 
@@ -2843,6 +2986,8 @@ function renderAssignments(patientId) {
                 'CONNERS3P_FULL':['Relação','NomeInformante'],'CONNERS3T_FULL':['Relação','NomeInformante'],
                 'CONNERS3PS':['Relação','NomeInformante'],'CONNERS3TS':['Relação','NomeInformante'],
                 'ERC_Pais':['NomeInformante','Relação'],'ERC_Professores':['NomeInformante','Relação'],
+                // ── DERS — auto-relato (≥14 anos): respondente é o próprio paciente ─
+                'DERS':['NomeInformante','NomeCriança','NomeCrianca'],
                 // ── BAS-3 — auto-avaliação (respondente é o próprio paciente) ─
                 'BAS3':['NomeCriança','NomeRespondente','NomeInformante'],
                 'PS2_Cuidador':['NomeInformante','Relacao'],'PS2_Professor':['NomeInformante'],
@@ -2889,7 +3034,13 @@ function renderAssignments(patientId) {
                 // ── OCI-CV-R — auto-relato (criança/adolescente 7-17) ───────
                 'OCI_CV_R':        ['NomeInformante','NomeCriança','NomeCrianca','NomeRespondente'],
                 // ── OCI-R — auto-relato (adulto ≥18) ────────────────────────
-                'OCI_R':           ['NomePaciente','NomeRespondente','NomeInformante']
+                'OCI_R':           ['NomePaciente','NomeRespondente','NomeInformante'],
+                // ── COMPA — Escala de Avaliação da Comunicação na Parentalidade (Portugal & Alberto, 2014) ──
+                'COMPA_P':         ['NomeInformante','Relacao'],
+                'COMPA_A_Pai':     ['NomeInformante','NomeCrianca'],
+                'COMPA_A_Mae':     ['NomeInformante','NomeCrianca'],
+                'COMPA_C_Pai':     ['NomeInformante','NomeCrianca'],
+                'COMPA_C_Mae':     ['NomeInformante','NomeCrianca']
               };
               const RC = {
                 'SWAN':['Relação'],'BRIEF_Pais':['Relação'],'SCARED_R_PAIS':['Relação'],
@@ -3175,7 +3326,15 @@ async function syncAndMark(patientId, idx) {
           // ── Anamnese — História Prévia (Ricardina Correia, 2026) ──
           'ANAMNESE_HP':['NomeRespondente','Relação'],
           // ── ISC-24 — múltiplos respondentes possíveis (próprio, pais, EE) ──
-          'ISC24':['NomeRespondente','Relação','NomeCriança','NomeCrianca']
+          'ISC24':['NomeRespondente','Relação','NomeCriança','NomeCrianca'],
+          // ── DERS — auto-relato (≥14 anos) ─────────────────────
+          'DERS':['NomeInformante','NomeCriança','NomeCrianca'],
+          // ── COMPA — Escala de Avaliação da Comunicação na Parentalidade (Portugal & Alberto, 2014) ──
+          'COMPA_P':         ['NomeInformante','Relacao'],
+          'COMPA_A_Pai':     ['NomeInformante','NomeCrianca'],
+          'COMPA_A_Mae':     ['NomeInformante','NomeCrianca'],
+          'COMPA_C_Pai':     ['NomeInformante','NomeCrianca'],
+          'COMPA_C_Mae':     ['NomeInformante','NomeCrianca']
         };
         const RC2 = {
           'SWAN':['Relação'],'BRIEF_Pais':['Relação'],'SCARED_R_PAIS':['Relação'],
