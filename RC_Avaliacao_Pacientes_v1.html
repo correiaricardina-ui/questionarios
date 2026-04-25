@@ -666,7 +666,11 @@ const QID_TO_ABA = {
   // ── EMP-H&F — Perfeccionismo Multidimensional (Hewitt & Flett, 1991) ──
   'q_emp_hf':              'EMP_HF',
   // ── EMP-F — Perfeccionismo Multidimensional (Frost et al., 1990) ──
-  'q_emp_f':               'EMP_F'
+  'q_emp_f':               'EMP_F',
+  // ── OCI-CV-R — Inventário Obsessivo-Compulsivo Revisto para Crianças (Abramovitch et al., 2022) ──
+  'q_ocicvr':              'OCI_CV_R',
+  // ── OCI-R — Inventário Obsessivo-Compulsivo Revisto (Foa et al., 2002 · versão PT Cardoso, 2015) ──
+  'q_ocir':                'OCI_R'
 };
 
 
@@ -812,7 +816,15 @@ const SYNC_KEY_TO_ABA = {
   // ── EMP-F — Perfeccionismo Multidimensional (Frost et al., 1990) ─────────
   'emp_f':             'EMP_F',
   'EMP_F':             'EMP_F',
-  'EMP-F':             'EMP_F'
+  'EMP-F':             'EMP_F',
+  // ── OCI-CV-R — Inventário Obsessivo-Compulsivo Revisto para Crianças (Abramovitch et al., 2022) ─
+  'ocicvr':            'OCI_CV_R',
+  'OCI_CV_R':          'OCI_CV_R',
+  'OCI-CV-R':          'OCI_CV_R',
+  // ── OCI-R — Inventário Obsessivo-Compulsivo Revisto (Foa et al., 2002 · versão PT Cardoso, 2015) ─
+  'ocir':              'OCI_R',
+  'OCI_R':             'OCI_R',
+  'OCI-R':             'OCI_R'
 };
 
 // Cache em memória das respostas do Sheet (evita fetch repetidos na mesma sessão)
@@ -1269,6 +1281,22 @@ function initCatalog() {
       objective:'Avalia perfeccionismo em seis dimensões (Frost et al., 1990) — preocupação com erros, dúvidas sobre ações, expectativas parentais, críticas parentais, padrões pessoais e organização; versão reduzida de 24 itens',
       domains:['CM — Preocupações com Erros','DA — Dúvidas sobre Ações','PE — Expectativas Parentais','PC — Críticas Parentais','PS — Padrões Pessoais','O — Organização'],
       ageMin:144, ageMax:null },
+    // ── OCI-CV-R — Inventário Obsessivo-Compulsivo Revisto para Crianças (Abramovitch et al., 2022) v1.0 ──
+    { id:'q_ocicvr', name:'OCI-CV-R — Sintomatologia Obsessivo-Compulsiva',
+      dest:['Criança/Adolescente','Paciente'],
+      link:'https://correiaricardina-ui.github.io/questionarios/OCI_CV_R_v1.html',
+      syncKey:'ocicvr', area:'POC', ageRange:'7–17 anos',
+      objective:'Rastreio de sintomatologia obsessivo-compulsiva pediátrica em 5 dimensões (Abramovitch et al., 2022) — auto-relato com 18 itens; janela do último mês',
+      domains:['VD — Verificação/Dúvida','OBS — Obsessões','LAV — Lavagem','ORD — Ordenação','NEUTR — Neutralização','Total'],
+      ageMin:84, ageMax:215 },
+    // ── OCI-R — Inventário Obsessivo-Compulsivo Revisto (Foa et al., 2002 · versão PT Cardoso, 2015) v1.0 ──
+    { id:'q_ocir', name:'OCI-R — Sintomatologia Obsessivo-Compulsiva (adultos)',
+      dest:['Paciente'],
+      link:'https://correiaricardina-ui.github.io/questionarios/OCI_R_v1.html',
+      syncKey:'ocir', area:'POC', ageRange:'≥18 anos',
+      objective:'Rastreio de sintomatologia obsessivo-compulsiva em adultos em 6 dimensões (Foa et al., 2002 · versão PT: Cardoso, 2015) — auto-relato com 18 itens, escala 0-4; janela do último mês; corte ≥21 sugere provável POC',
+      domains:['Lavagem','Verificação','Ordem','Acumulação','Obsessões','Neutralização','Total'],
+      ageMin:216, ageMax:null },
   ];
   // Garantir que TODOS os defaults estão no catálogo, sempre
   // (funciona em RC novos e em RC existentes — nunca perde questionários)
@@ -1393,6 +1421,10 @@ function initCatalog() {
       'q_emp_hf':     { link:'https://correiaricardina-ui.github.io/questionarios/EMP_HF_v1.html', syncKey:'emp_hf' },
       // ── EMP-F — Escala Multidimensional de Perfeccionismo (Frost) v1.0 ──
       'q_emp_f':      { link:'https://correiaricardina-ui.github.io/questionarios/EMP_F_v1.html', syncKey:'emp_f' },
+      // ── OCI-CV-R — Inventário Obsessivo-Compulsivo Revisto para Crianças v1.0 ──
+      'q_ocicvr':     { link:'https://correiaricardina-ui.github.io/questionarios/OCI_CV_R_v1.html', syncKey:'ocicvr' },
+      // ── OCI-R — Inventário Obsessivo-Compulsivo Revisto (adultos) v1.0 ──
+      'q_ocir':       { link:'https://correiaricardina-ui.github.io/questionarios/OCI_R_v1.html', syncKey:'ocir' },
     };
     // ── Re-store com chave correcta ('q_' + id) — corrige instalações anteriores ──
     // Garante que Conners, FAD e MAP ficam acessíveis pelo META.forEach e getCatalog
@@ -2584,6 +2616,69 @@ function formatScoreSummary(scores, syncKey) {
     }
   }
 
+  // ── OCI-CV-R — Sintomatologia Obsessivo-Compulsiva (Abramovitch et al., 2022) ──
+  // Total 0-36. Faixas: 0-5 ausência · 6-7 limiar · 8-13 provável POC · 14-21 OC marcada · 22-36 OC severa
+  // Cores: verde < 6 · laranja 6-7 · vermelho ≥ 8
+  if(syncKey === 'ocicvr') {
+    const total = scores['Total'] ?? scores['total'];
+    const cat   = scores['Categoria'] ?? scores['categoria'] ?? '';
+    const vd    = scores['VD_Raw']    ?? scores['VD']    ?? scores['vd'];
+    const obs   = scores['OBS_Raw']   ?? scores['OBS']   ?? scores['obs'];
+    const lav   = scores['LAV_Raw']   ?? scores['LAV']   ?? scores['lav'];
+    const ord   = scores['ORD_Raw']   ?? scores['ORD']   ?? scores['ord'];
+    const neutr = scores['NEUTR_Raw'] ?? scores['NEUTR'] ?? scores['neutr'];
+    if(total != null && total !== '') {
+      const v = parseFloat(total);
+      if(!isNaN(v)) {
+        const cls = v >= 8 ? 'color:#C0392B;font-weight:700;' :
+                    v >= 6 ? 'color:#E67E22;font-weight:600;' :
+                             'color:var(--green);font-weight:600;';
+        const subs = [];
+        if(vd    != null && vd    !== '') subs.push('VD='    + vd);
+        if(obs   != null && obs   !== '') subs.push('OBS='   + obs);
+        if(lav   != null && lav   !== '') subs.push('LAV='   + lav);
+        if(ord   != null && ord   !== '') subs.push('ORD='   + ord);
+        if(neutr != null && neutr !== '') subs.push('NEUTR=' + neutr);
+        const subsStr = subs.length ? ' · ' + subs.join(' ') : '';
+        const catStr  = cat ? ' · ' + cat : '';
+        return '<span style="font-size:0.78rem;' + cls + '">Total=' + v + catStr + subsStr + '</span>';
+      }
+    }
+  }
+
+  // ── OCI-R — Sintomatologia Obsessivo-Compulsiva (Foa et al., 2002 · versão PT: Cardoso, 2015) ──
+  // Total 0-72. Faixas: 0-13 ausência/baixa · 14-20 ligeira · 21-31 moderada (provável POC) · 32-47 marcada · 48-72 severa
+  // Cortes subescalas (M+1DP n.c.): Lavagem ≥5 · Verificação ≥6 · Ordem ≥7 · Acumulação ≥5 · Obsessões ≥5 · Neutralização ≥3
+  // Cores: verde < 14 · laranja 14-20 · vermelho ≥ 21
+  if(syncKey === 'ocir') {
+    const total       = scores['Total'] ?? scores['total'];
+    const cat         = scores['Categoria'] ?? scores['categoria'] ?? '';
+    const lavagem     = scores['Lavagem_Raw']       ?? scores['Lavagem']       ?? scores['lavagem'];
+    const verificacao = scores['Verificacao_Raw']   ?? scores['Verificacao']   ?? scores['verificacao'];
+    const ordem       = scores['Ordem_Raw']         ?? scores['Ordem']         ?? scores['ordem'];
+    const acumulacao  = scores['Acumulacao_Raw']    ?? scores['Acumulacao']    ?? scores['acumulacao'];
+    const obsessoes   = scores['Obsessoes_Raw']     ?? scores['Obsessoes']     ?? scores['obsessoes'];
+    const neutraliz   = scores['Neutralizacao_Raw'] ?? scores['Neutralizacao'] ?? scores['neutralizacao'];
+    if(total != null && total !== '') {
+      const v = parseFloat(total);
+      if(!isNaN(v)) {
+        const cls = v >= 21 ? 'color:#C0392B;font-weight:700;' :
+                    v >= 14 ? 'color:#E67E22;font-weight:600;' :
+                              'color:var(--green);font-weight:600;';
+        const subs = [];
+        if(lavagem     != null && lavagem     !== '') subs.push('LAV='   + lavagem);
+        if(verificacao != null && verificacao !== '') subs.push('VER='   + verificacao);
+        if(ordem       != null && ordem       !== '') subs.push('ORD='   + ordem);
+        if(acumulacao  != null && acumulacao  !== '') subs.push('ACU='   + acumulacao);
+        if(obsessoes   != null && obsessoes   !== '') subs.push('OBS='   + obsessoes);
+        if(neutraliz   != null && neutraliz   !== '') subs.push('NEU='   + neutraliz);
+        const subsStr = subs.length ? ' · ' + subs.join(' ') : '';
+        const catStr  = cat ? ' · ' + cat : '';
+        return '<span style="font-size:0.78rem;' + cls + '">Total=' + v + catStr + subsStr + '</span>';
+      }
+    }
+  }
+
   return null;
 }
 
@@ -2790,7 +2885,11 @@ function renderAssignments(patientId) {
                 // ── EMP-H&F — auto-relato (adolescentes / adultos) ────────
                 'EMP_HF':          ['NomeRespondente','NomeCriança','NomeCrianca','NomeInformante'],
                 // ── EMP-F (Frost) — auto-relato (adolescentes / adultos) ──
-                'EMP_F':           ['NomeRespondente','NomeCriança','NomeCrianca','NomeInformante']
+                'EMP_F':           ['NomeRespondente','NomeCriança','NomeCrianca','NomeInformante'],
+                // ── OCI-CV-R — auto-relato (criança/adolescente 7-17) ───────
+                'OCI_CV_R':        ['NomeInformante','NomeCriança','NomeCrianca','NomeRespondente'],
+                // ── OCI-R — auto-relato (adulto ≥18) ────────────────────────
+                'OCI_R':           ['NomePaciente','NomeRespondente','NomeInformante']
               };
               const RC = {
                 'SWAN':['Relação'],'BRIEF_Pais':['Relação'],'SCARED_R_PAIS':['Relação'],
