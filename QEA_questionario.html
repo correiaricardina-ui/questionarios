@@ -389,7 +389,7 @@ table.clinic-tbl tr:hover td { background: var(--blue-xpale); }
       <button class="btn btn-secondary btn-xs" onclick="exportarPDF()">📄 Exportar PDF</button>
       <button class="btn btn-secondary btn-xs" onclick="window.print()">🖨 Imprimir</button>
       <button class="btn btn-secondary btn-xs" onclick="exportarRespostasPDF(sessaoActual)">📋 Respostas PDF</button>
-      <button class="btn btn-secondary btn-xs" onclick="exportarInterpretacaoPDF(sessaoActual)">📊 Interpretação PDF</button>
+      <button class="btn btn-secondary btn-xs" onclick="exportarInterpretacaoPDF(sessaoActual)">📊 Relatório Completo (PDF)</button>
       <input type="file" id="import-file-input" accept=".csv" style="display:none" onchange="processarFicheiroImportado(this)">
     </div>
     <div id="import-feedback" style="margin-bottom:12px;display:none"></div>
@@ -422,7 +422,11 @@ table.clinic-tbl tr:hover td { background: var(--blue-xpale); }
   <div class="modal-box">
     <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:16px">
       <h2 id="modal-titulo" style="font-family:'DM Serif Display',serif;color:var(--blue);font-size:1.3rem">Detalhe</h2>
-      <button class="btn btn-secondary btn-xs" onclick="fecharModal()">Fechar</button>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;" class="no-print">
+        <button class="btn btn-secondary btn-xs" onclick="exportarRespostasPDF(sessaoActual)">📋 Respostas PDF</button>
+        <button class="btn btn-primary btn-xs" onclick="exportarInterpretacaoPDF(sessaoActual)">📊 Relatório Completo (PDF)</button>
+        <button class="btn btn-secondary btn-xs" onclick="fecharModal()">Fechar</button>
+      </div>
     </div>
     <div id="modal-body"></div>
   </div>

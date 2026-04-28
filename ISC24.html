@@ -79,8 +79,18 @@ body{font-family:'DM Sans',sans-serif;background:var(--gray);color:var(--text);m
 .q-table td{padding:10px 6px;vertical-align:middle}
 .q-table td.q-item{font-size:.92rem;line-height:1.45;padding-left:12px;color:var(--text)}
 .q-table td.q-item .q-num{display:inline-block;font-weight:700;color:var(--blue-mid);min-width:26px}
-.q-table td.q-cell{text-align:center}
-.q-table td.q-cell input[type="radio"]{width:18px;height:18px;cursor:pointer;accent-color:var(--blue)}
+.q-table td.q-cell{text-align:center;cursor:pointer;transition:background-color .15s}
+.q-table td.q-cell:hover{background:var(--blue-xpale)}
+.q-table td.q-cell input[type="radio"]{width:18px;height:18px;cursor:pointer;accent-color:var(--blue);pointer-events:none}
+.q-table td.q-cell label{display:block;padding:14px 4px;cursor:pointer;margin:-10px -6px}
+.q-table tbody tr.respondido{background:#f0f9f4}
+.q-table tbody tr.respondido td.q-item{color:#1e7e3c}
+.q-table tbody tr.faltante{animation:pulse-warn 1.2s ease-out}
+.q-table tbody tr.faltante td.q-item{color:#C0392B;font-weight:600}
+@keyframes pulse-warn{
+  0%,100%{background:transparent}
+  20%,60%{background:#fdecea}
+}
 
 .alert-offline{background:#fdecea;border:1px solid var(--red);color:var(--red);padding:10px 14px;border-radius:8px;font-size:.85rem;margin-bottom:16px}
 
@@ -502,20 +512,34 @@ function renderItens(){
   var html = '';
   for(var i=0; i<ITEMS.length; i++){
     var n = i + 1;
-    html += '<tr>';
+    html += '<tr id="row-item-' + i + '">';
     html += '<td class="q-item"><span class="q-num">' + n + '.</span> ' + ITEMS[i] + '</td>';
     for(var v=0; v<=4; v++){
-      html += '<td class="q-cell"><input type="radio" name="item-' + i + '" value="' + v +
-              '" onchange="onItemChange(' + i + ',' + v + ')"></td>';
+      var checked = (respostasActuais[i] === v) ? ' checked' : '';
+      html += '<td class="q-cell"><label><input type="radio" name="item-' + i + '" value="' + v +
+              '"' + checked + ' onchange="onItemChange(' + i + ',' + v + ')"></label></td>';
     }
     html += '</tr>';
   }
   tbody.innerHTML = html;
+  // Re-aplicar classe respondido nas linhas que já tinham resposta
+  for(var i=0; i<respostasActuais.length; i++){
+    if(respostasActuais[i] !== null && respostasActuais[i] !== undefined){
+      var row = document.getElementById('row-item-' + i);
+      if(row) row.classList.add('respondido');
+    }
+  }
   atualizarProgresso();
 }
 
 function onItemChange(idx, valor){
   respostasActuais[idx] = valor;
+  // Realce visual da linha respondida
+  var row = document.getElementById('row-item-' + idx);
+  if(row){
+    row.classList.add('respondido');
+    row.classList.remove('faltante');
+  }
   atualizarProgresso();
 }
 
@@ -624,7 +648,19 @@ function submeter(){
     if(respostasActuais[i] === null || respostasActuais[i] === undefined) naoRespondidos.push(i+1);
   }
   if(naoRespondidos.length > 0){
-    alert('Itens sem resposta: ' + naoRespondidos.join(', ') + '.\nPor favor complete antes de submeter.');
+    // Realce visual + scroll para o primeiro item em falta
+    naoRespondidos.forEach(function(n){
+      var row = document.getElementById('row-item-' + (n-1));
+      if(row) row.classList.add('faltante');
+    });
+    var primeiroEmFalta = document.getElementById('row-item-' + (naoRespondidos[0]-1));
+    if(primeiroEmFalta){
+      primeiroEmFalta.scrollIntoView({behavior:'smooth', block:'center'});
+    }
+    var msg = naoRespondidos.length === 1
+      ? 'Falta responder ao item ' + naoRespondidos[0] + ' (destacado a vermelho).'
+      : 'Faltam ' + naoRespondidos.length + ' itens por responder: ' + naoRespondidos.join(', ') + '.\n\nOs itens em falta estão destacados a vermelho — desliza para os ver.';
+    alert(msg);
     return;
   }
 
