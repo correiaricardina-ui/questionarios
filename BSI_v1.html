@@ -731,10 +731,16 @@ function carregarDados(){
       if(load) load.style.display = 'none';
       // doGet devolve { rows: [...] } quando se pede ?instrumento=BSI
       var rows = Array.isArray(data) ? data : (data && data.rows ? data.rows : []);
+      // Sheet é fonte da verdade — reconstruir mas preservar duplicados legítimos
+      // (ex: avaliação inicial + final do mesmo paciente no mesmo dia)
+      var map = {};
       rows.forEach(function(row){
-        var ja = sessoes.find(function(s){ return s.patientCode===row.Codigo && s.data===row.Data; });
-        if(!ja) sessoes.push(parseSessaoSheet(row));
+        var s = parseSessaoSheet(row);
+        // Chave rica: distingue avaliações com respondente/IGS diferentes
+        var key = s.patientCode + '|' + s.data + '|' + (s.nomeInquirido||'') + '|' + (s.grauParentesco||'') + '|' + (s.IGS||'');
+        if(!map[key]) map[key] = s;
       });
+      sessoes = Object.keys(map).map(function(k){ return map[k]; });
       renderizarTabela();
     })
     .catch(function(){
@@ -922,13 +928,20 @@ function processarFicheiroImportado(input){
       var vals = linhas[i].split(sep).map(function(v){ return v.replace(/^"|"$/g,'').trim(); });
       var obj = {};
       header.forEach(function(k,j){ obj[k] = vals[j] || ''; });
-      var ja = sessoes.find(function(s){ return s.patientCode===obj.Codigo && s.data===obj.Data; });
+      var igs = parseFloat(obj.IGS) || 0;
+      var ja = sessoes.find(function(s){
+        return s.patientCode === obj.Codigo &&
+               s.data === obj.Data &&
+               (s.nomeInquirido||'') === (obj.NomeInquirido||'') &&
+               (s.grauParentesco||'') === (obj.GrauParentesco||'') &&
+               s.IGS === igs;
+      });
       if(!ja){
         sessoes.push({
           data: obj.Data, patientCode: obj.Codigo,
           nomeCrianca: obj.NomeCrianca, nomeInquirido: obj.NomeInquirido,
           grauParentesco: obj.GrauParentesco,
-          answers: [], IGS: parseFloat(obj.IGS)||0,
+          answers: [], IGS: igs,
           TSP: parseInt(obj.TSP)||0, ISP: parseFloat(obj.ISP)||0
         });
         novos++;

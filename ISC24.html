@@ -370,7 +370,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--gray);color:var(--text);m
       <button class="btn btn-secondary" style="padding:6px 14px;font-size:.82rem" onclick="exportarPDF()">📄 Exportar PDF</button>
       <button class="btn btn-secondary" style="padding:6px 14px;font-size:.82rem" onclick="window.print()">🖨 Imprimir</button>
       <button class="btn btn-secondary" style="padding:6px 14px;font-size:.82rem" onclick="exportarRespostasPDF(sessaoActual)">📋 Respostas PDF</button>
-      <button class="btn btn-secondary" style="padding:6px 14px;font-size:.82rem" onclick="exportarInterpretacaoPDF(sessaoActual)">📊 Exportar Interpretação PDF</button>
+      <button class="btn btn-secondary" style="padding:6px 14px;font-size:.82rem" onclick="exportarInterpretacaoPDF(sessaoActual)">📊 Relatório Completo (PDF)</button>
       <input type="file" id="import-file-input" accept=".csv" style="display:none" onchange="processarFicheiroImportado(this)">
     </div>
     <div id="import-feedback" style="margin-bottom:12px;display:none"></div>
@@ -844,7 +844,13 @@ function carregarDados(){
     } catch(e){}
     var map = {};
     fromSheet.concat(local).forEach(function(s){
-      var key = s.patientCode + '|' + (s.data || s.localDate || '');
+      // Chave rica: distingue avaliações com respondente/PT diferentes
+      // (ex: avaliação inicial + final do mesmo paciente no mesmo dia)
+      var key = s.patientCode + '|' +
+                (s.data || s.localDate || '') + '|' +
+                (s.nomeRespondente||'') + '|' +
+                (s.relacao||'') + '|' +
+                (s.PT !== undefined && s.PT !== null ? s.PT : '');
       if(!map[key]) map[key] = s;
     });
     sessoes = Object.keys(map).map(function(k){ return map[k]; });
@@ -908,7 +914,11 @@ function abrirModal(s){
             '<div style="font-size:.82rem;color:var(--text-light)">Código: <strong>' + s.patientCode + '</strong> · Data: ' + (s.data||'—') + ' · Idade: ' + (s.idade||'—') + ' anos · ' + (s.genero||'—') + '</div>' +
             '<div style="font-size:.82rem;color:var(--text-light)">Respondente: ' + (s.nomeRespondente||'—') + ' (' + (s.relacao||'—') + ')</div>' +
           '</div>' +
-          '<button class="btn btn-secondary btn-xs" onclick="fecharModal()">✕ Fechar</button>' +
+          '<div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end" class="no-print">' +
+            '<button class="btn btn-secondary btn-xs" onclick="exportarRespostasPDF(sessaoActual)">📋 Respostas PDF</button>' +
+            '<button class="btn btn-primary btn-xs" onclick="exportarInterpretacaoPDF(sessaoActual)">📊 Relatório Completo (PDF)</button>' +
+            '<button class="btn btn-secondary btn-xs" onclick="fecharModal()">✕ Fechar</button>' +
+          '</div>' +
         '</div>' +
         buildResultsHTML(s) +
       '</div>' +
