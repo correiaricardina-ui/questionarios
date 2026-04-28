@@ -729,13 +729,13 @@ function carregarDados(){
     .then(function(r){ return r.json(); })
     .then(function(data){
       if(load) load.style.display = 'none';
-      if(data && Array.isArray(data)){
-        data.forEach(function(row){
-          var ja = sessoes.find(function(s){ return s.patientCode===row.Codigo && s.data===row.Data; });
-          if(!ja) sessoes.push(parseSessaoSheet(row));
-        });
-        renderizarTabela();
-      }
+      // doGet devolve { rows: [...] } quando se pede ?instrumento=BSI
+      var rows = Array.isArray(data) ? data : (data && data.rows ? data.rows : []);
+      rows.forEach(function(row){
+        var ja = sessoes.find(function(s){ return s.patientCode===row.Codigo && s.data===row.Data; });
+        if(!ja) sessoes.push(parseSessaoSheet(row));
+      });
+      renderizarTabela();
     })
     .catch(function(){
       if(load) load.style.display = 'none';
