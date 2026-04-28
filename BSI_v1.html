@@ -400,7 +400,7 @@ table.sessoes-table tbody tr:hover { background: var(--blue-xpale); }
       <button class="btn btn-secondary" style="font-size:0.82rem;padding:6px 14px;"
               onclick="exportarRespostasPDF(sessaoActual)">📋 Respostas PDF</button>
       <button class="btn btn-primary" style="font-size:0.82rem;padding:6px 14px;"
-              onclick="exportarInterpretacaoPDF(sessaoActual)">📄 Exportar Interpretação</button>
+              onclick="exportarInterpretacaoPDF(sessaoActual)">📊 Relatório Completo (PDF)</button>
     </div>
   </div>
 </div>
@@ -835,6 +835,41 @@ function verDetalhe(idx){
   html += '<br><small style="color:var(--text-light);font-size:0.78rem;">Referência normativa: Canavarro (1999), população geral portuguesa. IGS ≥ 1.7 como ponto de corte clínico.</small>';
   html += '</div>';
 
+  // Respostas por item (agrupadas por dimensão clínica)
+  html += '<div style="margin-top:24px;page-break-before:always;">';
+  html += '<div style="font-weight:600;font-size:0.9rem;color:var(--blue);margin-bottom:12px;">📋 Respostas por Item</div>';
+  if(answers && answers.length === 53){
+    // Construir mapa item→dimensão (1-indexed); itens fora das 9 dimensões → "Adicional"
+    var itemDim = {};
+    Object.keys(ESCALAS).forEach(function(dim){
+      ESCALAS[dim].forEach(function(idx){ itemDim[idx] = dim; });
+    });
+    html += '<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:0.82rem;">';
+    html += '<thead><tr>'+
+            '<th style="background:#D6E4F0;padding:6px 8px;text-align:center;color:#3B5A7A;width:36px;">#</th>'+
+            '<th style="background:#D6E4F0;padding:6px 8px;text-align:left;color:#3B5A7A;width:150px;">Dimensão</th>'+
+            '<th style="background:#D6E4F0;padding:6px 8px;text-align:left;color:#3B5A7A;">Item</th>'+
+            '<th style="background:#D6E4F0;padding:6px 8px;text-align:center;color:#3B5A7A;width:160px;">Resposta</th>'+
+            '</tr></thead><tbody>';
+    answers.forEach(function(v, i){
+      var dim = itemDim[i+1] || 'Adicional';
+      var resp = (OPCOES[v] !== undefined ? OPCOES[v] : v);
+      // Realce visual: respostas 3-4 (Muitas/Muitíssimas vezes) — relevância clínica
+      var bg = v >= 3 ? '#fef3e2' : v >= 2 ? '#fafbfc' : '';
+      var corResp = v >= 3 ? '#C0392B' : v >= 2 ? '#E67E22' : '#2C3E50';
+      html += '<tr'+(bg ? ' style="background:'+bg+';"' : '')+'>';
+      html += '<td style="padding:4px 8px;border-bottom:1px solid #eee;text-align:center;color:#999;">'+(i+1)+'</td>';
+      html += '<td style="padding:4px 8px;border-bottom:1px solid #eee;color:#5B7FA6;font-size:0.76rem;">'+dim+'</td>';
+      html += '<td style="padding:4px 8px;border-bottom:1px solid #eee;">'+ITEMS[i]+'</td>';
+      html += '<td style="padding:4px 8px;border-bottom:1px solid #eee;text-align:center;font-weight:600;color:'+corResp+';">'+resp+' <span style="font-size:0.72rem;color:#999;font-weight:400;">('+v+')</span></td>';
+      html += '</tr>';
+    });
+    html += '</tbody></table></div>';
+  } else {
+    html += '<p style="color:var(--text-light);font-style:italic;font-size:0.85rem;">Respostas item-a-item não disponíveis (sessão importada de CSV sem coluna Answers).</p>';
+  }
+  html += '</div>';
+
   document.getElementById('modal-conteudo').innerHTML = html;
   document.getElementById('modal-overlay').classList.add('open');
 }
@@ -947,29 +982,35 @@ function exportarRespostasPDF(sessao){
 
 function exportarInterpretacaoPDF(sessao){
   if(!sessao){ alert('Nenhuma sessão seleccionada.'); return; }
-  var tabelaHtml = document.getElementById('txt-interpret') ?
-                   document.getElementById('txt-interpret').innerHTML : '';
   var conteudo = document.getElementById('modal-conteudo') ?
                  document.getElementById('modal-conteudo').innerHTML : '';
-  var html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>BSI Interpretação — '+sessao.patientCode+'</title>'+
+  var html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>BSI Relatório Completo — '+sessao.patientCode+'</title>'+
     '<style>body{font-family:sans-serif;font-size:12px;color:#2C3E50;padding:24px;}'+
     'h2{color:#3B5A7A;font-size:16px;margin-bottom:4px;}p.meta{color:#6B7A8D;margin-bottom:20px;}'+
-    'table{width:100%;border-collapse:collapse;margin-bottom:20px;}'+
-    'th{background:#D6E4F0;padding:6px 10px;text-align:left;color:#3B5A7A;}td{padding:6px 10px;border-bottom:1px solid #eee;}'+
+    'table{width:100%;border-collapse:collapse;margin-bottom:16px;}'+
+    'th{background:#D6E4F0;padding:6px 10px;text-align:left;color:#3B5A7A;}'+
     '.badge-clinical{background:#fdecea;color:#C0392B;border-radius:4px;padding:1px 6px;font-weight:600;}'+
     '.badge-borderline{background:#fef3e2;color:#E67E22;border-radius:4px;padding:1px 6px;font-weight:600;}'+
     '.badge-normative{background:#eafaf1;color:#27AE60;border-radius:4px;padding:1px 6px;font-weight:600;}'+
     '.txt-interpret{background:#EBF2F8;border:1px solid #D6E4F0;border-radius:8px;padding:14px;line-height:1.7;margin-bottom:16px;}'+
-    '.bar-wrap{margin-bottom:6px;}.bar-label{font-size:11px;color:#6B7A8D;margin-bottom:2px;}'+
-    '.bar-track{height:16px;background:#DDE3EA;border-radius:8px;overflow:hidden;}'+
+    '.bar-wrap{margin-bottom:6px;page-break-inside:avoid;}'+
+    '.bar-label{font-size:11px;color:#6B7A8D;margin-bottom:2px;}'+
+    '.bar-track{height:14px;background:#DDE3EA;border-radius:8px;overflow:hidden;}'+
     '.bar-fill{height:100%;border-radius:8px;}'+
-    '.no-print{margin-bottom:20px;}@media print{.no-print{display:none}}</style></head><body>'+
+    '.escala-card{background:#F7FAFC;border:1px solid #E2E8F0;border-radius:8px;padding:10px 12px;text-align:center;}'+
+    '.escala-nome{font-size:0.78rem;color:#6B7A8D;margin-bottom:4px;}'+
+    '.escala-score{font-size:1.4rem;font-weight:700;color:#2C3E50;}'+
+    '.escala-class{margin-top:4px;font-size:0.78rem;}'+
+    'tr{page-break-inside:avoid;}'+
+    '.no-print{margin-bottom:20px;}@media print{.no-print{display:none}body{padding:12px;}}</style></head><body>'+
     '<div class="no-print"><button onclick="window.print()">🖨 Imprimir / Guardar PDF</button></div>'+
-    '<h2>BSI — Interpretação Clínica</h2>'+
-    '<p class="meta">Paciente: <strong>'+sessao.nomeCrianca+'</strong> · Código: <strong>'+sessao.patientCode+'</strong><br>'+
-    'Preenchido por: <strong>'+sessao.nomeInquirido+'</strong> · Parentesco: '+sessao.grauParentesco+
-    ' · Data: '+sessao.data+' · Ricardina Correia · Cédula 8233 · Psicologia Pediátrica</p>'+
+    '<h2>BSI — Relatório Completo de Avaliação</h2>'+
+    '<p class="meta">Paciente: <strong>'+(sessao.nomeCrianca||'—')+'</strong> · Código: <strong>'+sessao.patientCode+'</strong><br>'+
+    'Preenchido por: <strong>'+(sessao.nomeInquirido||'—')+'</strong> · Parentesco: '+(sessao.grauParentesco||'—')+
+    ' · Data: '+(sessao.data||'—')+' · Ricardina Correia · Cédula 8233 · Psicologia Pediátrica</p>'+
     conteudo+
+    '<p style="margin-top:24px;font-style:italic;color:#999;font-size:11px;">'+
+    'Interpretação automática — integrar sempre no contexto clínico completo da avaliação.</p>'+
     '</body></html>';
   var w = window.open('','_blank');
   if(!w){ alert('Pop-up bloqueado. Permite pop-ups para este site.'); return; }
