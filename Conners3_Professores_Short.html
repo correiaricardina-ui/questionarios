@@ -11,7 +11,7 @@
   --blue-pale:#D6E4F0; --blue-xpale:#EBF2F8;
   --gray:#F4F6F9; --gray-bdr:#DDE3EA;
   --text:#2C3E50; --text-light:#6B7A8D;
-  --red:#C0392B; --green:#27AE60; --orange:#E67E22;
+  --red:#C0392B; --green:#27AE60; --orange:#E67E22; --yellow:#F1C40F;
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'DM Sans',sans-serif;background:var(--gray);color:var(--text);min-height:100vh}
@@ -35,6 +35,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--gray);color:var(--text);m
 .badge{border-radius:6px;padding:2px 10px;font-size:.75rem;font-weight:600}
 .badge-clinical{background:#fdecea;color:var(--red)}
 .badge-borderline{background:#fef3e2;color:var(--orange)}
+.badge-elevated{background:#fef9e7;color:var(--yellow)}
 .badge-normative{background:#eafaf1;color:var(--green)}
 .progress-bar{height:6px;background:var(--blue-pale);border-radius:3px;margin-bottom:4px;overflow:hidden}
 .progress-fill{height:100%;background:var(--blue);border-radius:3px;transition:width .3s}
@@ -846,8 +847,8 @@ function verDetalhe(id) {
   for (const esc of ESCALAS) {
     const raw = s.scores[esc.code]??'—';
     const t = s.tscores[esc.code];
-    const zona = !t ? '—' : t>=70 ? 'Clínica' : t>=65 ? 'Borderline' : 'Normativa';
-    const badgeCls = !t ? '' : t>=70 ? 'badge-clinical' : t>=65 ? 'badge-borderline' : 'badge-normative';
+    const zona = !t ? '—' : t>=70 ? 'Muito Elevado' : t>=65 ? 'Elevado' : t>=60 ? 'Médio-Elevado' : 'Normativa';
+    const badgeCls = !t ? '' : t>=70 ? 'badge-clinical' : t>=65 ? 'badge-borderline' : t>=60 ? 'badge-elevated' : 'badge-normative';
     html += '<tr style="border-bottom:1px solid var(--gray-bdr)">';
     html += '<td style="padding:8px"><strong>'+esc.code+'</strong> <span style="color:var(--text-light);font-size:.8rem">'+esc.label+'</span></td>';
     html += '<td style="padding:8px;text-align:center">'+raw+'</td>';
@@ -863,7 +864,7 @@ function verDetalhe(id) {
     const t = s.tscores[esc.code];
     if (!t) continue;
     const pct = Math.min(Math.max((t-40)/50*100,0),100);
-    const cor = t>=70 ? 'var(--red)' : t>=65 ? 'var(--orange)' : 'var(--blue-mid)';
+    const cor = t>=70 ? 'var(--red)' : t>=65 ? 'var(--orange)' : t>=60 ? 'var(--yellow)' : 'var(--blue-mid)';
     html += '<div class="profile-bar-wrap">';
     html += '<div class="profile-bar-label">'+esc.code+'</div>';
     html += '<div class="profile-bar-outer"><div class="profile-bar-inner" style="width:'+pct+'%;background:'+cor+'"></div></div>';
@@ -915,8 +916,8 @@ function exportarRelatorioPDF() {
   for (const esc of ESCALAS) {
     const raw = s.scores[esc.code] ?? '—';
     const t = s.tscores[esc.code];
-    const zona = !t ? '—' : t>=70 ? 'Clínica' : t>=65 ? 'Borderline' : 'Normativa';
-    const cor = !t ? '#555' : t>=70 ? '#c0392b' : t>=65 ? '#e67e22' : '#27AE60';
+    const zona = !t ? '—' : t>=70 ? 'Muito Elevado' : t>=65 ? 'Elevado' : t>=60 ? 'Médio-Elevado' : 'Normativa';
+    const cor = !t ? '#555' : t>=70 ? '#c0392b' : t>=65 ? '#e67e22' : t>=60 ? '#f1c40f' : '#27AE60';
     tabelaEsc += '<tr style="border-bottom:1px solid #eee"><td style="padding:6px 8px"><strong>'+esc.code+'</strong> <span style="color:#888;font-size:11px">'+esc.label+'</span></td>';
     tabelaEsc += '<td style="padding:6px 8px;text-align:center">'+raw+'</td>';
     tabelaEsc += '<td style="padding:6px 8px;text-align:center;font-weight:700;color:'+cor+'">'+(t||'—')+'</td>';
@@ -929,7 +930,7 @@ function exportarRelatorioPDF() {
     const t = s.tscores[esc.code];
     if (!t) continue;
     const pct = Math.min(Math.max((t-40)/50*100,0),100);
-    const cor = t>=70 ? '#c0392b' : t>=65 ? '#e67e22' : '#3B5A7A';
+    const cor = t>=70 ? '#c0392b' : t>=65 ? '#e67e22' : t>=60 ? '#f1c40f' : '#3B5A7A';
     perfil += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:5px">';
     perfil += '<div style="width:60px;font-size:11px;font-weight:700;text-align:right;color:#3B5A7A">'+esc.code+'</div>';
     perfil += '<div style="flex:1;background:#eee;border-radius:4px;height:14px"><div style="width:'+pct+'%;background:'+cor+';height:14px;border-radius:4px"></div></div>';
