@@ -725,7 +725,7 @@ function buildDetalheHTML(s){
   return html;
 }
 
-function escHtml(s){return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function escHtml(s){return (s==null?'':String(s)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 
 function exportarCSV(){
   if(!sessions.length){alert('Nenhum registo para exportar.');return;}
