@@ -2914,7 +2914,7 @@ function carregarDados() {
   var container = document.getElementById('clinico-content');
   container.innerHTML = '<div class="clinico-empty">A sincronizar com o servidor...</div>';
 
-  var url = SCRIPT_URL + '?sheet=' + SHEET_NAME + '&t=' + Date.now();
+  var url = SCRIPT_URL + '?instrumento=' + SHEET_NAME + '&t=' + Date.now();
   fetch(url)
     .then(function(resp) { return resp.json(); })
     .then(function(data) {
@@ -2928,6 +2928,9 @@ function carregarDados() {
 
 function mergeAndRender(newRows, source) {
   newRows.forEach(function(row) {
+    // Normalizar chaves PT-PT/maiúsculas vindas do Sheet para o formato esperado
+    // pelo renderTabela e verDetalhe (date, patientCode, rawInib, tInib, etc.)
+    row = normalizeRow(row);
     var id = (row.patientCode || row.codigo || '') + '_' + (row.date || row.data || '');
     var idx = _sessions.findIndex(function(s) { return s.id === id; });
     // Normalizar campo answers vindo do Sheet
@@ -2943,6 +2946,50 @@ function mergeAndRender(newRows, source) {
     }
   });
   renderTabela(_sessions);
+}
+
+// Mapa de chaves do Sheet (PT-PT, capitalizado) → chaves usadas no painel (camelCase)
+// Mantém-se as chaves originais também, para compatibilidade.
+function normalizeRow(row) {
+  if (!row || typeof row !== 'object') return row;
+  var out = {};
+  // Copiar tudo (preserva chaves originais)
+  for (var k in row) { if (Object.prototype.hasOwnProperty.call(row, k)) out[k] = row[k]; }
+  // Mapeamento explícito das chaves do Sheet → chaves do painel
+  var map = {
+    'Data':'date', 'data':'date',
+    'Código':'patientCode', 'Codigo':'patientCode', 'codigo':'patientCode', 'CodigoPaciente':'patientCode',
+    'Nome':'patientName', 'nome':'patientName',
+    'DataNasc':'dob', 'DataNascimento':'dob',
+    'Idade':'age', 'idade':'age',
+    'GrupoIdade':'ageGroup', 'grupoIdade':'ageGroup',
+    'Género':'genero', 'Genero':'genero',
+    'AnoEscolar':'anoEscolar',
+    'Raw_Inib':'rawInib',   'T_Inib':'tInib',
+    'Raw_Shift':'rawShift', 'T_Shift':'tShift',
+    'Raw_EC':'rawEC',       'T_EC':'tEC',
+    'Raw_Mon':'rawMon',     'T_Mon':'tMon',
+    'Raw_WM':'rawWM',       'T_WM':'tWM',
+    'Raw_PO':'rawPO',       'T_PO':'tPO',
+    'Raw_OM':'rawOM',       'T_OM':'tOM',
+    'Raw_TC':'rawTC',       'T_TC':'tTC',
+    'Raw_IRC':'rawIRC',     'T_IRC':'tIRC',
+    'Raw_IM':'rawIM',       'T_IM':'tIM',
+    'Raw_GEF':'rawGEF',     'T_GEF':'tGEF',
+    'Inconsistencia':'inconsistencia', 'Inconsistência':'inconsistencia',
+    'Negatividade':'negatividade',
+    'Respostas':'answers'
+  };
+  for (var src in map) {
+    if (Object.prototype.hasOwnProperty.call(row, src) && row[src] !== '' && row[src] !== null && row[src] !== undefined) {
+      var dst = map[src];
+      // Não sobrescrever se o painel já tem o valor preenchido
+      if (out[dst] === undefined || out[dst] === '' || out[dst] === null) {
+        out[dst] = row[src];
+      }
+    }
+  }
+  return out;
 }
 
 function renderTabela(rows) {
