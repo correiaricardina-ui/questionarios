@@ -916,40 +916,151 @@ function exportarRespostasPDF(sessao){
 function exportarInterpretacaoPDF(sessao){
   if(!sessao){alert('Selecione primeiro uma sessão (clique em "Ver →").');return;}
   var sc=sessao.scores||{};
-  var dt=new Date(sessao.date).toLocaleDateString('pt-PT');
-  var escalas=[
-    {l:'Procura',c:'Procura',max:95},{l:'Evitamento',c:'Evitamento',max:100},
-    {l:'Sensibilidade',c:'Sensibilidade',max:95},{l:'Registo Passivo',c:'Registo',max:110},
-    {l:'Auditivo',c:'Auditivo',max:40},{l:'Visual',c:'Visual',max:30},
-    {l:'Tátil',c:'Tatil',max:55},{l:'Movimento',c:'Movimento',max:40},
-    {l:'Posição Corporal',c:'Posicao',max:40},{l:'Oral',c:'Oral',max:50},
-    {l:'Conduta',c:'Conduta',max:45},{l:'Socioemocional',c:'Socioemocional',max:70},{l:'Atenção',c:'Atencao',max:50}
+  var dt=sessao.date?new Date(sessao.date).toLocaleDateString('pt-PT'):'—';
+
+  // ── Mesmos grupos do modal buildDetalheHTML ──
+  var grupos=[
+    {titulo:'Quadrantes', items:[
+      {l:'Procura',c:'Procura',max:95},
+      {l:'Evitamento',c:'Evitamento',max:100},
+      {l:'Sensibilidade',c:'Sensibilidade',max:95},
+      {l:'Registo Passivo',c:'Registo',max:110}
+    ]},
+    {titulo:'Secções Sensoriais', items:[
+      {l:'Auditivo',c:'Auditivo',max:40},
+      {l:'Visual',c:'Visual',max:30},
+      {l:'Tátil',c:'Tatil',max:55},
+      {l:'Movimento',c:'Movimento',max:40},
+      {l:'Posição Corporal',c:'Posicao',max:40},
+      {l:'Oral',c:'Oral',max:50}
+    ]},
+    {titulo:'Secções Comportamentais', items:[
+      {l:'Conduta',c:'Conduta',max:45},
+      {l:'Socioemocional',c:'Socioemocional',max:70},
+      {l:'Atenção',c:'Atencao',max:50}
+    ]}
   ];
-  var tblRows=escalas.map(function(e){
-    var score=sc[e.c]||0;var cl=classificar(score,e.c);
-    var cor=cl.includes('Muito')?'#C0392B':cl.includes('Menos')||cl.includes('Mais que')?'#E67E22':'#27AE60';
-    var pct=Math.min(100,Math.round(score/e.max*100));
-    return '<tr><td style="padding:5px 8px;border-bottom:1px solid #eee">'+e.l+'</td>'+
-      '<td style="padding:5px 8px;border-bottom:1px solid #eee;text-align:center;font-weight:700;color:'+cor+'">'+score+'</td>'+
-      '<td style="padding:5px 8px;border-bottom:1px solid #eee"><div style="background:#eee;border-radius:3px;height:8px;width:100px"><div style="background:'+cor+';height:8px;border-radius:3px;width:'+pct+'%"></div></div></td>'+
-      '<td style="padding:5px 8px;border-bottom:1px solid #eee;color:'+cor+';font-weight:600">'+cl+'</td></tr>';
-  }).join('');
-  var alertas=escalas.filter(function(e){var cl=classificar(sc[e.c]||0,e.c);return cl.includes('Muito');}).map(function(e){return e.l;});
-  var sumario=alertas.length>0?'Destaque em: <strong>'+alertas.join(', ')+'</strong>.':'Todos os resultados dentro do esperado para a tabela normativa disponível.';
-  var html='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>PS2 Interpretação</title>'+
-    '<style>body{font-family:Arial,sans-serif;font-size:12px;color:#2C3E50;padding:24px;max-width:900px;margin:0 auto}h1{color:#3B5A7A;font-size:16px;margin-bottom:4px}h2{color:#3B5A7A;font-size:13px;margin:18px 0 8px;border-bottom:2px solid #D6E4F0;padding-bottom:4px}p{color:#6B7A8D;margin-bottom:16px;font-size:11px}table{width:100%;border-collapse:collapse;margin-bottom:16px}th{background:#D6E4F0;padding:6px 8px;text-align:left;color:#3B5A7A;font-size:11px}.no-print{margin-bottom:16px}@media print{.no-print{display:none}}</style></head><body>'+
-    '<div class="no-print"><button onclick="window.print()">🖨 Imprimir / Guardar PDF</button></div>'+
+
+  function corPara(cl){
+    if(cl.indexOf('Muito')!==-1) return '#C0392B';
+    if(cl.indexOf('Menos')!==-1||cl.indexOf('Mais que')!==-1) return '#E67E22';
+    return '#27AE60';
+  }
+  function linhaTabela(items){
+    return items.map(function(e){
+      var score=sc[e.c]||0;
+      var cl=classificar(score,e.c);
+      var cor=corPara(cl);
+      var pct=Math.min(100,Math.round(score/e.max*100));
+      return '<tr>'+
+        '<td style="padding:5px 8px;border-bottom:1px solid #eee">'+e.l+'</td>'+
+        '<td style="padding:5px 8px;border-bottom:1px solid #eee;text-align:center;font-weight:700;color:'+cor+'">'+score+'</td>'+
+        '<td style="padding:5px 8px;border-bottom:1px solid #eee"><div style="background:#eee;border-radius:3px;height:8px;width:120px"><div style="background:'+cor+';height:8px;border-radius:3px;width:'+pct+'%"></div></div></td>'+
+        '<td style="padding:5px 8px;border-bottom:1px solid #eee;color:'+cor+';font-weight:600">'+cl+'</td>'+
+        '</tr>';
+    }).join('');
+  }
+
+  // ── Tabelas por grupo ──
+  var blocosTabelas='';
+  grupos.forEach(function(g){
+    blocosTabelas+='<h2>'+g.titulo+'</h2>'+
+      '<table><thead><tr>'+
+      '<th>Escala</th>'+
+      '<th style="text-align:center">Score</th>'+
+      '<th>Perfil visual</th>'+
+      '<th>Classificação</th>'+
+      '</tr></thead><tbody>'+linhaTabela(g.items)+'</tbody></table>';
+  });
+
+  // ── Síntese qualitativa dinâmica ──
+  var clinicos=[],borderlines=[];
+  grupos.forEach(function(g){
+    g.items.forEach(function(e){
+      var score=sc[e.c]||0;
+      var cl=classificar(score,e.c);
+      if(cl.indexOf('Muito')!==-1) clinicos.push(e.l+' ('+cl+', score '+score+')');
+      else if(cl.indexOf('Menos')!==-1||cl.indexOf('Mais que')!==-1) borderlines.push(e.l+' ('+cl+', score '+score+')');
+    });
+  });
+  var sintesePartes=[];
+  if(clinicos.length>0)
+    sintesePartes.push('Resultados em zona de maior destaque clínico em: <strong>'+clinicos.join(', ')+'</strong>.');
+  if(borderlines.length>0)
+    sintesePartes.push('Resultados em zona intermédia em: <strong>'+borderlines.join(', ')+'</strong>.');
+  if(clinicos.length===0&&borderlines.length===0)
+    sintesePartes.push('Todos os quadrantes e secções situam-se dentro do esperado para a faixa normativa disponível.');
+  sintesePartes.push('<em style="color:#888;font-size:10.5px">Interpretação automática — integrar sempre no contexto clínico completo da avaliação. Normas baseadas na tabela resumo da versão portuguesa (ESSALCOITÃO/UMinho, 2021), sem estratificação por idade e sexo.</em>');
+  var sintese=sintesePartes.join('<br><br>');
+
+  // ── Respostas item-a-item ──
+  var respostasHtml='';
+  var arr=sessao.respostas;
+  if(!arr&&sessao.answers){
+    var aw=sessao.answers||'';
+    if(aw.charAt(0)==='['){try{arr=JSON.parse(aw);}catch(e){arr=[];}}
+    else{arr=aw.split('|');}
+  }
+  if(arr&&arr.length){
+    var labels=['N/A','Q.nunca','Ocasional','Metade','Frequent.','Q.sempre'];
+    var allItens=[];
+    if(typeof SECOES!=='undefined'){
+      SECOES.forEach(function(sec){sec.itens.forEach(function(it){allItens.push({n:it.n,sec:sec.nome,txt:it.txt});});});
+    }
+    var linhasItens=allItens.map(function(it){
+      var v=arr[it.n-1];
+      var vN=parseInt(v);
+      var resp=(v!==null&&v!==undefined&&v!=='')?(vN+' ('+(labels[vN]||v)+')'):'—';
+      return '<tr>'+
+        '<td style="padding:3px 6px;border-bottom:1px solid #f0f0f0;color:#999;text-align:center;width:32px">'+it.n+'</td>'+
+        '<td style="padding:3px 6px;border-bottom:1px solid #f0f0f0;color:#5B7FA6;font-size:10px;width:90px">'+(it.sec||'')+'</td>'+
+        '<td style="padding:3px 6px;border-bottom:1px solid #f0f0f0;font-size:10.5px">'+(it.txt?it.txt.substring(0,90)+(it.txt.length>90?'…':''):'Item '+it.n)+'</td>'+
+        '<td style="padding:3px 6px;border-bottom:1px solid #f0f0f0;text-align:center;font-weight:700;width:90px">'+resp+'</td>'+
+        '</tr>';
+    }).join('');
+    respostasHtml='<h2>Respostas por Item</h2>'+
+      '<table style="font-size:10.5px"><thead><tr>'+
+      '<th style="text-align:center">#</th>'+
+      '<th>Secção</th>'+
+      '<th>Item</th>'+
+      '<th style="text-align:center">Resp.</th>'+
+      '</tr></thead><tbody>'+linhasItens+'</tbody></table>';
+  }
+
+  // ── Cabeçalho ──
+  var nomeCrianca=sessao.nomeCrianca||'';
+  var nomeInformante=sessao.nomeInformante||'';
+  var relacao=sessao.relacao||'';
+
+  var html='<!DOCTYPE html><html><head><meta charset="UTF-8">'+
+    '<title>PS2 Cuidador — Relatório · '+(sessao.patientCode||'')+'</title>'+
+    '<style>'+
+      'body{font-family:Arial,sans-serif;font-size:12px;color:#2C3E50;padding:24px;max-width:900px;margin:0 auto}'+
+      'h1{color:#3B5A7A;font-size:16px;margin-bottom:4px}'+
+      'h2{color:#3B5A7A;font-size:13px;margin:18px 0 8px;border-bottom:2px solid #D6E4F0;padding-bottom:4px;page-break-after:avoid}'+
+      'p{color:#6B7A8D;margin-bottom:16px;font-size:11px}'+
+      'table{width:100%;border-collapse:collapse;margin-bottom:8px}'+
+      'th{background:#D6E4F0;padding:6px 8px;text-align:left;color:#3B5A7A;font-size:11px}'+
+      'tr{page-break-inside:avoid}'+
+      '.sintese{background:#EBF2F8;border-radius:6px;padding:12px 16px;font-size:11px;line-height:1.65;color:#2C3E50;margin:8px 0 16px}'+
+      '.no-print{margin-bottom:16px}'+
+      '@media print{.no-print{display:none}body{padding:12px;max-width:none}}'+
+    '</style></head><body>'+
+    '<div class="no-print"><button onclick="window.print()" style="padding:6px 14px;cursor:pointer">🖨 Imprimir / Guardar PDF</button></div>'+
     '<h1>PS2 – Questionário do Cuidador · Relatório de Avaliação</h1>'+
     '<p>Código: <strong>'+(sessao.patientCode||'—')+'</strong>'+
-    (sessao.nomeCrianca?' &nbsp;|&nbsp; Criança: <strong>'+sessao.nomeCrianca+'</strong>':'')+
-    (sessao.nomeInformante?' &nbsp;|&nbsp; Cuidador: <strong>'+sessao.nomeInformante+'</strong>':'')+
-    ' &nbsp;|&nbsp; Data: '+dt+' &nbsp;|&nbsp; Ricardina Correia · Cédula 8233</p>'+
-    '<h2>Perfil de Processamento Sensorial</h2>'+
-    '<table><thead><tr><th>Escala</th><th style="text-align:center">Score</th><th>Perfil visual</th><th>Classificação</th></tr></thead><tbody>'+tblRows+'</tbody></table>'+
+      (nomeCrianca?' &nbsp;|&nbsp; Criança: <strong>'+nomeCrianca+'</strong>':'')+
+      (nomeInformante?' &nbsp;|&nbsp; Cuidador: <strong>'+nomeInformante+'</strong>':'')+
+      (relacao?' ('+relacao+')':'')+
+      ' &nbsp;|&nbsp; Data: '+dt+
+      ' &nbsp;|&nbsp; Ricardina Correia · Cédula 8233'+
+    '</p>'+
+    blocosTabelas+
     '<h2>Síntese</h2>'+
-    '<div style="background:#EBF2F8;border-radius:6px;padding:12px;font-size:11px;line-height:1.7">'+sumario+
-    '<br><br><em>Nota: classificações baseadas na tabela normativa resumida da versão portuguesa (ESSALCOITÃO/UMinho, 2021), sem estratificação por idade e sexo. Integrar sempre no contexto clínico completo.</em></div>'+
+    '<div class="sintese">'+sintese+'</div>'+
+    respostasHtml+
     '</body></html>';
+
   var w=window.open('','_blank');
   if(!w){alert('Pop-up bloqueado. Permite pop-ups para este site.');return;}
   w.document.write(html);w.document.close();
