@@ -681,7 +681,9 @@ const QID_TO_ABA = {
   'q_cdi2sr':              'CDI2_SR',
   // ── QACSE-R / QACSE-C — Competências Socioemocionais (Coelho & Sousa, 2016/2020) ──
   'q_qacse_r':             'QACSE_R',
-  'q_qacse_c':             'QACSE_C'
+  'q_qacse_c':             'QACSE_C',
+  // ── Sociograma · Mapa Social (Moreno 1934; Coie & Dodge 1988; Bronfenbrenner 1979) ──
+  'q_sociograma':          'SOCIOGRAMA'
 };
 
 
@@ -862,7 +864,10 @@ const SYNC_KEY_TO_ABA = {
   'QACSE-R':           'QACSE_R',
   'qacse_c':           'QACSE_C',
   'QACSE_C':           'QACSE_C',
-  'QACSE-C':           'QACSE_C'
+  'QACSE-C':           'QACSE_C',
+  // ── Sociograma · Mapa Social (Moreno 1934; Coie & Dodge 1988; Bronfenbrenner 1979) v1.0 ──
+  'sociograma':        'SOCIOGRAMA',
+  'SOCIOGRAMA':        'SOCIOGRAMA'
 };
 
 // Cache em memória das respostas do Sheet (evita fetch repetidos na mesma sessão)
@@ -1402,6 +1407,14 @@ function initCatalog() {
       objective:'Rastreio de sintomatologia obsessivo-compulsiva em adultos em 6 dimensões (Foa et al., 2002 · versão PT: Cardoso, 2015) — auto-relato com 18 itens, escala 0-4; janela do último mês; corte ≥21 sugere provável POC',
       domains:['Lavagem','Verificação','Ordem','Acumulação','Obsessões','Neutralização','Total'],
       ageMin:216, ageMax:null },
+    // ── Sociograma · Mapa Social (Moreno 1934; Coie & Dodge 1988; Bronfenbrenner 1979) v1.0 ──
+    { id:'q_sociograma', name:'Sociograma · Mapa Social',
+      dest:['Criança/Adolescente','Pais','Mãe','Pai','Enc. Educação','Professor','Diretor de Turma'],
+      link:'https://correiaricardina-ui.github.io/questionarios/SOCIOGRAMA_RC_v1.html',
+      syncKey:'sociograma', area:'Funcionamento social · Ecologia escolar', ageRange:'6–18 anos',
+      objective:'Sociograma informal e entrevista ecológica — mapa visual das relações de apoio, afiliação e distância na turma + ecologia da escola (espaços confortáveis vs evitados) + auto-percepção vs percepção atribuída à turma. Baseado em Moreno (1934), Coie & Dodge (1988), Bronfenbrenner (1979), Cillessen & Marks (2011), Resnick et al. (1997) e Hagerty et al. (1992). Não substitui sociometria formal aplicada à turma; serve como ponto de partida para entrevista clínica e observação ecológica.',
+      domains:['Apoio emocional','Pertença e escolha mútua','Distância/Exclusão','Self vs Other','Mapa ecológico','Adultos de referência'],
+      ageMin:72, ageMax:215 },
   ];
   // Garantir que TODOS os defaults estão no catálogo, sempre
   // (funciona em RC novos e em RC existentes — nunca perde questionários)
@@ -1543,6 +1556,8 @@ function initCatalog() {
       'q_compa_a_mae':  { link:'https://correiaricardina-ui.github.io/questionarios/COMPA_A_Mae.html',   syncKey:'compa_a_mae' },
       'q_compa_c_pai':  { link:'https://correiaricardina-ui.github.io/questionarios/COMPA_C_Pai.html',   syncKey:'compa_c_pai' },
       'q_compa_c_mae':  { link:'https://correiaricardina-ui.github.io/questionarios/COMPA_C_Mae.html',   syncKey:'compa_c_mae' },
+      // Sociograma · Mapa Social v1.0
+      'q_sociograma':   { link:'https://correiaricardina-ui.github.io/questionarios/SOCIOGRAMA_RC_v1.html', syncKey:'sociograma' },
     };
     // ── Re-store com chave correcta ('q_' + id) — corrige instalações anteriores ──
     // Garante que Conners, FAD e MAP ficam acessíveis pelo META.forEach e getCatalog
@@ -1863,6 +1878,11 @@ function initCatalog() {
     if(!catalog.includes('q_compa_c_mae')) {
       const d = defaults.find(x => x.id === 'q_compa_c_mae');
       if(d) { store.set('q_' + d.id, d); catalog.push('q_compa_c_mae'); store.set('catalog', catalog); }
+    }
+    // ── Sociograma · Mapa Social v1.0 ──
+    if(!catalog.includes('q_sociograma')) {
+      const d = defaults.find(x => x.id === 'q_sociograma');
+      if(d) { store.set('q_' + d.id, d); catalog.push('q_sociograma'); store.set('catalog', catalog); }
     }
     }
   }
@@ -2891,6 +2911,34 @@ function formatScoreSummary(scores, syncKey) {
     }
   }
 
+  // ── Sociograma · Mapa Social ──
+  // Instrumento qualitativo — sem T-scores. Mostra: rede de apoio (n), pertença 0-10, sinais de exclusão e flags
+  // Cores: verde (apoio≥2 e pertença≥7 e exclusão=0) · laranja (alerta moderado) · vermelho (≥1 flag clínica)
+  if(syncKey === 'sociograma') {
+    const apoio    = scores['DensidadeApoio']  ?? scores['densidadeApoio']  ?? scores['apoio'];
+    const pert     = scores['SentidoPertenca'] ?? scores['sentidoPertenca'] ?? scores['pertenca'];
+    const excl     = scores['SinaisExclusao']  ?? scores['sinaisExclusao']  ?? scores['exclusao'];
+    const recip    = scores['Reciprocidade']   ?? scores['reciprocidade'];
+    const flagsRaw = scores['Flags']           ?? scores['flags'] ?? '';
+    const flags    = typeof flagsRaw === 'string' ? flagsRaw.split('|').filter(Boolean) : (Array.isArray(flagsRaw) ? flagsRaw : []);
+    if(apoio != null || pert != null || excl != null) {
+      const apoioN = apoio == null ? null : Number(apoio);
+      const pertN  = pert  == null || pert === '' ? null : Number(pert);
+      const exclN  = excl  == null ? null : Number(excl);
+      const flagClin = flags.filter(f => ['isolamento_apoio','rejeicao_percebida','baixa_pertenca','sem_adulto_referencia','desconexao_global'].includes(f));
+      const cls = (flagClin.length >= 1) ? 'color:#C0392B;font-weight:700;' :
+                  (flags.length >= 1)    ? 'color:#E67E22;font-weight:600;' :
+                                           'color:var(--green);font-weight:600;';
+      const parts = [];
+      if(apoioN != null) parts.push('Apoio=' + apoioN);
+      if(recip != null && recip !== '') parts.push('Recip=' + recip);
+      if(pertN != null) parts.push('Pertença=' + pertN + '/10');
+      if(exclN != null && exclN > 0) parts.push('Excl=' + exclN);
+      if(flags.length > 0) parts.push(flags.length + ' sinal' + (flags.length > 1 ? 'is' : ''));
+      return '<span style="font-size:0.78rem;' + cls + '">' + parts.join(' · ') + '</span>';
+    }
+  }
+
   return null;
 }
 
@@ -3111,7 +3159,9 @@ function renderAssignments(patientId) {
                 'COMPA_C_Pai':     ['NomeInformante','NomeCrianca'],
                 'COMPA_C_Mae':     ['NomeInformante','NomeCrianca'],
                 // ── CDI-2:SR — auto-relato (criança/adolescente 7–17) ─────
-                'CDI2_SR':         ['NomeInformante','NomeCriança','NomeCrianca']
+                'CDI2_SR':         ['NomeInformante','NomeCriança','NomeCrianca'],
+                // ── Sociograma · Mapa Social — múltiplos respondentes (próprio/pais/professor) ──
+                'SOCIOGRAMA':      ['NomeInformante','NomeCriança','NomeCrianca','TipoRespondente']
               };
               const RC = {
                 'SWAN':['Relação'],'BRIEF_Pais':['Relação'],'SCARED_R_PAIS':['Relação'],
