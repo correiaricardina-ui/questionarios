@@ -678,7 +678,10 @@ const QID_TO_ABA = {
   'q_compa_c_pai':         'COMPA_C_Pai',
   'q_compa_c_mae':         'COMPA_C_Mae',
   // ── CDI-2:SR — Inventário de Depressão em Crianças (Kovacs & MHS Staff, 2011) ──
-  'q_cdi2sr':              'CDI2_SR'
+  'q_cdi2sr':              'CDI2_SR',
+  // ── QACSE-R / QACSE-C — Competências Socioemocionais (Coelho & Sousa, 2016/2020) ──
+  'q_qacse_r':             'QACSE_R',
+  'q_qacse_c':             'QACSE_C'
 };
 
 
@@ -852,7 +855,14 @@ const SYNC_KEY_TO_ABA = {
   'cdi2sr':            'CDI2_SR',
   'CDI2_SR':           'CDI2_SR',
   'CDI-2:SR':          'CDI2_SR',
-  'CDI2:SR':           'CDI2_SR'
+  'CDI2:SR':           'CDI2_SR',
+  // ── QACSE-R / QACSE-C — Competências Socioemocionais (Coelho & Sousa, 2016/2020) ──
+  'qacse_r':           'QACSE_R',
+  'QACSE_R':           'QACSE_R',
+  'QACSE-R':           'QACSE_R',
+  'qacse_c':           'QACSE_C',
+  'QACSE_C':           'QACSE_C',
+  'QACSE-C':           'QACSE_C'
 };
 
 // Cache em memória das respostas do Sheet (evita fetch repetidos na mesma sessão)
@@ -946,6 +956,22 @@ function initCatalog() {
       objective:'Avaliar competências sociais — auto-avaliação (Silva Moreno & Martorell Pallás, 1989/1995; adapt. CEGOC-TEA, 2005)',
       domains:['Consideração pelos outros (Co)','Auto-controlo nas relações sociais (Ac)','Isolamento social (Is)','Ansiedade social/Timidez (At)','Liderança (Li)','Sinceridade (S)'],
       ageMin:132, ageMax:215 },
+    // ── QACSE-R — Avaliação de Competências Socioemocionais (versão reduzida) v1.0 ──
+    { id:'q_qacse_r', name:'QACSE-R — Competências Socioemocionais (reduzida)',
+      dest:['Paciente'],
+      link:'https://correiaricardina-ui.github.io/questionarios/QACSE_R_v1.html',
+      syncKey:'qacse_r', area:'Competências Sociais', ageRange:'10–16 anos',
+      objective:'Avaliar competências socioemocionais — auto-relato, versão reduzida (Coelho & Sousa, 2020)',
+      domains:['Autocontrolo (AC)','Competências Relacionais (CR)','Isolamento Social (IS)','Ansiedade Social (AS)'],
+      ageMin:120, ageMax:191 },
+    // ── QACSE-C — Avaliação de Competências Socioemocionais (Complementar à BAS-3) v1.0 ──
+    { id:'q_qacse_c', name:'QACSE-C — Competências Socioemocionais (Complementar à BAS-3)',
+      dest:['Paciente'],
+      link:'https://correiaricardina-ui.github.io/questionarios/QACSE_C_v1.html',
+      syncKey:'qacse_c', area:'Competências Sociais', ageRange:'10–17 anos',
+      objective:'Cobrir as cinco dimensões CASEL ausentes da BAS-3 — auto-relato, complementar (Coelho & Sousa, 2016)',
+      domains:['Autoconsciência Emocional (ACE)','Regulação Emocional (RE)','Tomada de Perspetiva (TP)','Resolução Assertiva de Conflitos (RAC)','Tomada de Decisão Responsável (TDR)'],
+      ageMin:120, ageMax:215 },
     { id:'q_ippr', name:'IPP-R — Interesses e Preferências Profissionais',
       dest:['Jovem avaliado','Paciente'],
       link:'https://correiaricardina-ui.github.io/questionarios/IPP-R_v1.html',
@@ -1490,6 +1516,9 @@ function initCatalog() {
       'q_collins': { link:'https://correiaricardina-ui.github.io/questionarios/Collins_Silhuetas.html', syncKey:'collins' },
       // ── BAS-3 — Bateria de Socialização (Auto-avaliação) v1.0 ──────────
       'q_bas3':  { link:'https://correiaricardina-ui.github.io/questionarios/BAS3_v1.html', syncKey:'bas3' },
+      // ── QACSE-R / QACSE-C — Competências Socioemocionais (Coelho & Sousa, 2016/2020) ──
+      'q_qacse_r': { link:'https://correiaricardina-ui.github.io/questionarios/QACSE_R_v1.html', syncKey:'qacse_r' },
+      'q_qacse_c': { link:'https://correiaricardina-ui.github.io/questionarios/QACSE_C_v1.html', syncKey:'qacse_c' },
       // ── PPGR-J — Pressão Percebida em Guarda-Redes Jovens v1.0 ─────────
       'q_ppgrj': { link:'https://correiaricardina-ui.github.io/questionarios/PPGRJ_v1.html', syncKey:'ppgrj' },
       'q_ccbq':  { link:'https://correiaricardina-ui.github.io/questionarios/CCBQ_v1.html',  syncKey:'ccbq'  },
