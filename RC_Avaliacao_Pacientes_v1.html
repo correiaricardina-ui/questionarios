@@ -676,7 +676,9 @@ const QID_TO_ABA = {
   'q_compa_a_pai':         'COMPA_A_Pai',
   'q_compa_a_mae':         'COMPA_A_Mae',
   'q_compa_c_pai':         'COMPA_C_Pai',
-  'q_compa_c_mae':         'COMPA_C_Mae'
+  'q_compa_c_mae':         'COMPA_C_Mae',
+  // ── CDI-2:SR — Inventário de Depressão em Crianças (Kovacs & MHS Staff, 2011) ──
+  'q_cdi2sr':              'CDI2_SR'
 };
 
 
@@ -845,7 +847,12 @@ const SYNC_KEY_TO_ABA = {
   'compa_c_pai':       'COMPA_C_Pai',
   'COMPA_C_Pai':       'COMPA_C_Pai',
   'compa_c_mae':       'COMPA_C_Mae',
-  'COMPA_C_Mae':       'COMPA_C_Mae'
+  'COMPA_C_Mae':       'COMPA_C_Mae',
+  // ── CDI-2:SR — Inventário de Depressão em Crianças (Kovacs & MHS Staff, 2011) ──
+  'cdi2sr':            'CDI2_SR',
+  'CDI2_SR':           'CDI2_SR',
+  'CDI-2:SR':          'CDI2_SR',
+  'CDI2:SR':           'CDI2_SR'
 };
 
 // Cache em memória das respostas do Sheet (evita fetch repetidos na mesma sessão)
@@ -1163,6 +1170,13 @@ function initCatalog() {
       syncKey:'eat26', area:'Comportamento Alimentar', ageRange:'Adolescentes / Adultos',
       objective:'Rastreio de atitudes e comportamentos alimentares de risco (Garner et al., 1982)',
       domains:['D','B','OC','Total'], ageMin:132, ageMax:null},
+    // ── CDI-2:SR — Inventário de Depressão em Crianças (Auto-relato) ─────
+    { id:'q_cdi2sr', name:'CDI-2:SR',
+      dest:['Paciente'],
+      link:'https://correiaricardina-ui.github.io/questionarios/CDI2_SR_v1.html',
+      syncKey:'cdi2sr', area:'Humor / Depress&atilde;o', ageRange:'7&ndash;17 anos',
+      objective:'Rastreio de sintomatologia depressiva (auto-relato) — Kovacs &amp; MHS Staff (2011)',
+      domains:['Total','EP','FP','HM/SF','AE-','INE','PI'], ageMin:84, ageMax:215},
     // ── EDE-Q 6.0 ───────────────────────────────────────────────────────
     { id:'q_edeq', name:'EDE-Q 6.0',
       dest:['Paciente'],
@@ -1445,6 +1459,8 @@ function initCatalog() {
       'q_rcads_47y':  { link:'https://correiaricardina-ui.github.io/questionarios/RCADS47_Youth_v2.html', syncKey:'rcads_47y' },
       // ── EAT-26 v7.9 ──────────────────────────────────────────────────
       'q_eat26': { link:'https://correiaricardina-ui.github.io/questionarios/EAT26_v2.html', syncKey:'eat26' },
+      // ── CDI-2:SR — Inventário de Depressão em Crianças (Auto-relato) ─
+      'q_cdi2sr': { link:'https://correiaricardina-ui.github.io/questionarios/CDI2_SR_v1.html', syncKey:'cdi2sr' },
       // ── Conners 3 v11.0 ───────────────────────────────────────────────────
       'q_conners3p_full': { link:'https://correiaricardina-ui.github.io/questionarios/Conners3_Pais_Full.html',         syncKey:'conners3p_full' },
       'q_conners3t_full': { link:'https://correiaricardina-ui.github.io/questionarios/Conners3_Professores_Full.html',  syncKey:'conners3t_full' },
@@ -1649,6 +1665,11 @@ function initCatalog() {
     if(!catalog.includes('q_eat26')) {
       const dEat26 = defaults.find(d => d.id === 'q_eat26');
       if(dEat26) { store.set('q_' + dEat26.id, dEat26); catalog.push('q_eat26'); store.set('catalog', catalog); }
+    }
+    // CDI-2:SR — Inventário de Depressão em Crianças (Auto-relato)
+    if(!catalog.includes('q_cdi2sr')) {
+      const dCdi2sr = defaults.find(d => d.id === 'q_cdi2sr');
+      if(dCdi2sr) { store.set('q_' + dCdi2sr.id, dCdi2sr); catalog.push('q_cdi2sr'); store.set('catalog', catalog); }
     }
     // Conners 3 v11.0 — Pais Completa
     if(!catalog.includes('q_conners3p_full')) {
@@ -2245,6 +2266,25 @@ function formatScoreSummary(scores, syncKey) {
       const rLabel = rastreio && rastreio.toUpperCase().includes('POSITIVO') ? ' ⚠ POSITIVO' : ' negativo';
       const subStr = (d != null && b != null && oc != null) ? ` · D=${d} B=${b} OC=${oc}` : '';
       return `<span style="font-size:0.78rem;${cls}">Total=${t}${rLabel}${subStr}</span>`;
+    }
+  }
+  // CDI-2:SR — mostra T-Score Total + classificação + alerta item 9 se ≥ 1
+  if(syncKey === 'cdi2sr') {
+    const totalT  = scores['TOTAL_T']  ?? scores['total_t'] ?? scores['totalT']  ?? null;
+    const totalRaw = scores['TOTAL_RAW'] ?? scores['total_raw'] ?? scores['totalRaw'] ?? null;
+    const item9   = scores['ITEM9']    ?? scores['item9']   ?? null;
+    if(totalT != null) {
+      const tt = parseInt(totalT);
+      let cls, label;
+      if(tt >= 70)      { cls = 'color:#C0392B;font-weight:700;'; label = 'Muito Elevado'; }
+      else if(tt >= 65) { cls = 'color:#C0392B;font-weight:700;'; label = 'Elevado';        }
+      else if(tt >= 55) { cls = 'color:#E67E22;font-weight:600;'; label = 'M&eacute;dio-Alto'; }
+      else              { cls = 'color:var(--green);font-weight:600;'; label = 'M&eacute;dio ou Inferior'; }
+      const rawStr = totalRaw != null ? ' (raw=' + totalRaw + ')' : '';
+      const alerta = (item9 != null && parseInt(item9) >= 1)
+        ? ' <span style="color:#C0392B;font-weight:700;">&#9888; Item 9</span>'
+        : '';
+      return '<span style="font-size:0.78rem;' + cls + '">T=' + tt + rawStr + ' &middot; ' + label + '</span>' + alerta;
     }
   }
   // Conners 3 — todas as versões (v11.0)
@@ -3040,7 +3080,9 @@ function renderAssignments(patientId) {
                 'COMPA_A_Pai':     ['NomeInformante','NomeCrianca'],
                 'COMPA_A_Mae':     ['NomeInformante','NomeCrianca'],
                 'COMPA_C_Pai':     ['NomeInformante','NomeCrianca'],
-                'COMPA_C_Mae':     ['NomeInformante','NomeCrianca']
+                'COMPA_C_Mae':     ['NomeInformante','NomeCrianca'],
+                // ── CDI-2:SR — auto-relato (criança/adolescente 7–17) ─────
+                'CDI2_SR':         ['NomeInformante','NomeCriança','NomeCrianca']
               };
               const RC = {
                 'SWAN':['Relação'],'BRIEF_Pais':['Relação'],'SCARED_R_PAIS':['Relação'],
@@ -3334,7 +3376,9 @@ async function syncAndMark(patientId, idx) {
           'COMPA_A_Pai':     ['NomeInformante','NomeCrianca'],
           'COMPA_A_Mae':     ['NomeInformante','NomeCrianca'],
           'COMPA_C_Pai':     ['NomeInformante','NomeCrianca'],
-          'COMPA_C_Mae':     ['NomeInformante','NomeCrianca']
+          'COMPA_C_Mae':     ['NomeInformante','NomeCrianca'],
+          // ── CDI-2:SR — auto-relato (criança/adolescente 7–17) ─────
+          'CDI2_SR':         ['NomeInformante','NomeCriança','NomeCrianca']
         };
         const RC2 = {
           'SWAN':['Relação'],'BRIEF_Pais':['Relação'],'SCARED_R_PAIS':['Relação'],
