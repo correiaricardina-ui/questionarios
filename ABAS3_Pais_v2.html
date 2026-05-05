@@ -843,39 +843,49 @@ var sessaoActual = null;
 function carregarDados() {
   var msg = document.getElementById('sync-msg');
   msg.textContent = 'A sincronizar...';
-  fetch(SCRIPT_URL + '?instrumento=ABAS3&t=' + Date.now())
+  fetch(SCRIPT_URL + '?instrumento=ABAS3_PAIS&t=' + Date.now())
     .then(function(r){ return r.json(); })
     .then(function(data) {
-      if (Array.isArray(data)) {
-        sessoes = data.map(parseSessao);
-        // Adicionar sessões em memória (não duplicar)
-        if (window._clinico_sessions) {
-          window._clinico_sessions.forEach(function(s) {
-            var exists = sessoes.some(function(x){ return x.patientCode===s.patientCode && x.date===s.date; });
-            if (!exists) sessoes.unshift(s);
-          });
-        }
-        renderTabela();
-        msg.textContent = 'Actualizado: ' + new Date().toLocaleTimeString('pt-PT');
+      // O Apps Script devolve {"rows":[...]}; aceitar também array directo por segurança
+      var rows = Array.isArray(data) ? data : (data && data.rows ? data.rows : []);
+      sessoes = rows.map(parseSessao);
+      // Adicionar sessões em memória (não duplicar)
+      if (window._clinico_sessions) {
+        window._clinico_sessions.forEach(function(s) {
+          var exists = sessoes.some(function(x){ return x.patientCode===s.patientCode && x.date===s.date; });
+          if (!exists) sessoes.unshift(s);
+        });
       }
+      renderTabela();
+      msg.textContent = 'Actualizado: ' + new Date().toLocaleTimeString('pt-PT') + ' (' + sessoes.length + ' sess' + (sessoes.length===1?'\u00e3o':'\u00f5es') + ')';
     })
-    .catch(function() {
+    .catch(function(err) {
       // Usar apenas sessões em memória
       sessoes = window._clinico_sessions ? window._clinico_sessions.slice() : [];
       renderTabela();
-      msg.textContent = 'Sem ligação ao servidor — a mostrar dados locais.';
+      msg.textContent = 'Sem liga\u00e7\u00e3o ao servidor \u2014 a mostrar dados locais.';
     });
 }
 
 function parseSessao(row) {
-  // Adaptado ao formato do doGet do Apps Script
-  var s = { patientCode: row.patientCode || row[1] || '—',
-    date: row.date || row[0] || '',
-    nomeCrianca: row.nomeCrianca || '',
-    nomeInformante: row.nomeInformante || '',
-    parentesco: row.parentesco || '—',
-    idade: row.idade || '—',
-    answers: row.answers || row.Answers || row.Respostas || row.respostas || '',
+  // O doGet devolve as linhas com os nomes EXACTOS do cabe\u00e7alho do Sheet (em portugu\u00eas).
+  // Manter fallbacks para sess\u00f5es vindas de localStorage / em-mem\u00f3ria que usam chaves em ingl\u00eas.
+  var rawDate = row['Data'] || row.date || row[0] || '';
+  // Normalizar data: se vier em pt-PT (dd/mm/aaaa), converter para ISO para o resto do c\u00f3digo
+  var dateISO = rawDate;
+  if (typeof rawDate === 'string' && /^\d{1,2}\/\d{1,2}\/\d{4}/.test(rawDate)) {
+    var parts = rawDate.split(/[\/\s:]/);
+    var d = parts[0], m = parts[1], y = parts[2];
+    dateISO = y + '-' + (m.length<2?'0'+m:m) + '-' + (d.length<2?'0'+d:d) + 'T00:00:00';
+  }
+
+  var s = { patientCode: row['C\u00f3digo'] || row['C\u00f3digo Paciente'] || row.patientCode || row[1] || '\u2014',
+    date: dateISO,
+    nomeCrianca: row['NomeCrian\u00e7a'] || row.nomeCrianca || '',
+    nomeInformante: row['NomeInformante'] || row.nomeInformante || '',
+    parentesco: row['Parentesco'] || row.parentesco || '\u2014',
+    idade: row['IdadeCrian\u00e7a'] || row.idade || '\u2014',
+    answers: row['Respostas'] || row['Answers'] || row.answers || row.Answers || row.respostas || '',
     sb:{}, ss:{}, cc:0, sc:0, pc:0, cag:0
   };
   // Calcular scores se não vierem do sheet
@@ -886,6 +896,7 @@ function parseSessao(row) {
   } else {
     ['COM','CU','FA','HL','HS','LE','SD','SO','WK'].forEach(function(c){
       s.ss[c] = parseInt(row[c+'_SS'])||0;
+      s.sb[c] = parseInt(row[c+'_SB'])||0;
     });
     s.cc = parseInt(row.CC)||0;
     s.sc = parseInt(row.SC)||0;
