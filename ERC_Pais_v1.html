@@ -394,15 +394,39 @@ const RE_INVERTED = [9,11,19];                               // 3 itens invertid
 
 function inv(v) { return 5 - v; }
 
+// Conversão segura para número — devolve NaN se input não for válido (1-4)
+function toNum(v) {
+  if (v === null || v === undefined || v === '') return NaN;
+  var n = Number(v);
+  return (isNaN(n) || n < 1 || n > 4) ? NaN : n;
+}
+
 function calcScores(answers) {
   var ln = 0, re = 0;
-  LN_ITEMS.forEach(function(i)    { ln += inv(answers[i-1]); });
-  RE_DIRECT.forEach(function(i)   { re += answers[i-1]; });
-  RE_INVERTED.forEach(function(i) { re += inv(answers[i-1]); });
+  var bad = []; // índices com resposta inválida — para diagnóstico
+  LN_ITEMS.forEach(function(i) {
+    var v = toNum(answers[i-1]);
+    if (isNaN(v)) { bad.push(i); return; }
+    ln += inv(v);
+  });
+  RE_DIRECT.forEach(function(i) {
+    var v = toNum(answers[i-1]);
+    if (isNaN(v)) { bad.push(i); return; }
+    re += v;
+  });
+  RE_INVERTED.forEach(function(i) {
+    var v = toNum(answers[i-1]);
+    if (isNaN(v)) { bad.push(i); return; }
+    re += inv(v);
+  });
   // Médias (para exibição)
   var ln_media = +(ln / LN_ITEMS.length).toFixed(2);
   var re_media = +(re / (RE_DIRECT.length + RE_INVERTED.length)).toFixed(2);
-  return {ln: ln, re: re, total: ln + re, ln_media: ln_media, re_media: re_media};
+  return {
+    ln: ln, re: re, total: ln + re,
+    ln_media: ln_media, re_media: re_media,
+    bad: bad // se > 0 itens inválidos, submeter() bloqueia
+  };
 }
 
 // ── Estado ───────────────────────────────────────────────────────────────
@@ -516,8 +540,14 @@ function actualizarProgresso() {
 }
 
 function submeter() {
+  // Validação 1: apanha null, undefined, e qualquer valor fora de 1-4
   var unanswered = [];
-  respostasActuais.forEach(function(v, i){ if(v === null) unanswered.push(i+1); });
+  for (var i = 0; i < N_ITENS; i++) {
+    var v = respostasActuais[i];
+    if (v === null || v === undefined || isNaN(Number(v)) || Number(v) < 1 || Number(v) > 4) {
+      unanswered.push(i+1);
+    }
+  }
   if (unanswered.length > 0) {
     var msg = 'Por favor responda a todos os itens antes de submeter.\n\nItens em falta: ' + unanswered.join(', ');
     alert(msg);
@@ -531,6 +561,16 @@ function submeter() {
   var sexo = document.getElementById('sexo-crianca').value;
   var scores = calcScores(respostasActuais);
 
+  // Validação 2: defesa anti-NaN no resultado do cálculo
+  if (scores.bad && scores.bad.length > 0) {
+    alert('Erro interno: itens com resposta inválida (' + scores.bad.join(', ') + ').\n\nPor favor recarregue a página e tente novamente.');
+    return;
+  }
+  if (isNaN(scores.ln) || isNaN(scores.re) || isNaN(scores.total)) {
+    alert('Erro interno no cálculo dos scores.\n\nPor favor recarregue a página e responda novamente.');
+    return;
+  }
+
   var payload = {
     instrumento: NOME_ABA,
     codigo: code,
@@ -538,6 +578,7 @@ function submeter() {
     nome_preenche: nomeInformante,
     relacao: relacao,
     sexo_crianca: sexo,
+    sexo: sexo, // ← duplicado para compatibilidade com Apps Script que lê d.sexo
     answers: respostasActuais.join('|'),
     ln_score: scores.ln,
     re_score: scores.re,
@@ -563,12 +604,23 @@ function submeter() {
     body: JSON.stringify(payload)
   }).catch(function(){});
 
-  // save locally
-  var s = Object.assign({}, payload, {
-    patientCode: code, date: new Date().toISOString(),
-    nomeCrianca: nomeCrianca, nomeInformante: nomeInformante,
-    scores: scores
-  });
+  // Guardar localmente com chaves CONSISTENTES (ln/re/total) — espelham o que renderTabela espera
+  var s = {
+    patientCode:    code,
+    codigo:         code,
+    nomeCrianca:    nomeCrianca,
+    nomeInformante: nomeInformante,
+    relacao:        relacao,
+    sexo:           sexo,
+    answers:        respostasActuais.join('|'),
+    ln:             scores.ln,
+    re:             scores.re,
+    total:          scores.total,
+    ln_media:       scores.ln_media,
+    re_media:       scores.re_media,
+    date:           new Date().toISOString(),
+    _origem:        'local'
+  };
   sessoes.unshift(s);
   localStorage.setItem('erc_pais_sessoes', JSON.stringify(sessoes));
 
@@ -577,17 +629,53 @@ function submeter() {
 
 // ── Painel clínico ────────────────────────────────────────────────────────
 function parseSessao(row) {
+  // Helper — Number ou null se vazio/inválido
+  function numOrNull(v) {
+    if (v === null || v === undefined || v === '') return null;
+    var n = Number(v);
+    return isNaN(n) ? null : n;
+  }
+  var ln    = numOrNull(row['L/N']   !== undefined ? row['L/N']   : row['ln_score']);
+  var re    = numOrNull(row['RE']    !== undefined ? row['RE']    : row['re_score']);
+  var total = numOrNull(row['Total'] !== undefined ? row['Total'] : row['total_score']);
+  var answers = row['Respostas'] || row['answers'] || '';
+  var lnM = null, reM = null;
+
+  // ── AUTO-RECÁLCULO ─────────────────────────────────────────────
+  // Se as colunas de score vierem vazias mas a coluna Respostas
+  // tiver os 24 valores, recalcula localmente. Isto recupera
+  // sessões que sofreram bug histórico de payload com NaN.
+  if ((ln === null || re === null || total === null) && typeof answers === 'string' && answers.indexOf('|') >= 0) {
+    var parts = answers.split('|');
+    if (parts.length === N_ITENS) {
+      try {
+        var sc = calcScores(parts);
+        if (!sc.bad || sc.bad.length === 0) {
+          if (ln === null)    ln    = sc.ln;
+          if (re === null)    re    = sc.re;
+          if (total === null) total = sc.total;
+          lnM = sc.ln_media;
+          reM = sc.re_media;
+        }
+      } catch(e) { /* fica null */ }
+    }
+  }
+
   return {
-    patientCode: row['Código'] || row['codigo'] || '',
-    nomeCrianca: row['NomeCriança'] || row['nome_crianca'] || '',
+    patientCode:    row['Código'] || row['codigo'] || '',
+    codigo:         row['Código'] || row['codigo'] || '',
+    nomeCrianca:    row['NomeCriança'] || row['nome_crianca'] || '',
     nomeInformante: row['NomeRespondente'] || row['nome_preenche'] || '',
-    relacao: row['Relação'] || row['relacao'] || '',
-    sexo: row['SexoCriança'] || row['sexo_crianca'] || '',
-    answers: row['Respostas'] || row['answers'] || '',
-    ln: row['L/N'] || row['ln_score'],
-    re: row['RE'] || row['re_score'],
-    total: row['Total'] || row['total_score'],
-    date: row['Data'] || row['data'] || ''
+    relacao:        row['Relação'] || row['relacao'] || '',
+    sexo:           row['SexoCriança'] || row['sexo_crianca'] || '',
+    answers:        answers,
+    ln:             ln,
+    re:             re,
+    total:          total,
+    ln_media:       lnM,
+    re_media:       reM,
+    date:           row['Data'] || row['data'] || '',
+    _origem:        'sheet'
   };
 }
 
@@ -601,18 +689,41 @@ async function carregarDoSheet() {
     var res = await fetch(SCRIPT_URL + '?instrumento=' + NOME_ABA + '&t=' + Date.now());
     var data = await res.json();
     var rows = Array.isArray(data) ? data : (data && data.rows ? data.rows : []);
-    if (rows.length > 0) {
-      var sheetSessoes = rows.map(parseSessao);
-      // merge (deduplicate by code+date)
-      var keys = new Set(sessoes.map(function(s){ return s.patientCode + '|' + s.date; }));
-      sheetSessoes.forEach(function(s) {
-        var k = s.patientCode + '|' + s.date;
-        if (!keys.has(k)) { sessoes.push(s); keys.add(k); }
-      });
-      sessoes.sort(function(a,b){ return new Date(b.date)-new Date(a.date); });
-      localStorage.setItem('erc_pais_sessoes', JSON.stringify(sessoes));
+    if (!rows.length) return 0;
+    var sheetSessoes = rows.map(parseSessao);
+
+    // ── Chave de dedupe que SEPARA pai e mãe ──
+    // Inclui nomeInformante normalizado + dia (sem hora) — duas sessões
+    // do mesmo dia/código com respondentes diferentes coexistem.
+    function dedupKey(s) {
+      var dia = '';
+      if (s.date) {
+        // Aceita ISO (2026-05-07T...) ou pt-PT (07/05/2026)
+        var d = String(s.date);
+        if (/^\d{4}-\d{2}-\d{2}/.test(d)) dia = d.slice(0,10);
+        else if (/^\d{1,2}\/\d{1,2}\/\d{4}/.test(d)) {
+          var p = d.split('/');
+          dia = p[2] + '-' + p[1].padStart(2,'0') + '-' + p[0].padStart(2,'0');
+        } else dia = d.slice(0,10);
+      }
+      var inf = (s.nomeInformante||'').trim().toLowerCase();
+      var rel = (s.relacao||'').trim().toLowerCase();
+      // Se não houver nomeInformante, cair para relação (pai/mãe), e por fim para qq sufixo
+      var who = inf || rel || '_';
+      return (s.patientCode||'').toUpperCase() + '|' + dia + '|' + who;
     }
-  } catch(e) {}
+
+    var sheetKeys = new Set(sheetSessoes.map(dedupKey));
+    // Manter sessões locais que NÃO estejam no sheet (offline pendentes)
+    var localOnly = sessoes.filter(function(s){ return !sheetKeys.has(dedupKey(s)); });
+    sessoes = sheetSessoes.concat(localOnly);
+    sessoes.sort(function(a,b){ return new Date(b.date) - new Date(a.date); });
+    localStorage.setItem('erc_pais_sessoes', JSON.stringify(sessoes));
+    return sheetSessoes.length;
+  } catch(e) {
+    console.warn('ERC Pais: erro ao sincronizar com Sheet:', e);
+    return -1;
+  }
 }
 
 async function carregarDados() {
@@ -634,17 +745,26 @@ function renderTabela() {
     div.innerHTML = '<p style="color:var(--text-light);font-size:.88rem">Sem sessões registadas.</p>';
     return;
   }
+  // Helpers — aceitam chaves antigas (ln_score) e novas (ln) para retro-compatibilidade
+  function pickScore(s, novo, antigo) {
+    var v = (s[novo] !== null && s[novo] !== undefined && s[novo] !== '') ? s[novo] :
+            (s[antigo] !== null && s[antigo] !== undefined && s[antigo] !== '') ? s[antigo] : null;
+    if (v === null) return '—';
+    var n = Number(v);
+    return isNaN(n) ? '—' : n;
+  }
   var html = '<table><thead><tr><th>Data</th><th>Código</th><th>Criança</th><th>Respondente</th><th>L/N</th><th>RE</th><th>Total</th><th>Ações</th></tr></thead><tbody>';
   sessoes.forEach(function(s, idx) {
     var dt = s.date ? new Date(s.date).toLocaleDateString('pt-PT') : '—';
+    if (dt === 'Invalid Date') dt = String(s.date).split('T')[0] || '—';
     html += '<tr>';
     html += '<td>' + dt + '</td>';
-    html += '<td><strong>' + (s.patientCode||'—') + '</strong></td>';
+    html += '<td><strong>' + (s.patientCode||s.codigo||'—') + '</strong></td>';
     html += '<td>' + (s.nomeCrianca||'—') + '</td>';
     html += '<td>' + (s.nomeInformante||'—') + '</td>';
-    html += '<td style="text-align:center;font-weight:700">' + (s.ln||'—') + '</td>';
-    html += '<td style="text-align:center;font-weight:700">' + (s.re||'—') + '</td>';
-    html += '<td style="text-align:center;font-weight:700">' + (s.total||'—') + '</td>';
+    html += '<td style="text-align:center;font-weight:700">' + pickScore(s,'ln','ln_score') + '</td>';
+    html += '<td style="text-align:center;font-weight:700">' + pickScore(s,'re','re_score') + '</td>';
+    html += '<td style="text-align:center;font-weight:700">' + pickScore(s,'total','total_score') + '</td>';
     html += '<td><button class="btn btn-secondary" style="padding:3px 10px;font-size:.78rem" onclick="verDetalhe(' + idx + ')">Ver →</button></td>';
     html += '</tr>';
   });
