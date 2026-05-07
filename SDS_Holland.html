@@ -391,8 +391,8 @@ function loginClinico() {
   }
 }
 function entrarClinico() {
-  renderTabelaSessoes();
   showPage('page-clinico');
+  carregarDados(); // ← inclui agora sync com Sheet
 }
 
 // ── CONSTRUÇÃO DO QUESTIONÁRIO ────────────────────────────────
@@ -669,7 +669,88 @@ function guardarLocal() {
 function carregarLocal() {
   try { var raw = localStorage.getItem('sds_sessions'); if(raw) sessions = JSON.parse(raw); } catch(e){ sessions=[]; }
 }
-function carregarDados() { carregarLocal(); renderTabelaSessoes(); }
+
+// ── PARSE de uma linha do Sheet → objecto sessao ──────────────
+// Reconstroi a estrutura {total:{R,I,A,S,E,C}, by_part:{II,III,IV,V}}
+// a partir das colunas planas do Sheet (R_total, R_act, R_comp, R_carr, R_apt …)
+function parseSessaoFromSheet(row) {
+  function num(v) { var n = Number(v); return isNaN(n) ? 0 : n; }
+  var total = {}, byPart = {II:{},III:{},IV:{},V:{}};
+  TYPES.forEach(function(t){
+    total[t]      = num(row[t+'_total']);
+    byPart.II[t]  = num(row[t+'_act']);
+    byPart.III[t] = num(row[t+'_comp']);
+    byPart.IV[t]  = num(row[t+'_carr']);
+    byPart.V[t]   = num(row[t+'_apt']);
+  });
+  // Tentar fazer parse das respostas (JSON stringificado)
+  var ans = {};
+  var raw = row['Respostas'] || row['respostas'] || row['answers'] || '';
+  if (typeof raw === 'string' && raw.trim().charAt(0) === '{') {
+    try { ans = JSON.parse(raw); } catch(e){}
+  } else if (typeof raw === 'object' && raw) {
+    ans = raw;
+  }
+  // Aspirações: o sheet não as guarda em coluna própria; podem estar dentro de answers
+  var asp = (ans && ans.aspiracoes) || [];
+  // Data: aceita ISO ou DD/MM/YYYY pt-PT
+  var dataRaw = row['Data'] || row['data'] || '';
+  var dataIso = dataRaw;
+  if (typeof dataRaw === 'string' && /^\d{1,2}\/\d{1,2}\/\d{4}/.test(dataRaw)) {
+    var p = dataRaw.split('/');
+    dataIso = p[2] + '-' + p[1].padStart(2,'0') + '-' + p[0].padStart(2,'0');
+  }
+  return {
+    codigo:          row['Código'] || row['codigo'] || row['patientCode'] || '',
+    nome_crianca:    row['NomeCriança'] || row['nome_crianca'] || row['NomeCrianca'] || '',
+    data_nasc:       row['DataNasc'] || row['data_nasc'] || '',
+    percurso:        row['Percurso'] || row['percurso'] || '',
+    escola:          row['Escola']   || row['escola']   || '',
+    codigo_holland:  row['Código_Holland'] || row['codigo_holland'] || '',
+    data:            dataIso,
+    total:           total,
+    by_part:         byPart,
+    aspiracoes:      Array.isArray(asp) ? asp : [],
+    answers:         ans,
+    _origem:         'sheet'
+  };
+}
+
+// ── Sincronizar com o Google Sheet ────────────────────────────
+// Faz fetch ao endpoint, parse das rows e merge com sessões locais.
+// Dedupe por código+nomeCrianca+dataYMD (insensível a hora) — privilegia
+// versão do Sheet (mais completa e centralizada) sobre localStorage.
+async function carregarDoSheet() {
+  try {
+    var res = await fetch(SCRIPT_URL + '?instrumento=SDS_Holland&t=' + Date.now());
+    var data = await res.json();
+    var rows = Array.isArray(data) ? data : (data && data.rows ? data.rows : []);
+    if (!rows.length) return 0;
+    var fromSheet = rows.map(parseSessaoFromSheet);
+    // Chave de identidade: código + nome + dia (sem hora) — robusta a formatos diferentes
+    function dedupKey(s) {
+      var d = (s.data || '').slice(0,10); // YYYY-MM-DD
+      return (s.codigo||'').toUpperCase() + '|' + (s.nome_crianca||'').trim().toLowerCase() + '|' + d;
+    }
+    var sheetKeys = new Set(fromSheet.map(dedupKey));
+    // Manter sessões locais que NÃO estejam no sheet (podem ser submissões offline pendentes)
+    var localOnly = sessions.filter(function(s){ return !sheetKeys.has(dedupKey(s)); });
+    sessions = fromSheet.concat(localOnly);
+    sessions.sort(function(a,b){ return new Date(b.data) - new Date(a.data); });
+    guardarLocal();
+    return fromSheet.length;
+  } catch(e) {
+    console.warn('SDS: erro a sincronizar com Sheet:', e);
+    return -1;
+  }
+}
+
+async function carregarDados() {
+  carregarLocal();
+  renderTabelaSessoes(); // pinta logo o que está em local (rápido)
+  var n = await carregarDoSheet();
+  if (n >= 0) renderTabelaSessoes(); // repinta com dados do Sheet
+}
 
 // ── TABELA CLÍNICA ────────────────────────────────────────────
 function renderTabelaSessoes() {
