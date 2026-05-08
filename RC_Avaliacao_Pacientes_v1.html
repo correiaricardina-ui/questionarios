@@ -874,7 +874,28 @@ const SYNC_KEY_TO_ABA = {
   'palsstudentsec':    'PALS_Student_Sec',
   'PALS_Student_Sec':  'PALS_Student_Sec',
   'palsstudent23c':    'PALS_Student_23c',
-  'PALS_Student_23c':  'PALS_Student_23c'
+  'PALS_Student_23c':  'PALS_Student_23c',
+  // ── PALS Versões REDUZIDAS — v55.0 ──
+  'palsparentred':         'PALS_Parent_Red',
+  'PALS_Parent_Red':       'PALS_Parent_Red',
+  'palsteacherred':        'PALS_Teacher_Red',
+  'PALS_Teacher_Red':      'PALS_Teacher_Red',
+  'palsstudentsecred':     'PALS_Student_Sec_Red',
+  'PALS_Student_Sec_Red':  'PALS_Student_Sec_Red',
+  'palsstudent23cred':     'PALS_Student_23c_Red',
+  'PALS_Student_23c_Red':  'PALS_Student_23c_Red',
+  // ── Questionários Ecológicos Revistos — v56.0 ──
+  'qeeescola':             'QEE_Escola',
+  'QEE_Escola':            'QEE_Escola',
+  'qeppais':               'QEP_Pais',
+  'QEP_Pais':              'QEP_Pais',
+  // ── IIM (Inventário de Inteligências Múltiplas — Gardner 1983/1995) ─
+  'iimhetero':             'IIM_Hetero',
+  'IIM_Hetero':            'IIM_Hetero',
+  'iimcriancas':           'IIM_Criancas',
+  'IIM_Criancas':          'IIM_Criancas',
+  'iimadoladultos':        'IIM_AdolAdultos',
+  'IIM_AdolAdultos':       'IIM_AdolAdultos'
 };
 
 // Cache em memória das respostas do Sheet (evita fetch repetidos na mesma sessão)
@@ -959,6 +980,8 @@ function initCatalog() {
     { id:'q_aseba_cbcl', name:'ASEBA — CBCL 6-18',   dest:['Pais','Mãe','Pai','Enc. Educação'], link:'https://correiaricardina-ui.github.io/questionarios/CBCL_618_v1.html',  syncKey:'cbcl',  area:'Externalização & Comportamento', ageRange:'6–18 anos', objective:'Avaliar problemas emocionais e comportamentais', domains:['Internalizante','Externalizante','Total','Ansiedade/Depressão','Queixas Somáticas','Isolamento','Problemas Sociais','Problemas de Atenção','Comportamento Agressivo','Comportamento de Quebra de Regras'] , ageMin:72, ageMax:215},
     { id:'q_aseba_trf',  name:'ASEBA — TRF 6-18',    dest:['Professor(a)'],              link:'https://correiaricardina-ui.github.io/questionarios/TRF_618_v1.html',   syncKey:'trf',   area:'Externalização & Comportamento', ageRange:'6–18 anos', objective:'Avaliar comportamento em contexto escolar (versão professor)', domains:['Internalizante','Externalizante','Total','Problemas de Atenção','Comportamento Agressivo'] , ageMin:72, ageMax:215},
     { id:'q_aseba_ysr',  name:'ASEBA — YSR 11-18',   dest:['Paciente'],                  link:'https://correiaricardina-ui.github.io/questionarios/YSR_1118_v2.html',  syncKey:'ysr',   area:'Externalização & Comportamento', ageRange:'11–18 anos', objective:'Auto-avaliação de problemas emocionais e comportamentais', domains:['Internalizante','Externalizante','Total','Ansiedade/Depressão','Isolamento','Queixas Somáticas','Problemas Sociais','Problemas de Atenção','Comportamento Agressivo'] , ageMin:132, ageMax:215},
+    { id:'q_qee_escola', name:'QEE — Questionário Ecológico Escolar',  dest:['Professor(a)','Diretor(a) de Turma'], link:'https://correiaricardina-ui.github.io/questionarios/QEE_Escola_v1.html', syncKey:'qeeescola', area:'Externalização & Comportamento', ageRange:'6–18 anos', objective:'Caracterização clínica multi-informador do funcionamento emocional, social e adaptativo em contexto escolar (versão clínica revista, enquadramento bioecológico de Bronfenbrenner + lógica ASEBA). 40 itens fechados + 4 qualitativos.', domains:['Integração e Pertença Social (IPS)','Sensibilidade Relacional (SR)','Sintomas Internalizantes (SI)','Reatividade Comportamental (RC)','Pressão de Desempenho e Perfeccionismo (PDP)','Funcionamento Académico Adaptativo (FAA)','Autorregulação e Coping Adaptativo (ACA)','Fatores Protetores Contextuais (FPC)','Índice Global de Preocupação Clínica (IGPC)'], ageMin:72, ageMax:215},
+    { id:'q_qep_pais',   name:'QEP — Questionário Ecológico Parental', dest:['Mãe','Pai','Enc. Educação'],          link:'https://correiaricardina-ui.github.io/questionarios/QEP_Pais_v1.html',   syncKey:'qeppais',   area:'Externalização & Comportamento', ageRange:'6–18 anos', objective:'Caracterização clínica multi-informador do funcionamento emocional, social e adaptativo (versão clínica revista, paralela ao QEE — enquadramento bioecológico + lógica ASEBA). 40 itens fechados + 4 qualitativos.', domains:['Integração Social e Pertença (IPS)','Sensibilidade Relacional (SR)','Sintomas Internalizantes (SI)','Reatividade Comportamental (RC)','Pressão de Desempenho e Perfeccionismo (PDP)','Funcionamento Adaptativo Geral (FAG)','Autorregulação e Coping Adaptativo (ACA)','Fatores Protetores Familiares (FPF)','Índice Global de Preocupação Clínica (IGPC)'], ageMin:72, ageMax:215},
     { id:'q_cbcl_15',    name:'ASEBA — CBCL 1½-5',   dest:['Pais','Mãe','Pai','Enc. Educação'], link:'https://correiaricardina-ui.github.io/questionarios/CBCL_15_v5.html',   syncKey:'cbcl15', area:'Externalização & Comportamento', ageRange:'1½–5 anos', objective:'Avaliar problemas emocionais e comportamentais em idade pré-escolar', domains:['Internalizante','Externalizante','Total','Reatividade Emocional','Ansiedade','Queixas Somáticas','Retraimento','Problemas de Sono','Problemas de Atenção','Comportamento Agressivo'] , ageMin:18, ageMax:71},
     // ── BAS-3 — Bateria de Socialização (Auto-avaliação) v1.0 ──────────
     { id:'q_bas3', name:'BAS-3 — Bateria de Socialização',
@@ -1094,6 +1117,14 @@ function initCatalog() {
     { id:'q_pals_teacher',      name:'PALS — Teacher',                                dest:['Professor(a)'],              link:'https://correiaricardina-ui.github.io/questionarios/PALS_Teacher_v1.html', syncKey:'palsteacher', area:'Escola · Aprendizagem · Motivação', ageRange:'6–18 anos', objective:'Mapear estruturas de meta da sala, abordagens à instrução e eficácia/afeto docente (Midgley et al., 2000)', domains:['Estruturas de meta','Abordagens instrução','Eficácia docente','Afeto profissional','PCS','PCI','IFD','ICA','ICP','IRP','IRBD'], ageMin:72, ageMax:215},
     { id:'q_pals_student_sec',  name:'PALS — Aluno (Secundário)',                     dest:['Paciente'],                  link:'https://correiaricardina-ui.github.io/questionarios/PALS_Student_Secundario_v1.html', syncKey:'palsstudentsec', area:'Escola · Aprendizagem · Motivação', ageRange:'14–18 anos', objective:'Avaliar padrões adaptativos/maladaptativos de motivação académica, eficácia, estratégias e clima familiar — inclui foco vocacional (Midgley et al., 2000)', domains:['Orientações pessoais','Clima sala','Eficácia + estratégias','Família','Vocacional','Eixos motivacionais 2×2','IFAA','IRM','IEA','IDPCm','IDPCp'], ageMin:168, ageMax:215},
     { id:'q_pals_student_23c',  name:'PALS — Aluno (2.º e 3.º ciclo)',                dest:['Paciente'],                  link:'https://correiaricardina-ui.github.io/questionarios/PALS_Student_2-3ciclo_v1.html', syncKey:'palsstudent23c', area:'Escola · Aprendizagem · Motivação', ageRange:'10–14 anos', objective:'Avaliar padrões adaptativos/maladaptativos de motivação académica, eficácia, estratégias e clima familiar — versão adaptada à pré-adolescência (Midgley et al., 2000)', domains:['Orientações pessoais','Clima sala','Eficácia + estratégias','Família','Eixos motivacionais 2×2','IFAA','IRM','IEA','IDPCm','IDPCp'], ageMin:120, ageMax:167},
+    { id:'q_pals_parent_red',       name:'PALS — Parent (Reduzido)',                       dest:['Mãe','Pai','Enc. Educação'], link:'https://correiaricardina-ui.github.io/questionarios/PALS_Parent_Reduzido_v1.html', syncKey:'palsparentred', area:'Escola · Aprendizagem · Motivação', ageRange:'6–18 anos', objective:'Versão breve (21 itens) do PALS Parent — mesmas 8 subescalas, 9 índices clínicos e 7 perfis da versão completa, com menor tempo de administração (Midgley et al., 2000)', domains:['Mastery parental','Performance parental','Eficácia parental','Afeto face à escola','POP','PCEP','IFP','IPCA','IRPA','ICEFM','ICEFP','IRPF','IIP','IPI','IDC'], ageMin:72, ageMax:215},
+    { id:'q_pals_teacher_red',      name:'PALS — Teacher (Reduzido)',                      dest:['Professor(a)'],              link:'https://correiaricardina-ui.github.io/questionarios/PALS_Teacher_Reduzido_v1.html', syncKey:'palsteacherred', area:'Escola · Aprendizagem · Motivação', ageRange:'6–18 anos', objective:'Versão breve (20 itens) do PALS Teacher — mesmas 7 subescalas, 5 índices e 6 perfis da versão completa (Midgley et al., 2000)', domains:['Estruturas de meta','Abordagens instrução','Eficácia docente','Afeto profissional','PCS','PCI','IFD','ICA','ICP','IRP','IRBD'], ageMin:72, ageMax:215},
+    { id:'q_pals_student_sec_red',  name:'PALS — Aluno Secundário (Reduzido)',             dest:['Paciente'],                  link:'https://correiaricardina-ui.github.io/questionarios/PALS_Student_Secundario_Reduzido_v1.html', syncKey:'palsstudentsecred', area:'Escola · Aprendizagem · Motivação', ageRange:'14–18 anos', objective:'Versão breve (46 itens) do PALS Aluno Secundário — mesmas 18 subescalas, 5 índices e 8 perfis da versão completa, inclui foco vocacional (Midgley et al., 2000)', domains:['Orientações pessoais','Clima sala','Eficácia + estratégias','Família','Vocacional','Eixos motivacionais 2×2','IFAA','IRM','IEA','IDPCm','IDPCp'], ageMin:168, ageMax:215},
+    { id:'q_pals_student_23c_red',  name:'PALS — Aluno 2.º/3.º Ciclo (Reduzido)',          dest:['Paciente'],                  link:'https://correiaricardina-ui.github.io/questionarios/PALS_Student_2-3ciclo_Reduzido_v1.html', syncKey:'palsstudent23cred', area:'Escola · Aprendizagem · Motivação', ageRange:'10–14 anos', objective:'Versão breve (46 itens) do PALS Aluno 2.º/3.º ciclo — mesmas 18 subescalas, 5 índices e 7 perfis da versão completa, linguagem adaptada à pré-adolescência (Midgley et al., 2000)', domains:['Orientações pessoais','Clima sala','Eficácia + estratégias','Família','Eixos motivacionais 2×2','IFAA','IRM','IEA','IDPCm','IDPCp'], ageMin:120, ageMax:167},
+    // ── IIM — Inventário de Inteligências Múltiplas (Howard Gardner, 1983/1995) ──
+    { id:'q_iim_hetero',        name:'IIM — Heterorrelato',                           dest:['Mãe','Pai','Enc. Educação','Professor(a)','Diretor(a) de Turma'], link:'https://correiaricardina-ui.github.io/questionarios/IIM_Heterorrelato_v1.html', syncKey:'iimhetero',     area:'Escola · Aprendizagem · Motivação', ageRange:'6–18 anos',  objective:'Mapear o perfil de auto-perceção de preferências e competências por inteligência (Gardner, 1983/1995) — versão preenchida por pais/professores. Orientação vocacional, autoconhecimento e identificação de áreas de força. NÃO substitui WISC-V/BAEM/MAT.', domains:['LING','LOGM','ESPA','MUSI','CORP','INTER','INTRA','NATU','IIA','IIES','IIP','IIN','IGM','IDE','DIE','DOM'], ageMin:72,  ageMax:215},
+    { id:'q_iim_criancas',      name:'IIM — Crianças',                                dest:['Paciente'], link:'https://correiaricardina-ui.github.io/questionarios/IIM_Criancas_v1.html',     syncKey:'iimcriancas',   area:'Escola · Aprendizagem · Motivação', ageRange:'8–12 anos',  objective:'Auto-relato infantil de preferências e competências por inteligência (Gardner, 1983/1995). Linguagem adaptada à criança. Avalia AUTO-PERCEÇÃO — não capacidade real medida. Orientação para autoconhecimento e identificação de áreas de força.',                                                                                                                domains:['LING','LOGM','ESPA','MUSI','CORP','INTER','INTRA','NATU','IIA','IIES','IIP','IIN','IGM','IDE','DIE','DOM'], ageMin:96,  ageMax:155},
+    { id:'q_iim_adoladultos',   name:'IIM — Adolescentes/Adultos',                    dest:['Paciente'], link:'https://correiaricardina-ui.github.io/questionarios/IIM_AdolAdultos_v1.html',   syncKey:'iimadoladultos',area:'Escola · Aprendizagem · Motivação', ageRange:'≥ 13 anos', objective:'Auto-relato adolescente/adulto de preferências e competências por inteligência (Gardner, 1983/1995). Aplicação clínica em orientação vocacional, autoconhecimento e identificação de domínios de eleição. Avalia AUTO-PERCEÇÃO — NÃO substitui provas de aptidão.',                                                                                          domains:['LING','LOGM','ESPA','MUSI','CORP','INTER','INTRA','NATU','IIA','IIES','IIP','IIN','IGM','IDE','DIE','DOM'], ageMin:156, ageMax:1188},
     { id:'q_ece_fea', name:'ECE-FEA',
       dest:['Paciente'],
       link:'https://correiaricardina-ui.github.io/questionarios/ECE-FEA.html',
@@ -3181,7 +3212,20 @@ function renderAssignments(patientId) {
                 // Student Sec — auto-relato adolescente (Secundário)
                 'PALS_Student_Sec':  ['NomeInformante','NomeCriança','NomeCrianca'],
                 // Student 2.º/3.º ciclo — auto-relato pré-adolescente
-                'PALS_Student_23c':  ['NomeInformante','NomeCriança','NomeCrianca']
+                'PALS_Student_23c':  ['NomeInformante','NomeCriança','NomeCrianca'],
+                // ── PALS Versões REDUZIDAS — v55.0 ──
+                'PALS_Parent_Red':       ['NomeInformante','Relacao','NomeCriança','NomeCrianca'],
+                'PALS_Teacher_Red':      ['NomeInformante','Relacao','NomeCriança','NomeCrianca'],
+                'PALS_Student_Sec_Red':  ['NomeInformante','NomeCriança','NomeCrianca'],
+                'PALS_Student_23c_Red':  ['NomeInformante','NomeCriança','NomeCrianca'],
+                // ── Questionários Ecológicos Revistos — v56.0 ──
+                'QEE_Escola':            ['NomeInformante','funcao','NomeCriança','NomeCrianca'],
+                'QEP_Pais':              ['NomeInformante','parentesco','NomeCriança','NomeCrianca'],
+                // ── IIM — v57.0 ──
+                // Hetero: multi-informador (pais/professores); Crianças/Adultos: auto-relato
+                'IIM_Hetero':            ['NomeInformante','relacao','NomeCriança','NomeCrianca'],
+                'IIM_Criancas':          ['NomeInformante','NomeCriança','NomeCrianca'],
+                'IIM_AdolAdultos':       ['NomeInformante','NomeCriança','NomeCrianca']
               };
               const RC = {
                 'SWAN':['Relação'],'BRIEF_Pais':['Relação'],'SCARED_R_PAIS':['Relação'],
