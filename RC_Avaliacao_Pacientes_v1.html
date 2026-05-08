@@ -681,7 +681,9 @@ const QID_TO_ABA = {
   'q_qacse_r':             'QACSE_R',
   'q_qacse_c':             'QACSE_C',
   // ── Sociograma · Mapa Social (Moreno 1934; Coie & Dodge 1988; Bronfenbrenner 1979) ──
-  'q_sociograma':          'SOCIOGRAMA'
+  'q_sociograma':          'SOCIOGRAMA',
+  // ── MDQ — Mood Disorder Questionnaire (Hirschfeld et al., 2000) ────
+  'q_mdq':                 'MDQ'
 };
 
 
@@ -917,7 +919,11 @@ const SYNC_KEY_TO_ABA = {
   // ── STAXI-NA (Inventário de Expressão de Raiva Estado-Traço) ──
   'staxina':               'STAXI_NA',
   'STAXI_NA':              'STAXI_NA',
-  'STAXI-NA':              'STAXI_NA'
+  'STAXI-NA':              'STAXI_NA',
+
+  // ── MDQ (Mood Disorder Questionnaire — rastreio bipolar) ──
+  'mdq':                   'MDQ',
+  'MDQ':                   'MDQ'
 };
 
 // Cache em memória das respostas do Sheet (evita fetch repetidos na mesma sessão)
@@ -1489,6 +1495,17 @@ function initCatalog() {
       objective:'Sociograma informal e entrevista ecológica — mapa visual das relações de apoio, afiliação e distância na turma + ecologia da escola (espaços confortáveis vs evitados) + auto-percepção vs percepção atribuída à turma. Baseado em Moreno (1934), Coie & Dodge (1988), Bronfenbrenner (1979), Cillessen & Marks (2011), Resnick et al. (1997) e Hagerty et al. (1992). Não substitui sociometria formal aplicada à turma; serve como ponto de partida para entrevista clínica e observação ecológica.',
       domains:['Apoio emocional','Pertença e escolha mútua','Distância/Exclusão','Self vs Other','Mapa ecológico','Adultos de referência'],
       ageMin:72, ageMax:215 },
+    // ── MDQ — Mood Disorder Questionnaire (Hirschfeld et al., 2000; validação PT-BR Gurgel et al., 2012) ──
+    { id:'q_mdq',
+      name:'MDQ — Mood Disorder Questionnaire',
+      dest:['Paciente'],
+      link:'https://correiaricardina-ui.github.io/questionarios/MDQ_v1.html',
+      syncKey:'mdq',
+      area:'Risco & Sintomatologia Psicopatológica Geral',
+      ageRange:'Adultos (≥18 anos)',
+      objective:'Auto-relato breve (15 itens, ~3-5 min) para rastreio de perturbações do espectro bipolar (Hirschfeld et al., 2000; validação PT-BR Gurgel et al., 2012). 13 itens de sintomas maníacos/hipomaníacos + 1 item de co-ocorrência temporal + 1 item de impacto funcional. Classificação principal em 4 níveis (Rastreio Positivo, Sintomatologia Bipolar Incompleta, Zona Subclínica, Rastreio Negativo) e 4 alertas diferenciais (TDAH adulto, Borderline/Cluster B, Características Mistas, Confounding por Substâncias). NUNCA constitui diagnóstico — instrumento de rastreio. Os domínios não são visíveis ao paciente durante o preenchimento.',
+      domains:['Soma P1 (sintomas)','Co-ocorrência (P2)','Impacto funcional (P3)','Activação somática','Cognição acelerada','Expansividade hedónica','Pressão comunicacional','Disforia/Irritabilidade','Desregulação comportamental','Classificação','Alertas Diferenciais'],
+      ageMin:216, ageMax:null }
   ];
   // Garantir que TODOS os defaults estão no catálogo, sempre
   // (funciona em RC novos e em RC existentes — nunca perde questionários)
@@ -1632,6 +1649,8 @@ function initCatalog() {
       'q_compa_c_mae':  { link:'https://correiaricardina-ui.github.io/questionarios/COMPA_C_Mae.html',   syncKey:'compa_c_mae' },
       // Sociograma · Mapa Social v1.0
       'q_sociograma':   { link:'https://correiaricardina-ui.github.io/questionarios/SOCIOGRAMA_RC_v1.html', syncKey:'sociograma' },
+      // MDQ — Mood Disorder Questionnaire (rastreio bipolar) v1.0
+      'q_mdq':          { link:'https://correiaricardina-ui.github.io/questionarios/MDQ_v1.html', syncKey:'mdq' },
     };
     // ── Re-store com chave correcta ('q_' + id) — corrige instalações anteriores ──
     // Garante que Conners, FAD e MAP ficam acessíveis pelo META.forEach e getCatalog
@@ -1957,6 +1976,11 @@ function initCatalog() {
     if(!catalog.includes('q_sociograma')) {
       const d = defaults.find(x => x.id === 'q_sociograma');
       if(d) { store.set('q_' + d.id, d); catalog.push('q_sociograma'); store.set('catalog', catalog); }
+    }
+    // ── MDQ — Mood Disorder Questionnaire (rastreio bipolar) v1.0 ──
+    if(!catalog.includes('q_mdq')) {
+      const d = defaults.find(x => x.id === 'q_mdq');
+      if(d) { store.set('q_' + d.id, d); catalog.push('q_mdq'); store.set('catalog', catalog); }
     }
     }
   }
@@ -3011,6 +3035,20 @@ function formatScoreSummary(scores, syncKey) {
       if(flags.length > 0) parts.push(flags.length + ' sinal' + (flags.length > 1 ? 'is' : ''));
       return '<span style="font-size:0.78rem;' + cls + '">' + parts.join(' · ') + '</span>';
     }
+  }
+
+  // MDQ — Mood Disorder Questionnaire (rastreio bipolar)
+  if(syncKey === 'mdq') {
+    const somaP1 = scores['Soma_P1'] ?? scores['soma_p1'] ?? scores['somaP1'] ?? scores['Soma P1'];
+    const classif = scores['Classificação'] ?? scores['Classificacao'] ?? scores['classif'] ?? '';
+    if(somaP1 != null) {
+      const cls = classif === 'RASTREIO POSITIVO' ? 'color:#C0392B;font-weight:700;' :
+                  classif === 'Sintomatologia bipolar incompleta' ? 'color:#C0392B;font-weight:600;' :
+                  classif === 'Zona subclínica' ? 'color:#E67E22;font-weight:600;' :
+                  'color:var(--green);font-weight:600;';
+      return `<span style="font-size:0.78rem;${cls}">Soma P1=${somaP1}/13${classif ? ' · ' + classif : ''}</span>`;
+    }
+    return '<span style="font-size:0.78rem;color:var(--text-light)">MDQ</span>';
   }
 
   return null;
