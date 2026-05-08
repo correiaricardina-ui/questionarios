@@ -895,7 +895,15 @@ const SYNC_KEY_TO_ABA = {
   'iimcriancas':           'IIM_Criancas',
   'IIM_Criancas':          'IIM_Criancas',
   'iimadoladultos':        'IIM_AdolAdultos',
-  'IIM_AdolAdultos':       'IIM_AdolAdultos'
+  'IIM_AdolAdultos':       'IIM_AdolAdultos',
+
+  // ── CERQ (Cognitive Emotion Regulation Questionnaire — Garnefski et al.) ──
+  'cerqk':                 'CERQ_K',
+  'CERQ_K':                'CERQ_K',
+  'cerq18':                'CERQ_18',
+  'CERQ_18':               'CERQ_18',
+  'cerq36':                'CERQ_36',
+  'CERQ_36':               'CERQ_36'
 };
 
 // Cache em memória das respostas do Sheet (evita fetch repetidos na mesma sessão)
@@ -1125,6 +1133,10 @@ function initCatalog() {
     { id:'q_iim_hetero',        name:'IIM — Heterorrelato',                           dest:['Mãe','Pai','Enc. Educação','Professor(a)','Diretor(a) de Turma'], link:'https://correiaricardina-ui.github.io/questionarios/IIM_Heterorrelato_v1.html', syncKey:'iimhetero',     area:'Escola · Aprendizagem · Motivação', ageRange:'6–18 anos',  objective:'Mapear o perfil de auto-perceção de preferências e competências por inteligência (Gardner, 1983/1995) — versão preenchida por pais/professores. Orientação vocacional, autoconhecimento e identificação de áreas de força. NÃO substitui WISC-V/BAEM/MAT.', domains:['LING','LOGM','ESPA','MUSI','CORP','INTER','INTRA','NATU','IIA','IIES','IIP','IIN','IGM','IDE','DIE','DOM'], ageMin:72,  ageMax:215},
     { id:'q_iim_criancas',      name:'IIM — Crianças',                                dest:['Paciente'], link:'https://correiaricardina-ui.github.io/questionarios/IIM_Criancas_v1.html',     syncKey:'iimcriancas',   area:'Escola · Aprendizagem · Motivação', ageRange:'8–12 anos',  objective:'Auto-relato infantil de preferências e competências por inteligência (Gardner, 1983/1995). Linguagem adaptada à criança. Avalia AUTO-PERCEÇÃO — não capacidade real medida. Orientação para autoconhecimento e identificação de áreas de força.',                                                                                                                domains:['LING','LOGM','ESPA','MUSI','CORP','INTER','INTRA','NATU','IIA','IIES','IIP','IIN','IGM','IDE','DIE','DOM'], ageMin:96,  ageMax:155},
     { id:'q_iim_adoladultos',   name:'IIM — Adolescentes/Adultos',                    dest:['Paciente'], link:'https://correiaricardina-ui.github.io/questionarios/IIM_AdolAdultos_v1.html',   syncKey:'iimadoladultos',area:'Escola · Aprendizagem · Motivação', ageRange:'≥ 13 anos', objective:'Auto-relato adolescente/adulto de preferências e competências por inteligência (Gardner, 1983/1995). Aplicação clínica em orientação vocacional, autoconhecimento e identificação de domínios de eleição. Avalia AUTO-PERCEÇÃO — NÃO substitui provas de aptidão.',                                                                                          domains:['LING','LOGM','ESPA','MUSI','CORP','INTER','INTRA','NATU','IIA','IIES','IIP','IIN','IGM','IDE','DIE','DOM'], ageMin:156, ageMax:1188},
+    // ── CERQ — Cognitive Emotion Regulation Questionnaire (Garnefski et al.) ──
+    { id:'q_cerq_k',            name:'CERQ-K — Crianças',                              dest:['Paciente'], link:'https://correiaricardina-ui.github.io/questionarios/CERQ_K_v1.html',   syncKey:'cerqk',  area:'Regulação Emocional & Coping', ageRange:'9–11 anos',  objective:'Auto-relato infantil de estratégias cognitivas de regulação emocional após acontecimentos de vida desagradáveis (Garnefski et al., 2007). 9 estratégias (5 adaptativas + 4 maladaptativas) e 2 factores 2.ª ordem (CERQ-Positivo, CERQ-Negativo). Versão validada para 9-11 anos.',                                                                domains:['Auto-culpabilização','Aceitação','Ruminação','Refocalização Positiva','Planeamento','Reavaliação Positiva','Colocar em Perspetiva','Catastrofização','Culpabilização dos Outros','CERQ-Positivo','CERQ-Negativo'], ageMin:108, ageMax:143},
+    { id:'q_cerq_18',           name:'CERQ-18 — Versão Curta',                         dest:['Paciente'], link:'https://correiaricardina-ui.github.io/questionarios/CERQ_18_v1.html',  syncKey:'cerq18', area:'Regulação Emocional & Coping', ageRange:'≥ 13 anos',  objective:'Auto-relato adolescente/adulto de estratégias cognitivas de regulação emocional — versão curta (18 itens) com normativos portugueses (Soares & Amaral, 2024). 8 estratégias (4 adaptativas + 4 maladaptativas, com Reavaliação+Planeamento fundidas). Tempo de aplicação ~5-8 min.',                                                  domains:['Auto-culpabilização','Aceitação','Ruminação','Refocalização Positiva','Reavaliação Positiva e Planeamento','Colocar em Perspetiva','Catastrofização','Culpabilização dos Outros','CERQ-Positivo','CERQ-Negativo'], ageMin:156, ageMax:1188},
+    { id:'q_cerq_36',           name:'CERQ-36 — Versão Completa',                      dest:['Paciente'], link:'https://correiaricardina-ui.github.io/questionarios/CERQ_36_v1.html',  syncKey:'cerq36', area:'Regulação Emocional & Coping', ageRange:'≥ 12 anos',  objective:'Auto-relato adolescente/adulto de estratégias cognitivas de regulação emocional — versão completa (36 itens, Garnefski & Kraaij, 2006; adaptação PT Castro et al., 2013). 9 estratégias com normativos por subescala. Resolução clínica máxima — preferir em investigação ou perfis individuais detalhados.', domains:['Auto-culpabilização','Aceitação','Ruminação','Refocalização Positiva','Planeamento','Reavaliação Positiva','Colocar em Perspetiva','Catastrofização','Culpabilização dos Outros','CERQ-Positivo','CERQ-Negativo'], ageMin:144, ageMax:1188},
     { id:'q_ece_fea', name:'ECE-FEA',
       dest:['Paciente'],
       link:'https://correiaricardina-ui.github.io/questionarios/ECE-FEA.html',
@@ -3225,7 +3237,11 @@ function renderAssignments(patientId) {
                 // Hetero: multi-informador (pais/professores); Crianças/Adultos: auto-relato
                 'IIM_Hetero':            ['NomeInformante','relacao','NomeCriança','NomeCrianca'],
                 'IIM_Criancas':          ['NomeInformante','NomeCriança','NomeCrianca'],
-                'IIM_AdolAdultos':       ['NomeInformante','NomeCriança','NomeCrianca']
+                'IIM_AdolAdultos':       ['NomeInformante','NomeCriança','NomeCrianca'],
+                // ── CERQ — v58.0 — todos auto-relato (Garnefski et al.) ──
+                'CERQ_K':                ['NomeInformante','NomeCriança','NomeCrianca'],
+                'CERQ_18':               ['NomeInformante','NomeCriança','NomeCrianca'],
+                'CERQ_36':               ['NomeInformante','NomeCriança','NomeCrianca']
               };
               const RC = {
                 'SWAN':['Relação'],'BRIEF_Pais':['Relação'],'SCARED_R_PAIS':['Relação'],
