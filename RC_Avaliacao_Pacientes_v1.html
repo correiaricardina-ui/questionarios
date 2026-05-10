@@ -677,6 +677,10 @@ const QID_TO_ABA = {
   'q_compa_c_mae':         'COMPA_C_Mae',
   // ── CDI-2:SR — Inventário de Depressão em Crianças (Kovacs & MHS Staff, 2011) ──
   'q_cdi2sr':              'CDI2_SR',
+  // ── STAIC C-2 — Inventário de Ansiedade Estado-Traço para Crianças (Spielberger 1973 / D&G 1999) ──
+  'q_staicc2':             'STAIC_C2',
+  // ── CMAS-R — Questionário de Ansiedade Manifesta (Reynolds & Richmond 1978 / D&G 1999) ──
+  'q_cmasr':               'CMAS_R',
   // ── QACSE-R / QACSE-C — Competências Socioemocionais (Coelho & Sousa, 2016/2020) ──
   'q_qacse_r':             'QACSE_R',
   'q_qacse_c':             'QACSE_C',
@@ -858,6 +862,18 @@ const SYNC_KEY_TO_ABA = {
   'CDI2_SR':           'CDI2_SR',
   'CDI-2:SR':          'CDI2_SR',
   'CDI2:SR':           'CDI2_SR',
+  // ── STAIC C-2 — Inventário de Ansiedade Estado-Traço para Crianças (Spielberger 1973 / D&G 1999) ──
+  'staicc2':           'STAIC_C2',
+  'STAIC_C2':          'STAIC_C2',
+  'STAIC-C2':          'STAIC_C2',
+  'STAIC C-2':         'STAIC_C2',
+  'STAIC':             'STAIC_C2',
+  // ── CMAS-R — Questionário de Ansiedade Manifesta (Reynolds & Richmond 1978 / D&G 1999) ──
+  'cmasr':             'CMAS_R',
+  'CMAS_R':            'CMAS_R',
+  'CMAS-R':            'CMAS_R',
+  'CMAS':              'CMAS_R',
+  'RCMAS':             'CMAS_R',
   // ── QACSE-R / QACSE-C — Competências Socioemocionais (Coelho & Sousa, 2016/2020) ──
   'qacse_r':           'QACSE_R',
   'QACSE_R':           'QACSE_R',
@@ -1288,6 +1304,20 @@ function initCatalog() {
       syncKey:'cdi2sr', area:'Ansiedade, Depressão & Internalização', ageRange:'7&ndash;17 anos',
       objective:'Rastreio de sintomatologia depressiva (auto-relato) — Kovacs &amp; MHS Staff (2011)',
       domains:['Total','EP','FP','HM/SF','AE-','INE','PI'], ageMin:84, ageMax:215},
+    // ── STAIC C-2 — Inventário de Ansiedade Estado-Traço para Crianças (A-Traço) ─────
+    { id:'q_staicc2', name:'STAIC C-2 (A-Traço)',
+      dest:['Paciente'],
+      link:'https://correiaricardina-ui.github.io/questionarios/STAIC_C2_v1.html',
+      syncKey:'staicc2', area:'Ansiedade, Depressão & Internalização', ageRange:'8&ndash;17 anos',
+      objective:'Rastreio de ansiedade-traço (auto-relato) — Spielberger et al. (1973) / Dias &amp; Gonçalves (1999)',
+      domains:['Total','Z-Spielberger','Z-Biaggio','Z-D&G PT'], ageMin:96, ageMax:215},
+    // ── CMAS-R — Questionário de Avaliação da Ansiedade Manifesta para Crianças ─────
+    { id:'q_cmasr', name:'CMAS-R',
+      dest:['Paciente'],
+      link:'https://correiaricardina-ui.github.io/questionarios/CMAS_R_v1.html',
+      syncKey:'cmasr', area:'Ansiedade, Depressão & Internalização', ageRange:'8&ndash;17 anos',
+      objective:'Avaliação da ansiedade manifesta com escala de validade (Mentira) — Reynolds &amp; Richmond (1978)',
+      domains:['Ansiedade Total','Mentira/Validade'], ageMin:96, ageMax:215},
     // ── EDE-Q 6.0 ───────────────────────────────────────────────────────
     { id:'q_edeq', name:'EDE-Q 6.0',
       dest:['Paciente'],
@@ -1591,6 +1621,10 @@ function initCatalog() {
       'q_eat26': { link:'https://correiaricardina-ui.github.io/questionarios/EAT26_v2.html', syncKey:'eat26' },
       // ── CDI-2:SR — Inventário de Depressão em Crianças (Auto-relato) ─
       'q_cdi2sr': { link:'https://correiaricardina-ui.github.io/questionarios/CDI2_SR_v1.html', syncKey:'cdi2sr' },
+      // ── STAIC C-2 — Inventário de Ansiedade Estado-Traço para Crianças (A-Traço) ─
+      'q_staicc2': { link:'https://correiaricardina-ui.github.io/questionarios/STAIC_C2_v1.html', syncKey:'staicc2' },
+      // ── CMAS-R — Questionário de Avaliação da Ansiedade Manifesta para Crianças ─
+      'q_cmasr':   { link:'https://correiaricardina-ui.github.io/questionarios/CMAS_R_v1.html',   syncKey:'cmasr' },
       // ── Conners 3 v11.0 ───────────────────────────────────────────────────
       'q_conners3p_full': { link:'https://correiaricardina-ui.github.io/questionarios/Conners3_Pais_Full.html',         syncKey:'conners3p_full' },
       'q_conners3t_full': { link:'https://correiaricardina-ui.github.io/questionarios/Conners3_Professores_Full.html',  syncKey:'conners3t_full' },
@@ -1807,6 +1841,16 @@ function initCatalog() {
     if(!catalog.includes('q_cdi2sr')) {
       const dCdi2sr = defaults.find(d => d.id === 'q_cdi2sr');
       if(dCdi2sr) { store.set('q_' + dCdi2sr.id, dCdi2sr); catalog.push('q_cdi2sr'); store.set('catalog', catalog); }
+    }
+    // STAIC C-2 — Inventário de Ansiedade Estado-Traço para Crianças (A-Traço)
+    if(!catalog.includes('q_staicc2')) {
+      const dStaicc2 = defaults.find(d => d.id === 'q_staicc2');
+      if(dStaicc2) { store.set('q_' + dStaicc2.id, dStaicc2); catalog.push('q_staicc2'); store.set('catalog', catalog); }
+    }
+    // CMAS-R — Questionário de Avaliação da Ansiedade Manifesta para Crianças
+    if(!catalog.includes('q_cmasr')) {
+      const dCmasr = defaults.find(d => d.id === 'q_cmasr');
+      if(dCmasr) { store.set('q_' + dCmasr.id, dCmasr); catalog.push('q_cmasr'); store.set('catalog', catalog); }
     }
     // Conners 3 v11.0 — Pais Completa
     if(!catalog.includes('q_conners3p_full')) {
@@ -2432,6 +2476,55 @@ function formatScoreSummary(scores, syncKey) {
         ? ' <span style="color:#C0392B;font-weight:700;">&#9888; Item 9</span>'
         : '';
       return '<span style="font-size:0.78rem;' + cls + '">T=' + tt + rawStr + ' &middot; ' + label + '</span>' + alerta;
+    }
+  }
+  // STAIC C-2 — mostra Z-score Spielberger + raw + alerta corte clínico ≥40 (Strauss)
+  if(syncKey === 'staicc2') {
+    const zSpiel  = scores['Z_SPIELBERGER']  ?? scores['z_spielberger']  ?? scores['zSpielberger'] ?? null;
+    const totalRaw = scores['TOTAL_RAW']     ?? scores['total_raw']      ?? scores['totalRaw']     ?? null;
+    const corteSt = scores['CORTE_STRAUSS']  ?? scores['corte_strauss']  ?? scores['corteStrauss'] ?? null;
+    if(zSpiel != null || totalRaw != null) {
+      const zNum = parseFloat(zSpiel);
+      let cls, label;
+      if(!isNaN(zNum)) {
+        if(zNum > 2.0)       { cls = 'color:#C0392B;font-weight:700;'; label = 'Clinicamente sig.'; }
+        else if(zNum > 1.5)  { cls = 'color:#C0392B;font-weight:700;'; label = 'Muito elevada';     }
+        else if(zNum > 1.0)  { cls = 'color:#E67E22;font-weight:600;'; label = 'Elevada';           }
+        else if(zNum >= -0.5){ cls = 'color:var(--green);font-weight:600;'; label = 'Normativa';    }
+        else if(zNum >= -1.5){ cls = 'color:var(--green);font-weight:600;'; label = 'Baixa-m&eacute;dia'; }
+        else                 { cls = 'color:#5B7FA6;font-weight:600;';      label = 'Muito baixa';  }
+      } else {
+        cls = 'color:var(--text-light);font-weight:600;'; label = '—';
+      }
+      const rawStr = totalRaw != null ? 'raw=' + totalRaw + ' · ' : '';
+      const zStr = !isNaN(zNum) ? 'Z=' + zNum.toFixed(2) + ' · ' : '';
+      const corteStr = (typeof corteSt === 'string' && corteSt.toLowerCase() === 'sim') || corteSt === true || corteSt === 'true'
+        ? ' <span style="color:#C0392B;font-weight:700;">&#9888; &ge;40</span>'
+        : '';
+      return '<span style="font-size:0.78rem;' + cls + '">' + rawStr + zStr + label + '</span>' + corteStr;
+    }
+  }
+  // CMAS-R — mostra T da Ansiedade + alerta validade (Mentira) quando T≥60
+  if(syncKey === 'cmasr') {
+    const ansT  = scores['ANS_T']  ?? scores['ans_t']  ?? scores['ansT']  ?? null;
+    const ansRaw = scores['ANS_RAW'] ?? scores['ans_raw'] ?? scores['ansRaw'] ?? null;
+    const lieT  = scores['LIE_T']  ?? scores['lie_t']  ?? scores['lieT']  ?? null;
+    if(ansT != null) {
+      const tt = parseInt(ansT);
+      let cls, label;
+      if(tt >= 70)      { cls = 'color:#C0392B;font-weight:700;'; label = 'Clinicamente sig.'; }
+      else if(tt >= 65) { cls = 'color:#C0392B;font-weight:700;'; label = 'Muito elevada';      }
+      else if(tt >= 60) { cls = 'color:#E67E22;font-weight:600;'; label = 'Elevada subcl&iacute;nica'; }
+      else if(tt >= 40) { cls = 'color:var(--green);font-weight:600;'; label = 'M&eacute;dia'; }
+      else              { cls = 'color:#5B7FA6;font-weight:600;'; label = 'Muito baixa'; }
+      const rawStr = ansRaw != null ? ' (raw=' + ansRaw + ')' : '';
+      let alerta = '';
+      if(lieT != null) {
+        const llt = parseInt(lieT);
+        if(llt >= 70)      alerta = ' <span style="color:#C0392B;font-weight:700;">&#9888; Validade comp.</span>';
+        else if(llt >= 60) alerta = ' <span style="color:#E67E22;font-weight:600;">&#9888; Mentira T=' + llt + '</span>';
+      }
+      return '<span style="font-size:0.78rem;' + cls + '">Ans T=' + tt + rawStr + ' &middot; ' + label + '</span>' + alerta;
     }
   }
   // Conners 3 — todas as versões (v11.0)
@@ -3272,6 +3365,10 @@ function renderAssignments(patientId) {
                 'COMPA_C_Mae':     ['NomeInformante','NomeCrianca'],
                 // ── CDI-2:SR — auto-relato (criança/adolescente 7–17) ─────
                 'CDI2_SR':         ['NomeInformante','NomeCriança','NomeCrianca'],
+                // ── STAIC C-2 — auto-relato (criança/adolescente 8–17) ─────
+                'STAIC_C2':        ['NomeInformante','NomeCriança','NomeCrianca'],
+                // ── CMAS-R — auto-relato (criança/adolescente 8–17) ─────
+                'CMAS_R':          ['NomeInformante','NomeCriança','NomeCrianca'],
                 // ── Sociograma · Mapa Social — múltiplos respondentes (próprio/pais/professor) ──
                 'SOCIOGRAMA':      ['NomeInformante','NomeCriança','NomeCrianca','TipoRespondente'],
                 // ── PALS — Patterns of Adaptive Learning Scales (Midgley et al., 2000) ──
@@ -3601,7 +3698,11 @@ async function syncAndMark(patientId, idx) {
           'COMPA_C_Pai':     ['NomeInformante','NomeCrianca'],
           'COMPA_C_Mae':     ['NomeInformante','NomeCrianca'],
           // ── CDI-2:SR — auto-relato (criança/adolescente 7–17) ─────
-          'CDI2_SR':         ['NomeInformante','NomeCriança','NomeCrianca']
+          'CDI2_SR':         ['NomeInformante','NomeCriança','NomeCrianca'],
+          // ── STAIC C-2 — auto-relato (criança/adolescente 8–17) ─────
+          'STAIC_C2':        ['NomeInformante','NomeCriança','NomeCrianca'],
+          // ── CMAS-R — auto-relato (criança/adolescente 8–17) ─────
+          'CMAS_R':          ['NomeInformante','NomeCriança','NomeCrianca']
         };
         const RC2 = {
           'SWAN':['Relação'],'BRIEF_Pais':['Relação'],'SCARED_R_PAIS':['Relação'],
