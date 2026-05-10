@@ -344,8 +344,6 @@ th { background: var(--blue-xpale); color: var(--blue); font-weight: 600; font-s
         <button class="btn btn-secondary btn-xs" onclick="exportarCSV()">⬇ Exportar CSV</button>
         <button class="btn btn-secondary btn-xs" onclick="window.print()">📄 Exportar PDF</button>
         <button class="btn btn-secondary btn-xs" onclick="window.print()">🖨 Imprimir</button>
-        <button class="btn btn-secondary btn-xs" onclick="exportarRespostasPDF(sessaoActual)">📋 Respostas PDF</button>
-        <button class="btn btn-secondary btn-xs" onclick="exportarInterpretacaoPDF(sessaoActual)">📊 Exportar Interpretação PDF</button>
         <input type="file" id="import-file-input" accept=".csv" style="display:none" onchange="processarFicheiroImportado(this)">
       </div>
 
@@ -824,7 +822,7 @@ function verDetalhe(idx) {
   var clsSE = s.SE_M !== null ? bandClassMedia(s.SE_M, nSE[0], nSE[1]) : null;
   var tipDinamico = (clsRC && clsSE) ? tipologiaCombinada(clsRC.cls, clsSE.cls) : null;
 
-  var html = '<button class="btn btn-secondary btn-xs no-print" style="float:right" onclick="fecharModal()">✕ Fechar</button>';
+  var html = '<div class="no-print" style="display:flex;justify-content:flex-end;gap:6px;margin-bottom:8px;flex-wrap:wrap">' +'<button class="btn btn-secondary btn-xs" onclick="exportarRespostasPDF(sessoes['+idx+'])">📋 Respostas PDF</button>' +'<button class="btn btn-secondary btn-xs" onclick="exportarInterpretacaoPDF(sessoes['+idx+'])">📊 Relatório Completo PDF</button>' +'<button class="btn btn-secondary btn-xs" onclick="fecharModal()">✕ Fechar</button>' +'</div>';
   html += '<h3 style="font-family:\'DM Serif Display\',serif;color:var(--blue);margin-bottom:6px">' + escHtml(s.NomeCrianca||'—') + ' · ' + escHtml(s.Codigo||'—') + '</h3>';
   html += '<p style="color:var(--text-light);font-size:.85rem;margin-bottom:6px">Respondente: <strong>'+escHtml(s.NomeInformante||'—')+'</strong>';
   if (s.extras && s.extras.idade) html += ' · Idade: ' + escHtml(s.extras.idade);

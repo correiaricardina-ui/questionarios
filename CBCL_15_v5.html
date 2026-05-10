@@ -731,14 +731,16 @@ function renderTabela() {
     container.innerHTML = '<div style="text-align:center;color:var(--text-light);padding:40px;font-size:0.9rem">Nenhuma sess\u00e3o registada ainda.</div>';
     return;
   }
-  var html = '<table><thead><tr><th>Data</th><th>C\u00f3digo</th><th>Nome</th><th>Sexo</th><th>Internalizante</th><th>Externalizante</th><th>Total</th><th>A\u00e7\u00f5es</th></tr></thead><tbody>';
+  var html = '<table><thead><tr><th>Data</th><th>C\u00f3digo</th><th>Nome</th><th>Sexo</th><th>Resp.</th><th>Internalizante</th><th>Externalizante</th><th>Total</th><th>A\u00e7\u00f5es</th></tr></thead><tbody>';
   for (var i = 0; i < sessions.length; i++) {
     var s = sessions[i];
+    var respLabel = (s.informante || '—') + (s.nome_informante ? ' · ' + s.nome_informante : '');
     html += '<tr>';
     html += '<td>' + s.data + '</td>';
     html += '<td><strong>' + s.codigo + '</strong></td>';
     html += '<td>' + s.nome + '</td>';
     html += '<td>' + s.sexo + '</td>';
+    html += '<td style="font-size:.82rem;color:var(--text-light)">' + respLabel + '</td>';
     html += '<td>' + badgeT(s.scores['Internalizante']) + '</td>';
     html += '<td>' + badgeT(s.scores['Externalizante']) + '</td>';
     html += '<td>' + badgeT(s.scores['Total']) + '</td>';
@@ -1033,7 +1035,16 @@ async function carregarDados() {
       var code = row['Código'] || row['codigo'] || row['patientCode'] || '';
       var date = row['Data'] || row['data'] || '';
       if (!code) return;
-      if (!all.find(function(s){ return s.codigo === code && s.data === date; })) {
+      // ── Chave de deduplicação alargada (corrige bug: 2 pais a preencherem
+      // no mesmo dia para a mesma criança eram tratados como duplicados) ──
+      var infoTipo = row['Informante']     || row['informante']     || '';
+      var infoNome = row['NomeInformante'] || row['nome_informante'] || row['NomeInf'] || '';
+      if (!all.find(function(s){
+        return s.codigo === code &&
+               s.data === date &&
+               (s.informante || '') === infoTipo &&
+               (s.nome_informante || '') === infoNome;
+      })) {
         function mkScore(t, isBroad) {
           var v = parseFloat(t);
           if (isNaN(v) || t === '') return null;
@@ -1048,7 +1059,8 @@ async function carregarDados() {
           data: date,
           nome: row['Nome'] || row['nome'] || '',
           sexo: row['Sexo'] || row['sexo'] || '',
-          informante: row['Informante'] || row['informante'] || '',
+          informante: infoTipo,
+          nome_informante: infoNome,
           respostas: (function(){
             try {
               var r = row['Respostas'] || row['respostas'] || '';

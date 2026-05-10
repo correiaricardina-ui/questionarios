@@ -3348,7 +3348,7 @@ function renderAssignments(patientId) {
             function matchRespondent(row, aba, recip) {
               const NC = {
                 'SWAN':['Informante'],'SRS2_IE_Pais':['Respondente'],'SRS2_IE_Prof':['Respondente'],
-                'TRF_618':['PreenchidoPor'],'CBCL_618':['PreenchidoPor'],'CBCL_15':['Informante'],
+                'TRF_618':['NomePreenche','PreenchidoPor'],'CBCL_618':['NomePreenche','PreenchidoPor'],'CBCL_15':['NomeInformante','Informante'],
                 'CTRF_15':['Informante'],'BRIEF_Pais':['NomeRespondente'],'BRIEF_Professores':['Professor'],
                 'SCARED_R_CRIANCA':['NomeInformante'],'SCARED_R_PAIS':['NomeInformante'],
                 'SPAS_Pais':['NomeInformante'],'SPAS_Prof':['NomeInformante'],
@@ -3723,7 +3723,7 @@ async function syncAndMark(patientId, idx) {
       function matchResp2(row, aba2, recip) {
         const NC2 = {
           'SWAN':['Informante'],'SRS2_IE_Pais':['Respondente'],'SRS2_IE_Prof':['Respondente'],
-          'TRF_618':['PreenchidoPor'],'CBCL_618':['PreenchidoPor'],'CBCL_15':['Informante'],
+          'TRF_618':['NomePreenche','PreenchidoPor'],'CBCL_618':['NomePreenche','PreenchidoPor'],'CBCL_15':['NomeInformante','Informante'],
           'CTRF_15':['Informante'],'BRIEF_Pais':['NomeRespondente'],'BRIEF_Professores':['Professor'],
           'SCARED_R_CRIANCA':['NomeInformante'],'SCARED_R_PAIS':['NomeInformante'],
           'SPAS_Pais':['NomeInformante'],'SPAS_Prof':['NomeInformante'],

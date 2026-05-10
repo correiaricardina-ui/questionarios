@@ -1000,7 +1000,13 @@ async function submitCBCL() {
 
   // Save locally
   const all = load(STORE_KEY) || [];
-  const idx = all.findIndex(s => s.patientCode === session.patientCode);
+  // ── Chave de deduplicação alargada (corrige bug: 2 pais a preencherem
+  // separadamente no mesmo dispositivo eram tratados como o mesmo registo) ──
+  const idx = all.findIndex(s =>
+    s.patientCode === session.patientCode &&
+    (s.filledBy || '') === (session.filledBy || '') &&
+    (s.nome_preenche || '') === (session.nome_preenche || '')
+  );
   if (idx>=0) all[idx] = session; else all.push(session);
   store(STORE_KEY, all);
 
@@ -1361,7 +1367,12 @@ async function syncFromSheets() {
         }
       };
 
-      const idx = all.findIndex(s => s.patientCode === code);
+      const idx = all.findIndex(s =>
+        s.patientCode === code &&
+        (s.fillDate || s.submittedAt || '') === (sessaoSheet.fillDate || '') &&
+        (s.filledBy || '') === (sessaoSheet.filledBy || '') &&
+        (s.nome_preenche || '') === (sessaoSheet.nome_preenche || '')
+      );
       if (idx >= 0) {
         if (!Object.keys(answers).length && all[idx].answers) {
           sessaoSheet.answers = all[idx].answers;
