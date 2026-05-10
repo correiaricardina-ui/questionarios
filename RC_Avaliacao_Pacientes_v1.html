@@ -681,6 +681,8 @@ const QID_TO_ABA = {
   'q_staicc2':             'STAIC_C2',
   // ── CMAS-R — Questionário de Ansiedade Manifesta (Reynolds & Richmond 1978 / D&G 1999) ──
   'q_cmasr':               'CMAS_R',
+  // ── FSSC-R — Inventário de Medos para Crianças (Ollendick 1978/1983 / D&G 1999) ──
+  'q_fsscr':               'FSSC_R',
   // ── QACSE-R / QACSE-C — Competências Socioemocionais (Coelho & Sousa, 2016/2020) ──
   'q_qacse_r':             'QACSE_R',
   'q_qacse_c':             'QACSE_C',
@@ -874,6 +876,12 @@ const SYNC_KEY_TO_ABA = {
   'CMAS-R':            'CMAS_R',
   'CMAS':              'CMAS_R',
   'RCMAS':             'CMAS_R',
+  // ── FSSC-R — Inventário de Medos para Crianças (Ollendick 1978/1983 / D&G 1999) ──
+  'fsscr':             'FSSC_R',
+  'FSSC_R':            'FSSC_R',
+  'FSSC-R':            'FSSC_R',
+  'FSSC':              'FSSC_R',
+  'FSSCR':             'FSSC_R',
   // ── QACSE-R / QACSE-C — Competências Socioemocionais (Coelho & Sousa, 2016/2020) ──
   'qacse_r':           'QACSE_R',
   'QACSE_R':           'QACSE_R',
@@ -1318,6 +1326,14 @@ function initCatalog() {
       syncKey:'cmasr', area:'Ansiedade, Depressão & Internalização', ageRange:'8&ndash;17 anos',
       objective:'Avaliação da ansiedade manifesta com escala de validade (Mentira) — Reynolds &amp; Richmond (1978)',
       domains:['Ansiedade Total','Mentira/Validade'], ageMin:96, ageMax:215},
+    // ── FSSC-R — Inventário de Medos para Crianças (Revisto) ─────────────────
+    { id:'q_fsscr', name:'FSSC-R',
+      dest:['Paciente'],
+      link:'https://correiaricardina-ui.github.io/questionarios/FSSC_R_v1.html',
+      syncKey:'fsscr', area:'Ansiedade, Depressão & Internalização', ageRange:'8&ndash;17 anos',
+      objective:'Inventário de medos infantis com 5 fatores e 4 normas — Ollendick (1978/1983)',
+      domains:['Total','F1 Falhanço','F2 Desconhecido','F3 Animais/Fer.','F4 Perigo/Morte','F5 Médico','&quot;Muito&quot;'],
+      ageMin:96, ageMax:215},
     // ── EDE-Q 6.0 ───────────────────────────────────────────────────────
     { id:'q_edeq', name:'EDE-Q 6.0',
       dest:['Paciente'],
@@ -1625,6 +1641,8 @@ function initCatalog() {
       'q_staicc2': { link:'https://correiaricardina-ui.github.io/questionarios/STAIC_C2_v1.html', syncKey:'staicc2' },
       // ── CMAS-R — Questionário de Avaliação da Ansiedade Manifesta para Crianças ─
       'q_cmasr':   { link:'https://correiaricardina-ui.github.io/questionarios/CMAS_R_v1.html',   syncKey:'cmasr' },
+      // ── FSSC-R — Inventário de Medos para Crianças (Revisto) ─
+      'q_fsscr':   { link:'https://correiaricardina-ui.github.io/questionarios/FSSC_R_v1.html',   syncKey:'fsscr' },
       // ── Conners 3 v11.0 ───────────────────────────────────────────────────
       'q_conners3p_full': { link:'https://correiaricardina-ui.github.io/questionarios/Conners3_Pais_Full.html',         syncKey:'conners3p_full' },
       'q_conners3t_full': { link:'https://correiaricardina-ui.github.io/questionarios/Conners3_Professores_Full.html',  syncKey:'conners3t_full' },
@@ -1851,6 +1869,11 @@ function initCatalog() {
     if(!catalog.includes('q_cmasr')) {
       const dCmasr = defaults.find(d => d.id === 'q_cmasr');
       if(dCmasr) { store.set('q_' + dCmasr.id, dCmasr); catalog.push('q_cmasr'); store.set('catalog', catalog); }
+    }
+    // FSSC-R — Inventário de Medos para Crianças (Revisto)
+    if(!catalog.includes('q_fsscr')) {
+      const dFsscr = defaults.find(d => d.id === 'q_fsscr');
+      if(dFsscr) { store.set('q_' + dFsscr.id, dFsscr); catalog.push('q_fsscr'); store.set('catalog', catalog); }
     }
     // Conners 3 v11.0 — Pais Completa
     if(!catalog.includes('q_conners3p_full')) {
@@ -2525,6 +2548,33 @@ function formatScoreSummary(scores, syncKey) {
         else if(llt >= 60) alerta = ' <span style="color:#E67E22;font-weight:600;">&#9888; Mentira T=' + llt + '</span>';
       }
       return '<span style="font-size:0.78rem;' + cls + '">Ans T=' + tt + rawStr + ' &middot; ' + label + '</span>' + alerta;
+    }
+  }
+  // FSSC-R — mostra Z Total Sandín + classificação + alerta "Muito" (≥6)
+  if(syncKey === 'fsscr') {
+    const zSandin     = scores['Z_TOTAL_SANDIN'] ?? scores['z_total_sandin'] ?? scores['zTotalSandin'] ?? null;
+    const totalRaw    = scores['TOTAL_RAW_123']  ?? scores['total_raw_123']  ?? scores['totalRaw123']  ?? null;
+    const muitoTotal  = scores['MUITO_TOTAL']    ?? scores['muito_total']    ?? scores['muitoTotal']   ?? null;
+    const classifSh   = scores['CLASSIFICACAO']  ?? scores['classificacao']  ?? null;
+    if(zSandin != null && zSandin !== '') {
+      const zNum = parseFloat(zSandin);
+      let cls, label;
+      if(zNum > 2.0)        { cls = 'color:#C0392B;font-weight:700;'; label = 'Clinicamente sig.'; }
+      else if(zNum > 1.5)   { cls = 'color:#E67E22;font-weight:600;'; label = 'Muito elevada'; }
+      else if(zNum > 1.0)   { cls = 'color:#a67c00;font-weight:600;'; label = 'Elevada'; }
+      else if(zNum >= -0.5) { cls = 'color:var(--green);font-weight:600;'; label = 'Normativa'; }
+      else if(zNum >= -1.5) { cls = 'color:var(--green);font-weight:600;'; label = 'Baixa-m&eacute;dia'; }
+      else                  { cls = 'color:#5B7FA6;font-weight:600;'; label = 'Muito baixa'; }
+      const rawStr = totalRaw != null ? ' (raw=' + totalRaw + ')' : '';
+      let alerta = '';
+      if(muitoTotal != null && muitoTotal !== '') {
+        const mt = parseInt(muitoTotal);
+        if(mt >= 12)     alerta = ' <span style="color:#C0392B;font-weight:700;">&#9888; ' + mt + ' &quot;Muito&quot;</span>';
+        else if(mt >= 6) alerta = ' <span style="color:#E67E22;font-weight:600;">&#9888; ' + mt + ' &quot;Muito&quot;</span>';
+      }
+      return '<span style="font-size:0.78rem;' + cls + '">Z=' + zNum.toFixed(2) + rawStr + ' &middot; ' + label + '</span>' + alerta;
+    } else if (classifSh) {
+      return '<span style="font-size:0.78rem;color:var(--text-light)">' + classifSh + '</span>';
     }
   }
   // Conners 3 — todas as versões (v11.0)
@@ -3369,6 +3419,8 @@ function renderAssignments(patientId) {
                 'STAIC_C2':        ['NomeInformante','NomeCriança','NomeCrianca'],
                 // ── CMAS-R — auto-relato (criança/adolescente 8–17) ─────
                 'CMAS_R':          ['NomeInformante','NomeCriança','NomeCrianca'],
+                // ── FSSC-R — auto-relato (criança/adolescente 8–17) ─────
+                'FSSC_R':          ['NomeInformante','NomeCriança','NomeCrianca'],
                 // ── Sociograma · Mapa Social — múltiplos respondentes (próprio/pais/professor) ──
                 'SOCIOGRAMA':      ['NomeInformante','NomeCriança','NomeCrianca','TipoRespondente'],
                 // ── PALS — Patterns of Adaptive Learning Scales (Midgley et al., 2000) ──
@@ -3702,7 +3754,9 @@ async function syncAndMark(patientId, idx) {
           // ── STAIC C-2 — auto-relato (criança/adolescente 8–17) ─────
           'STAIC_C2':        ['NomeInformante','NomeCriança','NomeCrianca'],
           // ── CMAS-R — auto-relato (criança/adolescente 8–17) ─────
-          'CMAS_R':          ['NomeInformante','NomeCriança','NomeCrianca']
+          'CMAS_R':          ['NomeInformante','NomeCriança','NomeCrianca'],
+          // ── FSSC-R — auto-relato (criança/adolescente 8–17) ─────
+          'FSSC_R':          ['NomeInformante','NomeCriança','NomeCrianca']
         };
         const RC2 = {
           'SWAN':['Relação'],'BRIEF_Pais':['Relação'],'SCARED_R_PAIS':['Relação'],
