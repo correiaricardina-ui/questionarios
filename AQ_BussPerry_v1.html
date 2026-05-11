@@ -1,0 +1,1354 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>AQ Buss-Perry · Questionário de Agressividade · Ricardina Correia</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<style>
+:root{
+  --blue:#3B5A7A; --blue-mid:#5B7FA6; --blue-light:#A8C4D8; --blue-pale:#D6E4F0; --blue-xpale:#EBF2F8;
+  --gray:#F4F6F9; --gray-bdr:#DDE3EA;
+  --text:#2C3E50; --text-light:#6B7A8D;
+  --red:#C0392B; --green:#27AE60; --orange:#E67E22; --purple:#8E44AD;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'DM Sans',sans-serif;background:var(--gray);color:var(--text);min-height:100vh;}
+
+.app-header{background:var(--blue);color:white;padding:12px 28px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 8px rgba(0,0,0,0.15);}
+.app-title{font-size:1.1rem;font-weight:700;letter-spacing:.3px;}
+.app-subtitle{font-size:.78rem;opacity:.75;margin-top:2px;}
+.header-right{font-size:.78rem;opacity:.85;text-align:right;line-height:1.4;}
+
+.page{display:none;}
+.container{max-width:920px;margin:24px auto;padding:0 16px;}
+
+.card{background:white;border-radius:12px;padding:28px;box-shadow:0 2px 8px rgba(59,90,122,0.08);border:1px solid var(--gray-bdr);}
+
+.btn{border:none;border-radius:8px;padding:10px 20px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;font-size:.9rem;transition:opacity .15s;}
+.btn:hover{opacity:.88;}
+.btn-primary{background:var(--blue);color:white;}
+.btn-secondary{background:var(--gray);color:var(--blue);border:1px solid var(--gray-bdr);}
+.btn-xs{padding:5px 11px;font-size:.78rem;}
+
+/* LANDING */
+.landing-card{max-width:560px;margin:60px auto;text-align:center;padding:36px 28px;}
+.landing-icon{font-size:2.6rem;margin-bottom:8px;}
+.landing-title{font-family:'DM Serif Display',serif;font-size:1.9rem;color:var(--blue);margin-bottom:6px;}
+.landing-sub{color:var(--text-light);font-size:.92rem;margin-bottom:24px;line-height:1.5;}
+.landing-btns{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:18px;}
+.landing-btn{background:var(--blue-xpale);border:1.5px solid var(--blue-pale);border-radius:10px;padding:18px 14px;cursor:pointer;text-align:center;transition:all .2s;}
+.landing-btn:hover{background:var(--blue-pale);transform:translateY(-2px);}
+.landing-btn-icon{font-size:1.8rem;margin-bottom:8px;}
+.landing-btn-title{font-weight:600;color:var(--blue);font-size:1rem;}
+.landing-btn-sub{font-size:.8rem;color:var(--text-light);margin-top:4px;}
+
+/* LOGIN */
+.login-card{max-width:400px;margin:80px auto;text-align:center;}
+.login-icon{font-size:2.4rem;margin-bottom:12px;}
+.login-title{font-family:'DM Serif Display',serif;font-size:1.4rem;color:var(--blue);margin-bottom:6px;}
+.login-sub{color:var(--text-light);font-size:.85rem;margin-bottom:24px;}
+.login-field{text-align:left;margin-bottom:16px;}
+.login-field label{font-size:.82rem;font-weight:600;color:var(--text-light);display:block;margin-bottom:4px;}
+.login-input{width:100%;padding:10px 14px;border:1.5px solid var(--gray-bdr);border-radius:8px;font-size:.95rem;font-family:'DM Sans',sans-serif;outline:none;transition:border-color .2s;}
+.login-input:focus{border-color:var(--blue-mid);}
+.login-error{color:var(--red);font-size:.82rem;margin-top:8px;display:none;}
+.login-back{font-size:.82rem;color:var(--text-light);margin-top:16px;cursor:pointer;text-decoration:underline;}
+
+/* QUESTÕES */
+.item-row{display:grid;grid-template-columns:42px 1fr;gap:14px;padding:14px 4px;border-bottom:1px solid var(--gray-bdr);align-items:start;}
+.item-row:last-child{border-bottom:none;}
+.item-num{background:var(--blue-xpale);color:var(--blue);font-weight:700;width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.82rem;}
+.item-text{color:var(--text);font-size:.94rem;line-height:1.5;margin-bottom:10px;}
+.likert{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;}
+.likert label{cursor:pointer;background:var(--gray);border:1.5px solid var(--gray-bdr);border-radius:8px;padding:8px 4px;text-align:center;font-size:.78rem;color:var(--text-light);transition:all .15s;}
+.likert label:hover{border-color:var(--blue-mid);background:var(--blue-xpale);color:var(--blue);}
+.likert input{display:none;}
+.likert input:checked + span{color:white;}
+.likert label:has(input:checked){background:var(--blue);border-color:var(--blue);color:white;}
+.likert .lk-num{font-weight:700;font-size:.92rem;display:block;}
+.likert .lk-txt{font-size:.66rem;display:block;margin-top:2px;}
+
+/* PROGRESS */
+.progress-bar{height:6px;background:var(--gray-bdr);border-radius:4px;overflow:hidden;margin-bottom:6px;}
+.progress-fill{height:100%;background:var(--blue);border-radius:4px;transition:width .3s;width:0%;}
+
+/* TABELA CLÍNICO */
+table.sessoes{width:100%;border-collapse:collapse;font-size:.85rem;}
+table.sessoes thead{background:var(--blue-xpale);}
+table.sessoes th{padding:10px 8px;text-align:left;font-weight:600;color:var(--blue);font-size:.78rem;letter-spacing:.3px;}
+table.sessoes td{padding:10px 8px;border-bottom:1px solid var(--gray-bdr);}
+table.sessoes tr:hover td{background:var(--blue-xpale);}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;align-items:flex-start;justify-content:center;z-index:9999;padding:20px;overflow-y:auto;}
+.modal-overlay.open{display:flex;}
+.modal-box{background:white;border-radius:12px;padding:24px;width:100%;max-width:900px;max-height:92vh;overflow-y:auto;}
+
+/* BADGES interpretação */
+.badge{display:inline-block;padding:3px 10px;border-radius:12px;font-size:.75rem;font-weight:600;}
+.badge-baixa{background:#E8F4EA;color:var(--green);}
+.badge-media{background:#EBF2F8;color:var(--blue);}
+.badge-elevada{background:#FBE9D8;color:var(--orange);}
+.badge-muito{background:#F8DAD5;color:var(--red);}
+
+@media print {
+  .app-header,.no-print{display:none !important;}
+  body{background:white;}
+  .card{box-shadow:none;border:1px solid #ddd;}
+}
+@media (max-width: 640px){
+  .landing-btns{grid-template-columns:1fr;}
+  .likert{grid-template-columns:repeat(5,1fr);}
+  .likert label{padding:6px 2px;}
+  .likert .lk-txt{display:none;}
+}
+</style>
+</head>
+<body>
+
+<header class="app-header">
+  <div style="display:flex;align-items:center;gap:16px;">
+    <img src="[LOGO_RC_BASE64]" alt="Ricardina Correia" style="height:48px;width:auto;display:block;filter:brightness(1.1);">
+    <div>
+      <div class="app-title">Questionário de Agressividade · Buss-Perry (AQ)</div>
+      <div class="app-subtitle">Cunha &amp; Gonçalves, 2012 — versão portuguesa</div>
+    </div>
+  </div>
+  <div class="header-right">
+    Ricardina Correia · Cédula 8233<br>
+    <span style="font-size:.72rem;opacity:.85;">Psicologia Pediátrica</span>
+  </div>
+</header>
+
+<!-- ========== PAGE HOME ========== -->
+<div id="page-home" class="page">
+  <div class="container">
+    <div class="card landing-card">
+      <div class="landing-icon">🌡️</div>
+      <div class="landing-title">AQ Buss-Perry</div>
+      <p class="landing-sub">Questionário de Agressividade<br>
+        <span style="font-size:.8rem">Buss &amp; Perry, 1992 · adaptação portuguesa de Cunha &amp; Gonçalves, 2012 · 29 itens · adultos</span>
+      </p>
+      <div class="landing-btns">
+        <div class="landing-btn" onclick="iniciarQuestionario()">
+          <div class="landing-btn-icon">📝</div>
+          <div class="landing-btn-title">Preencher questionário</div>
+          <div class="landing-btn-sub">Para o avaliado</div>
+        </div>
+        <div class="landing-btn" onclick="showClinico()">
+          <div class="landing-btn-icon">🔒</div>
+          <div class="landing-btn-title">Painel Clínico</div>
+          <div class="landing-btn-sub">Acesso restrito · Ricardina Correia</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== PAGE QUESTIONÁRIO ========== -->
+<div id="page-questionario" class="page">
+  <div class="container" style="max-width:760px">
+
+    <!-- SECÇÃO 1 — Identificação -->
+    <div id="section-1">
+      <div class="card" style="margin-bottom:20px">
+
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:20px" class="no-print">
+          <div style="display:flex;align-items:center;gap:6px">
+            <div style="width:28px;height:28px;border-radius:50%;background:var(--blue);color:white;display:flex;align-items:center;justify-content:center;font-size:.82rem;font-weight:700">1</div>
+            <span style="font-size:.82rem;font-weight:600;color:var(--blue)">Identificação</span>
+          </div>
+          <div style="flex:1;height:2px;background:var(--gray-bdr)"></div>
+          <div style="display:flex;align-items:center;gap:6px">
+            <div style="width:28px;height:28px;border-radius:50%;background:var(--gray-bdr);color:var(--text-light);display:flex;align-items:center;justify-content:center;font-size:.82rem;font-weight:700">2</div>
+            <span style="font-size:.82rem;color:var(--text-light)">Questionário</span>
+          </div>
+        </div>
+
+        <h2 style="font-family:'DM Serif Display',serif;color:var(--blue);font-size:1.3rem;margin-bottom:6px">Identificação</h2>
+        <p style="color:var(--text-light);font-size:.86rem;margin-bottom:20px">Por favor preencha os campos seguintes antes de iniciar o questionário.</p>
+
+        <div style="margin-bottom:16px">
+          <label style="font-size:.82rem;font-weight:600;color:var(--text-light);display:block;margin-bottom:4px">
+            Código do paciente <span style="font-weight:400">(fornecido pela psicóloga)</span>
+          </label>
+          <input type="text" id="patient-code" class="login-input" placeholder="ex: MV14062013" style="text-transform:uppercase" oninput="this.value=this.value.toUpperCase()">
+          <div style="font-size:.75rem;color:var(--text-light);margin-top:4px">Iniciais + data nasc. (DDMMAAAA).</div>
+        </div>
+
+        <div style="margin-bottom:16px">
+          <label style="font-size:.82rem;font-weight:600;color:var(--text-light);display:block;margin-bottom:4px">Nome do avaliado</label>
+          <input type="text" id="nome-avaliado" class="login-input" placeholder="Nome completo">
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
+          <div>
+            <label style="font-size:.82rem;font-weight:600;color:var(--text-light);display:block;margin-bottom:4px">Idade</label>
+            <input type="number" id="idade" class="login-input" min="12" max="99" placeholder="ex: 28">
+          </div>
+          <div>
+            <label style="font-size:.82rem;font-weight:600;color:var(--text-light);display:block;margin-bottom:4px">Sexo</label>
+            <select id="sexo" class="login-input">
+              <option value="">Seleccionar…</option>
+              <option value="M">Masculino</option>
+              <option value="F">Feminino</option>
+            </select>
+          </div>
+        </div>
+
+        <div style="margin-bottom:16px">
+          <label style="font-size:.82rem;font-weight:600;color:var(--text-light);display:block;margin-bottom:4px">Nome de quem preenche <span style="font-weight:400">(se diferente do avaliado)</span></label>
+          <input type="text" id="nome-informante" class="login-input" placeholder="Deixar em branco se for o próprio">
+        </div>
+
+        <div style="display:flex;justify-content:space-between;margin-top:24px;gap:12px" class="no-print">
+          <button class="btn btn-secondary" onclick="showPage('page-home');window.scrollTo(0,0);">← Início</button>
+          <button class="btn btn-primary" onclick="avancarParaQuestoes()">Avançar →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECÇÃO 2 — Questões -->
+    <div id="section-2" style="display:none">
+      <div class="card" style="margin-bottom:20px;padding:18px 22px">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px" class="no-print">
+          <div style="display:flex;align-items:center;gap:6px">
+            <div style="width:28px;height:28px;border-radius:50%;background:var(--green);color:white;display:flex;align-items:center;justify-content:center;font-size:.82rem;font-weight:700">✓</div>
+            <span style="font-size:.82rem;color:var(--green)">Identificação</span>
+          </div>
+          <div style="flex:1;height:2px;background:var(--green)"></div>
+          <div style="display:flex;align-items:center;gap:6px">
+            <div style="width:28px;height:28px;border-radius:50%;background:var(--blue);color:white;display:flex;align-items:center;justify-content:center;font-size:.82rem;font-weight:700">2</div>
+            <span style="font-size:.82rem;font-weight:600;color:var(--blue)">Questionário</span>
+          </div>
+        </div>
+
+        <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+        <div style="text-align:right;font-size:.78rem;color:var(--text-light);" id="progress-text">0 / 29 respondidas</div>
+      </div>
+
+      <!-- Legenda sticky -->
+      <div id="legenda-escala" style="position:sticky;top:0;z-index:20;background:var(--blue-xpale);border:1px solid var(--blue-pale);border-radius:8px;padding:10px 16px;margin-bottom:14px;font-size:.76rem;display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:space-between;" class="no-print">
+        <span style="font-weight:600;color:var(--blue);margin-right:6px;">Legenda:</span>
+        <span style="color:var(--text-light)"><strong style="color:var(--text)">1</strong> Nunca ou quase nunca</span>
+        <span style="color:var(--text-light)"><strong style="color:var(--text)">2</strong> Raramente</span>
+        <span style="color:var(--text-light)"><strong style="color:var(--text)">3</strong> Às vezes</span>
+        <span style="color:var(--text-light)"><strong style="color:var(--text)">4</strong> Frequentemente</span>
+        <span style="color:var(--text-light)"><strong style="color:var(--text)">5</strong> Sempre ou quase sempre</span>
+      </div>
+
+      <div class="card">
+        <p style="font-size:.88rem;color:var(--text-light);margin-bottom:18px;line-height:1.6">
+          Em seguida apresentam-se 29 afirmações que dizem respeito a diferentes modos de pensar, sentir e agir.
+          Leia atentamente cada afirmação e indique em que medida cada uma o(a) descreve. Não existem respostas certas
+          nem erradas — procura-se apenas a sua opinião sincera. Procure responder a todas as afirmações.
+        </p>
+        <div id="q-container"></div>
+      </div>
+
+      <div style="display:flex;justify-content:space-between;margin-top:20px;gap:12px" class="no-print">
+        <button class="btn btn-secondary" onclick="voltarParaIdentificacao()">← Identificação</button>
+        <button class="btn btn-primary" onclick="submeter()">Submeter questionário →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== PAGE OBRIGADO ========== -->
+<div id="page-obrigado" class="page">
+  <div style="padding:16px;">
+    <div class="card" style="max-width:600px;margin:60px auto;text-align:center;">
+      <div style="font-size:3rem;margin-bottom:16px;">✅</div>
+      <div style="font-family:DM Serif Display,serif;font-size:1.8rem;color:var(--blue);margin-bottom:12px;">Obrigado pelo preenchimento!</div>
+      <div style="color:var(--text-light);line-height:1.6;">As suas respostas foram registadas com sucesso.</div>
+      <div style="margin-top:28px;">
+        <button class="btn btn-secondary" onclick="showPage('page-home');window.scrollTo(0,0);">← Página inicial</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== PAGE LOGIN ========== -->
+<div id="page-login" class="page">
+  <div class="container">
+    <div class="card login-card">
+      <div class="login-icon">🔒</div>
+      <div class="login-title">Painel Clínico</div>
+      <div class="login-sub">Acesso restrito · Ricardina Correia</div>
+      <div class="login-field">
+        <label>Palavra-passe</label>
+        <input type="password" id="login-pw" class="login-input" placeholder="••••••••" onkeydown="if(event.key==='Enter') tentarLogin()">
+      </div>
+      <button class="btn btn-primary" style="width:100%" onclick="tentarLogin()">Entrar</button>
+      <div id="login-error" class="login-error">Palavra-passe incorrecta. Tente novamente.</div>
+      <div class="login-back" onclick="showPage('page-home')">← Voltar ao questionário</div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== PAGE CLÍNICO ========== -->
+<div id="page-clinico" class="page">
+  <div class="container" style="max-width:1180px">
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;margin-bottom:18px">
+        <div>
+          <h2 style="font-family:'DM Serif Display',serif;color:var(--blue);font-size:1.5rem">Painel Clínico — AQ Buss-Perry</h2>
+          <div style="font-size:.82rem;color:var(--text-light);margin-top:4px">Sessões registadas · cotação automática (Cunha &amp; Gonçalves, 2012)</div>
+        </div>
+        <button class="btn btn-secondary btn-xs" onclick="showPage('page-home')">← Início</button>
+      </div>
+
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;" class="no-print">
+        <button class="btn btn-secondary" style="padding:6px 14px;font-size:.82rem;" onclick="carregarDados()">↺ Sincronizar</button>
+        <button class="btn btn-secondary" style="padding:6px 14px;font-size:.82rem;" onclick="document.getElementById('import-file-input').click()">⬆ Importar</button>
+        <button class="btn btn-secondary" style="padding:6px 14px;font-size:.82rem;" onclick="exportarCSV()">⬇ Exportar CSV</button>
+        <button class="btn btn-secondary" style="padding:6px 14px;font-size:.82rem;" onclick="exportarPDFGlobal()">📄 Exportar PDF</button>
+        <button class="btn btn-secondary" style="padding:6px 14px;font-size:.82rem;" onclick="window.print()">🖨 Imprimir</button>
+        <input type="file" id="import-file-input" accept=".csv" style="display:none" onchange="processarFicheiroImportado(this)">
+      </div>
+      <div id="import-feedback" style="margin-bottom:12px;display:none;"></div>
+
+      <div id="tabela-sessoes" style="overflow-x:auto">
+        <div style="color:var(--text-light);padding:24px;text-align:center">Sem sessões registadas.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== MODAL DETALHE ========== -->
+<div id="modal-detalhe" class="modal-overlay" onclick="if(event.target===this) fecharModal()">
+  <div class="modal-box">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;gap:12px;flex-wrap:wrap" class="no-print">
+      <div>
+        <h3 id="modal-titulo" style="font-family:'DM Serif Display',serif;color:var(--blue);font-size:1.4rem">Detalhe da sessão</h3>
+        <div id="modal-subtitulo" style="font-size:.82rem;color:var(--text-light);margin-top:4px"></div>
+      </div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end">
+        <button class="btn btn-secondary btn-xs" onclick="exportarRespostasPDF(sessaoActual)">📋 Respostas PDF</button>
+        <button class="btn btn-secondary btn-xs" onclick="exportarInterpretacaoPDF(sessaoActual)">📊 Relatório Completo PDF</button>
+        <button class="btn btn-secondary btn-xs" onclick="fecharModal()">Fechar ✕</button>
+      </div>
+    </div>
+    <div id="modal-conteudo"></div>
+  </div>
+</div>
+
+<script>
+// ════════════════════════════════════════════════════════════════
+// CONFIGURAÇÃO — AQ Buss-Perry (Cunha & Gonçalves, 2012)
+// ════════════════════════════════════════════════════════════════
+const PASSWORD   = 'CNS2024';
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxX2_Ry7VRH6jr7eGBMmtmyZFXZc69blwdO5bqJK0j69HRSexpXXPuEfDC5OHQRMLLL/exec';
+const SHEET_NAME = 'AQ_BussPerry';
+const SK_LOCAL   = 'aq_bussperry_sessions';
+
+const N_ITENS = 29;
+
+// Itens textuais
+const ITEMS = [
+  /*  1 */ "Alguns dos meus amigos pensam que sou conflituoso",
+  /*  2 */ "Se tiver que recorrer à violência para proteger os meus direitos, faço-o",
+  /*  3 */ "Quando os outros são especialmente amáveis comigo, pergunto-me o que quererão",
+  /*  4 */ "Quando discordo dos meus amigos, digo-lhes abertamente",
+  /*  5 */ "Já fiquei tão zangado que parti coisas",
+  /*  6 */ "Não consigo evitar discutir com as pessoas quando elas discordam de mim",
+  /*  7 */ "Pergunto-me porque é que às vezes me sinto tão amargo com as coisas",
+  /*  8 */ "De vez em quando não consigo controlar a vontade de bater noutra pessoa",
+  /*  9 */ "Sou uma pessoa extremamente calma",
+  /* 10 */ "Fico desconfiado de estranhos muito amáveis",
+  /* 11 */ "Já ameacei pessoas que conheço",
+  /* 12 */ "Exalto-me facilmente, mas passa-me depressa",
+  /* 13 */ "Se me provocarem bastante, posso bater noutra pessoa",
+  /* 14 */ "Quando as pessoas me irritam, chego a dizer-lhes o que penso delas",
+  /* 15 */ "Às vezes fico cheio de ciúmes dos outros",
+  /* 16 */ "Não consigo encontrar nenhuma boa razão para bater em alguém",
+  /* 17 */ "Por vezes sinto que a vida tem sido injusta comigo",
+  /* 18 */ "Tenho dificuldades em controlar o meu feitio",
+  /* 19 */ "Quando fico frustrado, mostro a minha irritação",
+  /* 20 */ "Por vezes sinto que as pessoas se riem nas minhas costas",
+  /* 21 */ "Muitas vezes entro em desacordo com as pessoas",
+  /* 22 */ "Se alguém me bate, bato-lhe também",
+  /* 23 */ "Por vezes sinto-me um barril de pólvora pronto a explodir",
+  /* 24 */ "As outras pessoas parecem ter sempre as melhores oportunidades",
+  /* 25 */ "Houve pessoas que me pressionaram tanto que chegámos a “vias de facto”",
+  /* 26 */ "Sei de “amigos” que falam de mim",
+  /* 27 */ "Os meus amigos dizem que gosto de me meter em discussões",
+  /* 28 */ "Às vezes perco o controlo sem razão alguma",
+  /* 29 */ "Meto-me em brigas mais vezes que a maioria das pessoas"
+];
+
+// Mapeamento por subescala (números do item, 1-based) — EXACTAMENTE como no Excel de cotação
+const SUBESCALAS = {
+  AF: { nome: 'Agressividade Física', cor: '#C0392B', itens: [2,5,8,11,13,16,22,25,29], invertidos: [16], ampMin: 9,  ampMax: 45 },
+  AV: { nome: 'Agressividade Verbal', cor: '#E67E22', itens: [4,6,14,21,27],            invertidos: [],   ampMin: 5,  ampMax: 25 },
+  IR: { nome: 'Raiva',                cor: '#8E44AD', itens: [1,9,12,18,19,23,28],      invertidos: [9],  ampMin: 7,  ampMax: 35 },
+  HO: { nome: 'Hostilidade',          cor: '#3B5A7A', itens: [3,7,10,15,17,20,24,26],   invertidos: [],   ampMin: 8,  ampMax: 40 }
+};
+const ORDEM_SUB = ['AF','AV','IR','HO'];
+
+// Normas Cunha & Gonçalves (2012) — pontos de corte por sexo
+// Categorias: < lim_baixa | ≤ lim_media | ≤ lim_elevada | > muito_elevada
+const NORMAS = {
+  M: {
+    AF: { baixa: 13, media: 25, elevada: 31, M:18.99, DP:5.99 },
+    AV: { baixa: 11, media: 16, elevada: 19, M:13.38, DP:2.79 },
+    IR: { baixa: 10, media: 19, elevada: 23, M:14.74, DP:4.56 },
+    HO: { baixa: 13, media: 23, elevada: 28, M:18.37, DP:5.08 },
+    TOTAL: { baixa: 51, media: 79, elevada: 93, M:65.33, DP:14.19 }
+  },
+  F: {
+    AF: { baixa: 10, media: 20, elevada: 25, M:15.09, DP:5.09 },
+    AV: { baixa: 10, media: 15, elevada: 18, M:12.84, DP:2.79 },
+    IR: { baixa: 11, media: 20, elevada: 25, M:15.94, DP:4.92 },
+    HO: { baixa: 13, media: 23, elevada: 28, M:17.94, DP:5.06 },
+    TOTAL: { baixa: 48, media: 75, elevada: 90, M:61.81, DP:14.11 }
+  }
+};
+
+const CAT_LABELS = {
+  baixa:   { txt:'Baixa',           cls:'badge-baixa',   cor:'#27AE60' },
+  media:   { txt:'Média',           cls:'badge-media',   cor:'#3B5A7A' },
+  elevada: { txt:'Elevada',         cls:'badge-elevada', cor:'#E67E22' },
+  muito:   { txt:'Muito Elevada',   cls:'badge-muito',   cor:'#C0392B' }
+};
+
+const INTERP_TXT = {
+  baixa:   'Expressão atenuada do constructo. Ausência de indicadores clínicos isolados neste domínio.',
+  media:   'Padrão dentro do esperado para a população universitária portuguesa. Sem sinal clínico relevante isolado.',
+  elevada: 'Padrão acima do esperado. Requer exploração clínica integrada com queixa, história e observação.',
+  muito:   'Padrão estatisticamente raro (>M+2DP). Sinaliza possível disfuncionalidade no domínio avaliado. Integrar com avaliação multimodal.'
+};
+
+// ════════════════════════════════════════════════════════════════
+// AVISO local-file (banner vermelho)
+// ════════════════════════════════════════════════════════════════
+(function(){
+  if(location.protocol === 'file:'){
+    var banner = document.createElement('div');
+    banner.style.cssText = 'background:#C0392B;color:white;text-align:center;padding:10px 20px;font-size:.85rem;font-family:DM Sans,sans-serif;font-weight:600;position:sticky;top:0;z-index:9999;';
+    banner.innerHTML = '⚠ Ficheiro aberto localmente — os dados NÃO serão enviados para o servidor. Será descarregado um CSV automaticamente na submissão.';
+    document.body.insertBefore(banner, document.body.firstChild);
+  }
+})();
+
+// ════════════════════════════════════════════════════════════════
+// NAVEGAÇÃO
+// ════════════════════════════════════════════════════════════════
+function showPage(id){
+  document.querySelectorAll('.page').forEach(function(p){ p.style.display='none'; });
+  document.getElementById(id).style.display='block';
+  window.scrollTo(0,0);
+}
+
+function showClinico(){
+  showPage('page-login');
+  setTimeout(function(){ var el=document.getElementById('login-pw'); if(el) el.focus(); }, 100);
+}
+
+function tentarLogin(){
+  var pw = document.getElementById('login-pw').value;
+  if (pw === PASSWORD){
+    document.getElementById('login-error').style.display='none';
+    document.getElementById('login-pw').value='';
+    showPage('page-clinico');
+    carregarDados();
+  } else {
+    document.getElementById('login-error').style.display='block';
+    document.getElementById('login-pw').value='';
+    document.getElementById('login-pw').focus();
+  }
+}
+
+// ════════════════════════════════════════════════════════════════
+// QUESTIONÁRIO — fluxo respondente
+// ════════════════════════════════════════════════════════════════
+var respostasActuais = new Array(N_ITENS).fill(null);
+
+function iniciarQuestionario(){
+  respostasActuais = new Array(N_ITENS).fill(null);
+  renderQuestionario();
+  document.getElementById('section-1').style.display='block';
+  document.getElementById('section-2').style.display='none';
+  showPage('page-questionario');
+}
+
+function avancarParaQuestoes(){
+  var code = document.getElementById('patient-code').value.trim().toUpperCase();
+  if (!code){ alert('Por favor indique o código do paciente.'); return; }
+  if (!/^[A-Z][A-Z][A-Z]?\d\d\d\d\d\d\d\d$/.test(code)){
+    alert('Código inválido.\n\nDevem ser 2 ou 3 iniciais + data de nascimento (DDMMAAAA).\nExemplo: MV14062013');
+    return;
+  }
+  var nome  = document.getElementById('nome-avaliado').value.trim();
+  if (!nome){ alert('Por favor indique o nome do avaliado.'); return; }
+  var idade = document.getElementById('idade').value;
+  if (!idade || idade<10 || idade>110){ alert('Indique uma idade válida.'); return; }
+  var sexo  = document.getElementById('sexo').value;
+  if (!sexo){ alert('Indique o sexo do avaliado.'); return; }
+
+  document.getElementById('section-1').style.display='none';
+  document.getElementById('section-2').style.display='block';
+  window.scrollTo(0,0);
+  actualizarProgresso();
+}
+
+function voltarParaIdentificacao(){
+  document.getElementById('section-2').style.display='none';
+  document.getElementById('section-1').style.display='block';
+  window.scrollTo(0,0);
+}
+
+function renderQuestionario(){
+  var html = '';
+  for (var i=0; i<N_ITENS; i++){
+    html += renderItem(i);
+  }
+  document.getElementById('q-container').innerHTML = html;
+}
+
+function renderItem(idx){
+  var num = idx + 1;
+  var txt = ITEMS[idx];
+  var out = '<div class="item-row" id="row-'+num+'">' +
+            '<div class="item-num">'+num+'</div>' +
+            '<div>' +
+            '<div class="item-text">'+ escapeHtml(txt) +'</div>' +
+            '<div class="likert">';
+  var labels = ['Nunca','Raramente','Às vezes','Frequente','Sempre'];
+  for (var v=1; v<=5; v++){
+    out += '<label>' +
+           '<input type="radio" name="q'+num+'" value="'+v+'" onchange="setResposta('+idx+','+v+')">' +
+           '<span><span class="lk-num">'+v+'</span><span class="lk-txt">'+labels[v-1]+'</span></span>' +
+           '</label>';
+  }
+  out += '</div></div></div>';
+  return out;
+}
+
+function escapeHtml(s){
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function setResposta(idx, val){
+  respostasActuais[idx] = val;
+  actualizarProgresso();
+}
+
+function actualizarProgresso(){
+  var resp = respostasActuais.filter(function(r){ return r!==null; }).length;
+  var pct  = (resp / N_ITENS) * 100;
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('progress-text').textContent = resp + ' / ' + N_ITENS + ' respondidas';
+}
+
+// ════════════════════════════════════════════════════════════════
+// COTAÇÃO — Cunha & Gonçalves (2012)
+// ════════════════════════════════════════════════════════════════
+function cotar(respostas){
+  var sub = {};
+  for (var k in SUBESCALAS){
+    var cfg = SUBESCALAS[k];
+    var soma = 0;
+    for (var i=0; i<cfg.itens.length; i++){
+      var it = cfg.itens[i];
+      var r  = respostas[it-1];
+      if (cfg.invertidos.indexOf(it) >= 0) r = 6 - r;
+      soma += r;
+    }
+    sub[k] = soma;
+  }
+  sub.TOTAL = sub.AF + sub.AV + sub.IR + sub.HO;
+  return sub;
+}
+
+function classificarValor(valor, lim){
+  // Categorias: < baixa | ≤ media | ≤ elevada | > = muito elevada
+  if (valor <  lim.baixa)   return 'baixa';
+  if (valor <= lim.media)   return 'media';
+  if (valor <= lim.elevada) return 'elevada';
+  return 'muito';
+}
+
+function classificarTodos(scores, sexo){
+  var normas = NORMAS[sexo];
+  if (!normas) return null;
+  return {
+    AF:    classificarValor(scores.AF,    normas.AF),
+    AV:    classificarValor(scores.AV,    normas.AV),
+    IR:    classificarValor(scores.IR,    normas.IR),
+    HO:    classificarValor(scores.HO,    normas.HO),
+    TOTAL: classificarValor(scores.TOTAL, normas.TOTAL)
+  };
+}
+
+// ════════════════════════════════════════════════════════════════
+// SUBMETER
+// ════════════════════════════════════════════════════════════════
+function submeter(){
+  var faltam = [];
+  for (var i=0; i<N_ITENS; i++){
+    if (respostasActuais[i] === null) faltam.push(i+1);
+  }
+  if (faltam.length > 0){
+    alert('Por favor responda a todos os itens.\n\nEm falta: ' + faltam.join(', '));
+    var primeiro = document.getElementById('row-'+faltam[0]);
+    if (primeiro) primeiro.scrollIntoView({behavior:'smooth', block:'center'});
+    return;
+  }
+
+  var code  = document.getElementById('patient-code').value.trim().toUpperCase();
+  var nome  = document.getElementById('nome-avaliado').value.trim();
+  var idade = parseInt(document.getElementById('idade').value, 10);
+  var sexo  = document.getElementById('sexo').value;
+  var nomeInf = document.getElementById('nome-informante').value.trim() || nome;
+
+  var scores = cotar(respostasActuais);
+  var classes = classificarTodos(scores, sexo);
+
+  // ── Payload para o Sheet (sem chave `data` no top-level — ver Secção 31)
+  var payload = {
+    instrumento:    SHEET_NAME,
+    patientCode:    code,
+    NomeAvaliado:   nome,
+    Idade:          idade,
+    Sexo:           sexo,
+    NomeInformante: nomeInf,
+    AF_Bruto:       scores.AF,
+    AV_Bruto:       scores.AV,
+    IR_Bruto:       scores.IR,
+    HO_Bruto:       scores.HO,
+    TOTAL_Bruto:    scores.TOTAL,
+    AF_Classe:      classes ? classes.AF    : '',
+    AV_Classe:      classes ? classes.AV    : '',
+    IR_Classe:      classes ? classes.IR    : '',
+    HO_Classe:      classes ? classes.HO    : '',
+    TOTAL_Classe:   classes ? classes.TOTAL : '',
+    Respostas:      JSON.stringify(respostasActuais),
+    timestamp:      new Date().toISOString()
+  };
+
+  // ── Envio
+  try {
+    fetch(SCRIPT_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+  } catch(e){ /* falha silenciosa */ }
+
+  // ── Guardar localmente também (resiliência)
+  try {
+    var local = JSON.parse(localStorage.getItem(SK_LOCAL) || '[]');
+    var sessao = Object.assign({}, payload, {
+      scores:    scores,
+      classes:   classes,
+      respostas: respostasActuais.slice(),
+      date:      new Date().toISOString()
+    });
+    local.push(sessao);
+    localStorage.setItem(SK_LOCAL, JSON.stringify(local));
+  } catch(e){}
+
+  // ── Fallback CSV se offline ou file://
+  try {
+    if (location.protocol === 'file:' || !navigator.onLine){
+      var bom = '\uFEFF';
+      var linhas = [
+        ['Data','Codigo','NomeAvaliado','Idade','Sexo','NomeInformante','AF','AV','IR','HO','TOTAL','AF_Classe','AV_Classe','IR_Classe','HO_Classe','TOTAL_Classe','Respostas'].join(';'),
+        [new Date().toLocaleDateString('pt-PT'), code, nome, idade, sexo, nomeInf,
+         scores.AF, scores.AV, scores.IR, scores.HO, scores.TOTAL,
+         classes ? classes.AF : '', classes ? classes.AV : '', classes ? classes.IR : '', classes ? classes.HO : '', classes ? classes.TOTAL : '',
+         respostasActuais.join('|')
+        ].map(function(v){ return '"'+String(v).replace(/"/g,'""')+'"'; }).join(';')
+      ];
+      var blob = new Blob([bom + linhas.join('\r\n')], { type:'text/csv;charset=utf-8;' });
+      var a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'AQ_BussPerry_' + code + '_' + new Date().toISOString().slice(0,10) + '.csv';
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    }
+  } catch(e){}
+
+  showPage('page-obrigado');
+}
+
+// ════════════════════════════════════════════════════════════════
+// PAINEL CLÍNICO — dados e tabela
+// ════════════════════════════════════════════════════════════════
+var sessoes      = [];
+var sessaoActual = null;
+
+async function carregarDados(){
+  try {
+    var res  = await fetch(SCRIPT_URL + '?instrumento=' + SHEET_NAME + '&t=' + Date.now());
+    var data = await res.json();
+    var rows = Array.isArray(data) ? data : (data && data.rows ? data.rows : []);
+    sessoes = rows.map(parseSessao);
+  } catch(e){
+    sessoes = [];
+  }
+  // Combinar com localStorage
+  try {
+    var local = JSON.parse(localStorage.getItem(SK_LOCAL) || '[]');
+    local.forEach(function(s){
+      var dup = sessoes.some(function(x){
+        return x.patientCode === s.patientCode && x.timestamp === s.timestamp;
+      });
+      if (!dup) sessoes.push(s);
+    });
+  } catch(e){}
+  renderTabela();
+}
+
+function parseSessao(row){
+  // Suporta colunas em português (do Sheet) e em inglês (do localStorage)
+  var code = row['Código'] || row.Codigo || row.patientCode || row.codigo || '';
+  var nome = row['NomeAvaliado'] || row.NomeAvaliado || row.nomeAvaliado || '';
+  var nomeInf = row['NomeInformante'] || row.NomeInformante || row.nomeInformante || '';
+  var sexo = row['Sexo'] || row.Sexo || row.sexo || '';
+  var idade = row['Idade'] || row.Idade || row.idade || '';
+  var dt   = row['Data'] || row.Data || row.data || row.date || row.timestamp || '';
+
+  // Scores: aceitar coluna do Sheet (sufixo _Bruto) ou directamente do localStorage (objecto scores)
+  var scoresFromRow = {
+    AF:    Number(row.AF_Bruto    || (row.scores && row.scores.AF)    || 0),
+    AV:    Number(row.AV_Bruto    || (row.scores && row.scores.AV)    || 0),
+    IR:    Number(row.IR_Bruto    || (row.scores && row.scores.IR)    || 0),
+    HO:    Number(row.HO_Bruto    || (row.scores && row.scores.HO)    || 0),
+    TOTAL: Number(row.TOTAL_Bruto || (row.scores && row.scores.TOTAL) || 0)
+  };
+  // Se TOTAL estiver vazio mas as subescalas existirem, calcular:
+  if (!scoresFromRow.TOTAL && (scoresFromRow.AF + scoresFromRow.AV + scoresFromRow.IR + scoresFromRow.HO) > 0){
+    scoresFromRow.TOTAL = scoresFromRow.AF + scoresFromRow.AV + scoresFromRow.IR + scoresFromRow.HO;
+  }
+
+  // Reconstruir respostas item-a-item
+  var respostas = null;
+  try {
+    var raw = row.Respostas || row.respostas || (row.respostas) || '';
+    if (Array.isArray(raw)) respostas = raw.map(Number);
+    else if (typeof raw === 'string' && raw.length){
+      if (raw.charAt(0) === '['){
+        respostas = JSON.parse(raw).map(Number);
+      } else if (raw.indexOf('|') >= 0){
+        respostas = raw.split('|').map(Number);
+      }
+    }
+  } catch(e){ respostas = null; }
+  if (Array.isArray(row.respostas)) respostas = row.respostas.map(Number);
+
+  // Classes (re-classificar para garantir consistência se o sexo estiver presente)
+  var classes = null;
+  if (sexo && NORMAS[sexo]) classes = classificarTodos(scoresFromRow, sexo);
+
+  return {
+    patientCode:   code,
+    nomeAvaliado:  nome,
+    nomeInformante: nomeInf,
+    sexo:          sexo,
+    idade:         idade,
+    date:          dt,
+    timestamp:     row.timestamp || dt,
+    scores:        scoresFromRow,
+    classes:       classes,
+    respostas:     respostas
+  };
+}
+
+function renderTabela(){
+  var cont = document.getElementById('tabela-sessoes');
+  if (!sessoes.length){
+    cont.innerHTML = '<div style="color:var(--text-light);padding:24px;text-align:center">Sem sessões registadas. Clique <strong>↺ Sincronizar</strong> ou submeta um teste.</div>';
+    return;
+  }
+  var html = '<table class="sessoes">' +
+    '<thead><tr>' +
+    '<th>Data</th><th>Código</th><th>Nome</th><th>Sexo</th><th>Idade</th>' +
+    '<th style="text-align:center">AF</th>' +
+    '<th style="text-align:center">AV</th>' +
+    '<th style="text-align:center">Ira</th>' +
+    '<th style="text-align:center">HO</th>' +
+    '<th style="text-align:center">Total</th>' +
+    '<th>Classificação Total</th>' +
+    '<th></th>' +
+    '</tr></thead><tbody>';
+  sessoes.forEach(function(s, i){
+    var dt = formatDate(s.date);
+    var clT = s.classes ? CAT_LABELS[s.classes.TOTAL] : null;
+    var badge = clT ? '<span class="badge '+clT.cls+'">'+clT.txt+'</span>' : '<span style="color:var(--text-light);font-size:.78rem">(sexo em falta)</span>';
+    html += '<tr>' +
+      '<td>'+dt+'</td>' +
+      '<td><strong>'+(s.patientCode || '—')+'</strong></td>' +
+      '<td>'+(s.nomeAvaliado || '—')+'</td>' +
+      '<td>'+(s.sexo || '—')+'</td>' +
+      '<td>'+(s.idade || '—')+'</td>' +
+      '<td style="text-align:center;font-weight:600">'+s.scores.AF+'</td>' +
+      '<td style="text-align:center;font-weight:600">'+s.scores.AV+'</td>' +
+      '<td style="text-align:center;font-weight:600">'+s.scores.IR+'</td>' +
+      '<td style="text-align:center;font-weight:600">'+s.scores.HO+'</td>' +
+      '<td style="text-align:center;font-weight:700;color:var(--blue)">'+s.scores.TOTAL+'</td>' +
+      '<td>'+badge+'</td>' +
+      '<td><button class="btn btn-secondary btn-xs" onclick="verDetalhe('+i+')">Ver →</button></td>' +
+      '</tr>';
+  });
+  html += '</tbody></table>';
+  cont.innerHTML = html;
+}
+
+function formatDate(d){
+  if (!d) return '—';
+  if (typeof d === 'string'){
+    if (d.indexOf('T') > 0){
+      var dt = new Date(d);
+      return isNaN(dt) ? d : dt.toLocaleDateString('pt-PT');
+    }
+    return d;
+  }
+  return d;
+}
+
+// ════════════════════════════════════════════════════════════════
+// MODAL DE DETALHE — Interpretação clínica
+// ════════════════════════════════════════════════════════════════
+function verDetalhe(idx){
+  var s = sessoes[idx];
+  if (!s) return;
+  sessaoActual = s;
+
+  document.getElementById('modal-titulo').textContent = 'Detalhe · ' + (s.patientCode || '—') + (s.nomeAvaliado ? ' — ' + s.nomeAvaliado : '');
+  document.getElementById('modal-subtitulo').textContent =
+    (formatDate(s.date)) + ' · ' + (s.sexo || '—') + ' · ' + (s.idade || '—') + ' anos' +
+    (s.nomeInformante && s.nomeInformante !== s.nomeAvaliado ? ' · preenchido por ' + s.nomeInformante : '');
+
+  var html = renderInterpretacao(s);
+  html += renderTabelaRespostas(s);
+  document.getElementById('modal-conteudo').innerHTML = html;
+  document.getElementById('modal-detalhe').classList.add('open');
+}
+
+function fecharModal(){
+  document.getElementById('modal-detalhe').classList.remove('open');
+}
+
+function renderInterpretacao(s){
+  if (!s.classes){
+    return '<div style="background:var(--blue-xpale);padding:14px 18px;border-radius:8px;color:var(--blue);font-size:.86rem;margin-bottom:18px">' +
+      '⚠ Sexo não registado nesta sessão — classificação clínica indisponível. As pontuações brutas estão correctas mas a comparação normativa exige o sexo.' +
+      '</div>';
+  }
+
+  var normas = NORMAS[s.sexo];
+  var html = '';
+
+  // ── Tabela de subescalas ──
+  html += '<h4 style="font-family:DM Serif Display,serif;color:var(--blue);font-size:1.1rem;margin-bottom:10px">Subescalas — pontuações e classificação</h4>';
+  html += '<div style="overflow-x:auto;margin-bottom:18px"><table style="width:100%;border-collapse:collapse;font-size:.86rem">';
+  html += '<thead><tr style="background:var(--blue-xpale)">' +
+    '<th style="padding:8px 10px;text-align:left;color:var(--blue);font-weight:600">Subescala</th>' +
+    '<th style="padding:8px 10px;text-align:center;color:var(--blue);font-weight:600">Score</th>' +
+    '<th style="padding:8px 10px;text-align:center;color:var(--blue);font-weight:600">Amplitude</th>' +
+    '<th style="padding:8px 10px;color:var(--blue);font-weight:600;width:35%">Perfil</th>' +
+    '<th style="padding:8px 10px;color:var(--blue);font-weight:600">Classificação</th>' +
+    '</tr></thead><tbody>';
+
+  ORDEM_SUB.forEach(function(k){
+    var cfg = SUBESCALAS[k];
+    var val = s.scores[k];
+    var cls = s.classes[k];
+    var lbl = CAT_LABELS[cls];
+    var pct = Math.max(0, Math.min(100, Math.round(((val - cfg.ampMin) / (cfg.ampMax - cfg.ampMin)) * 100)));
+    html += '<tr>' +
+      '<td style="padding:8px 10px;border-bottom:1px solid var(--gray-bdr)">' + cfg.nome + ' (' + k + ')</td>' +
+      '<td style="padding:8px 10px;text-align:center;border-bottom:1px solid var(--gray-bdr);font-weight:700;color:'+lbl.cor+'">' + val + '</td>' +
+      '<td style="padding:8px 10px;text-align:center;border-bottom:1px solid var(--gray-bdr);color:var(--text-light);font-size:.78rem">' + cfg.ampMin + '–' + cfg.ampMax + '</td>' +
+      '<td style="padding:8px 10px;border-bottom:1px solid var(--gray-bdr)">' +
+        '<div style="background:#eee;border-radius:4px;height:10px;position:relative">' +
+          '<div style="background:'+lbl.cor+';border-radius:4px;height:10px;width:'+pct+'%"></div>' +
+        '</div>' +
+      '</td>' +
+      '<td style="padding:8px 10px;border-bottom:1px solid var(--gray-bdr)"><span class="badge ' + lbl.cls + '">' + lbl.txt + '</span></td>' +
+      '</tr>';
+  });
+
+  // Linha TOTAL
+  var valT = s.scores.TOTAL;
+  var clsT = s.classes.TOTAL;
+  var lblT = CAT_LABELS[clsT];
+  var pctT = Math.max(0, Math.min(100, Math.round(((valT - 29) / (145 - 29)) * 100)));
+  html += '<tr style="background:#EBF2F8">' +
+    '<td style="padding:8px 10px;font-weight:700"><strong>TOTAL AQ</strong></td>' +
+    '<td style="padding:8px 10px;text-align:center;font-weight:700;color:'+lblT.cor+'">' + valT + '</td>' +
+    '<td style="padding:8px 10px;text-align:center;color:var(--text-light);font-size:.78rem">29–145</td>' +
+    '<td style="padding:8px 10px">' +
+      '<div style="background:#eee;border-radius:4px;height:10px"><div style="background:'+lblT.cor+';border-radius:4px;height:10px;width:'+pctT+'%"></div></div>' +
+    '</td>' +
+    '<td style="padding:8px 10px"><span class="badge ' + lblT.cls + '">' + lblT.txt + '</span></td>' +
+    '</tr>';
+
+  html += '</tbody></table></div>';
+
+  // ── Parágrafo sumário automático ──
+  html += '<div style="background:var(--gray);padding:14px 18px;border-radius:8px;font-size:.88rem;line-height:1.6;margin-bottom:18px">';
+  html += '<strong style="color:var(--blue)">Síntese interpretativa</strong><br>';
+  html += gerarSintese(s);
+  html += '</div>';
+
+  // ── Pontos de corte do grupo normativo aplicado ──
+  html += '<details style="margin-bottom:18px"><summary style="cursor:pointer;color:var(--blue);font-weight:600;font-size:.86rem">▸ Pontos de corte aplicados (Cunha &amp; Gonçalves, 2012 — ' + (s.sexo==='M' ? 'masculino, n=231' : 'feminino, n=402') + ')</summary>';
+  html += '<table style="width:100%;border-collapse:collapse;font-size:.8rem;margin-top:10px">';
+  html += '<thead><tr style="background:var(--gray)">' +
+    '<th style="padding:6px 8px;text-align:left;color:var(--text-light)">Subescala</th>' +
+    '<th style="padding:6px 8px;text-align:center;color:var(--text-light)">Baixa (&lt;)</th>' +
+    '<th style="padding:6px 8px;text-align:center;color:var(--text-light)">Média (≤)</th>' +
+    '<th style="padding:6px 8px;text-align:center;color:var(--text-light)">Elevada (≤)</th>' +
+    '<th style="padding:6px 8px;text-align:center;color:var(--text-light)">Muito Elevada (&gt;)</th>' +
+    '<th style="padding:6px 8px;text-align:center;color:var(--text-light)">M</th>' +
+    '<th style="padding:6px 8px;text-align:center;color:var(--text-light)">DP</th>' +
+    '</tr></thead><tbody>';
+  var ordem = [['AF','Ag. Física'],['AV','Ag. Verbal'],['IR','Raiva'],['HO','Hostilidade'],['TOTAL','TOTAL']];
+  ordem.forEach(function(p){
+    var k = p[0], nome = p[1], n = normas[k];
+    html += '<tr>' +
+      '<td style="padding:6px 8px;border-bottom:1px solid var(--gray-bdr)">'+nome+'</td>' +
+      '<td style="padding:6px 8px;text-align:center;border-bottom:1px solid var(--gray-bdr)">'+n.baixa+'</td>' +
+      '<td style="padding:6px 8px;text-align:center;border-bottom:1px solid var(--gray-bdr)">'+n.media+'</td>' +
+      '<td style="padding:6px 8px;text-align:center;border-bottom:1px solid var(--gray-bdr)">'+n.elevada+'</td>' +
+      '<td style="padding:6px 8px;text-align:center;border-bottom:1px solid var(--gray-bdr)">&gt;'+n.elevada+'</td>' +
+      '<td style="padding:6px 8px;text-align:center;border-bottom:1px solid var(--gray-bdr);color:var(--text-light)">'+n.M.toFixed(2)+'</td>' +
+      '<td style="padding:6px 8px;text-align:center;border-bottom:1px solid var(--gray-bdr);color:var(--text-light)">'+n.DP.toFixed(2)+'</td>' +
+      '</tr>';
+  });
+  html += '</tbody></table></details>';
+
+  // ── Aviso técnico ──
+  html += '<div style="background:#FEF7E5;border-left:3px solid #E67E22;padding:10px 14px;border-radius:6px;font-size:.78rem;color:var(--text-light);line-height:1.5;margin-bottom:18px">' +
+    '<strong style="color:#A65D17">Aviso técnico:</strong> A subescala Agressividade Verbal apresenta consistência interna baixa (α = .56 na adaptação portuguesa); recomenda-se prudência interpretativa nessa dimensão. As normas baseiam-se em amostra universitária (Cunha &amp; Gonçalves, 2012). Em contextos forense, clínico psiquiátrico ou pediátrico, a interpretação exige correcção contextual e integração com outros instrumentos.' +
+    '</div>';
+
+  return html;
+}
+
+function gerarSintese(s){
+  var partes = [];
+  var c = s.classes;
+  var sexoTxt = s.sexo === 'M' ? 'masculino' : 'feminino';
+
+  // TOTAL
+  var totalTxt = '';
+  if (c.TOTAL === 'baixa')         totalTxt = 'O nível global de agressividade situa-se em zona <strong>Baixa</strong> face às normas portuguesas para o grupo ' + sexoTxt + ', sem indicadores clínicos isolados neste constructo.';
+  else if (c.TOTAL === 'media')    totalTxt = 'O nível global de agressividade situa-se em zona <strong>Média (normativa)</strong> face às normas portuguesas para o grupo ' + sexoTxt + ', dentro do padrão esperado.';
+  else if (c.TOTAL === 'elevada')  totalTxt = 'O nível global de agressividade situa-se em zona <strong>Elevada</strong> face às normas portuguesas para o grupo ' + sexoTxt + ', acima do esperado, justificando exploração clínica.';
+  else if (c.TOTAL === 'muito')    totalTxt = 'O nível global de agressividade situa-se em zona <strong>Muito Elevada</strong> (>M+2DP) face às normas portuguesas para o grupo ' + sexoTxt + ', sinalizando possível disfuncionalidade neste constructo.';
+  partes.push(totalTxt);
+
+  // Subescalas elevadas / muito elevadas
+  var altas = [];
+  ORDEM_SUB.forEach(function(k){
+    if (c[k] === 'elevada' || c[k] === 'muito'){
+      altas.push({ k: k, nome: SUBESCALAS[k].nome, cls: c[k] });
+    }
+  });
+  if (altas.length){
+    var partes2 = altas.map(function(a){
+      return a.nome + ' (' + (a.cls === 'muito' ? 'muito elevada' : 'elevada') + ')';
+    });
+    partes.push('Destaca-se sobretudo: <strong>' + partes2.join('; ') + '</strong>.');
+  } else {
+    var todasMedias = ORDEM_SUB.every(function(k){ return c[k] === 'media' || c[k] === 'baixa'; });
+    if (todasMedias) partes.push('Todas as subescalas se situam em zona normativa ou abaixo, sem domínios em destaque.');
+  }
+
+  // Nota sobre AV se elevada
+  if (c.AV === 'elevada' || c.AV === 'muito'){
+    partes.push('<em>Nota:</em> a subescala Agressividade Verbal tem consistência interna baixa na adaptação portuguesa (α = .56) — interpretar com cautela.');
+  }
+
+  partes.push('<em style="color:var(--text-light);font-size:.82rem">Interpretação automática gerada a partir dos pontos de corte de Cunha &amp; Gonçalves (2012). Integrar sempre no contexto clínico completo da avaliação.</em>');
+
+  return partes.join('<br>');
+}
+
+function renderTabelaRespostas(s){
+  if (!s.respostas || !Array.isArray(s.respostas) || s.respostas.length === 0){
+    return '<details><summary style="cursor:pointer;color:var(--blue);font-weight:600;font-size:.86rem">▸ Respostas item-a-item</summary>' +
+      '<div style="padding:14px;color:var(--text-light);font-size:.86rem">Respostas não disponíveis para esta sessão (importada sem detalhe item-a-item).</div></details>';
+  }
+  var rotuloEscala = ['—','Nunca','Raramente','Às vezes','Frequente','Sempre'];
+
+  // Mapa item → subescala
+  var mapaSub = {};
+  for (var k in SUBESCALAS){
+    SUBESCALAS[k].itens.forEach(function(it){
+      mapaSub[it] = { k: k, nome: SUBESCALAS[k].nome, inv: SUBESCALAS[k].invertidos.indexOf(it) >= 0 };
+    });
+  }
+
+  var html = '<details open><summary style="cursor:pointer;color:var(--blue);font-weight:600;font-size:.86rem;margin-bottom:8px">▸ Respostas item-a-item</summary>';
+  html += '<div style="overflow-x:auto;margin-top:10px"><table style="width:100%;border-collapse:collapse;font-size:.82rem">';
+  html += '<thead><tr style="background:var(--blue-xpale)">' +
+    '<th style="padding:6px 8px;text-align:center;color:var(--blue);width:36px">#</th>' +
+    '<th style="padding:6px 8px;text-align:left;color:var(--blue)">Item</th>' +
+    '<th style="padding:6px 8px;text-align:center;color:var(--blue)">Subescala</th>' +
+    '<th style="padding:6px 8px;text-align:center;color:var(--blue)">Resposta</th>' +
+    '<th style="padding:6px 8px;text-align:center;color:var(--blue)">Corrigida</th>' +
+    '</tr></thead><tbody>';
+
+  for (var i=0; i<s.respostas.length; i++){
+    var num = i + 1;
+    var info = mapaSub[num] || {};
+    var r = s.respostas[i];
+    var rCorr = info.inv ? (6 - r) : r;
+    html += '<tr>' +
+      '<td style="padding:5px 8px;text-align:center;color:var(--text-light);border-bottom:1px solid #f0f0f0">'+num+'</td>' +
+      '<td style="padding:5px 8px;border-bottom:1px solid #f0f0f0">'+ escapeHtml(ITEMS[i] || ('Item '+num)) + (info.inv ? ' <span style="color:var(--red);font-size:.7rem">(R)</span>' : '') + '</td>' +
+      '<td style="padding:5px 8px;text-align:center;color:var(--blue-mid);border-bottom:1px solid #f0f0f0;font-size:.78rem">'+(info.k || '—')+'</td>' +
+      '<td style="padding:5px 8px;text-align:center;font-weight:600;border-bottom:1px solid #f0f0f0">'+r+' <span style="color:var(--text-light);font-weight:400;font-size:.7rem">'+rotuloEscala[r]+'</span></td>' +
+      '<td style="padding:5px 8px;text-align:center;font-weight:600;color:'+(info.inv ? 'var(--red)' : 'var(--text)')+';border-bottom:1px solid #f0f0f0">'+rCorr+'</td>' +
+      '</tr>';
+  }
+
+  html += '</tbody></table></div>';
+  html += '<div style="font-size:.74rem;color:var(--text-light);margin-top:6px"><strong>(R)</strong> = item invertido (cotado como 6 − resposta). Itens 9 e 16 são invertidos.</div>';
+  html += '</details>';
+  return html;
+}
+
+// ════════════════════════════════════════════════════════════════
+// EXPORT — CSV / PDF da barra principal
+// ════════════════════════════════════════════════════════════════
+function exportarCSV(){
+  if (!sessoes.length){ alert('Sem sessões para exportar.'); return; }
+  var bom = '\uFEFF';
+  var header = ['Data','Codigo','NomeAvaliado','Sexo','Idade','NomeInformante','AF','AV','IR','HO','TOTAL','AF_Classe','AV_Classe','IR_Classe','HO_Classe','TOTAL_Classe','Respostas'];
+  var rows = sessoes.map(function(s){
+    return [
+      formatDate(s.date), s.patientCode, s.nomeAvaliado, s.sexo, s.idade, s.nomeInformante,
+      s.scores.AF, s.scores.AV, s.scores.IR, s.scores.HO, s.scores.TOTAL,
+      s.classes ? s.classes.AF    : '',
+      s.classes ? s.classes.AV    : '',
+      s.classes ? s.classes.IR    : '',
+      s.classes ? s.classes.HO    : '',
+      s.classes ? s.classes.TOTAL : '',
+      s.respostas ? s.respostas.join('|') : ''
+    ];
+  });
+  var csv = bom + header.join(';') + '\r\n' +
+    rows.map(function(r){ return r.map(function(v){ return '"'+String(v==null?'':v).replace(/"/g,'""')+'"'; }).join(';'); }).join('\r\n');
+  var blob = new Blob([csv], { type:'text/csv;charset=utf-8;' });
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'AQ_BussPerry_export_' + new Date().toISOString().slice(0,10) + '.csv';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+}
+
+function exportarPDFGlobal(){
+  if (!sessoes.length){ alert('Sem sessões para exportar.'); return; }
+  var html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>AQ Buss-Perry — Painel Clínico</title>' +
+    '<style>body{font-family:Arial,sans-serif;font-size:11px;color:#2C3E50;padding:24px}' +
+    'h1{color:#3B5A7A;font-size:16px;margin-bottom:4px}' +
+    'p{color:#6B7A8D;margin-bottom:16px;font-size:10px}' +
+    'table{width:100%;border-collapse:collapse;font-size:10px}' +
+    'th{background:#D6E4F0;padding:6px 8px;text-align:left;color:#3B5A7A}' +
+    'td{padding:5px 8px;border-bottom:1px solid #eee}' +
+    '.no-print{margin-bottom:16px}' +
+    '@media print{.no-print{display:none}}' +
+    '</style></head><body>' +
+    '<div class="no-print"><button onclick="window.print()" style="padding:6px 14px;cursor:pointer">🖨 Imprimir / Guardar PDF</button></div>' +
+    '<h1>AQ Buss-Perry — Painel Clínico</h1>' +
+    '<p>'+ sessoes.length +' sessões · Ricardina Correia · Cédula 8233 · ' + new Date().toLocaleDateString('pt-PT') + '</p>' +
+    '<table><thead><tr><th>Data</th><th>Código</th><th>Nome</th><th>Sx</th><th>Id</th>' +
+    '<th style="text-align:center">AF</th><th style="text-align:center">AV</th>' +
+    '<th style="text-align:center">Ira</th><th style="text-align:center">HO</th>' +
+    '<th style="text-align:center">Total</th><th>Classif. Total</th></tr></thead><tbody>';
+  sessoes.forEach(function(s){
+    var clsT = s.classes ? CAT_LABELS[s.classes.TOTAL] : null;
+    html += '<tr>' +
+      '<td>'+formatDate(s.date)+'</td>' +
+      '<td><strong>'+(s.patientCode||'')+'</strong></td>' +
+      '<td>'+(s.nomeAvaliado||'')+'</td>' +
+      '<td>'+(s.sexo||'')+'</td>' +
+      '<td>'+(s.idade||'')+'</td>' +
+      '<td style="text-align:center">'+s.scores.AF+'</td>' +
+      '<td style="text-align:center">'+s.scores.AV+'</td>' +
+      '<td style="text-align:center">'+s.scores.IR+'</td>' +
+      '<td style="text-align:center">'+s.scores.HO+'</td>' +
+      '<td style="text-align:center;font-weight:700">'+s.scores.TOTAL+'</td>' +
+      '<td style="color:'+(clsT?clsT.cor:'#999')+';font-weight:600">'+(clsT?clsT.txt:'—')+'</td>' +
+      '</tr>';
+  });
+  html += '</tbody></table></body></html>';
+  var w = window.open('','_blank');
+  if (!w){ alert('Pop-up bloqueado. Permite pop-ups para este site.'); return; }
+  w.document.write(html); w.document.close();
+}
+
+// ════════════════════════════════════════════════════════════════
+// IMPORT CSV
+// ════════════════════════════════════════════════════════════════
+function processarFicheiroImportado(input){
+  var f = input.files && input.files[0];
+  if (!f) return;
+  var reader = new FileReader();
+  reader.onload = function(e){
+    var text = e.target.result.replace(/^\uFEFF/, '');
+    var rows = text.split(/\r?\n/).filter(Boolean);
+    if (!rows.length){ feedback('Ficheiro vazio.', 'red'); return; }
+    var sep = rows[0].indexOf(';') >= 0 ? ';' : ',';
+    var headers = parseCSVLine(rows[0], sep);
+    var importadas = 0, ignoradas = 0;
+    var local = JSON.parse(localStorage.getItem(SK_LOCAL) || '[]');
+    for (var i=1; i<rows.length; i++){
+      var cells = parseCSVLine(rows[i], sep);
+      if (cells.length < 2) continue;
+      var obj = {};
+      headers.forEach(function(h, j){ obj[h] = cells[j]; });
+      var code = obj.Codigo || obj['Código'] || obj.patientCode;
+      var dt   = obj.Data || obj.date || obj.timestamp;
+      if (!code){ ignoradas++; continue; }
+      var dup = local.some(function(s){ return s.patientCode === code && s.date === dt; });
+      if (dup){ ignoradas++; continue; }
+      var respostas = null;
+      try {
+        if (obj.Respostas) respostas = obj.Respostas.indexOf('|') >= 0 ? obj.Respostas.split('|').map(Number) : JSON.parse(obj.Respostas).map(Number);
+      } catch(e){}
+      var sessao = {
+        patientCode:    code,
+        nomeAvaliado:   obj.NomeAvaliado || obj.Nome || '',
+        nomeInformante: obj.NomeInformante || '',
+        sexo:           obj.Sexo || '',
+        idade:          obj.Idade || '',
+        date:           dt || new Date().toISOString(),
+        timestamp:      dt || new Date().toISOString(),
+        scores: {
+          AF:    Number(obj.AF || obj.AF_Bruto || 0),
+          AV:    Number(obj.AV || obj.AV_Bruto || 0),
+          IR:    Number(obj.IR || obj.IR_Bruto || 0),
+          HO:    Number(obj.HO || obj.HO_Bruto || 0),
+          TOTAL: Number(obj.TOTAL || obj.TOTAL_Bruto || 0)
+        },
+        respostas: respostas
+      };
+      if (!sessao.scores.TOTAL) sessao.scores.TOTAL = sessao.scores.AF + sessao.scores.AV + sessao.scores.IR + sessao.scores.HO;
+      if (sessao.sexo && NORMAS[sessao.sexo]) sessao.classes = classificarTodos(sessao.scores, sessao.sexo);
+      local.push(sessao);
+      importadas++;
+    }
+    localStorage.setItem(SK_LOCAL, JSON.stringify(local));
+    feedback('✓ ' + importadas + ' sessões importadas, ' + ignoradas + ' ignoradas (duplicadas ou inválidas).', 'green');
+    carregarDados();
+  };
+  reader.readAsText(f, 'utf-8');
+  input.value = '';
+}
+
+function parseCSVLine(line, sep){
+  var out = [], cur = '', inQ = false;
+  for (var i=0; i<line.length; i++){
+    var ch = line[i];
+    if (ch === '"'){
+      if (inQ && line[i+1] === '"'){ cur += '"'; i++; }
+      else inQ = !inQ;
+    } else if (ch === sep && !inQ){
+      out.push(cur); cur = '';
+    } else cur += ch;
+  }
+  out.push(cur);
+  return out;
+}
+
+function feedback(msg, cor){
+  var el = document.getElementById('import-feedback');
+  el.textContent = msg;
+  el.style.cssText = 'margin-bottom:12px;padding:10px 14px;border-radius:6px;font-size:.84rem;background:' + (cor==='green'?'#E8F4EA':'#F8DAD5') + ';color:' + (cor==='green'?'#27AE60':'#C0392B') + ';';
+  el.style.display = 'block';
+  setTimeout(function(){ el.style.display = 'none'; }, 8000);
+}
+
+// ════════════════════════════════════════════════════════════════
+// PDFs do modal — Respostas e Relatório Completo
+// ════════════════════════════════════════════════════════════════
+function exportarRespostasPDF(sessao){
+  if (!sessao || !sessao.respostas){ alert('Sem respostas para exportar.'); return; }
+  var rotuloEscala = ['—','Nunca','Raramente','Às vezes','Frequente','Sempre'];
+
+  var mapaSub = {};
+  for (var k in SUBESCALAS){
+    SUBESCALAS[k].itens.forEach(function(it){
+      mapaSub[it] = { k: k, inv: SUBESCALAS[k].invertidos.indexOf(it) >= 0 };
+    });
+  }
+
+  var linhas = '';
+  for (var i=0; i<sessao.respostas.length; i++){
+    var num = i + 1;
+    var info = mapaSub[num] || {};
+    var r = sessao.respostas[i];
+    linhas +=
+      '<tr>' +
+      '<td style="padding:4px 8px;border-bottom:1px solid #eee;color:#6B7A8D;text-align:center">'+num+'</td>' +
+      '<td style="padding:4px 8px;border-bottom:1px solid #eee">'+ escapeHtml(ITEMS[i]) + (info.inv ? ' <span style="color:#C0392B">(R)</span>' : '') + '</td>' +
+      '<td style="padding:4px 8px;border-bottom:1px solid #eee;text-align:center;color:#5B7FA6">'+ (info.k || '') +'</td>' +
+      '<td style="padding:4px 8px;border-bottom:1px solid #eee;text-align:center;font-weight:600">'+ r +' <span style="color:#999;font-weight:400;font-size:9px">'+rotuloEscala[r]+'</span></td>' +
+      '</tr>';
+  }
+
+  var dt = formatDate(sessao.date);
+  var html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Respostas — ' + sessao.patientCode + '</title>' +
+    '<style>body{font-family:Arial,sans-serif;font-size:11px;color:#2C3E50;padding:24px;max-width:900px;margin:0 auto}' +
+    'h2{color:#3B5A7A;font-size:15px;margin-bottom:4px}' +
+    'p{color:#6B7A8D;margin-bottom:16px;font-size:10px}' +
+    'table{width:100%;border-collapse:collapse}' +
+    'th{background:#D6E4F0;padding:6px 8px;text-align:left;color:#3B5A7A;font-size:10px}' +
+    '.no-print{margin-bottom:16px}' +
+    '@media print{.no-print{display:none}body{padding:12px}}' +
+    '</style></head><body>' +
+    '<div class="no-print"><button onclick="window.print()" style="padding:6px 14px;cursor:pointer">🖨 Imprimir / Guardar PDF</button></div>' +
+    '<h2>AQ Buss-Perry — Respostas por item</h2>' +
+    '<p>Código: <strong>' + (sessao.patientCode||'') + '</strong>' +
+      (sessao.nomeAvaliado ? ' &nbsp;|&nbsp; Nome: <strong>' + sessao.nomeAvaliado + '</strong>' : '') +
+      ' &nbsp;|&nbsp; Sexo: ' + (sessao.sexo||'') + ' &nbsp;|&nbsp; Idade: ' + (sessao.idade||'') +
+      ' &nbsp;|&nbsp; Data: ' + dt +
+      ' &nbsp;|&nbsp; Ricardina Correia · Cédula 8233</p>' +
+    '<table><thead><tr><th style="width:36px;text-align:center">#</th><th>Item</th><th style="text-align:center;width:80px">Subescala</th><th style="text-align:center;width:140px">Resposta</th></tr></thead>' +
+    '<tbody>' + linhas + '</tbody></table>' +
+    '<p style="margin-top:18px;font-size:9.5px;color:#999"><strong>(R)</strong> = item invertido (cotado como 6 − resposta). Itens 9 e 16 são invertidos.</p>' +
+    '</body></html>';
+
+  var w = window.open('','_blank');
+  if (!w){ alert('Pop-up bloqueado. Permite pop-ups para este site.'); return; }
+  w.document.write(html); w.document.close();
+}
+
+function exportarInterpretacaoPDF(sessao){
+  if (!sessao){ alert('Sessão indisponível.'); return; }
+  var dt = formatDate(sessao.date);
+
+  // Linhas de subescala
+  var linhasSub = '';
+  ORDEM_SUB.forEach(function(k){
+    var cfg = SUBESCALAS[k];
+    var val = sessao.scores[k];
+    var clsT = sessao.classes ? CAT_LABELS[sessao.classes[k]] : { txt:'(sem sexo)', cor:'#999' };
+    var pct = Math.max(0, Math.min(100, Math.round(((val - cfg.ampMin) / (cfg.ampMax - cfg.ampMin)) * 100)));
+    linhasSub +=
+      '<tr>' +
+      '<td style="padding:5px 8px;border-bottom:1px solid #eee">' + cfg.nome + ' (' + k + ')</td>' +
+      '<td style="padding:5px 8px;border-bottom:1px solid #eee;text-align:center;font-weight:700;color:'+clsT.cor+'">'+ val +'</td>' +
+      '<td style="padding:5px 8px;border-bottom:1px solid #eee;text-align:center;color:#999;font-size:10px">'+cfg.ampMin+'–'+cfg.ampMax+'</td>' +
+      '<td style="padding:5px 8px;border-bottom:1px solid #eee">' +
+        '<div style="background:#eee;border-radius:3px;height:8px;width:120px"><div style="background:'+clsT.cor+';border-radius:3px;height:8px;width:'+pct+'%"></div></div>' +
+      '</td>' +
+      '<td style="padding:5px 8px;border-bottom:1px solid #eee;color:'+clsT.cor+';font-weight:600">'+clsT.txt+'</td>' +
+      '</tr>';
+  });
+
+  // Linha TOTAL
+  var valT = sessao.scores.TOTAL;
+  var clsT = sessao.classes ? CAT_LABELS[sessao.classes.TOTAL] : { txt:'(sem sexo)', cor:'#999' };
+  var pctT = Math.max(0, Math.min(100, Math.round(((valT - 29) / (145 - 29)) * 100)));
+  var linhaTotal =
+    '<tr style="background:#EBF2F8">' +
+    '<td style="padding:5px 8px;font-weight:700"><strong>TOTAL AQ</strong></td>' +
+    '<td style="padding:5px 8px;text-align:center;font-weight:700;color:'+clsT.cor+'">'+valT+'</td>' +
+    '<td style="padding:5px 8px;text-align:center;color:#999;font-size:10px">29–145</td>' +
+    '<td style="padding:5px 8px"><div style="background:#eee;border-radius:3px;height:8px;width:120px"><div style="background:'+clsT.cor+';border-radius:3px;height:8px;width:'+pctT+'%"></div></div></td>' +
+    '<td style="padding:5px 8px;color:'+clsT.cor+';font-weight:700">'+clsT.txt+'</td>' +
+    '</tr>';
+
+  // Respostas
+  var rotuloEscala = ['—','Nunca','Raramente','Às vezes','Frequente','Sempre'];
+  var mapaSub = {};
+  for (var k in SUBESCALAS){
+    SUBESCALAS[k].itens.forEach(function(it){
+      mapaSub[it] = { k: k, inv: SUBESCALAS[k].invertidos.indexOf(it) >= 0 };
+    });
+  }
+  var respostasHtml = '';
+  if (sessao.respostas){
+    for (var i=0; i<sessao.respostas.length; i++){
+      var num = i+1;
+      var info = mapaSub[num] || {};
+      var r = sessao.respostas[i];
+      var rCorr = info.inv ? (6 - r) : r;
+      respostasHtml +=
+        '<tr>' +
+        '<td style="padding:3px 6px;border-bottom:1px solid #f0f0f0;text-align:center;color:#999;font-size:10px">'+num+'</td>' +
+        '<td style="padding:3px 6px;border-bottom:1px solid #f0f0f0;font-size:10px">'+ escapeHtml(ITEMS[i]) + (info.inv ? ' (R)' : '') + '</td>' +
+        '<td style="padding:3px 6px;border-bottom:1px solid #f0f0f0;text-align:center;color:#5B7FA6;font-size:10px">'+(info.k||'')+'</td>' +
+        '<td style="padding:3px 6px;border-bottom:1px solid #f0f0f0;text-align:center;font-weight:600">'+r+'</td>' +
+        '<td style="padding:3px 6px;border-bottom:1px solid #f0f0f0;text-align:center;font-weight:600;color:'+(info.inv?'#C0392B':'#2C3E50')+'">'+rCorr+'</td>' +
+        '</tr>';
+    }
+  }
+
+  var html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Relatório AQ Buss-Perry — ' + sessao.patientCode + '</title>' +
+    '<style>body{font-family:Arial,sans-serif;font-size:11px;color:#2C3E50;padding:24px;max-width:900px;margin:0 auto}' +
+    'h1{color:#3B5A7A;font-size:16px;margin-bottom:4px}' +
+    'h2{color:#3B5A7A;font-size:13px;margin:18px 0 8px;border-bottom:2px solid #D6E4F0;padding-bottom:4px}' +
+    'p{color:#6B7A8D;margin-bottom:14px;font-size:10px;line-height:1.5}' +
+    'table{width:100%;border-collapse:collapse;margin-bottom:14px}' +
+    'th{background:#D6E4F0;padding:6px 8px;text-align:left;color:#3B5A7A;font-size:10px}' +
+    '.no-print{margin-bottom:16px}' +
+    '@media print{.no-print{display:none}body{padding:12px}}' +
+    '</style></head><body>' +
+    '<div class="no-print"><button onclick="window.print()" style="padding:6px 14px;cursor:pointer">🖨 Imprimir / Guardar PDF</button></div>' +
+    '<h1>AQ Buss-Perry — Relatório de Avaliação</h1>' +
+    '<p>Código: <strong>' + (sessao.patientCode||'') + '</strong>' +
+      (sessao.nomeAvaliado ? ' &nbsp;|&nbsp; Nome: <strong>' + sessao.nomeAvaliado + '</strong>' : '') +
+      ' &nbsp;|&nbsp; Sexo: ' + (sessao.sexo||'') + ' &nbsp;|&nbsp; Idade: ' + (sessao.idade||'') +
+      ' &nbsp;|&nbsp; Data: ' + dt +
+      ' &nbsp;|&nbsp; Ricardina Correia · Cédula 8233 · Psicologia Pediátrica</p>' +
+    '<h2>Pontuações por subescala</h2>' +
+    '<table><thead><tr><th>Subescala</th><th style="text-align:center">Score</th><th style="text-align:center">Amplitude</th><th>Perfil</th><th>Classificação</th></tr></thead>' +
+    '<tbody>' + linhasSub + linhaTotal + '</tbody></table>';
+
+  if (sessao.classes){
+    var c = sessao.classes;
+    var sintese = '';
+    var sexoTxt = sessao.sexo === 'M' ? 'masculino' : 'feminino';
+    if (c.TOTAL === 'baixa')   sintese = 'O nível global de agressividade situa-se em zona <strong>Baixa</strong> face às normas portuguesas para o grupo ' + sexoTxt + '.';
+    if (c.TOTAL === 'media')   sintese = 'O nível global de agressividade situa-se em zona <strong>Média (normativa)</strong> face às normas portuguesas para o grupo ' + sexoTxt + '.';
+    if (c.TOTAL === 'elevada') sintese = 'O nível global de agressividade situa-se em zona <strong>Elevada</strong> face às normas portuguesas para o grupo ' + sexoTxt + ', acima do esperado.';
+    if (c.TOTAL === 'muito')   sintese = 'O nível global de agressividade situa-se em zona <strong>Muito Elevada</strong> (>M+2DP) face às normas portuguesas para o grupo ' + sexoTxt + '.';
+    var altas = [];
+    ORDEM_SUB.forEach(function(k){ if (c[k]==='elevada' || c[k]==='muito') altas.push(SUBESCALAS[k].nome + ' (' + (c[k]==='muito'?'muito elevada':'elevada') + ')'); });
+    if (altas.length) sintese += ' Destaca-se sobretudo: <strong>' + altas.join('; ') + '</strong>.';
+    html += '<h2>Síntese interpretativa</h2><p>' + sintese + '</p>';
+  }
+
+  if (respostasHtml){
+    html += '<h2>Respostas item-a-item</h2>' +
+      '<table><thead><tr><th style="text-align:center;width:34px">#</th><th>Item</th><th style="text-align:center;width:70px">Sub.</th><th style="text-align:center;width:60px">Resp.</th><th style="text-align:center;width:70px">Corrigida</th></tr></thead>' +
+      '<tbody>' + respostasHtml + '</tbody></table>' +
+      '<p style="font-size:9px;color:#999"><strong>(R)</strong> = item invertido (6 − resposta). Itens 9 e 16 são invertidos.</p>';
+  }
+
+  html += '<p style="margin-top:18px;font-style:italic;color:#999;font-size:9.5px">' +
+    'Cunha, O., &amp; Gonçalves, R. A. (2012). Análise confirmatória fatorial de uma versão portuguesa do Questionário de Agressividade de Buss-Perry. <em>Laboratório de Psicologia</em>, 10(1), 3–17. · ' +
+    'Buss &amp; Perry (1992). <em>JPSP</em>, 63, 452–459. · ' +
+    'Aviso técnico: a subescala Agressividade Verbal apresenta consistência interna baixa (α=.56). Interpretação automática — integrar sempre no contexto clínico.' +
+    '</p></body></html>';
+
+  var w = window.open('','_blank');
+  if (!w){ alert('Pop-up bloqueado. Permite pop-ups para este site.'); return; }
+  w.document.write(html); w.document.close();
+}
+
+// ════════════════════════════════════════════════════════════════
+// ARRANQUE
+// ════════════════════════════════════════════════════════════════
+(function(){
+  // Auto-login via ?clinico=CNS2024
+  var params = new URLSearchParams(window.location.search);
+  if (params.get('clinico') === PASSWORD){
+    showPage('page-clinico');
+    carregarDados();
+    return;
+  }
+  showPage('page-home');
+})();
+</script>
+</body>
+</html>

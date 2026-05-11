@@ -947,7 +947,14 @@ const SYNC_KEY_TO_ABA = {
 
   // ── MDQ (Mood Disorder Questionnaire — rastreio bipolar) ──
   'mdq':                   'MDQ',
-  'MDQ':                   'MDQ'
+  'MDQ':                   'MDQ',
+
+  // ── AQ Buss-Perry — Questionário de Agressividade (Cunha & Gonçalves, 2012) ──
+  'aq_bussperry':          'AQ_BussPerry',
+  'AQ_BussPerry':          'AQ_BussPerry',
+  'AQ-BussPerry':          'AQ_BussPerry',
+  'aq':                    'AQ_BussPerry',
+  'AQ':                    'AQ_BussPerry'
 };
 
 // Cache em memória das respostas do Sheet (evita fetch repetidos na mesma sessão)
@@ -1551,7 +1558,18 @@ function initCatalog() {
       ageRange:'Adultos (≥18 anos)',
       objective:'Auto-relato breve (15 itens, ~3-5 min) para rastreio de perturbações do espectro bipolar (Hirschfeld et al., 2000; validação PT-BR Gurgel et al., 2012). 13 itens de sintomas maníacos/hipomaníacos + 1 item de co-ocorrência temporal + 1 item de impacto funcional. Classificação principal em 4 níveis (Rastreio Positivo, Sintomatologia Bipolar Incompleta, Zona Subclínica, Rastreio Negativo) e 4 alertas diferenciais (TDAH adulto, Borderline/Cluster B, Características Mistas, Confounding por Substâncias). NUNCA constitui diagnóstico — instrumento de rastreio. Os domínios não são visíveis ao paciente durante o preenchimento.',
       domains:['Soma P1 (sintomas)','Co-ocorrência (P2)','Impacto funcional (P3)','Activação somática','Cognição acelerada','Expansividade hedónica','Pressão comunicacional','Disforia/Irritabilidade','Desregulação comportamental','Classificação','Alertas Diferenciais'],
-      ageMin:216, ageMax:null }
+      ageMin:216, ageMax:null },
+    // ── AQ Buss-Perry — Questionário de Agressividade (Buss & Perry, 1992; adapt. PT Cunha & Gonçalves, 2012) ──
+    { id:'q_aq_bussperry',
+      name:'AQ Buss-Perry — Agressividade',
+      dest:['Paciente'],
+      link:'https://correiaricardina-ui.github.io/questionarios/AQ_BussPerry_v1.html',
+      syncKey:'aq_bussperry',
+      area:'Externalização & Comportamento',
+      ageRange:'Adultos (≥16 anos)',
+      objective:'Auto-relato (29 itens, ~5-8 min) para avaliação multidimensional da agressividade (Buss & Perry, 1992; adaptação portuguesa Cunha & Gonçalves, 2012, n=633 universitários). Quatro subescalas: Agressividade Física (AF, 9 itens), Agressividade Verbal (AV, 5 itens), Raiva/Ira (7 itens), Hostilidade (HO, 8 itens) + Total AQ. Escala Likert 1-5. Itens 9 e 16 invertidos. Classificação em 4 níveis por sexo (Baixa, Média, Elevada, Muito Elevada). Aviso técnico: a subescala Agressividade Verbal tem consistência interna baixa (α=.56) — interpretar com prudência. Os domínios não são visíveis ao paciente durante o preenchimento.',
+      domains:['Agressividade Física (AF)','Agressividade Verbal (AV)','Raiva/Ira','Hostilidade (HO)','Total AQ'],
+      ageMin:192, ageMax:null }
   ];
   // Garantir que TODOS os defaults estão no catálogo, sempre
   // (funciona em RC novos e em RC existentes — nunca perde questionários)
@@ -1703,6 +1721,8 @@ function initCatalog() {
       'q_sociograma':   { link:'https://correiaricardina-ui.github.io/questionarios/SOCIOGRAMA_RC_v1.html', syncKey:'sociograma' },
       // MDQ — Mood Disorder Questionnaire (rastreio bipolar) v1.0
       'q_mdq':          { link:'https://correiaricardina-ui.github.io/questionarios/MDQ_v1.html', syncKey:'mdq' },
+      // AQ Buss-Perry — Questionário de Agressividade v1.0
+      'q_aq_bussperry': { link:'https://correiaricardina-ui.github.io/questionarios/AQ_BussPerry_v1.html', syncKey:'aq_bussperry' },
     };
     // ── Re-store com chave correcta ('q_' + id) — corrige instalações anteriores ──
     // Garante que Conners, FAD e MAP ficam acessíveis pelo META.forEach e getCatalog
@@ -2048,6 +2068,11 @@ function initCatalog() {
     if(!catalog.includes('q_mdq')) {
       const d = defaults.find(x => x.id === 'q_mdq');
       if(d) { store.set('q_' + d.id, d); catalog.push('q_mdq'); store.set('catalog', catalog); }
+    }
+    // ── AQ Buss-Perry — Questionário de Agressividade v1.0 ──
+    if(!catalog.includes('q_aq_bussperry')) {
+      const d = defaults.find(x => x.id === 'q_aq_bussperry');
+      if(d) { store.set('q_' + d.id, d); catalog.push('q_aq_bussperry'); store.set('catalog', catalog); }
     }
     }
   }
@@ -3194,6 +3219,21 @@ function formatScoreSummary(scores, syncKey) {
     return '<span style="font-size:0.78rem;color:var(--text-light)">MDQ</span>';
   }
 
+  // AQ Buss-Perry — Questionário de Agressividade
+  if(syncKey === 'aq_bussperry') {
+    const total = scores['TOTAL_Bruto'] ?? scores['Total'] ?? scores['total'];
+    const classif = scores['TOTAL_Classe'] ?? scores['classif'] ?? '';
+    if(total != null) {
+      const cls = classif === 'muito' ? 'color:#C0392B;font-weight:700;' :
+                  classif === 'elevada' ? 'color:#E67E22;font-weight:600;' :
+                  classif === 'baixa' ? 'color:var(--text-light);font-weight:500;' :
+                  'color:var(--green);font-weight:600;';
+      const labelMap = { baixa:'Baixa', media:'Média', elevada:'Elevada', muito:'Muito Elevada' };
+      return `<span style="font-size:0.78rem;${cls}">Total AQ=${total}${classif ? ' · ' + (labelMap[classif] || classif) : ''}</span>`;
+    }
+    return '<span style="font-size:0.78rem;color:var(--text-light)">AQ Buss-Perry</span>';
+  }
+
   return null;
 }
 
@@ -3454,7 +3494,9 @@ function renderAssignments(patientId) {
                 // ── ERQ-CA — v60.0 — auto-relato 10-18 anos ──
                 'ERQ_CA':                ['NomeInformante','NomeCriança','NomeCrianca'],
                 // ── STAXI-NA — v61.0 — auto-relato 9-18 anos ──
-                'STAXI_NA':              ['NomeInformante','NomeCriança','NomeCrianca']
+                'STAXI_NA':              ['NomeInformante','NomeCriança','NomeCrianca'],
+                // ── AQ Buss-Perry — auto-relato adulto (≥16 anos) ──
+                'AQ_BussPerry':          ['NomeAvaliado','NomeInformante']
               };
               const RC = {
                 'SWAN':['Relação'],'BRIEF_Pais':['Relação'],'SCARED_R_PAIS':['Relação'],
