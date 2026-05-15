@@ -1,0 +1,2485 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PECN-RC · Nível 3 — COMPLEXIFICAÇÃO</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { font-family: 'Atkinson Hyperlegible', 'Quicksand', system-ui, -apple-system, 'Segoe UI', sans-serif; background: #FAFAFA; color: #1B2631; line-height: 1.5; min-height: 100vh; }
+body { padding: 24px; max-width: 1200px; margin: 0 auto; }
+:root { --prim: #1F3A5F; --sec: #5DADE2; --fundo: #EAF2F8; --txt: #1B2631; --cinza: #7F8C8D; --cinza-light: #BDC3C7; --erro: #C0392B; --sucesso: #27AE60; --alerta: #E67E22; }
+
+.header { background: white; border-top: 4px solid var(--prim); border-radius: 8px 8px 4px 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); padding: 24px 32px; margin-bottom: 24px; }
+.header h1 { color: var(--prim); font-size: 32px; font-weight: 700; letter-spacing: -0.5px; }
+.header .subtitulo { color: var(--sec); font-size: 16px; font-style: italic; margin-top: 4px; }
+.header .nivel { color: var(--txt); font-size: 22px; font-weight: 600; margin-top: 12px; }
+.header .info { color: var(--cinza); font-size: 14px; margin-top: 4px; }
+.header .patient-info { background: var(--fundo); padding: 12px 18px; border-radius: 6px; margin-top: 16px; border-left: 4px solid var(--prim); font-size: 14px; }
+.header .patient-info strong { color: var(--prim); }
+
+.nav-bar { background: white; border-radius: 6px; padding: 16px 20px; margin-bottom: 24px; box-shadow: 0 1px 4px rgba(0,0,0,0.04); display: flex; gap: 6px; flex-wrap: wrap; }
+.nav-btn { background: #F1F3F5; border: 2px solid transparent; color: var(--cinza); padding: 8px 14px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600; font-family: inherit; }
+.nav-btn:hover { background: var(--fundo); color: var(--prim); }
+.nav-btn.active { background: var(--prim); color: white; border-color: var(--prim); }
+.nav-btn.done { background: var(--sucesso); color: white; }
+
+.card { background: white; border-radius: 8px; padding: 28px 32px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); margin-bottom: 20px; }
+.card h2, .section-title { color: var(--prim); font-size: 24px; font-weight: 700; padding-bottom: 10px; margin-bottom: 18px; border-bottom: 3px solid var(--fundo); }
+.card h3, .subsection { color: var(--sec); font-size: 18px; font-weight: 700; margin-top: 20px; margin-bottom: 10px; }
+.card h4 { color: var(--prim); font-size: 16px; font-weight: 700; margin-top: 16px; margin-bottom: 8px; }
+.card p { margin-bottom: 12px; }
+.card .instrucao, .instructions { background: var(--fundo); border-left: 4px solid var(--sec); padding: 16px 20px; margin: 16px 0; font-style: italic; border-radius: 0 6px 6px 0; }
+.card .nota { color: var(--cinza); font-size: 14px; font-style: italic; margin-top: 8px; }
+
+.form-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin: 20px 0; }
+.form-field { display: flex; flex-direction: column; }
+.form-field label { font-size: 13px; font-weight: 600; color: var(--prim); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+.form-field input, .form-field select, .form-field textarea { padding: 10px 14px; border: 2px solid #E0E0E0; border-radius: 5px; font-size: 15px; font-family: inherit; }
+.form-field input:focus, .form-field select:focus, .form-field textarea:focus { outline: none; border-color: var(--prim); }
+.form-field.full { grid-column: 1 / -1; }
+
+.btn { background: var(--prim); color: white; border: none; padding: 12px 24px; border-radius: 6px; font-size: 15px; font-weight: 600; cursor: pointer; font-family: inherit; margin: 4px; }
+.btn:hover { opacity: 0.88; }
+.btn-secondary { background: white; color: var(--prim); border: 2px solid var(--prim); }
+.btn-success { background: var(--sucesso); }
+.btn-danger { background: var(--erro); }
+.btn-large { padding: 16px 32px; font-size: 17px; }
+.btn-group { display: flex; gap: 12px; margin-top: 20px; flex-wrap: wrap; }
+
+.progress-bar { background: #E8E8E8; height: 8px; border-radius: 4px; overflow: hidden; margin: 20px 0 12px; }
+.progress-fill { background: linear-gradient(90deg, var(--prim) 0%, var(--sec) 100%); height: 100%; transition: width 0.3s ease; }
+.progress-text { font-size: 13px; color: var(--cinza); margin-bottom: 16px; text-align: center; }
+
+.observation-grid { display: grid; grid-template-columns: 1fr; gap: 8px; margin: 12px 0; }
+.observation-item { background: var(--fundo); padding: 12px 16px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 10px; font-size: 14px; }
+.observation-item input[type="checkbox"] { width: 18px; height: 18px; cursor: pointer; }
+.observation-item:hover { background: white; border-left: 4px solid var(--sec); }
+
+.sintese-section { margin: 30px 0; padding-top: 20px; border-top: 2px solid var(--fundo); }
+.sintese-section:first-child { border-top: none; padding-top: 0; }
+.resumo-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin: 16px 0; }
+.resumo-card { background: var(--fundo); padding: 16px; border-radius: 8px; border-top: 4px solid var(--prim); }
+.resumo-card .label { font-size: 11px; color: var(--cinza); text-transform: uppercase; font-weight: 600; }
+.resumo-card .nome { font-size: 14px; font-weight: 700; color: var(--prim); margin: 4px 0; }
+.resumo-card .valor { font-size: 28px; font-weight: 800; color: var(--txt); }
+.resumo-card .sub { font-size: 12px; color: var(--cinza); margin-top: 4px; }
+.tabela-resumo { width: 100%; border-collapse: collapse; margin: 12px 0; }
+.tabela-resumo thead { background: var(--prim); color: white; }
+.tabela-resumo th { padding: 12px 14px; text-align: left; font-weight: 600; font-size: 13px; }
+.tabela-resumo td { padding: 12px 14px; border-bottom: 1px solid #EEE; font-size: 14px; }
+.tabela-resumo td.num { text-align: right; font-variant-numeric: tabular-nums; font-weight: 700; }
+
+.tela { display: none; }
+.tela.active { display: block; }
+.rodape { text-align: center; color: var(--cinza); font-size: 12px; font-style: italic; padding: 20px 0; }
+
+/* Componentes específicas — estilos do v1 */
+.option-button { background: white; border: 2px solid var(--prim); color: var(--prim); padding: 16px 28px; border-radius: 8px; font-size: 18px; font-weight: 700; cursor: pointer; margin: 8px; min-width: 120px; font-family: inherit; }
+.option-button:hover { background: var(--prim); color: white; transform: scale(1.03); }
+.option-button.selected { background: var(--prim); color: white; }
+.timer-display { font-size: 24px; font-weight: 700; color: var(--sec); text-align: center; font-variant-numeric: tabular-nums; margin: 12px 0; }
+.numeric-input { width: 100%; padding: 12px; font-size: 24px; text-align: center; border: 2px solid var(--prim); border-radius: 6px; font-family: inherit; font-weight: 700; }
+.choice-row { display: flex; gap: 20px; justify-content: center; flex-wrap: wrap; margin: 20px 0; }
+.estimulo-display { background: linear-gradient(180deg, white 0%, var(--fundo) 100%); border: 2px solid var(--prim); border-radius: 12px; min-height: 200px; display: flex; align-items: center; justify-content: center; padding: 30px; margin: 24px 0; font-size: 64px; font-weight: 700; }
+.estimulo-display.menor { font-size: 48px; }
+.estimulo-display.menor .palavra { font-size: 48px; }
+
+/* Módulo análise numérica (Grelha Autoral RC) */
+
+.upload-area { border: 3px dashed var(--cinza-light); border-radius: 12px; padding: 30px; text-align: center; cursor: pointer; background: var(--fundo); transition: all 0.2s; margin: 16px 0; }
+.upload-area:hover { border-color: var(--prim); background: white; }
+.upload-area.dragover { border-color: var(--prim); background: var(--fundo); }
+.upload-area.tem-imagem { padding: 12px; border-style: solid; border-color: var(--prim); }
+.upload-placeholder { color: var(--cinza); }
+.upload-placeholder .icon { font-size: 56px; margin-bottom: 8px; }
+.upload-placeholder .titulo { font-size: 16px; font-weight: 600; color: var(--txt); margin-bottom: 6px; }
+.upload-placeholder .sub { font-size: 13px; }
+#foto-preview { max-width: 100%; max-height: 500px; border-radius: 8px; display: block; margin: 0 auto; }
+.foto-actions { display: flex; gap: 10px; justify-content: center; margin-top: 12px; flex-wrap: wrap; }
+.foto-actions button { background: white; border: 1px solid var(--cinza-light); color: var(--txt); padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 13px; }
+.foto-actions button:hover { background: var(--fundo); border-color: var(--prim); color: var(--prim); }
+
+.metricas-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; margin: 14px 0; }
+.metrica-item { background: var(--fundo); padding: 12px 14px; border-radius: 6px; border-left: 4px solid var(--sec); }
+.metrica-item .label { font-size: 11px; color: var(--cinza); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; }
+.metrica-item .valor { font-size: 22px; font-weight: 700; color: var(--txt); margin-top: 4px; font-variant-numeric: tabular-nums; }
+.metrica-item .unidade { font-size: 12px; color: var(--cinza); font-weight: 400; margin-left: 3px; }
+
+.grelha-bloco { background: white; border: 1px solid #E0E0E0; border-radius: 8px; padding: 18px; margin: 16px 0; }
+.grelha-bloco-titulo { color: var(--prim); font-weight: 700; font-size: 15px; padding-bottom: 8px; margin-bottom: 12px; border-bottom: 2px solid var(--fundo); }
+.grelha-item { padding: 12px 0; border-bottom: 1px solid #F0F0F0; }
+.grelha-item:last-child { border-bottom: none; }
+.grelha-item-cab { display: flex; justify-content: space-between; align-items: start; gap: 12px; margin-bottom: 8px; flex-wrap: wrap; }
+.grelha-item-nome { flex: 1; min-width: 200px; }
+.grelha-item-nome strong { display: block; color: var(--txt); font-size: 14px; margin-bottom: 2px; }
+.grelha-item-nome .desc { font-size: 12px; color: var(--cinza); font-style: italic; line-height: 1.4; }
+.escala-botoes { display: flex; gap: 4px; flex-wrap: wrap; }
+.escala-btn { background: white; border: 2px solid #E0E0E0; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: 600; font-family: inherit; }
+.escala-btn:hover { border-color: var(--prim); }
+.escala-btn.selected[data-escala="adequado"] { background: #27AE60; color: white; border-color: #27AE60; }
+.escala-btn.selected[data-escala="limitrofe"] { background: #F39C12; color: white; border-color: #F39C12; }
+.escala-btn.selected[data-escala="comprometido"] { background: #E67E22; color: white; border-color: #E67E22; }
+.escala-btn.selected[data-escala="severo"] { background: #C0392B; color: white; border-color: #C0392B; }
+
+.subitens-area { display: none; margin-top: 10px; background: var(--fundo); padding: 12px; border-radius: 5px; }
+.subitens-area.expandido { display: block; }
+.subitem-check { display: flex; align-items: center; gap: 8px; padding: 4px 0; cursor: pointer; font-size: 13px; }
+.subitem-check input[type="checkbox"]:checked + span { color: var(--prim); font-weight: 600; }
+.observacao-livre { width: 100%; padding: 8px 10px; border: 1px solid #DDD; border-radius: 4px; font-size: 13px; font-family: inherit; margin-top: 8px; resize: vertical; min-height: 50px; }
+.btn-expandir { background: none; border: none; color: var(--prim); cursor: pointer; font-size: 12px; padding: 2px 6px; font-family: inherit; text-decoration: underline; }
+.analise-gerada { background: #FAFAFA; border: 1px solid #DDD; border-radius: 6px; padding: 18px; margin: 14px 0; font-family: 'Georgia', serif; font-size: 14px; line-height: 1.7; white-space: pre-wrap; max-height: 500px; overflow-y: auto; }
+
+@media print {
+  .upload-area { border: 1px solid #DDD; padding: 8px; }
+  #foto-preview { max-height: 350px; page-break-inside: avoid; }
+  .foto-actions, .escala-btn, .btn-expandir { display: none !important; }
+  .subitens-area { display: block !important; background: white; padding: 4px 0; }
+  .grelha-bloco { box-shadow: none; padding: 8px; page-break-inside: avoid; }
+}
+
+
+@media print {
+  body { background: white !important; padding: 0; max-width: none; font-size: 11pt; color: black !important; }
+  .nav-bar, .btn-group, .btn, .option-button { display: none !important; }
+  .header { box-shadow: none; border-radius: 0; padding: 16px 20px; border-top: 6px solid #1F3A5F; page-break-after: avoid; }
+  .card { box-shadow: none; border: none; padding: 14px 20px; page-break-inside: avoid; margin-bottom: 8px; }
+  .sintese-section { page-break-inside: avoid; }
+  .sintese-section.page-break { page-break-before: always; }
+  .tela { display: none !important; }
+  .tela.printable { display: block !important; }
+  svg { max-width: 100% !important; page-break-inside: avoid; }
+  @page { margin: 1.5cm; size: A4; }
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>PECN-RC</h1>
+  <div class="subtitulo">Prova Estruturada de Cognição Numérica</div>
+  <div class="nivel">Nível 3 — COMPLEXIFICAÇÃO</div>
+  <div class="info">5.º / 6.º ano · 10 – 12 anos · Numeracia complexa</div>
+  <div class="patient-info" id="header-patient-info" style="display:none;">
+    <strong>Avaliando:</strong> <span id="hpi-nome">—</span> · <strong>Idade:</strong> <span id="hpi-idade">—</span> · <strong>Data:</strong> <span id="hpi-data">—</span>
+  </div>
+</div>
+
+<div class="nav-bar">
+  <button class="nav-btn active" onclick="navegar('identificacao')" id="nav-identificacao">1. Identificação</button>
+  <button class="nav-btn" onclick="navegar('aplicacao')" id="nav-aplicacao">2. Aplicação (C1-C8)</button>
+  <button class="nav-btn" onclick="navegar('analise-numerica')" id="nav-analise-numerica">3. Análise da Produção</button>
+  <button class="nav-btn" onclick="navegar('sintese')" id="nav-sintese">4. Síntese</button>
+  <button class="nav-btn" onclick="navegar('exportar')" id="nav-exportar">5. Exportar</button>
+</div>
+
+<!-- TELA 1: IDENTIFICAÇÃO -->
+<div class="tela active" id="tela-identificacao">
+  <div class="card">
+    <h2>Identificação do avaliando</h2>
+    <p class="nota">Preencher antes de iniciar a avaliação. Os dados ficam apenas no seu computador.</p>
+    <div class="form-grid">
+      <div class="form-field"><label>Nome (iniciais ou código)</label><input type="text" id="id-nome" placeholder="ex: J.M. ou 2026-PAE-007"></div>
+      <div class="form-field"><label>Data de nascimento</label><input type="date" id="id-nascimento"></div>
+      <div class="form-field"><label>Idade (anos / meses)</label><input type="text" id="id-idade" placeholder="ex: 7a 4m"></div>
+      <div class="form-field"><label>Sexo</label><select id="id-sexo"><option value="">—</option><option value="F">Feminino</option><option value="M">Masculino</option></select></div>
+      <div class="form-field"><label>Ano de escolaridade</label><input type="text" id="id-ano" placeholder="ex: 2.º"></div>
+      <div class="form-field"><label>Escola</label><input type="text" id="id-escola"></div>
+      <div class="form-field full"><label>Motivo da avaliação</label><input type="text" id="id-motivo"></div>
+      <div class="form-field"><label>Processo n.º</label><input type="text" id="id-processo"></div>
+      <div class="form-field"><label>Data de aplicação</label><input type="date" id="id-data"></div>
+    </div>
+    <h3 style="margin-top:24px;">Avaliador(a)</h3>
+    <div class="form-grid">
+      <div class="form-field"><label>Nome</label><input type="text" id="id-avaliador" value="Ricardina Correia"></div>
+      <div class="form-field"><label>Cédula OPP</label><input type="text" id="id-cedula" value="8233"></div>
+    </div>
+    <div class="btn-group">
+      <button class="btn btn-large" onclick="capturarIdentificacao(); guardarEstado(); navegar('aplicacao');">Iniciar Avaliação →</button>
+    </div>
+  </div>
+</div>
+
+<!-- TELA 2: APLICAÇÃO C1-C8 (SPA preservada do v1) -->
+<div class="tela" id="tela-aplicacao">
+  <div id="app-componentes"></div>
+  <!-- Container interno usado pelo render() do v1 -->
+  <div id="app" style="display:none;"></div>
+</div>
+
+<!-- TELA 3: ANÁLISE DA PRODUÇÃO NUMÉRICA -->
+<div class="tela" id="tela-analise-numerica">
+  <div class="card">
+    <h2>Análise da Produção Numérica Manuscrita</h2>
+    <p class="nota">Após a aplicação das 8 componentes, anexe aqui uma fotografia da produção escrita do avaliando (folha de respostas, operações em coluna, problemas resolvidos, etc.).</p>
+    
+<h3 style="margin-top:36px;">📷 Análise da Produção Numérica Manuscrita</h3>
+<p class="nota">Anexe uma fotografia da folha de respostas do avaliando (com operações em coluna, decomposições, resoluções de problemas, etc.). O sistema calcula métricas objectivas e disponibiliza a Grelha Autoral RC adaptada à numeracia (11 parâmetros em 3 blocos).</p>
+
+<div class="upload-area" id="upload-area" onclick="document.getElementById('foto-input').click()">
+  <input type="file" id="foto-input" accept="image/*" style="display:none" onchange="processarUploadFoto(this.files[0])">
+  <div class="upload-placeholder" id="upload-placeholder">
+    <div class="icon">📷</div>
+    <div class="titulo">Clique ou arraste a fotografia da folha de respostas</div>
+    <div class="sub">JPG · PNG · HEIC — Recomenda-se foto frontal com boa iluminação</div>
+  </div>
+  <img id="foto-preview" style="display:none;">
+  <div class="foto-actions" id="foto-actions" style="display:none;">
+    <button onclick="event.stopPropagation(); document.getElementById('foto-input').click()">📷 Trocar</button>
+    <button onclick="event.stopPropagation(); removerFoto()">🗑️ Remover</button>
+    <button onclick="event.stopPropagation(); recalcularMetricas()">🔄 Recalcular métricas</button>
+  </div>
+</div>
+
+<div id="metricas-objectivas" style="display:none;">
+  <h4>Métricas objectivas (cálculo automático sobre a imagem)</h4>
+  <div class="metricas-grid">
+    <div class="metrica-item"><div class="label">Densidade de tinta</div><div class="valor"><span id="m-densidade">—</span><span class="unidade">%</span></div></div>
+    <div class="metrica-item"><div class="label">Linhas detectadas</div><div class="valor"><span id="m-linhas">—</span></div></div>
+    <div class="metrica-item"><div class="label">Altura média das linhas</div><div class="valor"><span id="m-altura">—</span><span class="unidade">px</span></div></div>
+    <div class="metrica-item"><div class="label">Espaçamento entre linhas</div><div class="valor"><span id="m-espacamento">—</span><span class="unidade">px</span></div></div>
+    <div class="metrica-item"><div class="label">Intensidade do traço</div><div class="valor"><span id="m-pressao">—</span><span class="unidade">/255</span></div></div>
+    <div class="metrica-item"><div class="label">Variação tonal (pressão)</div><div class="valor"><span id="m-variacao">—</span></div></div>
+    <div class="metrica-item"><div class="label">Distribuição vertical (topo · meio · fundo)</div><div class="valor" style="font-size:14px;"><span id="m-distribuicao">— · — · —</span></div></div>
+    <div class="metrica-item"><div class="label">Resolução</div><div class="valor" style="font-size:14px;"><span id="m-resolucao">—</span></div></div>
+  </div>
+  <p class="nota" style="margin-top:8px;">As métricas são indicadores objectivos de referência — não substituem a análise clínica estruturada abaixo.</p>
+</div>
+
+<div id="grelha-caligrafia-container" style="display:none;">
+  <h4>Grelha Autoral RC adaptada à Numeracia — Análise estruturada (11 parâmetros)</h4>
+  <p class="nota">Avalie cada parâmetro na escala (Adequado · Limítrofe · Comprometido · Severamente comprometido). Expanda para marcar indicadores específicos e adicionar observações livres.</p>
+  <div id="grelha-conteudo"></div>
+</div>
+
+<h4 style="margin-top:24px;">Implicações funcionais</h4>
+<p class="nota">Síntese das implicações para o desempenho académico em Matemática, factores motores e emocionais, contexto pedagógico.</p>
+<textarea id="implicacoes-funcionais" class="comp-editor" style="min-height:180px;" placeholder="Ex: As dificuldades grafonuméricas observadas comprometem a expressão eficaz do raciocínio matemático em situação de prova. O desalinhamento posicional nas operações em coluna induz erros sistemáticos de transporte/empréstimo..." oninput="estado.composicao.implicacoes=this.value; guardarEstado();"></textarea>
+
+<div class="btn-group">
+  <button class="btn" onclick="gerarAnaliseClinicaCaligrafia()" style="background:var(--sec);">📝 Gerar Análise Clínica Completa</button>
+  <button class="btn btn-secondary" onclick="copiarAnaliseGerada()">📋 Copiar para a Síntese Clínica</button>
+</div>
+
+<div id="analise-gerada-container" style="display:none;">
+  <h4>Análise Clínica Gerada</h4>
+  <div class="analise-gerada" id="analise-gerada-texto"></div>
+</div>
+
+  </div>
+</div>
+
+<!-- TELA 4: SÍNTESE -->
+<div class="tela printable" id="tela-sintese">
+  <div class="card">
+    <h2>Síntese Clínica Completa</h2>
+    <div class="btn-group" style="margin-bottom:24px;">
+      <button class="btn btn-large" onclick="imprimir()">🖨️ Imprimir / Guardar PDF</button>
+      <button class="btn btn-secondary" onclick="finalizarESalvar()">💾 Finalizar e Guardar</button>
+      <button class="btn btn-secondary" onclick="navegar('exportar')">📥 Exportar Dados</button>
+    </div>
+    <div id="sintese-conteudo"></div>
+  </div>
+</div>
+
+<!-- TELA 5: EXPORTAR -->
+<div class="tela" id="tela-exportar">
+  <div class="card">
+    <h2>Exportação de Dados</h2>
+    <p>Exporte os dados em formato CSV ou JSON.</p>
+    <div class="btn-group">
+      <button class="btn btn-large" onclick="exportarCSV()">📥 CSV Resumo</button>
+      <button class="btn btn-large btn-secondary" onclick="exportarJSON()">📥 JSON Completo</button>
+    </div>
+    <h3 style="margin-top:32px;">Reset</h3>
+    <p class="nota">Após exportar, pode iniciar nova avaliação.</p>
+    <div class="btn-group">
+      <button class="btn btn-danger" onclick="resetarSessao()">↻ Nova Avaliação</button>
+    </div>
+  </div>
+</div>
+
+<div class="rodape">
+  PECN-RC · Nível 3 — COMPLEXIFICAÇÃO · Versão 3.0 · Maio 2026<br>
+  Ricardina Correia · Cédula OPP n.º 8233 · Psicologia Pediátrica · Lisboa
+</div>
+
+<script>
+
+
+// HELPERS GERAIS (gráficos SVG, formatação)
+function svgBarChart(opts) {
+  const w = opts.width || 600, h = opts.height || 280;
+  const pad = { top: 50, right: 30, bottom: 60, left: 50 };
+  const innerW = w - pad.left - pad.right, innerH = h - pad.top - pad.bottom;
+  const max = opts.max || Math.max(100, ...opts.data.map(d => d.value));
+  const barW = innerW / opts.data.length * 0.65;
+  const gap = innerW / opts.data.length * 0.35;
+  const unit = opts.unit || '';
+  let bars = '';
+  opts.data.forEach((d, i) => {
+    const x = pad.left + (i * (barW + gap)) + gap/2;
+    const v = d.value == null || isNaN(d.value) ? 0 : d.value;
+    const bH = (v / max) * innerH;
+    const y = pad.top + innerH - bH;
+    const c = d.color || 'var(--prim)';
+    const vD = (d.value == null || isNaN(d.value)) ? '—' : (typeof d.value === 'number' ? d.value.toFixed(1) : d.value) + unit;
+    bars += '<rect x="'+x+'" y="'+y+'" width="'+barW+'" height="'+bH+'" fill="'+c+'" rx="4"/>';
+    bars += '<text x="'+(x+barW/2)+'" y="'+(y-8)+'" text-anchor="middle" font-size="14" font-weight="700" fill="#2C3E50">'+vD+'</text>';
+    bars += '<text x="'+(x+barW/2)+'" y="'+(pad.top+innerH+22)+'" text-anchor="middle" font-size="13" font-weight="600" fill="#2C3E50">'+d.label+'</text>';
+    if (d.sublabel) bars += '<text x="'+(x+barW/2)+'" y="'+(pad.top+innerH+40)+'" text-anchor="middle" font-size="11" fill="#7F8C8D">'+d.sublabel+'</text>';
+  });
+  let grid = '';
+  for (let i = 0; i <= 4; i++) {
+    const y = pad.top + (i / 4) * innerH;
+    const v = max - (i / 4) * max;
+    grid += '<line x1="'+pad.left+'" y1="'+y+'" x2="'+(w-pad.right)+'" y2="'+y+'" stroke="#E8E8E8"/>';
+    grid += '<text x="'+(pad.left-8)+'" y="'+(y+4)+'" text-anchor="end" font-size="11" fill="#7F8C8D">'+v.toFixed(0)+unit+'</text>';
+  }
+  const t = opts.title ? '<text x="'+(w/2)+'" y="22" text-anchor="middle" font-size="15" font-weight="700" fill="#2C3E50">'+opts.title+'</text>' : '';
+  return '<svg viewBox="0 0 '+w+' '+h+'" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:'+w+'px;display:block;margin:0 auto;">' + t + grid + bars + '</svg>';
+}
+
+function svgHBarChart(opts) {
+  const w = opts.width || 600, barH = 26, gap = 10;
+  const pad = { top: opts.title ? 50 : 20, right: 30, bottom: 20, left: 180 };
+  const innerH = (barH + gap) * opts.data.length;
+  const h = pad.top + innerH + pad.bottom;
+  const innerW = w - pad.left - pad.right;
+  const max = opts.max || Math.max(1, ...opts.data.map(d => d.value));
+  const unit = opts.unit || '';
+  let bars = '';
+  opts.data.forEach((d, i) => {
+    const y = pad.top + i * (barH + gap);
+    const v = d.value == null || isNaN(d.value) ? 0 : d.value;
+    const bW = (v / max) * innerW;
+    const c = d.color || 'var(--prim)';
+    const vD = (d.value == null || isNaN(d.value)) ? '—' : (typeof d.value === 'number' ? d.value.toFixed(1) : d.value) + unit;
+    bars += '<text x="'+(pad.left-12)+'" y="'+(y+barH/2+5)+'" text-anchor="end" font-size="12" font-weight="600" fill="#2C3E50">'+d.label+'</text>';
+    bars += '<rect x="'+pad.left+'" y="'+y+'" width="'+innerW+'" height="'+barH+'" fill="#F1F3F5" rx="4"/>';
+    if (bW > 0) bars += '<rect x="'+pad.left+'" y="'+y+'" width="'+bW+'" height="'+barH+'" fill="'+c+'" rx="4"/>';
+    bars += '<text x="'+(pad.left+bW+8)+'" y="'+(y+barH/2+5)+'" text-anchor="start" font-size="12" font-weight="700" fill="#2C3E50">'+vD+'</text>';
+  });
+  const t = opts.title ? '<text x="'+(w/2)+'" y="22" text-anchor="middle" font-size="15" font-weight="700" fill="#2C3E50">'+opts.title+'</text>' : '';
+  return '<svg viewBox="0 0 '+w+' '+h+'" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:'+w+'px;display:block;margin:0 auto;">' + t + bars + '</svg>';
+}
+
+function getURLParam(n) { return new URLSearchParams(window.location.search).get(n); }
+function getPatientCode() { return getURLParam('paciente') || getURLParam('patient') || getURLParam('code') || ''; }
+function downloadBlob(c, f, m) { const b = new Blob([c], {type:m}); const u = URL.createObjectURL(b); const a = document.createElement('a'); a.href=u; a.download=f; document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(u); }
+function fmtTempo(s) { if (s==null||isNaN(s)) return '—'; const m=Math.floor(s/60), sec=s%60; return m+':'+String(sec).padStart(2,'0'); }
+function fmtPct(v, d) { if (v==null||isNaN(v)) return '—'; return v.toFixed(d||0)+'%'; }
+function fmtTR(s) { if (s==null||isNaN(s)) return '—'; return s.toFixed(2)+'s'; }
+function escHTML(s) { if (s==null) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+function dataAtual() { return new Date().toLocaleDateString('pt-PT', {day:'2-digit',month:'long',year:'numeric'}); }
+
+
+const NIVEL = 3;
+const TITULO = "COMPLEXIFICAÇÃO";
+const SYNC_KEY = "pecn_n3";
+
+// ═══════════════════════════════════════════════════════════════
+// JS V1 COMPLETO PRESERVADO (state, configs, render functions)
+// Adaptações: render() agora escreve em #app-componentes em vez de #app
+// ═══════════════════════════════════════════════════════════════
+
+    // ============================================================
+    // ESTADO GLOBAL
+    // ============================================================
+    const state = {
+      screen: 'start',
+      avaliando: { nome: '', dataNasc: '', dataAval: '', ano: '' },
+      componente: null,
+      ensaio: 0,
+      respostas: {},
+      tempos: {},
+      observacoes: {}
+    };
+
+    // ============================================================
+    // DADOS DOS ENSAIOS — NÍVEL 1
+    // ============================================================
+
+    const ENSAIOS_C1 = [
+      { qtd: 3, disp: 'triangulo-invertido' },
+      { qtd: 5, disp: 'aleatoria' },
+      { qtd: 2, disp: 'diagonal' },
+      { qtd: 6, disp: 'aleatoria-nao-dado' },
+      { qtd: 4, disp: 'aleatoria-nao-quadrado' },
+      { qtd: 5, disp: 'aleatoria-nao-pentagono' }
+    ];
+
+    const ENSAIOS_C2 = [
+      // Quantidades maiores (até 60) — 9 ensaios (3 por razão)
+      { esq: 20, dir: 40, correcto: 'dir', razao: '1:2', area: 'igual' },
+      { esq: 36, dir: 48, correcto: 'dir', razao: '3:4', area: 'igual' },
+      { esq: 18, dir: 27, correcto: 'dir', razao: '2:3', area: 'igual' },
+      { esq: 44, dir: 22, correcto: 'esq', razao: '1:2', area: 'proporcional' },
+      { esq: 56, dir: 42, correcto: 'esq', razao: '3:4', area: 'proporcional' },
+      { esq: 45, dir: 30, correcto: 'esq', razao: '2:3', area: 'proporcional' },
+      { esq: 25, dir: 50, correcto: 'dir', razao: '1:2', area: 'proporcional' },
+      { esq: 24, dir: 32, correcto: 'dir', razao: '3:4', area: 'igual' },
+      { esq: 36, dir: 24, correcto: 'esq', razao: '2:3', area: 'igual' }
+    ];
+
+    const ENSAIOS_C3 = [
+      // Intervalo 0-1.000 · 5 distância grande, 5 pequena
+      { esq: 234, dir: 789, correcto: 'dir', dist: 'grande' },
+      { esq: 567, dir: 583, correcto: 'dir', dist: 'pequena' },
+      { esq: 912, dir: 345, correcto: 'esq', dist: 'grande' },
+      { esq: 642, dir: 628, correcto: 'esq', dist: 'pequena' },
+      { esq: 178, dir: 856, correcto: 'dir', dist: 'grande' },
+      { esq: 423, dir: 437, correcto: 'dir', dist: 'pequena' },
+      { esq: 891, dir: 215, correcto: 'esq', dist: 'grande' },
+      { esq: 754, dir: 731, correcto: 'esq', dist: 'pequena' },
+      { esq: 312, dir: 967, correcto: 'dir', dist: 'grande' },
+      { esq: 538, dir: 542, correcto: 'dir', dist: 'pequena' }
+    ];
+
+    const ENSAIOS_C4_LEITURA = [5020, 10305, 25000, 100500, 50800, 99999];
+    const ENSAIOS_C4_DITADO = [3070, 12509, 40020, 65300, 80808, 95001];
+
+    const TAREFAS_C5 = [
+      { id: 'c5a', nome: 'Contar de 10 em 10 de 350 até 500', instrucao: 'Vou pedir-te para contares em voz alta, mas saltando de 10 em 10. Começa em 350 (350, 360, 370...) e vai até 500.' },
+      { id: 'c5b', nome: 'Contar de 100 em 100 de 800 até 2000', instrucao: 'Agora salta de 100 em 100. Começa em 800 (800, 900, 1000...) e vai até 2000.' },
+      { id: 'c5c', nome: 'Contar regressivamente de 1000 para 0 (de 100 em 100)', instrucao: 'Agora vais contar ao contrário. Começa em 1000 e salta para trás de 100 em 100 até 0.' },
+      { id: 'c5d', nome: 'Contar regressivamente de 250 para 0 (de 25 em 25)', instrucao: 'Agora começa em 250 e salta para trás de 25 em 25 até 0 (250, 225, 200...).' }
+    ];
+
+    const ALVOS_C6 = [50, 120, 250, 500, 620, 750, 815, 925];
+    const RECTA_C6_MAX = 1000;
+
+    const FLUENCIA_SOMAS = [
+      '7×8', '6×9', '4×7', '8×6', '9×9', '7×7', '6×6', '8×8', '9×4', '7×3',
+      '6×8', '9×3', '4×8', '7×6', '8×9', '6×7', '9×8', '4×9', '7×9', '8×7'
+    ];
+    const FLUENCIA_SUBTR = [
+      '24÷6', '35÷5', '48÷8', '54÷9', '42÷7', '64÷8', '45÷5', '56÷7', '72÷9', '63÷7',
+      '36÷4', '81÷9', '49÷7', '40÷8', '30÷6', '32÷4', '21÷3', '28÷4', '60÷6', '50÷5'
+    ];
+    const FLUENCIA_MULT = [
+      '(3+4)×2', '5×(8-3)', '12+3×4', '20-6÷2', '(15-7)×3', '4×6+8', '36÷4+5', '(10+5)÷3', '7×3-9', '(20-8)÷4',
+      '6×(7-3)', '24÷(2+6)', '8+4×5', '(12+8)÷5', '9×4-6'
+    ];
+
+    // ============================================================
+    // GERAÇÃO DE PONTOS PARA SUBITIZAÇÃO (C1)
+    // ============================================================
+
+    function gerarPontos(qtd, disp, larguraCanvas = 320, alturaCanvas = 280) {
+      const raio = 14;
+      const margem = 30;
+      const pontos = [];
+
+      // Posições por disposição
+      switch (disp) {
+        case 'centro':
+          pontos.push([larguraCanvas/2, alturaCanvas/2]);
+          break;
+        case 'diagonal':
+          pontos.push([margem + raio + 20, margem + raio + 20]);
+          pontos.push([larguraCanvas - margem - raio - 20, alturaCanvas - margem - raio - 20]);
+          break;
+        case 'vertical':
+          pontos.push([larguraCanvas/2, alturaCanvas/3]);
+          pontos.push([larguraCanvas/2, (2*alturaCanvas)/3]);
+          break;
+        case 'triangulo-invertido':
+          pontos.push([larguraCanvas/3, alturaCanvas/3]);
+          pontos.push([(2*larguraCanvas)/3, alturaCanvas/3]);
+          pontos.push([larguraCanvas/2, (2*alturaCanvas)/3]);
+          break;
+        case 'aleatoria':
+        case 'aleatoria-nao-quadrado':
+        case 'aleatoria-nao-dado':
+        case 'aleatoria-nao-pentagono':
+          // Gerar posições aleatórias com distância mínima entre pontos
+          let tentativas = 0;
+          while (pontos.length < qtd && tentativas < 200) {
+            const x = margem + raio + Math.random() * (larguraCanvas - 2*(margem+raio));
+            const y = margem + raio + Math.random() * (alturaCanvas - 2*(margem+raio));
+            let aceitavel = true;
+            for (const [px, py] of pontos) {
+              const dist = Math.sqrt((x-px)**2 + (y-py)**2);
+              if (dist < raio*3) { aceitavel = false; break; }
+            }
+            if (aceitavel) pontos.push([x, y]);
+            tentativas++;
+          }
+          break;
+        default:
+          // Fallback: alinhamento simples
+          for (let i = 0; i < qtd; i++) {
+            pontos.push([margem + raio + i*(raio*3), alturaCanvas/2]);
+          }
+      }
+
+      return pontos;
+    }
+
+    function svgSubitizacao(qtd, disp) {
+      const w = 320, h = 280;
+      const pontos = gerarPontos(qtd, disp, w, h);
+      let svg = `<svg class="stimulus-svg" viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg">`;
+      svg += `<rect width="${w}" height="${h}" fill="white" rx="8"/>`;
+      for (const [x, y] of pontos) {
+        svg += `<circle cx="${x}" cy="${y}" r="14" class="dot"/>`;
+      }
+      svg += `</svg>`;
+      return svg;
+    }
+
+    // ============================================================
+    // GERAÇÃO DE PONTOS PARA COMPARAÇÃO NÃO-SIMBÓLICA (C2)
+    // ============================================================
+
+    function svgComparacao(qtdEsq, qtdDir, controloArea = 'igual') {
+      const w = 600, h = 280;
+      const metade = w / 2;
+
+      // Diâmetro dos pontos depende do controlo de área
+      // Se 'igual': pontos maiores no conjunto com menos elementos
+      // Se 'proporcional': pontos do mesmo tamanho
+      let rEsq, rDir;
+      if (controloArea === 'igual') {
+        // Área total similar
+        const areaAlvo = 600;
+        rEsq = Math.sqrt(areaAlvo / qtdEsq) * 0.7;
+        rDir = Math.sqrt(areaAlvo / qtdDir) * 0.7;
+      } else {
+        // Pontos iguais (área proporcional ao número)
+        rEsq = 8;
+        rDir = 8;
+      }
+      rEsq = Math.max(6, Math.min(18, rEsq));
+      rDir = Math.max(6, Math.min(18, rDir));
+
+      function gerarPontosArea(qtd, raio, xMin, xMax, yMin, yMax) {
+        const pts = [];
+        let tentativas = 0;
+        while (pts.length < qtd && tentativas < 500) {
+          const x = xMin + raio + Math.random() * (xMax - xMin - 2*raio);
+          const y = yMin + raio + Math.random() * (yMax - yMin - 2*raio);
+          let aceitavel = true;
+          for (const [px, py] of pts) {
+            const dist = Math.sqrt((x-px)**2 + (y-py)**2);
+            if (dist < raio*2.5) { aceitavel = false; break; }
+          }
+          if (aceitavel) pts.push([x, y]);
+          tentativas++;
+        }
+        return pts;
+      }
+
+      const ptsEsq = gerarPontosArea(qtdEsq, rEsq, 20, metade - 20, 20, h - 20);
+      const ptsDir = gerarPontosArea(qtdDir, rDir, metade + 20, w - 20, 20, h - 20);
+
+      let svg = `<svg class="stimulus-svg" viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg">`;
+      svg += `<rect width="${w}" height="${h}" fill="white" rx="8"/>`;
+      svg += `<line x1="${metade}" y1="20" x2="${metade}" y2="${h-20}" stroke="#E0E0E0" stroke-width="1" stroke-dasharray="4 4"/>`;
+      for (const [x, y] of ptsEsq) svg += `<circle cx="${x}" cy="${y}" r="${rEsq}" class="dot"/>`;
+      for (const [x, y] of ptsDir) svg += `<circle cx="${x}" cy="${y}" r="${rDir}" class="dot"/>`;
+      svg += `</svg>`;
+      return svg;
+    }
+
+    // ============================================================
+    // RECTA NUMÉRICA (C6)
+    // ============================================================
+
+    function svgRectaNumerica(min, max, marcaPosicao = null) {
+      const w = 700, h = 80;
+      const margem = 40;
+      const yLinha = 40;
+
+      let svg = `<svg class="number-line" viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg" id="rectaSvg">`;
+      svg += `<line x1="${margem}" y1="${yLinha}" x2="${w-margem}" y2="${yLinha}" stroke="#2C3E50" stroke-width="3"/>`;
+      // Marcas extremas
+      svg += `<line x1="${margem}" y1="${yLinha-12}" x2="${margem}" y2="${yLinha+12}" stroke="#2C3E50" stroke-width="3"/>`;
+      svg += `<line x1="${w-margem}" y1="${yLinha-12}" x2="${w-margem}" y2="${yLinha+12}" stroke="#2C3E50" stroke-width="3"/>`;
+      // Etiquetas
+      svg += `<text x="${margem}" y="${yLinha+34}" text-anchor="middle" font-family="Quicksand" font-size="20" font-weight="600" fill="#2C3E50">${min}</text>`;
+      svg += `<text x="${w-margem}" y="${yLinha+34}" text-anchor="middle" font-family="Quicksand" font-size="20" font-weight="600" fill="#2C3E50">${max}</text>`;
+      // Marca da resposta (se houver)
+      if (marcaPosicao !== null) {
+        const x = margem + marcaPosicao * (w - 2*margem);
+        svg += `<line x1="${x}" y1="${yLinha-20}" x2="${x}" y2="${yLinha+20}" stroke="#F39C12" stroke-width="3"/>`;
+        svg += `<circle cx="${x}" cy="${yLinha}" r="6" fill="#F39C12"/>`;
+      }
+      svg += `</svg>`;
+      return svg;
+    }
+
+    // ============================================================
+    // RENDER PRINCIPAL
+    // ============================================================
+
+    function render() {
+      const app = document.getElementById('app');
+      app.innerHTML = '';
+
+      const screen = document.createElement('div');
+      screen.className = 'screen';
+
+      switch (state.screen) {
+        case 'start': screen.innerHTML = renderStart(); break;
+        case 'instructions': screen.innerHTML = renderInstructions(); break;
+        case 'c1-intro': screen.innerHTML = renderC1Intro(); break;
+        case 'c1-ensaio': screen.innerHTML = renderC1Ensaio(); break;
+        case 'c1-resposta': screen.innerHTML = renderC1Resposta(); break;
+        case 'c2-intro': screen.innerHTML = renderC2Intro(); break;
+        case 'c2-ensaio': screen.innerHTML = renderC2Ensaio(); break;
+        case 'c3-intro': screen.innerHTML = renderC3Intro(); break;
+        case 'c3-ensaio': screen.innerHTML = renderC3Ensaio(); break;
+        case 'c4-intro': screen.innerHTML = renderC4Intro(); break;
+        case 'c4-leitura': screen.innerHTML = renderC4Leitura(); break;
+        case 'c4-ditado': screen.innerHTML = renderC4Ditado(); break;
+        case 'c5': screen.innerHTML = renderC5(); break;
+        case 'c6-intro': screen.innerHTML = renderC6Intro(); break;
+        case 'c6-ensaio': screen.innerHTML = renderC6Ensaio(); break;
+        case 'c7-intro': screen.innerHTML = renderC7Intro(); break;
+        case 'c7-fluencia': screen.innerHTML = renderC7Fluencia(); break;
+        case 'c8': screen.innerHTML = renderC8(); break;
+        case 'final': screen.innerHTML = renderFinal(); break;
+      }
+
+      app.appendChild(screen);
+      attachEventListeners();
+    }
+
+    // ============================================================
+    // SCREENS
+    // ============================================================
+
+    function renderStart() {
+      return `
+        <div class="card card-large">
+          <h2 class="section-title">Identificação do avaliando</h2>
+          <p style="color: var(--text-light); margin-bottom: 24px;">Preencha os dados antes de iniciar a prova.</p>
+
+          <div class="form-row">
+            <label for="nome">Nome:</label>
+            <input type="text" id="nome" value="${state.avaliando.nome}">
+          </div>
+          <div class="form-row">
+            <label for="dataNasc">Data de nascimento:</label>
+            <input type="date" id="dataNasc" value="${state.avaliando.dataNasc}">
+          </div>
+          <div class="form-row">
+            <label for="dataAval">Data de avaliação:</label>
+            <input type="date" id="dataAval" value="${state.avaliando.dataAval || new Date().toISOString().split('T')[0]}">
+          </div>
+          <div class="form-row">
+            <label for="ano">Ano escolaridade:</label>
+            <select id="ano">
+              <option value="">Seleccionar...</option>
+              <option value="5.º">5.º ano</option>
+              <option value="6.º">6.º ano</option>
+              <option value="outro">Outro</option>
+            </select>
+          </div>
+
+          <button class="btn btn-primary btn-large btn-block" id="btnInstrucoes">Continuar →</button>
+        </div>
+      `;
+    }
+
+    function renderInstructions() {
+      return `
+        <div class="card card-large">
+          <h2 class="section-title">Instruções gerais</h2>
+          <div class="instructions">
+            <p>A PECN-RC Nível 3 é composta por <strong>8 componentes</strong>. As componentes <strong>C1 (Subitização) e C2 (Comparação não-simbólica) são opcionais</strong> nesta faixa etária — pode saltá-las. A aplicação completa demora aproximadamente <strong>30-35 minutos</strong> (com C1+C2) ou <strong>20-25 minutos</strong> (sem C1+C2).</p>
+            <p>Algumas componentes têm <strong>temporização automática</strong>. Outras requerem <strong>registo manual</strong> pelo avaliador.</p>
+            <p>Pode <strong>pausar</strong> entre componentes se houver fadiga. Recomenda-se uma pausa breve após a componente 4 (Transcodificação).</p>
+          </div>
+
+          <div class="evaluator-note">
+            <strong>Para o avaliador:</strong> Garanta que o ambiente está silencioso e sem distractores. Confirme que o avaliando compreende as instruções antes de iniciar cada componente.
+          </div>
+
+          <p style="margin-top: 16px;"><strong>Instrução geral para o avaliando:</strong></p>
+          <p style="font-style: italic; padding: 12px; background: var(--bg); border-radius: var(--radius-sm); margin-top: 8px;">
+            "Vou pedir-te para fazeres algumas actividades com números. Algumas são mais simples, outras mais complexas. Não tens de saber tudo — quero perceber como pensas e que estratégias usas. Não há problema se errares; o importante é tentares."
+          </p>
+
+          <button class="btn btn-primary btn-large btn-block" id="btnComecarC1">Começar Componente 1 — Subitização (opcional) →</button>
+        </div>
+      `;
+    }
+
+    // === COMPONENTE 1 — SUBITIZAÇÃO ===
+
+    function renderC1Intro() {
+      return `
+        <div class="card">
+          <div class="progress-bar"><div class="progress-fill" style="width: 12.5%"></div></div>
+          <div class="progress-text">Componente 1 de 8</div>
+          <h2 class="section-title">C1 — Subitização</h2>
+
+          <div class="instructions">
+            <p><strong>Construto avaliado:</strong> reconhecimento imediato de pequenas quantidades (sem contagem).</p>
+            <p><strong>Procedimento:</strong> Serão apresentados ${ENSAIOS_C1.length} cartões com pontos. Cada cartão é mostrado durante <strong>1,5 segundos</strong> e depois desaparece. Após cada cartão, o avaliando indica quantos pontos viu.</p>
+            <p style="margin-top: 8px;"><strong>⚠ No Nível 3, esta componente é OPCIONAL</strong> — perde sensibilidade diagnóstica nesta faixa etária. Aplicar apenas se houver hipótese específica de défice no ANS / Triple Code analógico.</p>
+          </div>
+
+          <div class="evaluator-note">
+            <strong>Instrução ao avaliando:</strong> "Vou mostrar-te uns cartões com pontos. Cada cartão vai aparecer só por um instante. Depois de desaparecer, dizes-me quantos pontos viste. Não precisas de contar — diz à primeira."
+          </div>
+
+          <div class="btn-group">
+            <button class="btn btn-primary btn-large" id="btnIniciarC1">Aplicar C1 →</button>
+            <button class="btn btn-secondary btn-large" id="btnSaltarC1">⏩ Saltar C1 (opcional)</button>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderC1Ensaio() {
+      const ensaio = ENSAIOS_C1[state.ensaio];
+      return `
+        <div class="card">
+          <div class="progress-bar"><div class="progress-fill" style="width: ${12.5 + (state.ensaio/ENSAIOS_C1.length)*12.5}%"></div></div>
+          <div class="progress-text">C1 · Ensaio ${state.ensaio + 1} de ${ENSAIOS_C1.length}</div>
+          <h3 class="subsection">Atenção ao próximo cartão...</h3>
+
+          <div class="stimulus-area" id="c1Stimulus">
+            <div style="text-align: center; color: var(--text-light);">A preparar...</div>
+          </div>
+
+          <button class="btn btn-primary btn-large btn-block" id="btnApresentarC1">Apresentar cartão →</button>
+        </div>
+      `;
+    }
+
+    function apresentarC1() {
+      const ensaio = ENSAIOS_C1[state.ensaio];
+      const stimulus = document.getElementById('c1Stimulus');
+      const btn = document.getElementById('btnApresentarC1');
+      btn.style.display = 'none';
+
+      stimulus.innerHTML = svgSubitizacao(ensaio.qtd, ensaio.disp);
+      state.tempos[`c1-${state.ensaio}-inicio`] = Date.now();
+
+      setTimeout(() => {
+        stimulus.classList.add('stimulus-hidden');
+        stimulus.innerHTML = '<div>Quantos pontos viste?</div>';
+        setTimeout(() => {
+          state.screen = 'c1-resposta';
+          render();
+        }, 300);
+      }, 1500);
+    }
+
+    function renderC1Resposta() {
+      return `
+        <div class="card">
+          <div class="progress-bar"><div class="progress-fill" style="width: ${12.5 + ((state.ensaio+0.5)/ENSAIOS_C1.length)*12.5}%"></div></div>
+          <div class="progress-text">C1 · Ensaio ${state.ensaio + 1} de ${ENSAIOS_C1.length}</div>
+          <h3 class="subsection">Quantos pontos viu?</h3>
+
+          <div class="number-pad">
+            ${[1,2,3,4,5,6].map(n => `<button class="number-btn" data-resp="${n}">${n}</button>`).join('')}
+          </div>
+
+          <button class="btn btn-secondary btn-block" style="margin-top: 16px;" data-resp="0">Outra resposta / Não sabe</button>
+        </div>
+      `;
+    }
+
+    function responderC1(valor) {
+      const ensaio = ENSAIOS_C1[state.ensaio];
+      const tempoReacao = Date.now() - state.tempos[`c1-${state.ensaio}-inicio`];
+      state.respostas[`c1-${state.ensaio}`] = {
+        ensaio: state.ensaio + 1,
+        qtd_correcta: ensaio.qtd,
+        qtd_resposta: parseInt(valor),
+        acerto: parseInt(valor) === ensaio.qtd ? 1 : 0,
+        tempo_ms: tempoReacao,
+        disposicao: ensaio.disp
+      };
+      state.ensaio++;
+      if (state.ensaio < ENSAIOS_C1.length) {
+        state.screen = 'c1-ensaio';
+      } else {
+        state.ensaio = 0;
+        state.screen = 'c2-intro';
+      }
+      render();
+    }
+
+    // === COMPONENTE 2 — COMPARAÇÃO NÃO-SIMBÓLICA ===
+
+    function renderC2Intro() {
+      return `
+        <div class="card">
+          <div class="progress-bar"><div class="progress-fill" style="width: 25%"></div></div>
+          <div class="progress-text">Componente 2 de 8</div>
+          <h2 class="section-title">C2 — Comparação não-simbólica</h2>
+
+          <div class="instructions">
+            <p><strong>Construto avaliado:</strong> acuidade do sistema numérico aproximado (ANS).</p>
+            <p><strong>Procedimento:</strong> Serão apresentados ${ENSAIOS_C2.length} pares de conjuntos de pontos. O avaliando indica qual lado tem mais pontos, à primeira vista, sem contar.</p>
+            <p style="margin-top: 8px;"><strong>⚠ No Nível 3, esta componente é OPCIONAL</strong> — perde sensibilidade diagnóstica nesta faixa etária. Aplicar apenas se houver hipótese específica de défice no ANS.</p>
+          </div>
+
+          <div class="evaluator-note">
+            <strong>Instrução ao avaliando:</strong> "Vais ver dois conjuntos de pontos. Diz-me qual lado tem mais pontos. Não contes — responde à primeira."
+          </div>
+
+          <div class="evaluator-note" style="border-left-color: var(--error); background: #FFEBEE;">
+            <strong>⚠ Para o avaliador:</strong> Se o avaliando começar a contar, interrompa e relembre: "Não precisas de contar. Diz-me à primeira."
+          </div>
+
+          <div class="btn-group">
+            <button class="btn btn-primary btn-large" id="btnIniciarC2">Aplicar C2 →</button>
+            <button class="btn btn-secondary btn-large" id="btnSaltarC2">⏩ Saltar C2 (opcional)</button>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderC2Ensaio() {
+      const ensaio = ENSAIOS_C2[state.ensaio];
+      return `
+        <div class="card">
+          <div class="progress-bar"><div class="progress-fill" style="width: ${25 + (state.ensaio/ENSAIOS_C2.length)*12.5}%"></div></div>
+          <div class="progress-text">C2 · Ensaio ${state.ensaio + 1} de ${ENSAIOS_C2.length}</div>
+          <h3 class="subsection">Qual lado tem mais pontos?</h3>
+
+          <div class="stimulus-area">
+            ${svgComparacao(ensaio.esq, ensaio.dir, ensaio.area)}
+          </div>
+
+          <div class="binary-choice">
+            <button class="binary-btn" data-resp="esq">← Esquerda</button>
+            <button class="binary-btn" data-resp="dir">Direita →</button>
+          </div>
+        </div>
+      `;
+    }
+
+    function responderC2(lado) {
+      const ensaio = ENSAIOS_C2[state.ensaio];
+      const tempoReacao = Date.now() - (state.tempos[`c2-${state.ensaio}`] || Date.now());
+      state.respostas[`c2-${state.ensaio}`] = {
+        ensaio: state.ensaio + 1,
+        esq: ensaio.esq,
+        dir: ensaio.dir,
+        correcto: ensaio.correcto,
+        resposta: lado,
+        acerto: lado === ensaio.correcto ? 1 : 0,
+        razao: ensaio.razao,
+        area: ensaio.area,
+        tempo_ms: tempoReacao
+      };
+      state.ensaio++;
+      if (state.ensaio < ENSAIOS_C2.length) {
+        state.screen = 'c2-ensaio';
+        render();
+        state.tempos[`c2-${state.ensaio}`] = Date.now();
+      } else {
+        state.ensaio = 0;
+        state.screen = 'c3-intro';
+        render();
+      }
+    }
+
+    // === COMPONENTE 3 — COMPARAÇÃO SIMBÓLICA ===
+
+    function renderC3Intro() {
+      return `
+        <div class="card">
+          <div class="progress-bar"><div class="progress-fill" style="width: 37.5%"></div></div>
+          <div class="progress-text">Componente 3 de 8</div>
+          <h2 class="section-title">C3 — Comparação simbólica</h2>
+
+          <div class="instructions">
+            <p><strong>Construto avaliado:</strong> conexão dígito-magnitude (efeito de distância numérica).</p>
+            <p><strong>Procedimento:</strong> Serão apresentados ${ENSAIOS_C3.length} pares de números. A criança indica qual é maior.</p>
+          </div>
+
+          <div class="evaluator-note">
+            <strong>Instrução à criança:</strong> "Vais ver dois números. Diz-me qual é maior."
+          </div>
+
+          <button class="btn btn-primary btn-large btn-block" id="btnIniciarC3">Iniciar C3 →</button>
+        </div>
+      `;
+    }
+
+    function renderC3Ensaio() {
+      const ensaio = ENSAIOS_C3[state.ensaio];
+      return `
+        <div class="card">
+          <div class="progress-bar"><div class="progress-fill" style="width: ${37.5 + (state.ensaio/ENSAIOS_C3.length)*12.5}%"></div></div>
+          <div class="progress-text">C3 · Ensaio ${state.ensaio + 1} de ${ENSAIOS_C3.length}</div>
+          <h3 class="subsection">Qual é maior?</h3>
+
+          <div class="stimulus-area">
+            <div class="number-display">
+              <span class="number">${ensaio.esq}</span>
+              <span class="number">${ensaio.dir}</span>
+            </div>
+          </div>
+
+          <div class="binary-choice">
+            <button class="binary-btn" data-resp="esq">← ${ensaio.esq}</button>
+            <button class="binary-btn" data-resp="dir">${ensaio.dir} →</button>
+          </div>
+        </div>
+      `;
+    }
+
+    function responderC3(lado) {
+      const ensaio = ENSAIOS_C3[state.ensaio];
+      const tempoReacao = Date.now() - (state.tempos[`c3-${state.ensaio}`] || Date.now());
+      state.respostas[`c3-${state.ensaio}`] = {
+        ensaio: state.ensaio + 1,
+        esq: ensaio.esq,
+        dir: ensaio.dir,
+        correcto: ensaio.correcto,
+        resposta: lado,
+        acerto: lado === ensaio.correcto ? 1 : 0,
+        distancia: ensaio.dist,
+        tempo_ms: tempoReacao
+      };
+      state.ensaio++;
+      if (state.ensaio < ENSAIOS_C3.length) {
+        state.screen = 'c3-ensaio';
+        render();
+        state.tempos[`c3-${state.ensaio}`] = Date.now();
+      } else {
+        state.ensaio = 0;
+        state.screen = 'c4-intro';
+        render();
+      }
+    }
+
+    // === COMPONENTE 4 — TRANSCODIFICAÇÃO ===
+
+    function renderC4Intro() {
+      return `
+        <div class="card">
+          <div class="progress-bar"><div class="progress-fill" style="width: 50%"></div></div>
+          <div class="progress-text">Componente 4 de 8</div>
+          <h2 class="section-title">C4 — Transcodificação verbal-arábica</h2>
+
+          <div class="instructions">
+            <p><strong>Construto avaliado:</strong> conhecimento do sistema posicional; conexões verbal ↔ arábico.</p>
+            <p><strong>Procedimento:</strong> Duas sub-tarefas:</p>
+            <p><strong>C4.1 — Leitura:</strong> a criança lê em voz alta ${ENSAIOS_C4_LEITURA.length} números apresentados no ecrã.</p>
+            <p><strong>C4.2 — Ditado:</strong> o avaliador dita ${ENSAIOS_C4_DITADO.length} números; a criança escreve em papel.</p>
+          </div>
+
+          <button class="btn btn-primary btn-large btn-block" id="btnIniciarC4">Iniciar C4 — Leitura →</button>
+        </div>
+      `;
+    }
+
+    function renderC4Leitura() {
+      const numero = ENSAIOS_C4_LEITURA[state.ensaio];
+      const isLast = state.ensaio === ENSAIOS_C4_LEITURA.length - 1;
+      return `
+        <div class="card">
+          <div class="progress-bar"><div class="progress-fill" style="width: ${50 + (state.ensaio/ENSAIOS_C4_LEITURA.length)*6.25}%"></div></div>
+          <div class="progress-text">C4.1 Leitura · Número ${state.ensaio + 1} de ${ENSAIOS_C4_LEITURA.length}</div>
+          <h3 class="subsection">Lê em voz alta o número:</h3>
+
+          <div class="stimulus-area">
+            <div class="single-number">${numero}</div>
+          </div>
+
+          <div class="evaluator-note">
+            <strong>Para o avaliador:</strong> Registe a resposta literal da criança. Marque se a leitura é correcta.
+          </div>
+
+          <div class="form-row" style="margin-top: 24px;">
+            <label>Resposta da criança:</label>
+            <input type="text" id="respC4L" placeholder="(transcrever literalmente)">
+          </div>
+
+          <div class="form-row">
+            <label>Acerto:</label>
+            <select id="acertoC4L">
+              <option value="1">✓ Correcto</option>
+              <option value="0">✗ Erro</option>
+              <option value="ac">AC — Auto-correcção</option>
+            </select>
+          </div>
+
+          <button class="btn btn-primary btn-large btn-block" id="btnProxC4L">${isLast ? 'Concluir leitura →' : 'Próximo →'}</button>
+        </div>
+      `;
+    }
+
+    function proxC4Leitura() {
+      const numero = ENSAIOS_C4_LEITURA[state.ensaio];
+      const resp = document.getElementById('respC4L').value;
+      const acerto = document.getElementById('acertoC4L').value;
+      state.respostas[`c4l-${state.ensaio}`] = {
+        ensaio: state.ensaio + 1,
+        numero,
+        resposta: resp,
+        acerto
+      };
+      state.ensaio++;
+      if (state.ensaio < ENSAIOS_C4_LEITURA.length) {
+        render();
+      } else {
+        state.ensaio = 0;
+        state.screen = 'c4-ditado';
+        render();
+      }
+    }
+
+    function renderC4Ditado() {
+      const numero = ENSAIOS_C4_DITADO[state.ensaio];
+      const isLast = state.ensaio === ENSAIOS_C4_DITADO.length - 1;
+      return `
+        <div class="card">
+          <div class="progress-bar"><div class="progress-fill" style="width: ${56.25 + (state.ensaio/ENSAIOS_C4_DITADO.length)*6.25}%"></div></div>
+          <div class="progress-text">C4.2 Ditado · Número ${state.ensaio + 1} de ${ENSAIOS_C4_DITADO.length}</div>
+          <h3 class="subsection">Ditar à criança:</h3>
+
+          <div class="stimulus-area">
+            <div class="single-number">${numero}</div>
+          </div>
+
+          <div class="evaluator-note">
+            <strong>Para o avaliador:</strong> Dite o número em voz alta. A criança escreve em papel. Apresentação no ecrã serve apenas para si — não mostrar à criança.
+          </div>
+
+          <div class="form-row" style="margin-top: 24px;">
+            <label>O que a criança escreveu:</label>
+            <input type="text" id="respC4D" placeholder="(transcrever literalmente)">
+          </div>
+
+          <div class="form-row">
+            <label>Acerto:</label>
+            <select id="acertoC4D">
+              <option value="1">✓ Correcto</option>
+              <option value="0">✗ Erro</option>
+              <option value="ac">AC — Auto-correcção</option>
+            </select>
+          </div>
+
+          <div class="form-row">
+            <label>Tipo de erro (se erro):</label>
+            <select id="tipoErroC4D">
+              <option value="">—</option>
+              <option value="sintactico">Sintáctico (zeros)</option>
+              <option value="lexical">Lexical</option>
+              <option value="posicional">Posicional</option>
+              <option value="inversao">Inversão</option>
+              <option value="conceptual">Conceptual</option>
+            </select>
+          </div>
+
+          <button class="btn btn-primary btn-large btn-block" id="btnProxC4D">${isLast ? 'Concluir C4 →' : 'Próximo →'}</button>
+        </div>
+      `;
+    }
+
+    function proxC4Ditado() {
+      const numero = ENSAIOS_C4_DITADO[state.ensaio];
+      const resp = document.getElementById('respC4D').value;
+      const acerto = document.getElementById('acertoC4D').value;
+      const tipoErro = document.getElementById('tipoErroC4D').value;
+      state.respostas[`c4d-${state.ensaio}`] = {
+        ensaio: state.ensaio + 1,
+        numero,
+        resposta: resp,
+        acerto,
+        tipo_erro: tipoErro
+      };
+      state.ensaio++;
+      if (state.ensaio < ENSAIOS_C4_DITADO.length) {
+        render();
+      } else {
+        state.ensaio = 0;
+        state.screen = 'c5';
+        render();
+      }
+    }
+
+    // === COMPONENTE 5 — SEQUÊNCIA NUMÉRICA ===
+
+    function renderC5() {
+      const tarefa = TAREFAS_C5[state.ensaio];
+      const isLast = state.ensaio === TAREFAS_C5.length - 1;
+      return `
+        <div class="card">
+          <div class="progress-bar"><div class="progress-fill" style="width: ${62.5 + (state.ensaio/TAREFAS_C5.length)*12.5}%"></div></div>
+          <div class="progress-text">Componente 5 · Tarefa ${state.ensaio + 1} de ${TAREFAS_C5.length}</div>
+          <h2 class="section-title">C5 — Sequência numérica</h2>
+          <h3 class="subsection">${tarefa.nome}</h3>
+
+          <div class="evaluator-note">
+            <strong>Instrução à criança:</strong> "${tarefa.instrucao}"
+          </div>
+
+          <div class="form-row" style="margin-top: 24px;">
+            <label>Concluiu a tarefa?</label>
+            <select id="c5Concluiu">
+              <option value="completa">Completa (sem erros)</option>
+              <option value="completa-ac">Completa (com auto-correcções)</option>
+              <option value="parcial">Parcial (parou ou desistiu)</option>
+              <option value="erros">Com erros não corrigidos</option>
+            </select>
+          </div>
+
+          <div class="form-row">
+            <label>Onde parou ou errou:</label>
+            <input type="text" id="c5Onde" placeholder="(número onde parou/errou)">
+          </div>
+
+          <div class="form-row">
+            <label>Observações:</label>
+            <input type="text" id="c5Obs" placeholder="(estratégia, hesitações, uso de dedos...)">
+          </div>
+
+          <button class="btn btn-primary btn-large btn-block" id="btnProxC5">${isLast ? 'Concluir C5 →' : 'Próxima tarefa →'}</button>
+        </div>
+      `;
+    }
+
+    function proxC5() {
+      const tarefa = TAREFAS_C5[state.ensaio];
+      const concluiu = document.getElementById('c5Concluiu').value;
+      const onde = document.getElementById('c5Onde').value;
+      const obs = document.getElementById('c5Obs').value;
+      state.respostas[`c5-${state.ensaio}`] = {
+        tarefa: tarefa.id,
+        concluiu,
+        onde_falhou: onde,
+        observacoes: obs
+      };
+      state.ensaio++;
+      if (state.ensaio < TAREFAS_C5.length) {
+        render();
+      } else {
+        state.ensaio = 0;
+        state.screen = 'c6-intro';
+        render();
+      }
+    }
+
+    // === COMPONENTE 6 — RECTA NUMÉRICA ===
+
+    function renderC6Intro() {
+      return `
+        <div class="card">
+          <div class="progress-bar"><div class="progress-fill" style="width: 75%"></div></div>
+          <div class="progress-text">Componente 6 de 8</div>
+          <h2 class="section-title">C6 — Recta numérica mental</h2>
+
+          <div class="instructions">
+            <p><strong>Construto avaliado:</strong> representação espacial linear do número.</p>
+            <p><strong>Procedimento:</strong> Serão apresentados ${ALVOS_C6.length} alvos numéricos. Para cada alvo, o avaliando marca na recta 0-1.000 a posição que corresponde ao número.</p>
+          </div>
+
+          <div class="evaluator-note">
+            <strong>Instrução ao avaliando:</strong> "Vais ver uma linha que vai de 0 a 1.000. Vou dizer-te um número e tu marcas o sítio onde achas que esse número fica nessa linha. Não há resposta certa — diz-me só onde achas que está."
+          </div>
+
+          <button class="btn btn-primary btn-large btn-block" id="btnIniciarC6">Iniciar C6 →</button>
+        </div>
+      `;
+    }
+
+    function renderC6Ensaio() {
+      const alvo = ALVOS_C6[state.ensaio];
+      return `
+        <div class="card">
+          <div class="progress-bar"><div class="progress-fill" style="width: ${75 + (state.ensaio/ALVOS_C6.length)*12.5}%"></div></div>
+          <div class="progress-text">C6 · Alvo ${state.ensaio + 1} de ${ALVOS_C6.length}</div>
+          <h3 class="subsection">Onde fica o número:</h3>
+
+          <div class="target-number">${alvo}</div>
+
+          <div class="stimulus-area" style="padding: 8px;">
+            ${svgRectaNumerica(0, RECTA_C6_MAX)}
+          </div>
+
+          <div class="evaluator-note">
+            <strong>Para o avaliador:</strong> Clique na recta no local que a criança indicou.
+          </div>
+        </div>
+      `;
+    }
+
+    function responderC6(event) {
+      const svg = document.getElementById('rectaSvg');
+      if (!svg) return;
+      const rect = svg.getBoundingClientRect();
+      const x = event.clientX - rect.left;
+      const w = rect.width;
+      const margem = 40 * (w / 700);
+      const posicaoNorm = (x - margem) / (w - 2*margem);
+      const posicaoClipped = Math.max(0, Math.min(1, posicaoNorm));
+      const valorMarcado = posicaoClipped * RECTA_C6_MAX;
+
+      const alvo = ALVOS_C6[state.ensaio];
+      const erro = Math.abs(valorMarcado - alvo);
+      const erroPct = (erro / RECTA_C6_MAX) * 100;
+
+      state.respostas[`c6-${state.ensaio}`] = {
+        ensaio: state.ensaio + 1,
+        alvo,
+        posicao_marcada: valorMarcado.toFixed(2),
+        erro_absoluto: erro.toFixed(2),
+        erro_pct: erroPct.toFixed(1)
+      };
+
+      state.ensaio++;
+      if (state.ensaio < ALVOS_C6.length) {
+        render();
+      } else {
+        state.ensaio = 0;
+        state.screen = 'c7-intro';
+        render();
+      }
+    }
+
+    // === COMPONENTE 7 — FLUÊNCIA ARITMÉTICA ===
+
+    function renderC7Intro() {
+      return `
+        <div class="card">
+          <div class="progress-bar"><div class="progress-fill" style="width: 87.5%"></div></div>
+          <div class="progress-text">Componente 7 de 8</div>
+          <h2 class="section-title">C7 — Fluência aritmética</h2>
+
+          <div class="instructions">
+            <p><strong>Construto avaliado:</strong> automatização de factos aritméticos e raciocínio aritmético (Geary).</p>
+            <p><strong>Procedimento:</strong> Três sub-tarefas cronometradas de 1 minuto cada.</p>
+            <p><strong>C7.1 — Multiplicações completas:</strong> 20 itens (tabuadas até 9×9); a criança resolve o máximo possível em 60 segundos.</p>
+            <p><strong>C7.2 — Divisões básicas:</strong> 20 itens (divisões exactas até 90÷9); idem.</p>
+            <p><strong>C7.3 — Operações combinadas:</strong> 15 itens com parênteses e prioridade de operações; idem.</p>
+          </div>
+
+          <div class="evaluator-note">
+            <strong>Instrução à criança:</strong> "Vais resolver contas em voz alta o mais rápido que conseguires. Tens 1 minuto para cada conjunto. Não te preocupes se não conseguires fazer todas — faz quantas conseguires."
+          </div>
+
+          <button class="btn btn-primary btn-large btn-block" id="btnIniciarC7Somas">Iniciar C7.1 — Multiplicações →</button>
+        </div>
+      `;
+    }
+
+    function renderC7Fluencia() {
+      let operacoes, titulo;
+      if (state.tipoFluencia === 'subtr') {
+        operacoes = FLUENCIA_SUBTR;
+        titulo = 'C7.2 — Divisões básicas';
+      } else if (state.tipoFluencia === 'mult') {
+        operacoes = FLUENCIA_MULT;
+        titulo = 'C7.3 — Operações combinadas';
+      } else {
+        operacoes = FLUENCIA_SOMAS;
+        titulo = 'C7.1 — Multiplicações completas';
+      }
+      const op = operacoes[state.ensaio];
+      const tempoRestante = state.c7TempoRestante || 60;
+      const isLast = state.ensaio === operacoes.length - 1;
+
+      return `
+        <div class="card">
+          <div class="progress-bar"><div class="progress-fill" style="width: ${87.5 + (state.ensaio/operacoes.length)*6.25}%"></div></div>
+          <div class="progress-text">${titulo} · Item ${state.ensaio + 1} de ${operacoes.length}</div>
+          <h3 class="subsection">Operação:</h3>
+
+          <div class="timer-display" id="timerDisplay">⏱ ${tempoRestante}s</div>
+
+          <div class="arithmetic-display">${op} = ?</div>
+
+          <div class="evaluator-note">
+            <strong>Para o avaliador:</strong> Registe a resposta da criança. Avance imediatamente após cada resposta.
+          </div>
+
+          <div class="form-row" style="margin-top: 16px;">
+            <label>Resposta:</label>
+            <input type="text" id="respC7" autofocus>
+          </div>
+
+          <button class="btn btn-primary btn-large btn-block" id="btnProxC7">${isLast ? 'Concluir →' : 'Próxima operação →'}</button>
+          <button class="btn btn-secondary btn-block" id="btnParaC7" style="margin-top: 8px;">⏹ Parar (tempo esgotado / criança desistiu)</button>
+        </div>
+      `;
+    }
+
+    function iniciarTimerC7() {
+      state.c7TempoRestante = 60;
+      state.c7TempoInicio = Date.now();
+      if (state.c7TimerId) clearInterval(state.c7TimerId);
+      state.c7TimerId = setInterval(() => {
+        const decorrido = Math.floor((Date.now() - state.c7TempoInicio) / 1000);
+        state.c7TempoRestante = Math.max(0, 60 - decorrido);
+        const display = document.getElementById('timerDisplay');
+        if (display) display.textContent = `⏱ ${state.c7TempoRestante}s`;
+        if (state.c7TempoRestante <= 0) {
+          clearInterval(state.c7TimerId);
+          pararC7();
+        }
+      }, 250);
+    }
+
+    function proxC7() {
+      let operacoes, prefix;
+      if (state.tipoFluencia === 'subtr') {
+        operacoes = FLUENCIA_SUBTR;
+        prefix = 'c7s';
+      } else if (state.tipoFluencia === 'mult') {
+        operacoes = FLUENCIA_MULT;
+        prefix = 'c7m';
+      } else {
+        operacoes = FLUENCIA_SOMAS;
+        prefix = 'c7';
+      }
+      const resp = document.getElementById('respC7').value;
+      const op = operacoes[state.ensaio];
+
+      // Avaliar acerto — substituir × por *, ÷ por / antes de avaliar
+      let correcto;
+      try { correcto = eval(op.replace(/×/g, '*').replace(/÷/g, '/')); } catch(e) { correcto = null; }
+      const acerto = parseInt(resp) === correcto ? 1 : 0;
+
+      state.respostas[`${prefix}-${state.ensaio}`] = {
+        ensaio: state.ensaio + 1,
+        operacao: op,
+        resposta: resp,
+        correcto,
+        acerto
+      };
+      state.ensaio++;
+      if (state.ensaio < operacoes.length && state.c7TempoRestante > 0) {
+        render();
+        document.getElementById('respC7').focus();
+      } else {
+        pararC7();
+      }
+    }
+
+    function pararC7() {
+      if (state.c7TimerId) clearInterval(state.c7TimerId);
+      state.c7TempoFinal = state.c7TempoRestante;
+      if (state.tipoFluencia === 'somas' || !state.tipoFluencia) {
+        // Passa para subtracções
+        state.tipoFluencia = 'subtr';
+        state.ensaio = 0;
+        state.c7TempoRestante = 60;
+        render();
+        iniciarTimerC7();
+      } else if (state.tipoFluencia === 'subtr') {
+        // Passa para multiplicação
+        state.tipoFluencia = 'mult';
+        state.ensaio = 0;
+        state.c7TempoRestante = 60;
+        render();
+        iniciarTimerC7();
+      } else {
+        // Concluiu fluência (mult)
+        state.ensaio = 0;
+        state.screen = 'c8';
+        render();
+      }
+    }
+
+    // === COMPONENTE 8 — OBSERVAÇÃO DIRECTA ===
+
+    function renderC8() {
+      return `
+        <div class="card">
+          <div class="progress-bar"><div class="progress-fill" style="width: 95%"></div></div>
+          <div class="progress-text">Componente 8 de 8</div>
+          <h2 class="section-title">C8 — Estratégias de cálculo (observação directa)</h2>
+
+          <div class="instructions">
+            <p><strong>Construto avaliado:</strong> caracterização qualitativa das estratégias usadas durante C5 e C7.</p>
+            <p>Esta componente é preenchida com base na <strong>observação directa</strong> do comportamento da criança ao longo da prova.</p>
+          </div>
+
+          <h3 class="subsection">Estratégia predominante observada:</h3>
+          <div class="observation-grid">
+            <label class="observation-item"><input type="checkbox" name="estrat" value="recuperacao"> Recuperação directa</label>
+            <label class="observation-item"><input type="checkbox" name="estrat" value="decomposicao"> Decomposição mental</label>
+            <label class="observation-item"><input type="checkbox" name="estrat" value="contagem-mental"> Contagem mental</label>
+            <label class="observation-item"><input type="checkbox" name="estrat" value="dedos-parcial"> Dedos (parcial)</label>
+            <label class="observation-item"><input type="checkbox" name="estrat" value="dedos-completa"> Dedos (completa)</label>
+            <label class="observation-item"><input type="checkbox" name="estrat" value="sub-vocalizacao"> Sub-vocalização</label>
+            <label class="observation-item"><input type="checkbox" name="estrat" value="apoio-externo"> Apoio externo</label>
+            <label class="observation-item"><input type="checkbox" name="estrat" value="flexivel"> Flexibilidade entre estratégias</label>
+          </div>
+
+          <h3 class="subsection" style="margin-top: 24px;">Observações comportamentais durante a prova:</h3>
+          <div class="form-row">
+            <label>Atenção / esforço:</label>
+            <select id="c8Atencao">
+              <option value="">—</option>
+              <option value="boa">Boa, mantida ao longo da prova</option>
+              <option value="moderada">Moderada, com flutuações</option>
+              <option value="fragilizada">Fragilizada / desinvestimento progressivo</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <label>Ansiedade observada:</label>
+            <select id="c8Ansiedade">
+              <option value="">—</option>
+              <option value="nao">Não observada</option>
+              <option value="ligeira">Ligeira</option>
+              <option value="moderada">Moderada</option>
+              <option value="acentuada">Acentuada</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <label>Auto-eficácia / motivação:</label>
+            <select id="c8Motivacao">
+              <option value="">—</option>
+              <option value="alta">Alta / investida</option>
+              <option value="adequada">Adequada</option>
+              <option value="baixa">Baixa / evitamento</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <label>Observações adicionais:</label>
+            <input type="text" id="c8Notas" placeholder="(comentários livres sobre o comportamento)">
+          </div>
+
+          <button class="btn btn-primary btn-large btn-block" id="btnConcluirC8">Concluir avaliação →</button>
+        </div>
+      `;
+    }
+
+    function concluirC8() {
+      const estrategias = Array.from(document.querySelectorAll('input[name="estrat"]:checked')).map(i => i.value);
+      state.observacoes = {
+        estrategias,
+        atencao: document.getElementById('c8Atencao').value,
+        ansiedade: document.getElementById('c8Ansiedade').value,
+        motivacao: document.getElementById('c8Motivacao').value,
+        notas: document.getElementById('c8Notas').value
+      };
+      state.screen = 'final';
+      render();
+    }
+
+    // === FINAL ===
+
+    function renderFinal() {
+      // Calcular estatísticas
+      const stats = calcularEstatisticas();
+
+      return `
+        <div class="card card-large">
+          <h2 class="section-title">Avaliação concluída</h2>
+          <p style="color: var(--text-light); margin-bottom: 24px;">Resumo automático do desempenho. Exportação CSV disponível abaixo.</p>
+
+          <div class="summary-grid">
+            <div class="summary-card">
+              <h4>C1 — Subitização</h4>
+              <div class="value">${stats.c1Saltado ? 'Saltado' : stats.c1Precisao + '%'}</div>
+              <div style="font-size: 12px; color: var(--text-light); margin-top: 4px;">${stats.c1Saltado ? 'Componente opcional não aplicada' : 'Limite: ' + stats.c1Limite}</div>
+            </div>
+            <div class="summary-card">
+              <h4>C2 — Comp. não-simbólica</h4>
+              <div class="value">${stats.c2Saltado ? 'Saltado' : stats.c2Precisao + '%'}</div>
+              <div style="font-size: 12px; color: var(--text-light); margin-top: 4px;">${stats.c2Saltado ? 'Componente opcional não aplicada' : '1:2 ' + stats.c2R12 + '% · 2:3 ' + stats.c2R23 + '% · 3:4 ' + stats.c2R34 + '%'}</div>
+            </div>
+            <div class="summary-card">
+              <h4>C3 — Comp. simbólica</h4>
+              <div class="value">${stats.c3Precisao}%</div>
+              <div style="font-size: 12px; color: var(--text-light); margin-top: 4px;">Efeito distância: ${stats.c3EfeitoDist}ms</div>
+            </div>
+            <div class="summary-card">
+              <h4>C4 — Transcodificação</h4>
+              <div class="value">${stats.c4Precisao}%</div>
+              <div style="font-size: 12px; color: var(--text-light); margin-top: 4px;">Leitura ${stats.c4LeituraPct}% · Ditado ${stats.c4DitadoPct}%</div>
+            </div>
+            <div class="summary-card">
+              <h4>C6 — Recta numérica</h4>
+              <div class="value">${stats.c6ErroMedio}</div>
+              <div style="font-size: 12px; color: var(--text-light); margin-top: 4px;">Erro médio absoluto</div>
+            </div>
+            <div class="summary-card">
+              <h4>C7 — Fluência</h4>
+              <div class="value">${stats.c7Acertos}</div>
+              <div style="font-size: 12px; color: var(--text-light); margin-top: 4px;">Mult ${stats.c7Somas} · Div ${stats.c7Subtr} · Comb ${stats.c7Mult}</div>
+            </div>
+          </div>
+
+          <div class="evaluator-note" style="margin-top: 32px;">
+            <strong>Próximo passo:</strong> Exportar os dados em CSV para análise detalhada e integração no Excel de cotação (PECN-RC). A interpretação clínica deve articular-se com WIAT-III, WISC e o quadro funcional global.
+          </div>
+
+          <div class="btn-group">
+            <button class="btn btn-primary btn-large" id="btnExportarCSV">📥 Exportar CSV completo</button>
+            <button class="btn btn-secondary btn-large" id="btnReiniciar">🔄 Nova avaliação</button>
+          </div>
+        </div>
+      `;
+    }
+
+    function calcularEstatisticas() {
+      const r = state.respostas;
+      const stats = {};
+
+      // C1
+      const c1Saltado = state.respostas['c1-saltado'] !== undefined;
+      const c1 = c1Saltado ? [] : Object.keys(r).filter(k => k.startsWith('c1-') && k !== 'c1-saltado').map(k => r[k]);
+      const c1Acertos = c1.filter(x => x.acerto === 1).length;
+      stats.c1Saltado = c1Saltado;
+      stats.c1Precisao = c1Saltado ? '—' : (c1.length ? Math.round((c1Acertos / c1.length) * 100) : 0);
+      // Limite de subitização: maior quantidade com acerto consistente
+      const acertosPorQtd = {};
+      c1.forEach(x => {
+        if (!acertosPorQtd[x.qtd_correcta]) acertosPorQtd[x.qtd_correcta] = { ok: 0, total: 0 };
+        acertosPorQtd[x.qtd_correcta].total++;
+        if (x.acerto) acertosPorQtd[x.qtd_correcta].ok++;
+      });
+      let limite = 0;
+      for (let q = 1; q <= 6; q++) {
+        if (acertosPorQtd[q] && acertosPorQtd[q].ok / acertosPorQtd[q].total >= 0.5) {
+          limite = q;
+        } else { break; }
+      }
+      stats.c1Limite = c1Saltado ? '—' : limite;
+
+      // C2 por razão
+      const c2Saltado = state.respostas['c2-saltado'] !== undefined;
+      const c2 = c2Saltado ? [] : Object.keys(r).filter(k => k.startsWith('c2-') && k !== 'c2-saltado').map(k => r[k]);
+      const c2Acertos = c2.filter(x => x.acerto === 1).length;
+      stats.c2Saltado = c2Saltado;
+      stats.c2Precisao = c2Saltado ? '—' : (c2.length ? Math.round((c2Acertos / c2.length) * 100) : 0);
+      const c2_12 = c2.filter(x => x.razao === '1:2');
+      const c2_23 = c2.filter(x => x.razao === '2:3');
+      const c2_34 = c2.filter(x => x.razao === '3:4');
+      stats.c2R12 = c2_12.length ? Math.round(c2_12.filter(x => x.acerto).length / c2_12.length * 100) : 0;
+      stats.c2R23 = c2_23.length ? Math.round(c2_23.filter(x => x.acerto).length / c2_23.length * 100) : 0;
+      stats.c2R34 = c2_34.length ? Math.round(c2_34.filter(x => x.acerto).length / c2_34.length * 100) : 0;
+
+      // C3
+      const c3 = Object.keys(r).filter(k => k.startsWith('c3-')).map(k => r[k]);
+      const c3Acertos = c3.filter(x => x.acerto === 1).length;
+      stats.c3Precisao = c3.length ? Math.round((c3Acertos / c3.length) * 100) : 0;
+      const c3Peq = c3.filter(x => x.distancia === 'pequena' && x.acerto);
+      const c3Grd = c3.filter(x => x.distancia === 'grande' && x.acerto);
+      const trPeq = c3Peq.length ? c3Peq.reduce((s, x) => s + x.tempo_ms, 0) / c3Peq.length : 0;
+      const trGrd = c3Grd.length ? c3Grd.reduce((s, x) => s + x.tempo_ms, 0) / c3Grd.length : 0;
+      stats.c3EfeitoDist = Math.round(trPeq - trGrd);
+
+      // C4
+      const c4l = Object.keys(r).filter(k => k.startsWith('c4l-')).map(k => r[k]);
+      const c4d = Object.keys(r).filter(k => k.startsWith('c4d-')).map(k => r[k]);
+      const c4lAc = c4l.filter(x => x.acerto === '1' || x.acerto === 'ac').length;
+      const c4dAc = c4d.filter(x => x.acerto === '1' || x.acerto === 'ac').length;
+      stats.c4LeituraPct = c4l.length ? Math.round(c4lAc / c4l.length * 100) : 0;
+      stats.c4DitadoPct = c4d.length ? Math.round(c4dAc / c4d.length * 100) : 0;
+      stats.c4Precisao = (c4l.length + c4d.length) ? Math.round((c4lAc + c4dAc) / (c4l.length + c4d.length) * 100) : 0;
+
+      // C6
+      const c6 = Object.keys(r).filter(k => k.startsWith('c6-')).map(k => r[k]);
+      if (c6.length) {
+        const erroMedio = c6.reduce((s, x) => s + parseFloat(x.erro_absoluto), 0) / c6.length;
+        stats.c6ErroMedio = erroMedio.toFixed(2);
+      } else {
+        stats.c6ErroMedio = '—';
+      }
+
+      // C7
+      const c7s = Object.keys(r).filter(k => k.startsWith('c7-')).map(k => r[k]);
+      const c7sub = Object.keys(r).filter(k => k.startsWith('c7s-')).map(k => r[k]);
+      const c7mult = Object.keys(r).filter(k => k.startsWith('c7m-')).map(k => r[k]);
+      stats.c7Acertos = c7s.filter(x => x.acerto).length + c7sub.filter(x => x.acerto).length + c7mult.filter(x => x.acerto).length;
+      stats.c7Somas = c7s.filter(x => x.acerto).length;
+      stats.c7Subtr = c7sub.filter(x => x.acerto).length;
+      stats.c7Mult = c7mult.filter(x => x.acerto).length;
+
+      return stats;
+    }
+
+    function exportarCSV() {
+      const linhas = [];
+      // Cabeçalho com identificação
+      linhas.push('PECN-RC · Nível 1 · Dados de aplicação');
+      linhas.push(`Avaliando;${state.avaliando.nome}`);
+      linhas.push(`Data nascimento;${state.avaliando.dataNasc}`);
+      linhas.push(`Data avaliação;${state.avaliando.dataAval}`);
+      linhas.push(`Ano escolaridade;${state.avaliando.ano}`);
+      linhas.push('');
+      linhas.push('Componente;Item;Detalhe;Resposta;Acerto;Tempo (ms);Notas');
+
+      Object.keys(state.respostas).forEach(k => {
+        const r = state.respostas[k];
+        const comp = k.split('-')[0].toUpperCase();
+        const item = r.ensaio || r.tarefa || '';
+        let detalhe = '';
+        let resposta = '';
+        let acerto = r.acerto !== undefined ? r.acerto : '';
+        let tempo = r.tempo_ms || '';
+        let notas = '';
+
+        if (k.startsWith('c1-')) {
+          detalhe = `Qtd correcta: ${r.qtd_correcta}; disposição: ${r.disposicao}`;
+          resposta = r.qtd_resposta;
+        } else if (k.startsWith('c2-')) {
+          detalhe = `${r.esq} vs ${r.dir} (razão ${r.razao}; área ${r.area})`;
+          resposta = r.resposta;
+        } else if (k.startsWith('c3-')) {
+          detalhe = `${r.esq} vs ${r.dir} (distância ${r.distancia})`;
+          resposta = r.resposta;
+        } else if (k.startsWith('c4l-')) {
+          detalhe = `Leitura: ${r.numero}`;
+          resposta = r.resposta;
+        } else if (k.startsWith('c4d-')) {
+          detalhe = `Ditado: ${r.numero}; tipo erro: ${r.tipo_erro || '—'}`;
+          resposta = r.resposta;
+        } else if (k.startsWith('c5-')) {
+          detalhe = `Tarefa: ${r.tarefa}`;
+          resposta = `${r.concluiu} (parou em ${r.onde_falhou || '—'})`;
+          notas = r.observacoes;
+        } else if (k.startsWith('c6-')) {
+          detalhe = `Alvo: ${r.alvo}`;
+          resposta = `Marcou: ${r.posicao_marcada} (erro: ${r.erro_absoluto})`;
+        } else if (k.startsWith('c7-') || k.startsWith('c7s-') || k.startsWith('c7m-')) {
+          detalhe = r.operacao;
+          resposta = `${r.resposta} (correcto: ${r.correcto})`;
+        }
+
+        linhas.push(`${comp};${item};${detalhe};${resposta};${acerto};${tempo};${notas}`);
+      });
+
+      // Observações C8
+      linhas.push('');
+      linhas.push('C8 — Observação directa');
+      linhas.push(`Estratégias;${state.observacoes.estrategias.join(', ')}`);
+      linhas.push(`Atenção;${state.observacoes.atencao}`);
+      linhas.push(`Ansiedade;${state.observacoes.ansiedade}`);
+      linhas.push(`Motivação;${state.observacoes.motivacao}`);
+      linhas.push(`Notas;${state.observacoes.notas}`);
+
+      const csv = linhas.join('\n');
+      const bom = '\uFEFF';  // UTF-8 BOM for Excel compatibility
+      const blob = new Blob([bom + csv], { type: 'text/csv;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      const nomeFich = `PECN_RC_N1_${state.avaliando.nome.replace(/\s+/g, '_')}_${state.avaliando.dataAval}.csv`;
+      a.download = nomeFich;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    // ============================================================
+    // EVENT LISTENERS
+    // ============================================================
+
+    function attachEventListeners() {
+      const handlers = {
+        'btnInstrucoes': () => {
+          state.avaliando.nome = document.getElementById('nome').value;
+          state.avaliando.dataNasc = document.getElementById('dataNasc').value;
+          state.avaliando.dataAval = document.getElementById('dataAval').value;
+          state.avaliando.ano = document.getElementById('ano').value;
+          state.screen = 'instructions';
+          render();
+        },
+        'btnComecarC1': () => { state.screen = 'c1-intro'; render(); },
+        'btnIniciarC1': () => { state.screen = 'c1-ensaio'; render(); },
+        'btnSaltarC1': () => {
+          state.respostas['c1-saltado'] = { saltado: true };
+          state.ensaio = 0;
+          state.screen = 'c2-intro';
+          render();
+        },
+        'btnApresentarC1': () => apresentarC1(),
+        'btnIniciarC2': () => {
+          state.screen = 'c2-ensaio';
+          state.tempos[`c2-0`] = Date.now();
+          render();
+        },
+        'btnSaltarC2': () => {
+          state.respostas['c2-saltado'] = { saltado: true };
+          state.ensaio = 0;
+          state.screen = 'c3-intro';
+          render();
+        },
+        'btnIniciarC3': () => {
+          state.screen = 'c3-ensaio';
+          state.tempos[`c3-0`] = Date.now();
+          render();
+        },
+        'btnIniciarC4': () => { state.screen = 'c4-leitura'; render(); },
+        'btnProxC4L': () => proxC4Leitura(),
+        'btnProxC4D': () => proxC4Ditado(),
+        'btnProxC5': () => proxC5(),
+        'btnIniciarC6': () => { state.screen = 'c6-ensaio'; render(); },
+        'btnIniciarC7Somas': () => {
+          state.screen = 'c7-fluencia';
+          state.tipoFluencia = 'somas';
+          state.ensaio = 0;
+          render();
+          iniciarTimerC7();
+          setTimeout(() => { const r = document.getElementById('respC7'); if (r) r.focus(); }, 100);
+        },
+        'btnProxC7': () => proxC7(),
+        'btnParaC7': () => pararC7(),
+        'btnConcluirC8': () => concluirC8(),
+        'btnExportarCSV': () => exportarCSV(),
+        'btnReiniciar': () => { location.reload(); }
+      };
+
+      Object.keys(handlers).forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.addEventListener('click', handlers[id]);
+      });
+
+      // Number pad C1
+      document.querySelectorAll('.number-btn, [data-resp]').forEach(btn => {
+        if (state.screen === 'c1-resposta') {
+          btn.addEventListener('click', () => responderC1(btn.dataset.resp));
+        } else if (state.screen === 'c2-ensaio') {
+          btn.addEventListener('click', () => responderC2(btn.dataset.resp));
+        } else if (state.screen === 'c3-ensaio') {
+          btn.addEventListener('click', () => responderC3(btn.dataset.resp));
+        }
+      });
+
+      // C6 — clique na recta
+      if (state.screen === 'c6-ensaio') {
+        const recta = document.getElementById('rectaSvg');
+        if (recta) recta.addEventListener('click', responderC6);
+      }
+
+      // C7 — Enter para avançar
+      if (state.screen === 'c7-fluencia') {
+        const input = document.getElementById('respC7');
+        if (input) {
+          input.addEventListener('keypress', e => {
+            if (e.key === 'Enter') { e.preventDefault(); proxC7(); }
+          });
+        }
+      }
+    }
+
+    // ============================================================
+    // INICIAR
+    // ============================================================
+    render();
+  
+
+// ═══════════════════════════════════════════════════════════════
+// ADAPTAÇÕES V3 — Storage rc_sess, navegação por telas, síntese rica
+// ═══════════════════════════════════════════════════════════════
+
+// Substituir o destino do render() pela nossa área de componentes
+const _originalRender = render;
+window.render = function() {
+  // Garantir que o destino é #app-componentes
+  if (typeof state !== 'undefined' && state.screen === 'start') {
+    // Pular tela inicial v1 (temos identificação dedicada)
+    state.screen = 'instructions';
+  }
+  _originalRender();
+  // Redirigir output: se render escreveu em #app, copiar para #app-componentes
+  const a1 = document.getElementById('app');
+  const a2 = document.getElementById('app-componentes');
+  if (a1 && a2 && a1 !== a2) {
+    a2.innerHTML = a1.innerHTML;
+    a1.innerHTML = '';
+  }
+};
+
+// Inicialização de identificação
+const idCampos = ['nome','nascimento','idade','sexo','ano','escola','motivo','processo','data','avaliador','cedula'];
+
+function navegar(tela) {
+  document.querySelectorAll('.tela').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tela-' + tela).classList.add('active');
+  const navBtn = document.getElementById('nav-' + tela);
+  if (navBtn) navBtn.classList.add('active');
+  window.scrollTo(0, 0);
+  if (tela === 'aplicacao') {
+    // Iniciar/continuar SPA das 8 componentes
+    if (typeof state !== 'undefined') {
+      if (!state.screen || state.screen === 'start') state.screen = 'instructions';
+      render();
+    }
+  }
+  if (tela === 'sintese') renderSinteseCompleta();
+  if (tela === 'analise-numerica') restaurarFotoSeExiste();
+}
+
+function capturarIdentificacao() {
+  if (typeof state === 'undefined' || !state.identificacao) {
+    if (typeof state !== 'undefined') state.identificacao = {};
+  }
+  idCampos.forEach(k => {
+    const el = document.getElementById('id-' + k);
+    if (el && state) state.identificacao[k] = el.value;
+  });
+  // Sincronizar com state.composicao para análise numérica
+  if (typeof state !== 'undefined' && !state.composicao) {
+    state.composicao = { foto: null, metricasImagem: {}, grelhaCaligrafia: {}, implicacoes: '', analiseGerada: '' };
+  }
+}
+
+// "estado" é o alias usado pelo módulo de análise numérica — apontar para state
+window.estado = (typeof state !== 'undefined') ? state : { composicao: { foto: null, metricasImagem: {}, grelhaCaligrafia: {}, implicacoes: '', analiseGerada: '' }, identificacao: {}, sinteseClinica: '' };
+
+// Função de guardar estado global (substituir/expandir)
+const _origGuardarEstado = (typeof guardarEstado === 'function') ? guardarEstado : null;
+function guardarEstado() {
+  capturarIdentificacao();
+  if (_origGuardarEstado) try { _origGuardarEstado(); } catch(e) {}
+  try { localStorage.setItem('pecn_rc_n' + NIVEL + '_estado', JSON.stringify(state)); } catch(e) {}
+}
+
+function carregarEstado() {
+  try {
+    const s = localStorage.getItem('pecn_rc_n' + NIVEL + '_estado');
+    if (s) {
+      const novo = JSON.parse(s);
+      Object.assign(state, novo);
+      if (state.identificacao) {
+        idCampos.forEach(k => {
+          const el = document.getElementById('id-' + k);
+          if (el && state.identificacao[k]) el.value = state.identificacao[k];
+        });
+      }
+    }
+  } catch(e) {}
+  // Detectar URL param paciente
+  const pc = getPatientCode();
+  if (pc && !document.getElementById('id-nome').value) document.getElementById('id-nome').value = pc;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// CÁLCULOS DA SÍNTESE — Aproveita estruturas existentes de state
+// ═══════════════════════════════════════════════════════════════
+function calcularResumoComponentes() {
+  const r = {};
+  // C1 — Subitização
+  if (state.c1) {
+    const tot = state.c1.length, ac = state.c1Acertos || state.c1.filter(x => x.correto).length;
+    r.C1 = { nome: 'C1 — Subitização', total: tot, acertos: ac, precisao: tot ? (ac/tot*100) : 0 };
+  }
+  // C2 — Comparação não-simbólica
+  if (state.c2) {
+    const tot = state.c2.length, ac = state.c2Acertos || state.c2.filter(x => x.correto).length;
+    r.C2 = { nome: 'C2 — Comparação não-simbólica', total: tot, acertos: ac, precisao: tot ? (ac/tot*100) : 0 };
+  }
+  // C3 — Comparação simbólica
+  if (state.c3) {
+    const tot = state.c3.length, ac = state.c3Acertos || state.c3.filter(x => x.correto).length;
+    r.C3 = { nome: 'C3 — Comparação simbólica', total: tot, acertos: ac, precisao: tot ? (ac/tot*100) : 0 };
+  }
+  // C4 — Leitura e Ditado
+  if (state.c4l || state.c4d) {
+    const cL = (state.c4l || []).length, cD = (state.c4d || []).length;
+    const aL = state.c4lAc || (state.c4l || []).filter(x => x.correto).length;
+    const aD = state.c4dAc || (state.c4d || []).filter(x => x.correto).length;
+    r.C4 = { nome: 'C4 — Leitura e Ditado', total: cL+cD, acertos: aL+aD, precisao: (cL+cD) ? ((aL+aD)/(cL+cD)*100) : 0, leitura: { tot: cL, ac: aL }, ditado: { tot: cD, ac: aD } };
+  }
+  // C5 — Contagem (qualitativo)
+  if (state.c5) r.C5 = { nome: 'C5 — Contagem', tarefas: Object.keys(state.c5).length, qualitativo: true };
+  // C6 — Linha numérica
+  if (state.c6) {
+    const tot = state.c6.length, erros = state.c6.reduce((a,x) => a + (x.erroAbs || 0), 0);
+    r.C6 = { nome: 'C6 — Linha numérica', total: tot, erroMedio: tot ? (erros/tot) : 0 };
+  }
+  // C7 — Fluência aritmética
+  if (state.c7s || state.c7sub) {
+    const cS = state.c7s ? state.c7s.acertos : 0;
+    const cSub = state.c7sub ? state.c7sub.acertos : 0;
+    r.C7 = { nome: 'C7 — Fluência aritmética', somas: cS, subtracoes: cSub, total: cS + cSub };
+  }
+  return r;
+}
+
+function renderSinteseCompleta() {
+  capturarIdentificacao();
+  const id = state.identificacao || {};
+  const r = calcularResumoComponentes();
+
+  if (id.nome) {
+    const hpi = document.getElementById('header-patient-info');
+    if (hpi) hpi.style.display = 'block';
+    const hn = document.getElementById('hpi-nome'); if (hn) hn.textContent = id.nome;
+    const hi = document.getElementById('hpi-idade'); if (hi) hi.textContent = id.idade || '—';
+    const hd = document.getElementById('hpi-data'); if (hd) hd.textContent = id.data ? new Date(id.data).toLocaleDateString('pt-PT') : dataAtual();
+  }
+
+  let html = '';
+  // Resumo executivo
+  html += '<div class="sintese-section"><h3>Resumo executivo por componente</h3>';
+  html += '<div class="resumo-cards">';
+  const compsK = Object.keys(r);
+  if (compsK.length === 0) {
+    html += '<p style="grid-column:1/-1;color:var(--cinza);">Ainda não há dados de componentes. Inicie a aplicação na tela "2. Aplicação".</p>';
+  } else {
+    compsK.forEach(k => {
+      const c = r[k];
+      let valor = '—', sub = '';
+      if (c.precisao !== undefined) { valor = c.acertos + '/' + c.total; sub = c.precisao.toFixed(0) + '%'; }
+      else if (c.erroMedio !== undefined) { valor = c.erroMedio.toFixed(1); sub = 'erro médio'; }
+      else if (c.qualitativo) { valor = c.tarefas || 0; sub = 'tarefas'; }
+      else if (c.total !== undefined) { valor = c.total; sub = 'itens'; }
+      html += '<div class="resumo-card"><div class="label">' + k + '</div><div class="nome">' + c.nome.split('—')[1] + '</div><div class="valor">' + valor + '</div><div class="sub">' + sub + '</div></div>';
+    });
+  }
+  html += '</div></div>';
+
+  // Gráfico de precisões por componente (quando aplicável)
+  const compsPrec = compsK.filter(k => r[k].precisao !== undefined);
+  if (compsPrec.length > 0) {
+    html += '<div class="sintese-section"><h3>Precisão por componente</h3>';
+    html += svgBarChart({
+      title: 'Precisões — Componentes com pontuação',
+      data: compsPrec.map(k => ({ label: k, sublabel: r[k].nome.split('—')[1].trim(), value: r[k].precisao, color: 'var(--prim)' })),
+      max: 100, unit: '%', width: 700, height: 320
+    });
+    html += '</div>';
+  }
+
+  // Análise da Produção Numérica (se houver foto)
+  if (state.composicao && state.composicao.foto) {
+    html += '<div class="sintese-section page-break"><h3>Análise da Produção Numérica</h3>';
+    html += '<div style="text-align:center;margin:12px 0;"><img src="' + state.composicao.foto + '" style="max-width:100%;max-height:500px;border:1px solid #DDD;border-radius:6px;"></div>';
+    const m = state.composicao.metricasImagem || {};
+    if (m.densidade !== undefined) {
+      html += '<h4>Métricas objectivas</h4><div class="metricas-grid">';
+      html += '<div class="metrica-item"><div class="label">Densidade de tinta</div><div class="valor">' + m.densidade + '<span class="unidade">%</span></div></div>';
+      html += '<div class="metrica-item"><div class="label">Linhas detectadas</div><div class="valor">' + m.linhasDetectadas + '</div></div>';
+      html += '<div class="metrica-item"><div class="label">Altura média</div><div class="valor">' + m.alturaMedia + '<span class="unidade">px</span></div></div>';
+      html += '<div class="metrica-item"><div class="label">Espaçamento</div><div class="valor">' + m.espacMedio + '<span class="unidade">px</span></div></div>';
+      html += '<div class="metrica-item"><div class="label">Intensidade do traço</div><div class="valor">' + m.intensidadePressao + '<span class="unidade">/255</span></div></div>';
+      html += '<div class="metrica-item"><div class="label">Variação tonal</div><div class="valor">±' + m.varTonal + '</div></div>';
+      html += '</div>';
+    }
+    if (state.composicao.analiseGerada) {
+      html += '<h4>Análise estruturada — Grelha Autoral RC (adaptada à numeracia)</h4>';
+      html += '<div class="analise-gerada">' + escHTML(state.composicao.analiseGerada) + '</div>';
+    }
+    html += '</div>';
+  }
+
+  // Síntese clínica editável
+  html += '<div class="sintese-section"><h3>Síntese clínica preliminar</h3>';
+  html += '<p class="nota">Redija aqui a síntese clínica integrando todas as componentes da PECN-RC.</p>';
+  html += '<textarea id="sintese-clinica-editor" class="comp-editor" style="min-height:200px;width:100%;padding:14px;border:2px solid #E0E0E0;border-radius:6px;font-family:inherit;font-size:15px;" oninput="state.sinteseClinica=this.value; guardarEstado();">' + escHTML(state.sinteseClinica || '') + '</textarea>';
+  html += '</div>';
+
+  html += '<div style="text-align:center;font-size:12px;color:var(--cinza);font-style:italic;border-top:2px solid var(--fundo);padding-top:16px;margin-top:30px;">PECN-RC · Nível ' + NIVEL + ' — ' + TITULO + ' · Versão 3.0 · Maio 2026<br>Ricardina Correia · Cédula OPP n.º 8233 · Psicologia Pediátrica · Lisboa<br><em>Documento gerado a ' + dataAtual() + '.</em></div>';
+
+  document.getElementById('sintese-conteudo').innerHTML = html;
+}
+
+function imprimir() { capturarIdentificacao(); renderSinteseCompleta(); setTimeout(() => window.print(), 200); }
+
+function finalizarESalvar() {
+  capturarIdentificacao();
+  const r = calcularResumoComponentes();
+  const pc = (state.identificacao && state.identificacao.nome) || getPatientCode() || 'sem_codigo';
+  const scores = {};
+  Object.keys(r).forEach(k => {
+    if (r[k].precisao !== undefined) scores['precisao_' + k] = r[k].precisao;
+    if (r[k].erroMedio !== undefined) scores['erro_medio_' + k] = r[k].erroMedio;
+    if (r[k].total !== undefined) scores['total_' + k] = r[k].total;
+  });
+  scores.analise_numerica_completa = !!(state.composicao && state.composicao.foto && Object.keys(state.composicao.grelhaCaligrafia || {}).length >= 5);
+  const dados = { status: 'complete', syncKey: SYNC_KEY, nivel: NIVEL, titulo: TITULO, dataAvaliacao: new Date().toISOString(), patientCode: pc, identificacao: state.identificacao || {}, scores: scores, dados_completos: state };
+  // Guardar localmente
+  try { localStorage.setItem('rc_sess:' + pc + ':' + SYNC_KEY, JSON.stringify(dados)); } catch(e) {}
+
+  // Enviar para Google Sheets via Apps Script central (assíncrono)
+  const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxX2_Ry7VRH6jr7eGBMmtmyZFXZc69blwdO5bqJK0j69HRSexpXXPuEfDC5OHQRMLLL/exec';
+  const payloadSheets = {
+    instrumento: 'PECN_RC_N' + NIVEL,
+    data: (state.identificacao && state.identificacao.data) || new Date().toISOString().slice(0,10),
+    patientCode: pc,
+    nome: (state.identificacao && state.identificacao.nome) || '',
+    idade: (state.identificacao && state.identificacao.idade) || '',
+    sexo: (state.identificacao && state.identificacao.sexo) || '',
+    ano: (state.identificacao && state.identificacao.ano) || '',
+    escola: (state.identificacao && state.identificacao.escola) || '',
+    dataNascimento: (state.identificacao && state.identificacao.nascimento) || '',
+    motivo: (state.identificacao && state.identificacao.motivo) || '',
+    precisao_C1: scores['precisao_C1'],
+    precisao_C2: scores['precisao_C2'],
+    precisao_C3: scores['precisao_C3'],
+    precisao_C4: scores['precisao_C4'],
+    precisao_C5: scores['precisao_C5'],
+    erro_medio_C6: scores['erro_medio_C6'],
+    total_C7: scores['total_C7'],
+    total_C8: scores['total_C8'],
+    analise_numerica_completa: scores.analise_numerica_completa,
+    analise_numerica_texto: (state.composicao && state.composicao.analiseGerada) || '',
+    implicacoes_funcionais: (state.composicao && state.composicao.implicacoes) || '',
+    sinteseClinica: state.sinteseClinica || '',
+    respostas: JSON.stringify(state)
+  };
+  fetch(APPS_SCRIPT_URL, {
+    method: 'POST',
+    body: JSON.stringify(payloadSheets),
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' }
+  }).then(r => r.json()).then(res => {
+    console.log('[PECN-RC] Sheets:', res);
+  }).catch(err => {
+    console.warn('[PECN-RC] Erro ao enviar para Sheets:', err);
+  });
+
+  try { alert('✓ Sessão guardada localmente!\nDados disponíveis para: ' + pc + '\n\n(Envio para Google Sheets em segundo plano)'); } catch(e) {}
+}
+
+function exportarCSV() {
+  capturarIdentificacao();
+  const id = state.identificacao || {};
+  const r = calcularResumoComponentes();
+  let csv = '\uFEFFavaliando,data,nivel,componente,total,acertos,precisao\n';
+  Object.keys(r).forEach(k => {
+    csv += '"' + (id.nome||'') + '","' + (id.data||'') + '",' + NIVEL + ',"' + r[k].nome + '",' + (r[k].total||'') + ',' + (r[k].acertos||'') + ',' + (r[k].precisao !== undefined ? r[k].precisao.toFixed(1) : '') + '\n';
+  });
+  downloadBlob(csv, 'PECN_RC_N' + NIVEL + '_' + (id.nome||'sem_nome').replace(/[^a-zA-Z0-9]/g,'_') + '_resumo.csv', 'text/csv;charset=utf-8');
+}
+
+function exportarJSON() {
+  capturarIdentificacao();
+  const id = state.identificacao || {};
+  downloadBlob(JSON.stringify({ metadata: { protocolo: 'PECN-RC', versao: '3.0', nivel: NIVEL, syncKey: SYNC_KEY, dataExportacao: new Date().toISOString(), autor: 'Ricardina Correia · OPP 8233' }, identificacao: state.identificacao, dados: state }, null, 2), 'PECN_RC_N' + NIVEL + '_' + (id.nome||'sem_nome').replace(/[^a-zA-Z0-9]/g,'_') + '_completo.json', 'application/json');
+}
+
+function resetarSessao() {
+  if (!confirm('Iniciar nova avaliação?')) return;
+  try { localStorage.removeItem('pecn_rc_n' + NIVEL + '_estado'); } catch(e) {}
+  location.reload();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// MÓDULO ANÁLISE NUMÉRICA (Grelha Autoral RC adaptada)
+// ═══════════════════════════════════════════════════════════════
+
+
+const GRELHA_NUMERICA = [
+  // === BLOCO I — ANÁLISE GRAFONUMÉRICA (registo escrito dos algarismos) ===
+  {
+    id: 'legibilidade_num', bloco: 'I. Análise Grafonumérica',
+    nome: 'Legibilidade dos Algarismos',
+    descricao: 'Clareza visual à primeira leitura; possibilidade de distinguir cada algarismo sem ambiguidade.',
+    subitens: [
+      'Algarismos claramente discrimináveis à primeira vista',
+      'Ausência de algarismos sobrepostos ou fundidos',
+      'Ausência de algarismos mal concluídos',
+      'Resultados numéricos identificáveis sem reinterpretação',
+      'Algarismos individualizáveis dentro de números pluri-dígito'
+    ]
+  },
+  {
+    id: 'forma_algarismos', bloco: 'I. Análise Grafonumérica',
+    nome: 'Forma e Discriminação dos Algarismos',
+    descricao: 'Discriminação inter-algarismos; ausência de inversões; estabilidade da forma.',
+    subitens: [
+      'Discriminação clara entre algarismos semelhantes (3/8, 6/9, 1/7, 0/6)',
+      'Ausência de inversões em espelho (3/E, 7/L, 9/P)',
+      'Forma estável do mesmo algarismo entre ocorrências',
+      'Direccionalidade correcta do traço de cada algarismo',
+      'Diferenciação correcta entre letras e algarismos (O/0, l/1, S/5)'
+    ]
+  },
+  {
+    id: 'tamanho_num', bloco: 'I. Análise Grafonumérica',
+    nome: 'Tamanho e Regularidade',
+    descricao: 'Uniformidade do tamanho dos algarismos; proporcionalidade; estabilidade ao longo da página.',
+    subitens: [
+      'Tamanho consistente entre algarismos do mesmo número',
+      'Tamanho consistente ao longo da página',
+      'Algarismos proporcionais às pautas (quando presentes)',
+      'Ausência de progressiva diminuição ou aumento',
+      'Tamanho adequado à idade e ao ano de escolaridade'
+    ]
+  },
+  {
+    id: 'pressao_num', bloco: 'I. Análise Grafonumérica',
+    nome: 'Pressão e Qualidade do Traço',
+    descricao: 'Pressão exercida no papel; nitidez do traço numérico.',
+    subitens: [
+      'Pressão adequada (sem rasgar, sem desvanecer)',
+      'Pressão uniforme ao longo dos exercícios',
+      'Traço nítido e contínuo',
+      'Ausência de sinais de tensão muscular excessiva',
+      'Ausência de marcas no verso da folha'
+    ]
+  },
+  {
+    id: 'alinhamento_posicional', bloco: 'I. Análise Grafonumérica',
+    nome: 'Alinhamento Posicional',
+    descricao: 'Alinhamento de unidades/dezenas/centenas em coluna; respeito pela linha de base.',
+    subitens: [
+      'Alinhamento correcto de unidades, dezenas e centenas em coluna',
+      'Manutenção da vertical nas operações em coluna',
+      'Linha de base respeitada nos números em sequência',
+      'Resultado de operações alinhado com as parcelas',
+      'Espaçamento adequado entre operações distintas'
+    ]
+  },
+
+  // === BLOCO II — ANÁLISE NUMÉRICO-LÓGICA (conteúdo cognitivo) ===
+  {
+    id: 'transcodificacao', bloco: 'II. Análise Numérico-Lógica',
+    nome: 'Transcodificação Numérica',
+    descricao: 'Conversão entre código verbal (oral / escrito por extenso) e código arábico.',
+    subitens: [
+      'Transcodificação verbal→arábico globalmente correcta',
+      'Transcodificação arábico→verbal globalmente correcta',
+      'Ausência de erros lexicais (substituição de algarismo)',
+      'Ausência de erros sintácticos (estrutura posicional incorrecta — ex.: "duzentos e três" → "2003")',
+      'Domínio dos números compostos e numerais especiais (dezenas, centenas)'
+    ]
+  },
+  {
+    id: 'valor_posicional', bloco: 'II. Análise Numérico-Lógica',
+    nome: 'Valor Posicional',
+    descricao: 'Compreensão do princípio decimal posicional; manipulação de centenas/dezenas/unidades.',
+    subitens: [
+      'Identifica correctamente unidades, dezenas, centenas',
+      'Compreende o valor de cada algarismo dentro do número',
+      'Decompõe números pluri-dígito correctamente (ex.: 347 = 300 + 40 + 7)',
+      'Compõe números a partir de decomposições',
+      'Compreende o papel do zero como marcador posicional'
+    ]
+  },
+  {
+    id: 'procedimentos', bloco: 'II. Análise Numérico-Lógica',
+    nome: 'Procedimentos das Operações',
+    descricao: 'Sequência correcta dos passos; transporte/empréstimo; regras do zero; cálculo intermédio.',
+    subitens: [
+      'Sequência correcta dos passos do algoritmo',
+      'Gestão correcta do transporte (adição)',
+      'Gestão correcta do empréstimo (subtracção)',
+      'Domínio da tabuada e factos numéricos básicos',
+      'Tratamento adequado do zero em operações'
+    ]
+  },
+  {
+    id: 'estrategias', bloco: 'II. Análise Numérico-Lógica',
+    nome: 'Estratégias e Verificação',
+    descricao: 'Escolha de estratégia adequada; revisão dos resultados; identificação de erros.',
+    subitens: [
+      'Escolha de estratégia adequada à tarefa',
+      'Uso de estratégias de revisão e auto-correcção',
+      'Identificação espontânea de erros próprios',
+      'Recurso a estratégias compensatórias funcionais',
+      'Verificação coerência do resultado (ordem de grandeza)'
+    ]
+  },
+
+  // === BLOCO III — ANÁLISE FUNCIONAL ===
+  {
+    id: 'velocidade_num', bloco: 'III. Análise Funcional',
+    nome: 'Velocidade e Adequação Temporal',
+    descricao: 'Velocidade de execução; adequação ao tempo previsto; gestão da fadiga.',
+    subitens: [
+      'Exercícios concluídos no tempo previsto',
+      'Velocidade adequada à idade e ano de escolaridade',
+      'Quantidade de tarefas resolvidas dentro do esperado',
+      'Sem fadiga visível ao longo da prova',
+      'Sem sinais de pressa que comprometam a qualidade'
+    ]
+  }
+];
+
+const ESCALA_AVALIACAO = [
+  { id: 'adequado', label: 'Adequado', cor: '#27AE60' },
+  { id: 'limitrofe', label: 'Limítrofe', cor: '#F39C12' },
+  { id: 'comprometido', label: 'Comprometido', cor: '#E67E22' },
+  { id: 'severo', label: 'Severamente comprometido', cor: '#C0392B' }
+];
+
+// Alias para compatibilidade com o motor genérico
+const GRELHA_CALIGRAFIA = GRELHA_NUMERICA;
+
+// Upload, compressão, render — IGUAL ao módulo PELED, adaptado para numeracia
+function processarUploadFoto(file) {
+  if (!file || !file.type.startsWith('image/')) { alert('Seleccione um ficheiro de imagem.'); return; }
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const img = new Image();
+    img.onload = () => {
+      const maxW = 1200;
+      let w = img.width, h = img.height;
+      if (w > maxW) { h = h * (maxW / w); w = maxW; }
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      const compressed = canvas.toDataURL('image/jpeg', 0.75);
+      estado.composicao.foto = compressed;
+      mostrarFoto(compressed);
+      analisarImagemCanvas();
+      renderGrelhaCaligrafia();
+      guardarEstado();
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function mostrarFoto(dataURL) {
+  document.getElementById('foto-preview').src = dataURL;
+  document.getElementById('foto-preview').style.display = 'block';
+  document.getElementById('upload-placeholder').style.display = 'none';
+  document.getElementById('foto-actions').style.display = 'flex';
+  document.getElementById('upload-area').classList.add('tem-imagem');
+  document.getElementById('metricas-objectivas').style.display = 'block';
+  document.getElementById('grelha-caligrafia-container').style.display = 'block';
+}
+
+function removerFoto() {
+  if (!confirm('Remover a fotografia?')) return;
+  estado.composicao.foto = null;
+  estado.composicao.metricasImagem = {};
+  document.getElementById('foto-preview').style.display = 'none';
+  document.getElementById('foto-preview').src = '';
+  document.getElementById('upload-placeholder').style.display = 'block';
+  document.getElementById('foto-actions').style.display = 'none';
+  document.getElementById('upload-area').classList.remove('tem-imagem');
+  document.getElementById('metricas-objectivas').style.display = 'none';
+  document.getElementById('foto-input').value = '';
+  guardarEstado();
+}
+
+function recalcularMetricas() { analisarImagemCanvas(); }
+
+function analisarImagemCanvas() {
+  const img = document.getElementById('foto-preview');
+  if (!img.src || !img.complete) return;
+  const canvas = document.createElement('canvas');
+  const ctx = canvas.getContext('2d');
+  canvas.width = img.naturalWidth; canvas.height = img.naturalHeight;
+  ctx.drawImage(img, 0, 0);
+  let data;
+  try { data = ctx.getImageData(0, 0, canvas.width, canvas.height).data; } catch(e) { return; }
+  const w = canvas.width, h = canvas.height;
+  const TH = 130;
+  let pE = 0, sI = 0, sIE = 0, sQ = 0;
+  const tot = data.length / 4;
+  for (let i = 0; i < data.length; i += 4) {
+    const avg = (data[i] + data[i+1] + data[i+2]) / 3;
+    sI += avg;
+    if (avg < TH) { pE++; sIE += avg; sQ += avg * avg; }
+  }
+  const dens = (pE / tot) * 100;
+  const iM = sI / tot, iP = pE > 0 ? sIE / pE : 0;
+  const vT = pE > 1 ? Math.sqrt((sQ / pE) - (iP * iP)) : 0;
+  let et = 0, em = 0, ef = 0;
+  const t1 = Math.floor(h/3), t2 = Math.floor(2*h/3);
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      const i = (y*w+x)*4;
+      const avg = (data[i]+data[i+1]+data[i+2])/3;
+      if (avg < TH) {
+        if (y < t1) et++; else if (y < t2) em++; else ef++;
+      }
+    }
+  }
+  const tE = et + em + ef || 1;
+  const dst = { topo: (et/tE*100).toFixed(0), meio: (em/tE*100).toFixed(0), fundo: (ef/tE*100).toFixed(0) };
+  const dL = [];
+  for (let y = 0; y < h; y++) {
+    let c = 0;
+    for (let x = 0; x < w; x++) {
+      const i = (y*w+x)*4;
+      if ((data[i]+data[i+1]+data[i+2])/3 < TH) c++;
+    }
+    dL.push(c / w);
+  }
+  const TL = 0.015;
+  const bd = [];
+  let inB = false, bS = 0;
+  for (let y = 0; y < h; y++) {
+    if (dL[y] > TL && !inB) { inB = true; bS = y; }
+    else if (dL[y] <= TL && inB) { inB = false; if (y - bS > 5) bd.push({ start: bS, end: y, altura: y - bS }); }
+  }
+  if (inB) bd.push({ start: bS, end: h, altura: h - bS });
+  let esp = [];
+  for (let i = 1; i < bd.length; i++) esp.push(bd[i].start - bd[i-1].end);
+  const eM = esp.length ? esp.reduce((a,b)=>a+b,0) / esp.length : 0;
+  const aM = bd.length ? bd.reduce((a,b)=>a+b.altura,0) / bd.length : 0;
+
+  estado.composicao.metricasImagem = {
+    densidade: +dens.toFixed(2), intensidadeMedia: +iM.toFixed(1), intensidadePressao: +iP.toFixed(1),
+    varTonal: +vT.toFixed(1), linhasDetectadas: bd.length,
+    alturaMedia: +aM.toFixed(1), espacMedio: +eM.toFixed(1), distrib: dst, resolucao: w + ' × ' + h
+  };
+  document.getElementById('m-densidade').textContent = dens.toFixed(2);
+  document.getElementById('m-linhas').textContent = bd.length;
+  document.getElementById('m-altura').textContent = aM.toFixed(0);
+  document.getElementById('m-espacamento').textContent = eM.toFixed(0);
+  document.getElementById('m-pressao').textContent = iP.toFixed(0);
+  document.getElementById('m-variacao').textContent = '±' + vT.toFixed(1);
+  document.getElementById('m-distribuicao').textContent = dst.topo + '% · ' + dst.meio + '% · ' + dst.fundo + '%';
+  document.getElementById('m-resolucao').textContent = w + ' × ' + h;
+}
+
+function renderGrelhaCaligrafia() {
+  const blocos = ['I. Análise Grafonumérica', 'II. Análise Numérico-Lógica', 'III. Análise Funcional'];
+  let html = '';
+  blocos.forEach(b => {
+    const items = GRELHA_NUMERICA.filter(p => p.bloco === b);
+    if (items.length === 0) return;
+    html += '<div class="grelha-bloco"><div class="grelha-bloco-titulo">' + b + '</div>';
+    items.forEach(p => {
+      const dados = estado.composicao.grelhaCaligrafia[p.id] || {};
+      const sel = dados.escala || '';
+      html += '<div class="grelha-item"><div class="grelha-item-cab"><div class="grelha-item-nome"><strong>' + p.nome + '</strong><span class="desc">' + p.descricao + '</span></div><div class="escala-botoes">';
+      ESCALA_AVALIACAO.forEach(e => {
+        html += '<button type="button" class="escala-btn ' + (sel === e.id ? 'selected' : '') + '" data-escala="' + e.id + '" onclick="selecionarEscala(\'' + p.id + '\',\'' + e.id + '\')">' + e.label + '</button>';
+      });
+      html += '</div></div>';
+      html += '<button type="button" class="btn-expandir" onclick="toggleSubitens(\'' + p.id + '\')">▼ Indicadores e observação</button>';
+      html += '<div class="subitens-area" id="subitens-' + p.id + '">';
+      const marc = dados.subitens || [];
+      p.subitens.forEach((s, i) => {
+        html += '<label class="subitem-check"><input type="checkbox" ' + (marc.includes(i)?'checked':'') + ' onchange="toggleSubitem(\'' + p.id + '\',' + i + ')"><span>' + s + '</span></label>';
+      });
+      html += '<textarea class="observacao-livre" placeholder="Observação livre (opcional)..." oninput="atualizarObservacao(\'' + p.id + '\',this.value)">' + (dados.observacao || '') + '</textarea>';
+      html += '</div></div>';
+    });
+    html += '</div>';
+  });
+  document.getElementById('grelha-conteudo').innerHTML = html;
+}
+
+function selecionarEscala(pId, eId) {
+  if (!estado.composicao.grelhaCaligrafia[pId]) estado.composicao.grelhaCaligrafia[pId] = {};
+  estado.composicao.grelhaCaligrafia[pId].escala = eId;
+  guardarEstado(); renderGrelhaCaligrafia();
+}
+function toggleSubitens(pId) { document.getElementById('subitens-' + pId).classList.toggle('expandido'); }
+function toggleSubitem(pId, sI) {
+  if (!estado.composicao.grelhaCaligrafia[pId]) estado.composicao.grelhaCaligrafia[pId] = {};
+  if (!estado.composicao.grelhaCaligrafia[pId].subitens) estado.composicao.grelhaCaligrafia[pId].subitens = [];
+  const arr = estado.composicao.grelhaCaligrafia[pId].subitens;
+  const i = arr.indexOf(sI);
+  if (i >= 0) arr.splice(i, 1); else arr.push(sI);
+  guardarEstado();
+}
+function atualizarObservacao(pId, t) {
+  if (!estado.composicao.grelhaCaligrafia[pId]) estado.composicao.grelhaCaligrafia[pId] = {};
+  estado.composicao.grelhaCaligrafia[pId].observacao = t;
+  guardarEstado();
+}
+
+function gerarAnaliseClinicaCaligrafia() {
+  const id = estado.identificacao;
+  const nome = id.nome || '[Nome do avaliando]';
+  const m = estado.composicao.metricasImagem || {};
+  let texto = 'ANÁLISE DA PRODUÇÃO NUMÉRICA MANUSCRITA — ' + nome + '\n\n';
+  texto += 'GRELHA AUTORAL RC · 11 PARÂMETROS · 3 BLOCOS (Adaptada à Numeracia)\n';
+  texto += '═══════════════════════════════════════════════\n\n';
+  if (m.densidade !== undefined) {
+    texto += '➤ Métricas objectivas (calculadas automaticamente sobre a imagem)\n';
+    texto += '   • Densidade de tinta: ' + m.densidade + '%\n';
+    texto += '   • Linhas detectadas: ' + m.linhasDetectadas + '\n';
+    texto += '   • Altura média das linhas: ' + m.alturaMedia + ' px · Espaçamento entre linhas: ' + m.espacMedio + ' px\n';
+    texto += '   • Intensidade média do traço: ' + m.intensidadePressao + '/255 · Variação tonal: ±' + m.varTonal + '\n';
+    texto += '   • Distribuição vertical (terços): topo ' + m.distrib.topo + '% · meio ' + m.distrib.meio + '% · fundo ' + m.distrib.fundo + '%\n\n';
+  }
+  const blocos = ['I. Análise Grafonumérica', 'II. Análise Numérico-Lógica', 'III. Análise Funcional'];
+  blocos.forEach(bl => {
+    const it = GRELHA_NUMERICA.filter(p => p.bloco === bl);
+    texto += bl.toUpperCase() + '\n───────────────────────────────────────────────\n\n';
+    it.forEach((p, i) => {
+      const d = estado.composicao.grelhaCaligrafia[p.id] || {};
+      const e = ESCALA_AVALIACAO.find(x => x.id === d.escala);
+      texto += (i+1) + '. ' + p.nome.toUpperCase() + '\n   Avaliação: ' + (e ? e.label : '(não preenchida)') + '\n';
+      const m = d.subitens || [];
+      if (m.length > 0) {
+        texto += '   Indicadores observados:\n';
+        m.forEach(idx => { texto += '     • ' + p.subitens[idx] + '\n'; });
+      }
+      if (d.observacao && d.observacao.trim()) texto += '   Observação: ' + d.observacao.trim() + '\n';
+      texto += '\n';
+    });
+  });
+  texto += 'IMPLICAÇÕES FUNCIONAIS\n═══════════════════════════════════════════════\n\n';
+  const comp = [];
+  GRELHA_NUMERICA.forEach(p => {
+    const d = estado.composicao.grelhaCaligrafia[p.id];
+    if (d && (d.escala === 'comprometido' || d.escala === 'severo')) {
+      const e = ESCALA_AVALIACAO.find(x => x.id === d.escala);
+      comp.push({ nome: p.nome, escala: e.label });
+    }
+  });
+  if (comp.length > 0) {
+    texto += 'Padrão diferencial — parâmetros com comprometimento:\n';
+    comp.forEach(c => texto += '   • ' + c.nome + ' — ' + c.escala + '\n');
+    texto += '\n';
+  }
+  const il = (estado.composicao.implicacoes || '').trim();
+  if (il) texto += il + '\n\n';
+  else texto += '(Adicionar análise das implicações funcionais no campo livre.)\n\n';
+  texto += '───────────────────────────────────────────────\nDocumento gerado em ' + dataAtual() + ' · Ricardina Correia · OPP 8233\nGrelha Autoral RC adaptada à Numeracia · v1.0 · Maio 2026';
+  estado.composicao.analiseGerada = texto;
+  document.getElementById('analise-gerada-container').style.display = 'block';
+  document.getElementById('analise-gerada-texto').textContent = texto;
+  guardarEstado();
+  document.getElementById('analise-gerada-container').scrollIntoView({ behavior: 'smooth' });
+}
+
+function copiarAnaliseGerada() {
+  const t = estado.composicao.analiseGerada || '';
+  if (!t) { alert('Gere primeiro a análise clínica.'); return; }
+  estado.sinteseClinica = (estado.sinteseClinica || '') + (estado.sinteseClinica ? '\n\n' : '') + t;
+  guardarEstado();
+  alert('✓ Análise copiada para a Síntese Clínica.');
+}
+
+function inicializarDragDrop() {
+  const a = document.getElementById('upload-area');
+  if (!a) return;
+  ['dragenter','dragover'].forEach(ev => a.addEventListener(ev, e => { e.preventDefault(); e.stopPropagation(); a.classList.add('dragover'); }));
+  ['dragleave','drop'].forEach(ev => a.addEventListener(ev, e => { e.preventDefault(); e.stopPropagation(); a.classList.remove('dragover'); }));
+  a.addEventListener('drop', e => { const f = e.dataTransfer.files[0]; if (f) processarUploadFoto(f); });
+}
+
+function restaurarFotoSeExiste() {
+  if (estado.composicao && estado.composicao.foto) {
+    mostrarFoto(estado.composicao.foto);
+    const m = estado.composicao.metricasImagem;
+    if (m && m.densidade !== undefined) {
+      document.getElementById('m-densidade').textContent = m.densidade;
+      document.getElementById('m-linhas').textContent = m.linhasDetectadas;
+      document.getElementById('m-altura').textContent = m.alturaMedia;
+      document.getElementById('m-espacamento').textContent = m.espacMedio;
+      document.getElementById('m-pressao').textContent = m.intensidadePressao;
+      document.getElementById('m-variacao').textContent = '±' + m.varTonal;
+      document.getElementById('m-distribuicao').textContent = m.distrib.topo + '% · ' + m.distrib.meio + '% · ' + m.distrib.fundo + '%';
+      document.getElementById('m-resolucao').textContent = m.resolucao;
+    }
+    renderGrelhaCaligrafia();
+  }
+  const il = document.getElementById('implicacoes-funcionais');
+  if (il && estado.composicao.implicacoes) il.value = estado.composicao.implicacoes;
+  if (estado.composicao.analiseGerada) {
+    document.getElementById('analise-gerada-container').style.display = 'block';
+    document.getElementById('analise-gerada-texto').textContent = estado.composicao.analiseGerada;
+  }
+}
+
+
+// Inicialização ao carregar
+window.addEventListener('load', () => {
+  if (!state.identificacao) state.identificacao = {};
+  if (!state.composicao) state.composicao = { foto: null, metricasImagem: {}, grelhaCaligrafia: {}, implicacoes: '', analiseGerada: '' };
+  if (!state.sinteseClinica) state.sinteseClinica = '';
+  carregarEstado();
+  inicializarDragDrop();
+  // Sincronizar window.estado com state
+  window.estado = state;
+  setInterval(guardarEstado, 30000);
+});
+
+</script>
+</body>
+</html>

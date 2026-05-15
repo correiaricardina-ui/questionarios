@@ -1,0 +1,1676 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PELED-RC · Nível 1 — INICIAÇÃO</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { font-family: 'Atkinson Hyperlegible', 'Quicksand', system-ui, -apple-system, 'Segoe UI', sans-serif; background: #FAFAFA; color: #2C3E50; line-height: 1.5; min-height: 100vh; }
+  body { padding: 24px; max-width: 1200px; margin: 0 auto; }
+  :root { --prim: #4A90E2; --sec: #F39C12; --fundo: #FEF5E7; --txt: #2C3E50; --cinza: #7F8C8D; --cinza-light: #BDC3C7; --erro: #C0392B; --sucesso: #27AE60; --alerta: #E67E22; }
+
+  .header { background: white; border-top: 4px solid var(--prim); border-radius: 8px 8px 4px 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); padding: 24px 32px; margin-bottom: 24px; }
+  .header h1 { color: var(--prim); font-size: 32px; font-weight: 700; letter-spacing: -0.5px; }
+  .header .subtitulo { color: var(--sec); font-size: 16px; font-style: italic; margin-top: 4px; }
+  .header .nivel { color: var(--txt); font-size: 22px; font-weight: 600; margin-top: 12px; }
+  .header .info { color: var(--cinza); font-size: 14px; margin-top: 4px; }
+  .header .patient-info { background: var(--fundo); padding: 12px 18px; border-radius: 6px; margin-top: 16px; border-left: 4px solid var(--prim); font-size: 14px; }
+
+  .nav-bar { background: white; border-radius: 6px; padding: 16px 20px; margin-bottom: 24px; box-shadow: 0 1px 4px rgba(0,0,0,0.04); display: flex; gap: 8px; flex-wrap: wrap; }
+  .nav-btn { background: #F1F3F5; border: 2px solid transparent; color: var(--cinza); padding: 10px 18px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 600; font-family: inherit; }
+  .nav-btn:hover { background: var(--fundo); color: var(--prim); }
+  .nav-btn.active { background: var(--prim); color: white; border-color: var(--prim); }
+  .nav-btn.done { background: var(--sucesso); color: white; }
+
+  .card { background: white; border-radius: 8px; padding: 28px 32px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); margin-bottom: 20px; }
+  .card h2 { color: var(--prim); font-size: 24px; font-weight: 700; padding-bottom: 10px; margin-bottom: 18px; border-bottom: 3px solid var(--fundo); }
+  .card h3 { color: var(--sec); font-size: 18px; font-weight: 700; margin-top: 20px; margin-bottom: 10px; }
+  .card h4 { color: var(--prim); font-size: 16px; font-weight: 700; margin-top: 16px; margin-bottom: 8px; }
+  .card .instrucao { background: var(--fundo); border-left: 4px solid var(--sec); padding: 16px 20px; margin: 16px 0; font-style: italic; border-radius: 0 6px 6px 0; }
+  .card .nota { color: var(--cinza); font-size: 14px; font-style: italic; margin-top: 8px; }
+
+  .form-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin: 20px 0; }
+  .form-field { display: flex; flex-direction: column; }
+  .form-field label { font-size: 13px; font-weight: 600; color: var(--prim); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .form-field input, .form-field select, .form-field textarea { padding: 10px 14px; border: 2px solid #E0E0E0; border-radius: 5px; font-size: 15px; font-family: inherit; }
+  .form-field input:focus, .form-field select:focus, .form-field textarea:focus { outline: none; border-color: var(--prim); }
+  .form-field.full { grid-column: 1 / -1; }
+
+  .btn { background: var(--prim); color: white; border: none; padding: 12px 24px; border-radius: 6px; font-size: 15px; font-weight: 600; cursor: pointer; font-family: inherit; }
+  .btn:hover { opacity: 0.88; }
+  .btn-secondary { background: white; color: var(--prim); border: 2px solid var(--prim); }
+  .btn-success { background: var(--sucesso); }
+  .btn-danger { background: var(--erro); }
+  .btn-large { padding: 16px 32px; font-size: 17px; }
+  .btn-group { display: flex; gap: 12px; margin-top: 20px; flex-wrap: wrap; }
+
+  .leitura-display { background: linear-gradient(180deg, white 0%, var(--fundo) 100%); border: 2px solid var(--prim); border-radius: 12px; min-height: 280px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px; margin: 24px 0; }
+  .leitura-display .numero { color: var(--cinza); font-size: 18px; font-weight: 600; margin-bottom: 16px; letter-spacing: 2px; }
+  .leitura-display .palavra { color: var(--txt); font-size: 80px; font-weight: 700; }
+  .leitura-display .timer { margin-top: 24px; font-size: 24px; font-weight: 700; color: var(--sec); }
+  .leitura-display .timer.warning { color: var(--erro); }
+
+  .resposta-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 16px 0; }
+  .resp-btn { padding: 16px; border: 2px solid #E0E0E0; background: white; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: 700; font-family: inherit; }
+  .resp-btn .key { display: block; font-size: 11px; color: var(--cinza); margin-top: 4px; font-weight: 500; }
+  .resp-btn[data-r="correct"] { border-color: var(--sucesso); color: var(--sucesso); }
+  .resp-btn[data-r="error"] { border-color: var(--erro); color: var(--erro); }
+  .resp-btn[data-r="ac"] { border-color: var(--sec); color: var(--sec); }
+  .resp-btn[data-r="recusa"] { border-color: var(--cinza); color: var(--cinza); }
+  .resp-btn.selected { background: var(--prim); color: white; border-color: var(--prim); }
+
+  .resp-detail { background: var(--fundo); border-radius: 6px; padding: 16px; margin-top: 12px; }
+  .resp-detail label { display: block; font-size: 12px; font-weight: 600; color: var(--prim); text-transform: uppercase; margin-bottom: 6px; margin-top: 10px; }
+  .resp-detail input, .resp-detail select { width: 100%; padding: 10px 12px; border: 1px solid #DDD; border-radius: 4px; font-size: 15px; font-family: inherit; }
+
+  .progresso { background: #E8E8E8; height: 8px; border-radius: 4px; overflow: hidden; margin: 20px 0 12px; }
+  .progresso-bar { background: linear-gradient(90deg, var(--prim) 0%, var(--sec) 100%); height: 100%; }
+  .progresso-text { display: flex; justify-content: space-between; font-size: 13px; color: var(--cinza); margin-bottom: 16px; }
+
+  .escrita-bloco { margin: 20px 0; padding: 20px; background: var(--fundo); border-radius: 6px; }
+  .escrita-bloco h3 { color: var(--prim); margin-top: 0; }
+  .escrita-item { display: grid; grid-template-columns: 80px 220px 1fr 220px; gap: 10px; align-items: center; padding: 10px; background: white; border-radius: 4px; margin-bottom: 6px; }
+  .escrita-item .codigo { font-size: 12px; color: var(--cinza); font-weight: 600; }
+  .escrita-item .palavra-ditada { font-weight: 700; font-size: 17px; }
+  .escrita-item input, .escrita-item select { padding: 6px 10px; border: 1px solid #DDD; border-radius: 4px; font-size: 14px; font-family: inherit; }
+
+  .comp-tema { background: var(--prim); color: white; padding: 20px 28px; border-radius: 8px; text-align: center; font-size: 22px; font-weight: 600; margin: 20px 0; }
+  .comp-editor { width: 100%; min-height: 400px; padding: 20px; border: 2px solid #E0E0E0; border-radius: 6px; font-size: 16px; font-family: inherit; line-height: 1.7; resize: vertical; }
+  .comp-info { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 16px; }
+  .comp-info-item { background: var(--fundo); padding: 14px; border-radius: 6px; text-align: center; }
+  .comp-info-item .label { font-size: 11px; color: var(--cinza); text-transform: uppercase; font-weight: 600; }
+  .comp-info-item .value { font-size: 24px; font-weight: 700; color: var(--prim); margin-top: 4px; }
+
+  .sintese-section { margin: 30px 0; padding-top: 20px; border-top: 2px solid var(--fundo); }
+  .sintese-section:first-child { border-top: none; padding-top: 0; }
+  .resumo-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin: 16px 0; }
+  .resumo-card { background: var(--fundo); padding: 16px; border-radius: 8px; border-top: 4px solid var(--prim); }
+  .resumo-card .label { font-size: 11px; color: var(--cinza); text-transform: uppercase; font-weight: 600; }
+  .resumo-card .nome { font-size: 14px; font-weight: 700; color: var(--prim); margin: 4px 0; }
+  .resumo-card .valor { font-size: 28px; font-weight: 800; color: var(--txt); }
+  .resumo-card .sub { font-size: 12px; color: var(--cinza); margin-top: 4px; }
+
+  .tabela-itens { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 13px; }
+  .tabela-itens thead { background: var(--prim); color: white; }
+  .tabela-itens th { padding: 10px 8px; text-align: left; font-weight: 600; }
+  .tabela-itens td { padding: 8px; border-bottom: 1px solid #EEE; }
+  .tabela-itens tr.lista-L1 td:first-child { border-left: 4px solid #4A90E2; }
+  .tabela-itens tr.lista-L2 td:first-child { border-left: 4px solid #16A085; }
+  .tabela-itens tr.lista-L3 td:first-child { border-left: 4px solid #F39C12; }
+  .tabela-itens tr.lista-L4 td:first-child { border-left: 4px solid #8E44AD; }
+  .tabela-itens tr.erro td { background: #FDEEEC; }
+  .tabela-itens tr.ac td { background: #FFF8E1; }
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 700; text-transform: uppercase; }
+  .badge.correto { background: #D4EFDF; color: var(--sucesso); }
+  .badge.errado { background: #FADBD8; color: var(--erro); }
+  .badge.ac { background: #FCF3CF; color: #B9770E; }
+  .badge.recusa { background: #E8E8E8; color: var(--cinza); }
+
+  .tabela-resumo { width: 100%; border-collapse: collapse; margin: 12px 0; }
+  .tabela-resumo thead { background: var(--prim); color: white; }
+  .tabela-resumo th { padding: 12px 14px; text-align: left; font-weight: 600; font-size: 13px; }
+  .tabela-resumo td { padding: 12px 14px; border-bottom: 1px solid #EEE; font-size: 14px; }
+  .tabela-resumo td.num { text-align: right; font-variant-numeric: tabular-nums; font-weight: 700; }
+  .magnitude.grande { color: var(--erro); font-weight: 700; }
+  .magnitude.moderada { color: var(--alerta); font-weight: 600; }
+  .magnitude.pequena { color: var(--sucesso); font-weight: 500; }
+
+  .interpretacao { background: var(--fundo); border-left: 6px solid var(--prim); padding: 18px 22px; border-radius: 0 6px 6px 0; margin: 16px 0; }
+  .interpretacao h4 { color: var(--prim); margin: 0 0 8px 0; font-size: 16px; }
+  .interpretacao p { margin: 6px 0; font-size: 14px; line-height: 1.6; }
+  .interpretacao.subtipo-fonologica { border-left-color: var(--erro); background: #FDEEEC; }
+  .interpretacao.subtipo-superficie { border-left-color: var(--alerta); background: #FEF5E7; }
+  .interpretacao.subtipo-mista { border-left-color: var(--erro); background: #FDEEEC; }
+  .interpretacao.subtipo-normal { border-left-color: var(--sucesso); background: #D4EFDF; }
+
+  .toggle-detalhe { background: var(--fundo); border: 1px solid var(--cinza-light); color: var(--prim); padding: 8px 14px; border-radius: 4px; cursor: pointer; font-size: 13px; font-weight: 600; font-family: inherit; margin: 10px 0; }
+  .detalhe-itens { display: none; }
+  .detalhe-itens.aberto { display: block; }
+
+  .comp-texto-visualizar { background: #FAFAFA; padding: 16px; border-radius: 6px; border: 1px solid #DDD; font-family: 'Georgia', serif; font-size: 15px; line-height: 1.8; white-space: pre-wrap; min-height: 80px; }
+  .atalhos { background: var(--fundo); padding: 10px 16px; border-radius: 4px; font-size: 12px; color: var(--cinza); margin-top: 16px; text-align: center; }
+  .atalhos kbd { background: white; border: 1px solid #DDD; border-radius: 3px; padding: 2px 6px; font-family: monospace; font-size: 11px; margin: 0 2px; }
+  .tela { display: none; }
+  .tela.active { display: block; }
+  .rodape { text-align: center; color: var(--cinza); font-size: 12px; font-style: italic; padding: 20px 0; }
+
+  /* === MÓDULO ANÁLISE CALIGRÁFICA === */
+
+/* === ÁREA DE UPLOAD === */
+.upload-area {
+  border: 3px dashed var(--cinza-light);
+  border-radius: 12px;
+  padding: 30px;
+  text-align: center;
+  cursor: pointer;
+  background: var(--fundo);
+  transition: all 0.2s;
+  margin: 16px 0;
+}
+.upload-area:hover { border-color: var(--prim); background: white; }
+.upload-area.dragover { border-color: var(--prim); background: var(--fundo); transform: scale(1.01); }
+.upload-area.tem-imagem { padding: 12px; border-style: solid; border-color: var(--prim); }
+.upload-placeholder { color: var(--cinza); }
+.upload-placeholder .icon { font-size: 56px; margin-bottom: 8px; }
+.upload-placeholder .titulo { font-size: 16px; font-weight: 600; color: var(--txt); margin-bottom: 6px; }
+.upload-placeholder .sub { font-size: 13px; }
+#foto-preview { max-width: 100%; max-height: 500px; border-radius: 8px; display: block; margin: 0 auto; }
+.foto-actions { display: flex; gap: 10px; justify-content: center; margin-top: 12px; flex-wrap: wrap; }
+.foto-actions button { background: white; border: 1px solid var(--cinza-light); color: var(--txt); padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 13px; }
+.foto-actions button:hover { background: var(--fundo); border-color: var(--prim); color: var(--prim); }
+
+/* === MÉTRICAS OBJECTIVAS === */
+.metricas-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; margin: 14px 0; }
+.metrica-item { background: var(--fundo); padding: 12px 14px; border-radius: 6px; border-left: 4px solid var(--sec); }
+.metrica-item .label { font-size: 11px; color: var(--cinza); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; }
+.metrica-item .valor { font-size: 22px; font-weight: 700; color: var(--txt); margin-top: 4px; font-variant-numeric: tabular-nums; }
+.metrica-item .unidade { font-size: 12px; color: var(--cinza); font-weight: 400; margin-left: 3px; }
+
+/* === GRELHA DE AVALIAÇÃO === */
+.grelha-bloco {
+  background: white; border: 1px solid #E0E0E0; border-radius: 8px;
+  padding: 18px; margin: 16px 0;
+}
+.grelha-bloco-titulo {
+  color: var(--prim); font-weight: 700; font-size: 15px;
+  padding-bottom: 8px; margin-bottom: 12px;
+  border-bottom: 2px solid var(--fundo);
+}
+.grelha-item {
+  padding: 12px 0; border-bottom: 1px solid #F0F0F0;
+}
+.grelha-item:last-child { border-bottom: none; }
+.grelha-item-cab { display: flex; justify-content: space-between; align-items: start; gap: 12px; margin-bottom: 8px; flex-wrap: wrap; }
+.grelha-item-nome { flex: 1; min-width: 200px; }
+.grelha-item-nome strong { display: block; color: var(--txt); font-size: 14px; margin-bottom: 2px; }
+.grelha-item-nome .desc { font-size: 12px; color: var(--cinza); font-style: italic; line-height: 1.4; }
+.escala-botoes { display: flex; gap: 4px; flex-wrap: wrap; }
+.escala-btn {
+  background: white; border: 2px solid #E0E0E0;
+  padding: 6px 12px; border-radius: 4px; cursor: pointer;
+  font-size: 12px; font-weight: 600; font-family: inherit;
+  transition: all 0.15s; white-space: nowrap;
+}
+.escala-btn:hover { border-color: var(--prim); }
+.escala-btn.selected[data-escala="adequado"] { background: #27AE60; color: white; border-color: #27AE60; }
+.escala-btn.selected[data-escala="limitrofe"] { background: #F39C12; color: white; border-color: #F39C12; }
+.escala-btn.selected[data-escala="comprometido"] { background: #E67E22; color: white; border-color: #E67E22; }
+.escala-btn.selected[data-escala="severo"] { background: #C0392B; color: white; border-color: #C0392B; }
+
+.subitens-area { display: none; margin-top: 10px; background: var(--fundo); padding: 12px; border-radius: 5px; }
+.subitens-area.expandido { display: block; }
+.subitem-check {
+  display: flex; align-items: center; gap: 8px;
+  padding: 4px 0; cursor: pointer; font-size: 13px;
+}
+.subitem-check input[type="checkbox"] { cursor: pointer; }
+.subitem-check input[type="checkbox"]:checked + span { color: var(--prim); font-weight: 600; }
+.observacao-livre {
+  width: 100%; padding: 8px 10px; border: 1px solid #DDD;
+  border-radius: 4px; font-size: 13px; font-family: inherit;
+  margin-top: 8px; resize: vertical; min-height: 50px;
+}
+
+.btn-expandir {
+  background: none; border: none; color: var(--prim);
+  cursor: pointer; font-size: 12px; padding: 2px 6px;
+  font-family: inherit; text-decoration: underline;
+}
+
+/* === ANÁLISE GERADA === */
+.analise-gerada {
+  background: #FAFAFA; border: 1px solid #DDD; border-radius: 6px;
+  padding: 18px; margin: 14px 0;
+  font-family: 'Georgia', serif; font-size: 14px; line-height: 1.7;
+  white-space: pre-wrap;
+  max-height: 500px; overflow-y: auto;
+}
+
+@media print {
+  .upload-area { border: 1px solid #DDD; padding: 8px; }
+  #foto-preview { max-height: 350px; page-break-inside: avoid; }
+  .foto-actions { display: none; }
+  .escala-btn, .btn-expandir { display: none !important; }
+  .subitens-area { display: block !important; background: white; padding: 4px 0; }
+  .grelha-bloco { box-shadow: none; padding: 8px; page-break-inside: avoid; }
+  .analise-gerada { max-height: none; overflow: visible; }
+}
+
+
+  @media print {
+    body { background: white !important; padding: 0; max-width: none; font-size: 11pt; color: black !important; }
+    .nav-bar, .btn-group, .btn, .toggle-detalhe { display: none !important; }
+    .header { box-shadow: none; border-radius: 0; padding: 16px 20px; }
+    .card { box-shadow: none; border: none; padding: 14px 20px; page-break-inside: avoid; }
+    .sintese-section { page-break-inside: avoid; }
+    .sintese-section.page-break { page-break-before: always; }
+    .tabela-itens, .tabela-resumo { font-size: 9pt; }
+    .detalhe-itens { display: block !important; }
+    .tela { display: none !important; }
+    .tela.printable { display: block !important; }
+    svg { max-width: 100% !important; page-break-inside: avoid; }
+    @page { margin: 1.5cm; size: A4; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>PELED-RC</h1>
+  <div class="subtitulo">Prova Estruturada de Leitura e Escrita Diferencial</div>
+  <div class="nivel">Nível 1 — INICIAÇÃO</div>
+  <div class="info">1.º ano (final) / 2.º ano · 6 – 8 anos · Aquisição alfabética; predomínio da via fonológica</div>
+  <div class="patient-info" id="header-patient-info" style="display:none;">
+    <strong>Avaliando:</strong> <span id="hpi-nome">—</span> · <strong>Idade:</strong> <span id="hpi-idade">—</span> · <strong>Data:</strong> <span id="hpi-data">—</span>
+  </div>
+</div>
+
+<div class="nav-bar">
+  <button class="nav-btn active" onclick="navegar('identificacao')" id="nav-identificacao">1. Identificação</button>
+  <button class="nav-btn" onclick="navegar('leitura')" id="nav-leitura">2. Leitura</button>
+  <button class="nav-btn" onclick="navegar('escrita')" id="nav-escrita">3. Escrita</button>
+  <button class="nav-btn" onclick="navegar('composicao')" id="nav-composicao">4. Composição</button>
+  <button class="nav-btn" onclick="navegar('sintese')" id="nav-sintese">5. Síntese</button>
+  <button class="nav-btn" onclick="navegar('exportar')" id="nav-exportar">6. Exportar</button>
+</div>
+
+<!-- TELA 1: IDENTIFICAÇÃO -->
+<div class="tela active" id="tela-identificacao">
+  <div class="card">
+    <h2>Identificação do avaliando</h2>
+    <p class="nota">Preencher antes de iniciar a avaliação.</p>
+    <div class="form-grid">
+      <div class="form-field"><label>Nome (iniciais ou código)</label><input type="text" id="id-nome" placeholder="ex: J.M. ou 2026-PAE-007"></div>
+      <div class="form-field"><label>Data de nascimento</label><input type="date" id="id-nascimento"></div>
+      <div class="form-field"><label>Idade (anos / meses)</label><input type="text" id="id-idade" placeholder="ex: 7a 4m"></div>
+      <div class="form-field"><label>Sexo</label><select id="id-sexo"><option value="">—</option><option value="F">Feminino</option><option value="M">Masculino</option></select></div>
+      <div class="form-field"><label>Ano de escolaridade</label><input type="text" id="id-ano" placeholder="ex: 2.º"></div>
+      <div class="form-field"><label>Escola</label><input type="text" id="id-escola"></div>
+      <div class="form-field full"><label>Motivo da avaliação</label><input type="text" id="id-motivo"></div>
+      <div class="form-field"><label>Processo n.º</label><input type="text" id="id-processo"></div>
+      <div class="form-field"><label>Data de aplicação</label><input type="date" id="id-data"></div>
+    </div>
+    <h3>Avaliador(a)</h3>
+    <div class="form-grid">
+      <div class="form-field"><label>Nome</label><input type="text" id="id-avaliador" value="Ricardina Correia"></div>
+      <div class="form-field"><label>Cédula OPP</label><input type="text" id="id-cedula" value="8233"></div>
+    </div>
+    <div class="btn-group">
+      <button class="btn btn-large" onclick="navegar('leitura'); guardarEstado();">Iniciar Avaliação →</button>
+    </div>
+  </div>
+</div>
+
+<!-- TELA 2: LEITURA -->
+<div class="tela" id="tela-leitura">
+  <div id="leitura-intro" class="card">
+    <h2>Componente Leitura</h2>
+    <p><strong>Tempo:</strong> 10-15 minutos · <strong>Itens:</strong> 80</p>
+    <h3>Instrução-padrão</h3>
+    <div class="instrucao">"Vou pedir-te para leres uma lista de palavras em voz alta. Algumas vais conhecer, outras serão menos comuns, e algumas não são palavras de verdade — são palavras inventadas, mas todas se podem ler. Tenta lê-las o melhor que conseguires."</div>
+    <p>1. Cronómetro inicia automaticamente. 2. Clicar resposta (✓/✗/AC/RC). 3. Se errado, registar transcrição + categoria. 4. "Próximo".</p>
+    <div class="atalhos">Atalhos: <kbd>1</kbd>✓ · <kbd>2</kbd>✗ · <kbd>3</kbd>AC · <kbd>4</kbd>RC · <kbd>Enter</kbd>Próximo</div>
+    <div class="btn-group">
+      <button class="btn btn-large" onclick="iniciarLeitura()">Iniciar Leitura →</button>
+      <button class="btn btn-secondary" onclick="navegar('identificacao')">← Voltar</button>
+    </div>
+  </div>
+  <div id="leitura-ativa" style="display:none;">
+    <div class="card">
+      <div class="progresso-text"><span>Item <strong id="leitura-item-num">1</strong>/80</span><span>Lista: <strong id="leitura-item-lista">—</strong></span><span>Tempo: <strong id="leitura-tempo-total">0:00</strong></span></div>
+      <div class="progresso"><div class="progresso-bar" id="leitura-progresso-bar" style="width:0%"></div></div>
+      <div class="leitura-display"><div class="numero">ITEM <span id="leitura-numero">01</span></div><div class="palavra" id="leitura-palavra">—</div><div class="timer" id="leitura-timer">0.0s</div></div>
+      <div class="resposta-grid">
+        <button class="resp-btn" data-r="correct" onclick="responder('correto')">✓ Correcto<span class="key">tecla 1</span></button>
+        <button class="resp-btn" data-r="error" onclick="responder('errado')">✗ Errado<span class="key">tecla 2</span></button>
+        <button class="resp-btn" data-r="ac" onclick="responder('ac')">AC<span class="key">tecla 3</span></button>
+        <button class="resp-btn" data-r="recusa" onclick="responder('recusa')">RC<span class="key">tecla 4</span></button>
+      </div>
+      <div class="resp-detail" id="leitura-detalhe" style="display:none;">
+        <label>Transcrição literal</label><input type="text" id="leitura-transcricao">
+        <label>Categoria do erro</label>
+        <select id="leitura-categoria">
+          <option value="">—</option><option value="SV">SV — Substituição visual</option><option value="SF">SF — Substituição fonológica</option><option value="SS">SS — Substituição semântica</option><option value="OM">OM — Omissão letra/sílaba</option><option value="AD">AD — Adição</option><option value="IN">IN — Inversão</option><option value="RG">RG — Regularização (L3)</option><option value="LX">LX — Lexicalização (L4)</option><option value="RC">RC — Recusa</option><option value="OUT">Outro</option>
+        </select>
+      </div>
+      <div class="btn-group"><button class="btn btn-large" onclick="proximoItem()">Próximo →</button></div>
+    </div>
+  </div>
+  <div id="leitura-completa" style="display:none;" class="card">
+    <h2>Leitura concluída ✓</h2>
+    <div class="btn-group">
+      <button class="btn btn-large" onclick="navegar('escrita')">Avançar para Escrita →</button>
+      <button class="btn btn-secondary" onclick="navegar('sintese')">Ver Síntese</button>
+    </div>
+  </div>
+</div>
+
+<!-- TELA 3: ESCRITA -->
+<div class="tela" id="tela-escrita">
+  <div class="card">
+    <h2>Componente Escrita (Ditado)</h2>
+    <p><strong>Tempo:</strong> 25-30 minutos</p>
+    <h3>Instrução-padrão</h3>
+    <div class="instrucao">"Vou dizer-te algumas palavras e tu vais escrevê-las nesta folha. Algumas vais conhecer bem, outras serão menos comuns, e algumas não são palavras de verdade."</div>
+    <p class="nota">O avaliando escreve em folha pautada A4. Este ecrã serve para transcrever a produção e categorizar erros.</p>
+    <div id="escrita-blocos"></div>
+    <div class="btn-group">
+      <button class="btn btn-large" onclick="calcularEscrita(); navegar('composicao')">Avançar para Composição →</button>
+      <button class="btn btn-secondary" onclick="navegar('leitura')">← Voltar</button>
+    </div>
+  </div>
+</div>
+
+<!-- TELA 4: COMPOSIÇÃO (COM ANÁLISE CALIGRÁFICA) -->
+<div class="tela" id="tela-composicao">
+  <div class="card">
+    <h2>Componente Composição</h2>
+    <p><strong>Tempo:</strong> 10-15 minutos · <strong>Extensão:</strong> 30 a 60 palavras</p>
+    <h3>Instrução-padrão</h3>
+    <div class="instrucao">"Agora vou pedir-te para escreveres um pequeno texto sobre um tema. Tens 10-15 minutos. Não te preocupes em escrever muito — o importante é que escrevas o que sabes."</div>
+    <div class="comp-tema">"O meu fim-de-semana"</div>
+    <h3>Composição (transcrição digital ou escrita directa)</h3>
+    <textarea class="comp-editor" id="comp-texto" placeholder="Texto da composição..."></textarea>
+    <div class="comp-info">
+      <div class="comp-info-item"><div class="label">Tempo</div><div class="value" id="comp-tempo">0:00</div></div>
+      <div class="comp-info-item"><div class="label">Palavras</div><div class="value" id="comp-palavras">0</div></div>
+      <div class="comp-info-item"><div class="label">Frases</div><div class="value" id="comp-frases">0</div></div>
+      <div class="comp-info-item"><div class="label">Caracteres</div><div class="value" id="comp-caracteres">0</div></div>
+    </div>
+    <div class="btn-group">
+      <button class="btn" id="btn-comp-iniciar" onclick="iniciarTimerComp()">▶ Iniciar cronómetro</button>
+      <button class="btn btn-secondary" id="btn-comp-pausar" onclick="pausarTimerComp()" style="display:none;">⏸ Pausar</button>
+      <button class="btn btn-success" onclick="terminarComp()">Terminar composição</button>
+    </div>
+
+    <h3 style="margin-top:32px;">Grelha qualitativa preliminar (cotação 0-4)</h3>
+    <div id="comp-grelha"></div>
+
+    <!-- MÓDULO ANÁLISE CALIGRÁFICA INSERIDO AQUI -->
+
+<h3 style="margin-top:36px;">📷 Análise da Composição Manuscrita</h3>
+<p class="nota">Anexe uma fotografia da composição. O sistema calcula métricas objectivas e disponibiliza a Grelha Autoral RC para análise estruturada em 11 parâmetros (3 blocos: Caligráfica · Textual · Funcional).</p>
+
+<div class="upload-area" id="upload-area" onclick="document.getElementById('foto-input').click()">
+  <input type="file" id="foto-input" accept="image/*" style="display:none" onchange="processarUploadFoto(this.files[0])">
+  <div class="upload-placeholder" id="upload-placeholder">
+    <div class="icon">📷</div>
+    <div class="titulo">Clique ou arraste a fotografia da composição</div>
+    <div class="sub">Formatos: JPG, PNG, HEIC · Recomenda-se foto frontal com boa iluminação</div>
+  </div>
+  <img id="foto-preview" style="display:none;">
+  <div class="foto-actions" id="foto-actions" style="display:none;">
+    <button onclick="event.stopPropagation(); document.getElementById('foto-input').click()">📷 Trocar fotografia</button>
+    <button onclick="event.stopPropagation(); removerFoto()">🗑️ Remover</button>
+    <button onclick="event.stopPropagation(); recalcularMetricas()">🔄 Recalcular métricas</button>
+  </div>
+</div>
+
+<div id="metricas-objectivas" style="display:none;">
+  <h4>Métricas objectivas (cálculo automático sobre a imagem)</h4>
+  <div class="metricas-grid">
+    <div class="metrica-item"><div class="label">Densidade de tinta</div><div class="valor"><span id="m-densidade">—</span><span class="unidade">%</span></div></div>
+    <div class="metrica-item"><div class="label">Linhas detectadas</div><div class="valor"><span id="m-linhas">—</span></div></div>
+    <div class="metrica-item"><div class="label">Altura média das linhas</div><div class="valor"><span id="m-altura">—</span><span class="unidade">px</span></div></div>
+    <div class="metrica-item"><div class="label">Espaçamento entre linhas</div><div class="valor"><span id="m-espacamento">—</span><span class="unidade">px</span></div></div>
+    <div class="metrica-item"><div class="label">Intensidade média do traço</div><div class="valor"><span id="m-pressao">—</span><span class="unidade">/255</span></div></div>
+    <div class="metrica-item"><div class="label">Variação tonal (pressão)</div><div class="valor"><span id="m-variacao">—</span></div></div>
+    <div class="metrica-item"><div class="label">Distribuição vertical (topo · meio · fundo)</div><div class="valor" style="font-size:14px;"><span id="m-distribuicao">— · — · —</span></div></div>
+    <div class="metrica-item"><div class="label">Resolução da imagem</div><div class="valor" style="font-size:14px;"><span id="m-resolucao">—</span></div></div>
+  </div>
+  <p class="nota" style="margin-top:8px;">As métricas são indicadores objectivos de referência — não substituem a análise clínica estruturada abaixo.</p>
+</div>
+
+<div id="grelha-caligrafia-container" style="display:none;">
+  <h4>Grelha Autoral RC — Análise estruturada (11 parâmetros)</h4>
+  <p class="nota">Avalie cada parâmetro na escala (Adequado · Limítrofe · Comprometido · Severamente comprometido) e, opcionalmente, expanda para marcar indicadores específicos presentes e adicionar observações livres.</p>
+  <div id="grelha-conteudo"></div>
+</div>
+
+<h4 style="margin-top:24px;">Implicações funcionais</h4>
+<p class="nota">Síntese das implicações para o desempenho académico, factores motores e emocionais, contexto educativo, etc.</p>
+<textarea id="implicacoes-funcionais" class="comp-editor" style="min-height:180px;" placeholder="Ex: A legibilidade da escrita encontra-se abaixo do limiar mínimo exigido para avaliação eficaz em provas escritas, comprometendo a leitura e valorização das respostas. Esta dificuldade impede a expressão clara do raciocínio..." oninput="estado.composicao.implicacoes=this.value; guardarEstado();"></textarea>
+
+<div class="btn-group">
+  <button class="btn" onclick="gerarAnaliseClinicaCaligrafia()" style="background:var(--sec);">📝 Gerar Análise Clínica Completa</button>
+  <button class="btn btn-secondary" onclick="copiarAnaliseGerada()">📋 Copiar para a Síntese Clínica</button>
+</div>
+
+<div id="analise-gerada-container" style="display:none;">
+  <h4>Análise Clínica Gerada</h4>
+  <div class="analise-gerada" id="analise-gerada-texto"></div>
+</div>
+
+
+    <div class="btn-group">
+      <button class="btn btn-large" onclick="navegar('sintese')">Ver Síntese Completa →</button>
+      <button class="btn btn-secondary" onclick="navegar('escrita')">← Voltar</button>
+    </div>
+  </div>
+</div>
+
+<!-- TELA 5: SÍNTESE -->
+<div class="tela printable" id="tela-sintese">
+  <div class="card">
+    <h2>Síntese Clínica Completa</h2>
+    <div class="btn-group" style="margin-bottom:24px;">
+      <button class="btn btn-large" onclick="imprimir()">🖨️ Imprimir / Guardar PDF</button>
+      <button class="btn btn-secondary" onclick="finalizarESalvar()">💾 Finalizar e Guardar</button>
+      <button class="btn btn-secondary" onclick="navegar('exportar')">📥 Exportar Dados</button>
+    </div>
+    <div id="sintese-conteudo"></div>
+  </div>
+</div>
+
+<!-- TELA 6: EXPORTAR -->
+<div class="tela" id="tela-exportar">
+  <div class="card">
+    <h2>Exportação de Dados</h2>
+    <div class="btn-group">
+      <button class="btn btn-large" onclick="exportarCSV('leitura')">📥 CSV Leitura</button>
+      <button class="btn btn-large" onclick="exportarCSV('escrita')">📥 CSV Escrita</button>
+      <button class="btn btn-large" onclick="exportarCSV('composicao')">📥 CSV Composição</button>
+      <button class="btn btn-large btn-secondary" onclick="exportarJSON()">📥 JSON Completo</button>
+    </div>
+    <div class="btn-group" style="margin-top:24px;">
+      <button class="btn btn-danger" onclick="resetarSessao()">↻ Nova Avaliação</button>
+    </div>
+  </div>
+</div>
+
+<div class="rodape">PELED-RC · Nível 1 — INICIAÇÃO · Versão 3.0 · Maio 2026<br>Ricardina Correia · Cédula OPP n.º 8233 · Psicologia Pediátrica · Lisboa</div>
+
+<script>
+
+// ═══════════════════════════════════════════════════════════════
+// HELPERS — GRÁFICOS SVG (zero dependências)
+// ═══════════════════════════════════════════════════════════════
+
+function svgBarChart(opts) {
+  // opts: { data:[{label,value,color?}], width, height, max, unit, title }
+  const w = opts.width || 600;
+  const h = opts.height || 280;
+  const pad = { top: 50, right: 30, bottom: 60, left: 50 };
+  const innerW = w - pad.left - pad.right;
+  const innerH = h - pad.top - pad.bottom;
+  const max = opts.max || Math.max(100, ...opts.data.map(d => d.value));
+  const barW = innerW / opts.data.length * 0.65;
+  const gap = innerW / opts.data.length * 0.35;
+  const unit = opts.unit || '';
+
+  let bars = '';
+  opts.data.forEach((d, i) => {
+    const x = pad.left + (i * (barW + gap)) + gap/2;
+    const valNum = d.value === null || d.value === undefined || isNaN(d.value) ? 0 : d.value;
+    const barH = (valNum / max) * innerH;
+    const y = pad.top + innerH - barH;
+    const color = d.color || 'var(--prim)';
+    const valDisplay = (d.value === null || d.value === undefined || isNaN(d.value)) ? '—' : (typeof d.value === 'number' ? d.value.toFixed(1) : d.value) + unit;
+    bars += '<rect x="'+x+'" y="'+y+'" width="'+barW+'" height="'+barH+'" fill="'+color+'" rx="4" ry="4"/>';
+    bars += '<text x="'+(x+barW/2)+'" y="'+(y-8)+'" text-anchor="middle" font-size="14" font-weight="700" fill="#2C3E50">'+valDisplay+'</text>';
+    bars += '<text x="'+(x+barW/2)+'" y="'+(pad.top+innerH+22)+'" text-anchor="middle" font-size="13" font-weight="600" fill="#2C3E50">'+d.label+'</text>';
+    if (d.sublabel) {
+      bars += '<text x="'+(x+barW/2)+'" y="'+(pad.top+innerH+40)+'" text-anchor="middle" font-size="11" fill="#7F8C8D">'+d.sublabel+'</text>';
+    }
+  });
+
+  // Grid lines
+  let grid = '';
+  const steps = 4;
+  for (let i = 0; i <= steps; i++) {
+    const y = pad.top + (i / steps) * innerH;
+    const v = max - (i / steps) * max;
+    grid += '<line x1="'+pad.left+'" y1="'+y+'" x2="'+(w-pad.right)+'" y2="'+y+'" stroke="#E8E8E8" stroke-width="1"/>';
+    grid += '<text x="'+(pad.left-8)+'" y="'+(y+4)+'" text-anchor="end" font-size="11" fill="#7F8C8D">'+v.toFixed(0)+unit+'</text>';
+  }
+
+  // Threshold lines
+  let thresholds = '';
+  if (opts.thresholds) {
+    opts.thresholds.forEach(t => {
+      const y = pad.top + innerH - (t.value / max) * innerH;
+      thresholds += '<line x1="'+pad.left+'" y1="'+y+'" x2="'+(w-pad.right)+'" y2="'+y+'" stroke="'+(t.color||'#C0392B')+'" stroke-width="2" stroke-dasharray="6,3"/>';
+      thresholds += '<text x="'+(w-pad.right-8)+'" y="'+(y-4)+'" text-anchor="end" font-size="10" font-weight="600" fill="'+(t.color||'#C0392B')+'">'+t.label+'</text>';
+    });
+  }
+
+  const title = opts.title ? '<text x="'+(w/2)+'" y="22" text-anchor="middle" font-size="15" font-weight="700" fill="#2C3E50">'+opts.title+'</text>' : '';
+
+  return '<svg viewBox="0 0 '+w+' '+h+'" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:'+w+'px;height:auto;display:block;margin:0 auto;">' +
+    title + grid + thresholds + bars + '</svg>';
+}
+
+function svgHBarChart(opts) {
+  // Horizontal bar chart
+  const w = opts.width || 600;
+  const barH = 26;
+  const gap = 10;
+  const pad = { top: opts.title ? 50 : 20, right: 30, bottom: 20, left: 180 };
+  const innerH = (barH + gap) * opts.data.length;
+  const h = pad.top + innerH + pad.bottom;
+  const innerW = w - pad.left - pad.right;
+  const max = opts.max || Math.max(1, ...opts.data.map(d => d.value));
+  const unit = opts.unit || '';
+
+  let bars = '';
+  opts.data.forEach((d, i) => {
+    const y = pad.top + i * (barH + gap);
+    const valNum = d.value === null || d.value === undefined || isNaN(d.value) ? 0 : d.value;
+    const barW = (valNum / max) * innerW;
+    const color = d.color || 'var(--prim)';
+    const valDisplay = (d.value === null || d.value === undefined || isNaN(d.value)) ? '—' : (typeof d.value === 'number' ? d.value.toFixed(1) : d.value) + unit;
+    bars += '<text x="'+(pad.left-12)+'" y="'+(y+barH/2+5)+'" text-anchor="end" font-size="12" font-weight="600" fill="#2C3E50">'+d.label+'</text>';
+    bars += '<rect x="'+pad.left+'" y="'+y+'" width="'+innerW+'" height="'+barH+'" fill="#F1F3F5" rx="4"/>';
+    if (barW > 0) {
+      bars += '<rect x="'+pad.left+'" y="'+y+'" width="'+barW+'" height="'+barH+'" fill="'+color+'" rx="4"/>';
+    }
+    bars += '<text x="'+(pad.left+barW+8)+'" y="'+(y+barH/2+5)+'" text-anchor="start" font-size="12" font-weight="700" fill="#2C3E50">'+valDisplay+'</text>';
+  });
+
+  const title = opts.title ? '<text x="'+(w/2)+'" y="22" text-anchor="middle" font-size="15" font-weight="700" fill="#2C3E50">'+opts.title+'</text>' : '';
+
+  return '<svg viewBox="0 0 '+w+' '+h+'" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:'+w+'px;height:auto;display:block;margin:0 auto;">' +
+    title + bars + '</svg>';
+}
+
+// ═══════════════════════════════════════════════════════════════
+// HELPERS — URL PARAMS (para integração com app de gestão)
+// ═══════════════════════════════════════════════════════════════
+
+function getURLParam(name) {
+  const params = new URLSearchParams(window.location.search);
+  return params.get(name);
+}
+
+function getPatientCode() {
+  return getURLParam('paciente') || getURLParam('patient') || getURLParam('code') || '';
+}
+
+// ═══════════════════════════════════════════════════════════════
+// HELPERS — DOWNLOAD
+// ═══════════════════════════════════════════════════════════════
+
+function downloadBlob(content, filename, mime) {
+  const blob = new Blob([content], { type: mime });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// HELPERS — FORMATAÇÃO
+// ═══════════════════════════════════════════════════════════════
+
+function fmtTempo(s) {
+  if (s == null || isNaN(s)) return '—';
+  const m = Math.floor(s / 60), sec = s % 60;
+  return m + ':' + String(sec).padStart(2,'0');
+}
+
+function fmtPct(v, decimals) {
+  if (v == null || isNaN(v)) return '—';
+  return v.toFixed(decimals || 0) + '%';
+}
+
+function fmtTR(s) {
+  if (s == null || isNaN(s)) return '—';
+  return s.toFixed(2) + 's';
+}
+
+function escHTML(s) {
+  if (s == null) return '';
+  return String(s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+function dataAtual() {
+  return new Date().toLocaleDateString('pt-PT', { day:'2-digit', month:'long', year:'numeric' });
+}
+
+
+// ═══════════════════════════════════════════════════════════════
+// DADOS DO NÍVEL 1
+// ═══════════════════════════════════════════════════════════════
+const NIVEL = 1;
+const TITULO = "INICIAÇÃO";
+const ITENS = [{"palavra":"bola","lista":"L1","indice":1},{"palavra":"lupa","lista":"L2","indice":1},{"palavra":"táxi","lista":"L3","indice":1},{"palavra":"dola","lista":"L4","indice":1},{"palavra":"casa","lista":"L1","indice":2},{"palavra":"cubo","lista":"L2","indice":2},{"palavra":"fixe","lista":"L3","indice":2},{"palavra":"lasa","lista":"L4","indice":2},{"palavra":"gato","lista":"L1","indice":3},{"palavra":"rede","lista":"L2","indice":3},{"palavra":"exame","lista":"L3","indice":3},{"palavra":"vato","lista":"L4","indice":3},{"palavra":"pato","lista":"L1","indice":4},{"palavra":"selo","lista":"L2","indice":4},{"palavra":"exemplo","lista":"L3","indice":4},{"palavra":"nupa","lista":"L4","indice":4},{"palavra":"mesa","lista":"L1","indice":5},{"palavra":"dado","lista":"L2","indice":5},{"palavra":"sítio","lista":"L3","indice":5},{"palavra":"fero","lista":"L4","indice":5},{"palavra":"dedo","lista":"L1","indice":6},{"palavra":"fava","lista":"L2","indice":6},{"palavra":"médico","lista":"L3","indice":6},{"palavra":"bumo","lista":"L4","indice":6},{"palavra":"rato","lista":"L1","indice":7},{"palavra":"rolo","lista":"L2","indice":7},{"palavra":"número","lista":"L3","indice":7},{"palavra":"suca","lista":"L4","indice":7},{"palavra":"lobo","lista":"L1","indice":8},{"palavra":"leme","lista":"L2","indice":8},{"palavra":"música","lista":"L3","indice":8},{"palavra":"mafa","lista":"L4","indice":8},{"palavra":"vaca","lista":"L1","indice":9},{"palavra":"bule","lista":"L2","indice":9},{"palavra":"óculos","lista":"L3","indice":9},{"palavra":"fro","lista":"L4","indice":9},{"palavra":"fada","lista":"L1","indice":10},{"palavra":"gema","lista":"L2","indice":10},{"palavra":"árvore","lista":"L3","indice":10},{"palavra":"tibro","lista":"L4","indice":10},{"palavra":"rio","lista":"L1","indice":11},{"palavra":"funil","lista":"L2","indice":11},{"palavra":"pássaro","lista":"L3","indice":11},{"palavra":"gãe","lista":"L4","indice":11},{"palavra":"livro","lista":"L1","indice":12},{"palavra":"canil","lista":"L2","indice":12},{"palavra":"rápido","lista":"L3","indice":12},{"palavra":"fol","lista":"L4","indice":12},{"palavra":"mãe","lista":"L1","indice":13},{"palavra":"prado","lista":"L2","indice":13},{"palavra":"único","lista":"L3","indice":13},{"palavra":"jai","lista":"L4","indice":13},{"palavra":"sol","lista":"L1","indice":14},{"palavra":"trato","lista":"L2","indice":14},{"palavra":"público","lista":"L3","indice":14},{"palavra":"jar","lista":"L4","indice":14},{"palavra":"pai","lista":"L1","indice":15},{"palavra":"palito","lista":"L2","indice":15},{"palavra":"hora","lista":"L3","indice":15},{"palavra":"belino","lista":"L4","indice":15},{"palavra":"mar","lista":"L1","indice":16},{"palavra":"moeda","lista":"L2","indice":16},{"palavra":"hoje","lista":"L3","indice":16},{"palavra":"gomito","lista":"L4","indice":16},{"palavra":"menino","lista":"L1","indice":17},{"palavra":"sereia","lista":"L2","indice":17},{"palavra":"homem","lista":"L3","indice":17},{"palavra":"dapata","lista":"L4","indice":17},{"palavra":"bonito","lista":"L1","indice":18},{"palavra":"panela","lista":"L2","indice":18},{"palavra":"hino","lista":"L3","indice":18},{"palavra":"poneca","lista":"L4","indice":18},{"palavra":"batata","lista":"L1","indice":19},{"palavra":"cadeira","lista":"L2","indice":19},{"palavra":"quase","lista":"L3","indice":19},{"palavra":"fute","lista":"L4","indice":19},{"palavra":"boneca","lista":"L1","indice":20},{"palavra":"veludo","lista":"L2","indice":20},{"palavra":"quente","lista":"L3","indice":20},{"palavra":"chibo","lista":"L4","indice":20}];
+const LISTAS = {"L1":["bola","casa","gato","pato","mesa","dedo","rato","lobo","vaca","fada","rio","livro","mãe","sol","pai","mar","menino","bonito","batata","boneca"],"L2":["lupa","cubo","rede","selo","dado","fava","rolo","leme","bule","gema","funil","canil","prado","trato","palito","moeda","sereia","panela","cadeira","veludo"],"L3":["táxi","fixe","exame","exemplo","sítio","médico","número","música","óculos","árvore","pássaro","rápido","único","público","hora","hoje","homem","hino","quase","quente"],"L4":["dola","lasa","vato","nupa","fero","bumo","suca","mafa","fro","tibro","gãe","fol","jai","jar","belino","gomito","dapata","poneca","fute","chibo"]};
+const TEMA_COMP = "O meu fim-de-semana";
+const SYNC_KEY = "peled_n1";
+
+// ═══════════════════════════════════════════════════════════════
+// ESTADO
+// ═══════════════════════════════════════════════════════════════
+const estado = {
+  identificacao: {},
+  leitura: { indice: 0, iniciado: false, pausado: false, inicioSessao: null, pausaInicio: null, pausaTotal: 0, itemInicio: null, respostaActual: null, itens: ITENS.map(i => ({...i, tr: null, resposta: null, transcricao: '', categoria: ''})) },
+  escrita: { blocos: { L1: LISTAS.L1.map(p => ({palavra: p, produzido: '', categoria: ''})), L2: LISTAS.L2.map(p => ({palavra: p, produzido: '', categoria: ''})), L3: LISTAS.L3.map(p => ({palavra: p, produzido: '', categoria: ''})), L4: LISTAS.L4.map(p => ({palavra: p, produzido: '', categoria: ''})) } },
+  composicao: { 
+    texto: '', observacoes: '', inicio: null, duracao: 0, timerActivo: false, grelha: {},
+    foto: null, metricasImagem: {}, grelhaCaligrafia: {}, implicacoes: '', analiseGerada: ''
+  },
+  sinteseClinica: ''
+};
+
+// ═══════════════════════════════════════════════════════════════
+// MÓDULO ANÁLISE CALIGRÁFICA
+// ═══════════════════════════════════════════════════════════════
+
+
+const GRELHA_CALIGRAFIA = [
+  // === BLOCO I — ANÁLISE CALIGRÁFICA ===
+  {
+    id: 'legibilidade', bloco: 'I. Análise Caligráfica',
+    nome: 'Legibilidade Global',
+    descricao: 'Clareza visual à primeira leitura; possibilidade de decifração das palavras.',
+    subitens: [
+      'Letras claramente discrimináveis à primeira vista',
+      'Ausência de letras sobrepostas ou fundidas',
+      'Ausência de letras mal concluídas',
+      'Palavras inteiras decifráveis sem reinterpretação',
+      'Sem confusão entre letras visualmente semelhantes (b/d, h/n, l/t)'
+    ]
+  },
+  {
+    id: 'forma_letras', bloco: 'I. Análise Caligráfica',
+    nome: 'Forma e Discriminação das Letras',
+    descricao: 'Regularidade do desenho de cada letra; discriminação inter-grafemas.',
+    subitens: [
+      'Forma das letras consistente entre ocorrências',
+      'Discriminação clara entre letras semelhantes (m/n, b/d/p/q, u/v)',
+      'Maiúsculas e minúsculas bem diferenciadas',
+      'Ausência de inversões ou rotações de letras',
+      'Cumprimento das características distintivas (perna do "p", cauda do "g")'
+    ]
+  },
+  {
+    id: 'tamanho', bloco: 'I. Análise Caligráfica',
+    nome: 'Tamanho e Regularidade',
+    descricao: 'Proporcionalidade gráfica; estabilidade da zona média; uniformidade de tamanho.',
+    subitens: [
+      'Tamanho consistente ao longo da composição',
+      'Proporcionalidade entre letras altas, médias e baixas',
+      'Zona média estável (sem invasão de linhas adjacentes)',
+      'Letras altas claramente destacadas (h, l, t, d)',
+      'Letras com cauda preservadas (g, j, p, q, y)'
+    ]
+  },
+  {
+    id: 'pressao', bloco: 'I. Análise Caligráfica',
+    nome: 'Pressão e Qualidade do Traço',
+    descricao: 'Pressão exercida no papel; nitidez e regularidade do traço.',
+    subitens: [
+      'Pressão adequada (sem rasgar, sem desvanecer)',
+      'Pressão uniforme ao longo do texto',
+      'Traço nítido e contínuo',
+      'Ausência de sinais de tensão muscular excessiva',
+      'Ausência de marcas no verso da folha'
+    ]
+  },
+  {
+    id: 'fluidez', bloco: 'I. Análise Caligráfica',
+    nome: 'Fluidez e Continuidade do Movimento',
+    descricao: 'Qualidade do gesto grafomotor; automatização do traço.',
+    subitens: [
+      'Traçado fluido sem interrupções desnecessárias',
+      'Movimento contínuo dentro das palavras',
+      'Ausência de paragens visíveis a meio de letras',
+      'Ausência de tremor ou hesitação no traço',
+      'Velocidade adequada à idade e ao ano de escolaridade'
+    ]
+  },
+  {
+    id: 'alinhamento', bloco: 'I. Análise Caligráfica',
+    nome: 'Alinhamento e Linha de Base',
+    descricao: 'Manutenção da linha base; respeito pelas pautas; horizontalidade.',
+    subitens: [
+      'Manutenção da linha de base ao longo da escrita',
+      'Respeito pelas pautas (quando presentes)',
+      'Ausência de inclinação ascendente/descendente da linha',
+      'Início consistente à margem esquerda',
+      'Fim de linha bem gerido (sem cortes abruptos)'
+    ]
+  },
+  {
+    id: 'espacamento', bloco: 'I. Análise Caligráfica',
+    nome: 'Espaçamento (Inter-palavras e Inter-letras)',
+    descricao: 'Regularidade dos espaços entre palavras e entre letras dentro das palavras.',
+    subitens: [
+      'Espaçamento regular entre palavras',
+      'Palavras claramente segmentadas',
+      'Espaçamento adequado entre letras dentro das palavras',
+      'Ausência de fusões entre palavras',
+      'Ausência de fragmentação intra-palavra'
+    ]
+  },
+  // === BLOCO II — ANÁLISE TEXTUAL ===
+  {
+    id: 'estrutura', bloco: 'II. Análise Textual',
+    nome: 'Estrutura Textual e Coerência',
+    descricao: 'Organização do texto; coerência discursiva; articulação das ideias.',
+    subitens: [
+      'Introdução, desenvolvimento e conclusão identificáveis',
+      'Coerência temática mantida',
+      'Articulação lógica entre frases',
+      'Uso de ligadores discursivos adequados',
+      'Sequência narrativa clara'
+    ]
+  },
+  {
+    id: 'ortografia', bloco: 'II. Análise Textual',
+    nome: 'Ortografia e Acentuação',
+    descricao: 'Número e tipologia de erros ortográficos; uso de acentos gráficos.',
+    subitens: [
+      'Ortografia globalmente correcta para o ano de escolaridade',
+      'Acentuação consistentemente aplicada',
+      'Ausência de erros fonológicos sistemáticos',
+      'Ausência de erros ortográficos contextuais (ss/ç, c/q, lh)',
+      'Ausência de regularizações inadequadas em palavras irregulares'
+    ]
+  },
+  {
+    id: 'pontuacao', bloco: 'II. Análise Textual',
+    nome: 'Pontuação e Maiúsculas',
+    descricao: 'Uso de sinais de pontuação; emprego de maiúsculas em contexto adequado.',
+    subitens: [
+      'Pontos finais correctamente colocados',
+      'Vírgulas usadas em locais apropriados',
+      'Maiúsculas no início de frase',
+      'Maiúsculas em nomes próprios',
+      'Pontuação expressiva (! ?) usada quando relevante'
+    ]
+  },
+  // === BLOCO III — ANÁLISE FUNCIONAL ===
+  {
+    id: 'velocidade', bloco: 'III. Análise Funcional',
+    nome: 'Velocidade e Adequação Temporal',
+    descricao: 'Velocidade de produção; adequação ao tempo disponibilizado.',
+    subitens: [
+      'Composição concluída no tempo previsto',
+      'Velocidade adequada à idade',
+      'Quantidade de texto produzida dentro do esperado',
+      'Sem fadiga visível ao longo da produção',
+      'Sem sinais de pressa que comprometam a qualidade'
+    ]
+  }
+];
+
+const ESCALA_AVALIACAO = [
+  { id: 'adequado', label: 'Adequado', cor: '#27AE60', valor: 0 },
+  { id: 'limitrofe', label: 'Limítrofe', cor: '#F39C12', valor: 1 },
+  { id: 'comprometido', label: 'Comprometido', cor: '#E67E22', valor: 2 },
+  { id: 'severo', label: 'Severamente comprometido', cor: '#C0392B', valor: 3 }
+];
+
+
+// ═══════════════════════════════════════════════════════════════
+// UPLOAD DE FOTOGRAFIA
+// ═══════════════════════════════════════════════════════════════
+function processarUploadFoto(file) {
+  if (!file) return;
+  // Validar tipo
+  if (!file.type.startsWith('image/')) {
+    alert('Por favor seleccione um ficheiro de imagem.');
+    return;
+  }
+  // Ler como dataURL e comprimir
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const img = new Image();
+    img.onload = () => {
+      // Comprimir para max 1200px de largura
+      const maxW = 1200;
+      let w = img.width, h = img.height;
+      if (w > maxW) {
+        h = h * (maxW / w);
+        w = maxW;
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, w, h);
+      const compressed = canvas.toDataURL('image/jpeg', 0.75);
+      estado.composicao.foto = compressed;
+      mostrarFoto(compressed);
+      analisarImagemCanvas();
+      renderGrelhaCaligrafia();
+      guardarEstado();
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function mostrarFoto(dataURL) {
+  document.getElementById('foto-preview').src = dataURL;
+  document.getElementById('foto-preview').style.display = 'block';
+  document.getElementById('upload-placeholder').style.display = 'none';
+  document.getElementById('foto-actions').style.display = 'flex';
+  document.getElementById('upload-area').classList.add('tem-imagem');
+  document.getElementById('metricas-objectivas').style.display = 'block';
+  document.getElementById('grelha-caligrafia-container').style.display = 'block';
+}
+
+function removerFoto() {
+  if (!confirm('Remover a fotografia? Os dados da grelha de análise serão mantidos.')) return;
+  estado.composicao.foto = null;
+  estado.composicao.metricasImagem = {};
+  document.getElementById('foto-preview').style.display = 'none';
+  document.getElementById('foto-preview').src = '';
+  document.getElementById('upload-placeholder').style.display = 'block';
+  document.getElementById('foto-actions').style.display = 'none';
+  document.getElementById('upload-area').classList.remove('tem-imagem');
+  document.getElementById('metricas-objectivas').style.display = 'none';
+  document.getElementById('foto-input').value = '';
+  guardarEstado();
+}
+
+function recalcularMetricas() { analisarImagemCanvas(); }
+
+// ═══════════════════════════════════════════════════════════════
+// ANÁLISE CANVAS — MÉTRICAS OBJECTIVAS
+// ═══════════════════════════════════════════════════════════════
+function analisarImagemCanvas() {
+  const img = document.getElementById('foto-preview');
+  if (!img.src || !img.complete) return;
+  const canvas = document.createElement('canvas');
+  const ctx = canvas.getContext('2d');
+  canvas.width = img.naturalWidth;
+  canvas.height = img.naturalHeight;
+  ctx.drawImage(img, 0, 0);
+  let data;
+  try {
+    data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+  } catch(e) {
+    console.warn('Não foi possível ler pixels (CORS?):', e);
+    return;
+  }
+  const w = canvas.width, h = canvas.height;
+
+  // 1. Densidade global e intensidade
+  let pixelsEscuros = 0, somaIntens = 0, somaIntensEscuro = 0, somaQuadrados = 0;
+  const total = data.length / 4;
+  const THRESHOLD = 130;
+  for (let i = 0; i < data.length; i += 4) {
+    const avg = (data[i] + data[i+1] + data[i+2]) / 3;
+    somaIntens += avg;
+    if (avg < THRESHOLD) {
+      pixelsEscuros++;
+      somaIntensEscuro += avg;
+      somaQuadrados += avg * avg;
+    }
+  }
+  const densidade = (pixelsEscuros / total) * 100;
+  const intensidadeMedia = somaIntens / total;
+  const intensidadePressao = pixelsEscuros > 0 ? somaIntensEscuro / pixelsEscuros : 0;
+  const varTonal = pixelsEscuros > 1 ? Math.sqrt((somaQuadrados / pixelsEscuros) - (intensidadePressao * intensidadePressao)) : 0;
+
+  // 2. Distribuição vertical (3 terços)
+  let escurosTopo = 0, escurosMeio = 0, escurosFundo = 0;
+  const t1 = Math.floor(h/3), t2 = Math.floor(2*h/3);
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      const i = (y*w+x)*4;
+      const avg = (data[i]+data[i+1]+data[i+2])/3;
+      if (avg < THRESHOLD) {
+        if (y < t1) escurosTopo++;
+        else if (y < t2) escurosMeio++;
+        else escurosFundo++;
+      }
+    }
+  }
+  const totalEsc = escurosTopo + escurosMeio + escurosFundo || 1;
+  const distrib = {
+    topo: (escurosTopo / totalEsc * 100).toFixed(0),
+    meio: (escurosMeio / totalEsc * 100).toFixed(0),
+    fundo: (escurosFundo / totalEsc * 100).toFixed(0)
+  };
+
+  // 3. Bandas de texto (linhas horizontais)
+  const densLinha = [];
+  for (let y = 0; y < h; y++) {
+    let count = 0;
+    for (let x = 0; x < w; x++) {
+      const i = (y*w+x)*4;
+      const avg = (data[i]+data[i+1]+data[i+2])/3;
+      if (avg < THRESHOLD) count++;
+    }
+    densLinha.push(count / w);
+  }
+  const TH_LINHA = 0.015;
+  const bandas = [];
+  let inBand = false, bandStart = 0;
+  for (let y = 0; y < h; y++) {
+    if (densLinha[y] > TH_LINHA && !inBand) { inBand = true; bandStart = y; }
+    else if (densLinha[y] <= TH_LINHA && inBand) {
+      inBand = false;
+      if (y - bandStart > 5) bandas.push({ start: bandStart, end: y, altura: y - bandStart });
+    }
+  }
+  if (inBand) bandas.push({ start: bandStart, end: h, altura: h - bandStart });
+
+  let espacamentos = [];
+  for (let i = 1; i < bandas.length; i++) espacamentos.push(bandas[i].start - bandas[i-1].end);
+  const espacMedio = espacamentos.length > 0 ? espacamentos.reduce((a,b)=>a+b,0) / espacamentos.length : 0;
+  const alturaMedia = bandas.length > 0 ? bandas.reduce((a,b)=>a+b.altura,0) / bandas.length : 0;
+
+  // Guardar e mostrar
+  estado.composicao.metricasImagem = {
+    densidade: parseFloat(densidade.toFixed(2)),
+    intensidadeMedia: parseFloat(intensidadeMedia.toFixed(1)),
+    intensidadePressao: parseFloat(intensidadePressao.toFixed(1)),
+    varTonal: parseFloat(varTonal.toFixed(1)),
+    linhasDetectadas: bandas.length,
+    alturaMedia: parseFloat(alturaMedia.toFixed(1)),
+    espacMedio: parseFloat(espacMedio.toFixed(1)),
+    distrib: distrib,
+    resolucao: w + ' × ' + h
+  };
+
+  document.getElementById('m-densidade').textContent = densidade.toFixed(2);
+  document.getElementById('m-linhas').textContent = bandas.length;
+  document.getElementById('m-altura').textContent = alturaMedia.toFixed(0);
+  document.getElementById('m-espacamento').textContent = espacMedio.toFixed(0);
+  document.getElementById('m-pressao').textContent = intensidadePressao.toFixed(0);
+  document.getElementById('m-variacao').textContent = '±' + varTonal.toFixed(1);
+  document.getElementById('m-distribuicao').textContent = distrib.topo + '% · ' + distrib.meio + '% · ' + distrib.fundo + '%';
+  document.getElementById('m-resolucao').textContent = w + ' × ' + h;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// GRELHA — Render dinâmico dos 11 parâmetros
+// ═══════════════════════════════════════════════════════════════
+function renderGrelhaCaligrafia() {
+  const blocos = ['I. Análise Caligráfica', 'II. Análise Textual', 'III. Análise Funcional'];
+  let html = '';
+  blocos.forEach(b => {
+    const items = GRELHA_CALIGRAFIA.filter(p => p.bloco === b);
+    if (items.length === 0) return;
+    html += '<div class="grelha-bloco"><div class="grelha-bloco-titulo">' + b + '</div>';
+    items.forEach(p => {
+      const dados = estado.composicao.grelhaCaligrafia[p.id] || {};
+      const escalaSelecionada = dados.escala || '';
+      html += '<div class="grelha-item">';
+      html += '<div class="grelha-item-cab">';
+      html += '<div class="grelha-item-nome"><strong>' + p.nome + '</strong><span class="desc">' + p.descricao + '</span></div>';
+      html += '<div class="escala-botoes">';
+      ESCALA_AVALIACAO.forEach(e => {
+        const sel = escalaSelecionada === e.id ? 'selected' : '';
+        html += '<button type="button" class="escala-btn ' + sel + '" data-escala="' + e.id + '" onclick="selecionarEscala(\'' + p.id + '\',\'' + e.id + '\')">' + e.label + '</button>';
+      });
+      html += '</div></div>';
+      html += '<button type="button" class="btn-expandir" onclick="toggleSubitens(\'' + p.id + '\')">▼ Indicadores específicos e observação</button>';
+      html += '<div class="subitens-area" id="subitens-' + p.id + '">';
+      const marcados = dados.subitens || [];
+      p.subitens.forEach((sub, idx) => {
+        const checked = marcados.includes(idx) ? 'checked' : '';
+        html += '<label class="subitem-check"><input type="checkbox" ' + checked + ' onchange="toggleSubitem(\'' + p.id + '\',' + idx + ')"><span>' + sub + '</span></label>';
+      });
+      html += '<textarea class="observacao-livre" placeholder="Observação livre (opcional)..." oninput="atualizarObservacao(\'' + p.id + '\',this.value)">' + (dados.observacao || '') + '</textarea>';
+      html += '</div></div>';
+    });
+    html += '</div>';
+  });
+  document.getElementById('grelha-conteudo').innerHTML = html;
+}
+
+function selecionarEscala(parametroId, escalaId) {
+  if (!estado.composicao.grelhaCaligrafia[parametroId]) estado.composicao.grelhaCaligrafia[parametroId] = {};
+  estado.composicao.grelhaCaligrafia[parametroId].escala = escalaId;
+  guardarEstado();
+  renderGrelhaCaligrafia();
+}
+
+function toggleSubitens(parametroId) {
+  const el = document.getElementById('subitens-' + parametroId);
+  el.classList.toggle('expandido');
+}
+
+function toggleSubitem(parametroId, subIdx) {
+  if (!estado.composicao.grelhaCaligrafia[parametroId]) estado.composicao.grelhaCaligrafia[parametroId] = {};
+  if (!estado.composicao.grelhaCaligrafia[parametroId].subitens) estado.composicao.grelhaCaligrafia[parametroId].subitens = [];
+  const arr = estado.composicao.grelhaCaligrafia[parametroId].subitens;
+  const i = arr.indexOf(subIdx);
+  if (i >= 0) arr.splice(i, 1); else arr.push(subIdx);
+  guardarEstado();
+}
+
+function atualizarObservacao(parametroId, texto) {
+  if (!estado.composicao.grelhaCaligrafia[parametroId]) estado.composicao.grelhaCaligrafia[parametroId] = {};
+  estado.composicao.grelhaCaligrafia[parametroId].observacao = texto;
+  guardarEstado();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// GERAÇÃO DE PROSA CLÍNICA — A partir da grelha
+// ═══════════════════════════════════════════════════════════════
+function gerarAnaliseClinicaCaligrafia() {
+  const id = estado.identificacao;
+  const nome = id.nome || '[Nome do avaliando]';
+  const m = estado.composicao.metricasImagem || {};
+
+  let texto = 'ANÁLISE DA COMPOSIÇÃO MANUSCRITA — ' + nome + '\n\n';
+  texto += 'GRELHA AUTORAL RC · 11 PARÂMETROS · 3 BLOCOS\n';
+  texto += '═══════════════════════════════════════════════\n\n';
+
+  // Métricas (se disponíveis)
+  if (m.densidade !== undefined) {
+    texto += '➤ Métricas objectivas (calculadas automaticamente sobre a imagem)\n';
+    texto += '   • Densidade de tinta: ' + m.densidade + '%\n';
+    texto += '   • Linhas detectadas: ' + m.linhasDetectadas + '\n';
+    texto += '   • Altura média das linhas: ' + m.alturaMedia + ' px · Espaçamento entre linhas: ' + m.espacMedio + ' px\n';
+    texto += '   • Intensidade média do traço: ' + m.intensidadePressao + '/255 · Variação tonal: ±' + m.varTonal + '\n';
+    texto += '   • Distribuição vertical (terços): topo ' + m.distrib.topo + '% · meio ' + m.distrib.meio + '% · fundo ' + m.distrib.fundo + '%\n\n';
+  }
+
+  // Por bloco
+  const blocos = ['I. Análise Caligráfica', 'II. Análise Textual', 'III. Análise Funcional'];
+  blocos.forEach(bloco => {
+    const items = GRELHA_CALIGRAFIA.filter(p => p.bloco === bloco);
+    texto += bloco.toUpperCase() + '\n';
+    texto += '───────────────────────────────────────────────\n\n';
+    items.forEach((p, idx) => {
+      const dados = estado.composicao.grelhaCaligrafia[p.id] || {};
+      const escala = ESCALA_AVALIACAO.find(e => e.id === dados.escala);
+      texto += (idx+1) + '. ' + p.nome.toUpperCase() + '\n';
+      if (escala) {
+        texto += '   Avaliação: ' + escala.label + '\n';
+      } else {
+        texto += '   Avaliação: (não preenchida)\n';
+      }
+      const marcados = dados.subitens || [];
+      if (marcados.length > 0) {
+        texto += '   Indicadores observados:\n';
+        marcados.forEach(i => {
+          texto += '     • ' + p.subitens[i] + '\n';
+        });
+      }
+      if (dados.observacao && dados.observacao.trim()) {
+        texto += '   Observação: ' + dados.observacao.trim() + '\n';
+      }
+      texto += '\n';
+    });
+  });
+
+  // Implicações funcionais
+  texto += 'IMPLICAÇÕES FUNCIONAIS\n';
+  texto += '═══════════════════════════════════════════════\n\n';
+
+  // Auto-extrair indicadores de comprometimento
+  const comprometidos = [];
+  GRELHA_CALIGRAFIA.forEach(p => {
+    const dados = estado.composicao.grelhaCaligrafia[p.id];
+    if (dados && (dados.escala === 'comprometido' || dados.escala === 'severo')) {
+      const esc = ESCALA_AVALIACAO.find(e => e.id === dados.escala);
+      comprometidos.push({ nome: p.nome, escala: esc.label });
+    }
+  });
+
+  if (comprometidos.length > 0) {
+    texto += 'Padrão diferencial identificado — parâmetros com comprometimento:\n';
+    comprometidos.forEach(c => {
+      texto += '   • ' + c.nome + ' — ' + c.escala + '\n';
+    });
+    texto += '\n';
+  }
+
+  const implLivre = (estado.composicao.implicacoes || '').trim();
+  if (implLivre) {
+    texto += implLivre + '\n\n';
+  } else {
+    texto += '(Adicionar análise das implicações funcionais no campo livre.)\n\n';
+  }
+
+  texto += '───────────────────────────────────────────────\n';
+  texto += 'Documento gerado em ' + dataAtual() + ' · Ricardina Correia · OPP 8233\n';
+  texto += 'Grelha Autoral RC · v1.0 · Maio 2026';
+
+  estado.composicao.analiseGerada = texto;
+  document.getElementById('analise-gerada-container').style.display = 'block';
+  document.getElementById('analise-gerada-texto').textContent = texto;
+  guardarEstado();
+  document.getElementById('analise-gerada-container').scrollIntoView({ behavior: 'smooth' });
+}
+
+function copiarAnaliseGerada() {
+  const t = estado.composicao.analiseGerada || '';
+  if (!t) { alert('Gere primeiro a análise clínica.'); return; }
+  estado.sinteseClinica = (estado.sinteseClinica || '') + (estado.sinteseClinica ? '\n\n' : '') + t;
+  guardarEstado();
+  alert('✓ Análise copiada para o campo de Síntese Clínica (ecrã de Síntese).');
+}
+
+// ═══════════════════════════════════════════════════════════════
+// DRAG-AND-DROP
+// ═══════════════════════════════════════════════════════════════
+function inicializarDragDrop() {
+  const area = document.getElementById('upload-area');
+  if (!area) return;
+  ['dragenter','dragover'].forEach(ev => area.addEventListener(ev, e => {
+    e.preventDefault(); e.stopPropagation(); area.classList.add('dragover');
+  }));
+  ['dragleave','drop'].forEach(ev => area.addEventListener(ev, e => {
+    e.preventDefault(); e.stopPropagation(); area.classList.remove('dragover');
+  }));
+  area.addEventListener('drop', e => {
+    const file = e.dataTransfer.files[0];
+    if (file) processarUploadFoto(file);
+  });
+}
+
+// Restaurar foto após carregar estado
+function restaurarFotoSeExiste() {
+  if (estado.composicao && estado.composicao.foto) {
+    mostrarFoto(estado.composicao.foto);
+    // Restaurar métricas
+    const m = estado.composicao.metricasImagem;
+    if (m && m.densidade !== undefined) {
+      document.getElementById('m-densidade').textContent = m.densidade;
+      document.getElementById('m-linhas').textContent = m.linhasDetectadas;
+      document.getElementById('m-altura').textContent = m.alturaMedia;
+      document.getElementById('m-espacamento').textContent = m.espacMedio;
+      document.getElementById('m-pressao').textContent = m.intensidadePressao;
+      document.getElementById('m-variacao').textContent = '±' + m.varTonal;
+      document.getElementById('m-distribuicao').textContent = m.distrib.topo + '% · ' + m.distrib.meio + '% · ' + m.distrib.fundo + '%';
+      document.getElementById('m-resolucao').textContent = m.resolucao;
+    }
+    renderGrelhaCaligrafia();
+  }
+  const implEl = document.getElementById('implicacoes-funcionais');
+  if (implEl && estado.composicao.implicacoes) implEl.value = estado.composicao.implicacoes;
+  if (estado.composicao.analiseGerada) {
+    document.getElementById('analise-gerada-container').style.display = 'block';
+    document.getElementById('analise-gerada-texto').textContent = estado.composicao.analiseGerada;
+  }
+}
+
+
+// ═══════════════════════════════════════════════════════════════
+// NAVEGAÇÃO
+// ═══════════════════════════════════════════════════════════════
+function navegar(tela) {
+  document.querySelectorAll('.tela').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tela-' + tela).classList.add('active');
+  document.getElementById('nav-' + tela).classList.add('active');
+  window.scrollTo(0, 0);
+  if (tela === 'sintese') renderSinteseCompleta();
+  if (tela === 'composicao') { atualizarComp(); renderGrelhaCaligrafia(); }
+}
+
+// LEITURA
+let timerLeitura = null, timerTotal = null;
+function iniciarLeitura() {
+  estado.leitura.iniciado = true; estado.leitura.inicioSessao = Date.now();
+  document.getElementById('leitura-intro').style.display = 'none';
+  document.getElementById('leitura-ativa').style.display = 'block';
+  timerTotal = setInterval(() => {
+    if (!estado.leitura.pausado) {
+      const elapsed = Math.floor((Date.now() - estado.leitura.inicioSessao - estado.leitura.pausaTotal) / 1000);
+      document.getElementById('leitura-tempo-total').textContent = Math.floor(elapsed/60) + ':' + String(elapsed%60).padStart(2,'0');
+    }
+  }, 500);
+  mostrarItem();
+}
+function mostrarItem() {
+  const idx = estado.leitura.indice;
+  if (idx >= 80) { finalizarLeitura(); return; }
+  const item = estado.leitura.itens[idx];
+  document.getElementById('leitura-numero').textContent = String(idx + 1).padStart(2, '0');
+  document.getElementById('leitura-palavra').textContent = item.palavra;
+  document.getElementById('leitura-item-num').textContent = idx + 1;
+  document.getElementById('leitura-item-lista').textContent = item.lista;
+  document.getElementById('leitura-progresso-bar').style.width = ((idx + 1) / 80 * 100) + '%';
+  document.getElementById('leitura-detalhe').style.display = 'none';
+  document.getElementById('leitura-transcricao').value = '';
+  document.getElementById('leitura-categoria').value = '';
+  document.querySelectorAll('.resp-btn').forEach(b => b.classList.remove('selected'));
+  estado.leitura.respostaActual = null;
+  estado.leitura.itemInicio = Date.now();
+  if (timerLeitura) clearInterval(timerLeitura);
+  timerLeitura = setInterval(() => {
+    if (!estado.leitura.pausado && estado.leitura.itemInicio) {
+      const tr = (Date.now() - estado.leitura.itemInicio) / 1000;
+      document.getElementById('leitura-timer').textContent = tr.toFixed(1) + 's';
+    }
+  }, 100);
+}
+function responder(tipo) {
+  if (!estado.leitura.itemInicio) return;
+  const tr = (Date.now() - estado.leitura.itemInicio) / 1000;
+  const idx = estado.leitura.indice;
+  estado.leitura.itens[idx].tr = tr;
+  estado.leitura.itens[idx].resposta = tipo;
+  estado.leitura.respostaActual = tipo;
+  document.querySelectorAll('.resp-btn').forEach(b => b.classList.remove('selected'));
+  const sel = tipo === 'correto' ? 'correct' : tipo === 'errado' ? 'error' : tipo === 'ac' ? 'ac' : 'recusa';
+  document.querySelector('.resp-btn[data-r="' + sel + '"]').classList.add('selected');
+  if (tipo !== 'correto') {
+    document.getElementById('leitura-detalhe').style.display = 'block';
+    if (tipo === 'recusa') document.getElementById('leitura-categoria').value = 'RC';
+    setTimeout(() => document.getElementById('leitura-transcricao').focus(), 100);
+  } else document.getElementById('leitura-detalhe').style.display = 'none';
+}
+function proximoItem() {
+  if (estado.leitura.respostaActual === null) { alert('Registe uma resposta antes de avançar.'); return; }
+  const idx = estado.leitura.indice;
+  estado.leitura.itens[idx].transcricao = document.getElementById('leitura-transcricao').value;
+  estado.leitura.itens[idx].categoria = document.getElementById('leitura-categoria').value;
+  estado.leitura.indice++;
+  guardarEstado(); mostrarItem();
+}
+function finalizarLeitura() {
+  if (timerLeitura) clearInterval(timerLeitura);
+  if (timerTotal) clearInterval(timerTotal);
+  document.getElementById('leitura-ativa').style.display = 'none';
+  document.getElementById('leitura-completa').style.display = 'block';
+  document.getElementById('nav-leitura').classList.add('done');
+  guardarEstado();
+}
+
+// ESCRITA
+function renderEscrita() {
+  const c = document.getElementById('escrita-blocos');
+  const titulos = { L1: 'L1 · Regulares Frequentes', L2: 'L2 · Regulares Infrequentes', L3: 'L3 · Irregulares', L4: 'L4 · Pseudopalavras' };
+  let html = '';
+  ['L1','L2','L3','L4'].forEach(L => {
+    html += '<div class="escrita-bloco"><h3>' + titulos[L] + '</h3>';
+    estado.escrita.blocos[L].forEach((item, idx) => {
+      const cod = L + '-' + String(idx+1).padStart(2,'0');
+      html += '<div class="escrita-item"><span class="codigo">' + cod + '</span><span class="palavra-ditada">' + item.palavra + '</span>';
+      html += '<input type="text" placeholder="Escrita produzida..." oninput="estado.escrita.blocos.' + L + '[' + idx + '].produzido=this.value; guardarEstado();" value="' + (item.produzido||'') + '">';
+      html += '<select onchange="estado.escrita.blocos.' + L + '[' + idx + '].categoria=this.value; guardarEstado();">';
+      html += '<option value="">—</option><option value="OK"' + (item.categoria==='OK'?' selected':'') + '>OK</option><option value="FO"' + (item.categoria==='FO'?' selected':'') + '>FO</option><option value="OC"' + (item.categoria==='OC'?' selected':'') + '>OC</option><option value="OI"' + (item.categoria==='OI'?' selected':'') + '>OI</option><option value="MO"' + (item.categoria==='MO'?' selected':'') + '>MO</option><option value="SG"' + (item.categoria==='SG'?' selected':'') + '>SG</option><option value="AC"' + (item.categoria==='AC'?' selected':'') + '>AC</option><option value="IN"' + (item.categoria==='IN'?' selected':'') + '>IN</option>';
+      html += '</select></div>';
+    });
+    html += '</div>';
+  });
+  c.innerHTML = html;
+}
+function calcularEscrita() {
+  const tot = Object.values(estado.escrita.blocos).reduce((acc, b) => acc + b.filter(i => i.categoria).length, 0);
+  if (tot >= 60) document.getElementById('nav-escrita').classList.add('done');
+  guardarEstado();
+}
+
+// COMPOSIÇÃO
+let timerComp = null;
+function iniciarTimerComp() {
+  estado.composicao.inicio = Date.now() - estado.composicao.duracao * 1000;
+  estado.composicao.timerActivo = true;
+  document.getElementById('btn-comp-iniciar').style.display = 'none';
+  document.getElementById('btn-comp-pausar').style.display = 'inline-block';
+  if (timerComp) clearInterval(timerComp);
+  timerComp = setInterval(() => {
+    if (estado.composicao.timerActivo) {
+      estado.composicao.duracao = Math.floor((Date.now() - estado.composicao.inicio) / 1000);
+      atualizarComp();
+    }
+  }, 1000);
+}
+function pausarTimerComp() {
+  estado.composicao.timerActivo = false;
+  document.getElementById('btn-comp-iniciar').style.display = 'inline-block';
+  document.getElementById('btn-comp-pausar').style.display = 'none';
+  if (timerComp) clearInterval(timerComp);
+}
+function terminarComp() {
+  pausarTimerComp();
+  document.getElementById('nav-composicao').classList.add('done');
+  guardarEstado();
+  alert('Composição registada. Duração: ' + fmtTempo(estado.composicao.duracao));
+}
+function atualizarComp() {
+  document.getElementById('comp-tempo').textContent = fmtTempo(estado.composicao.duracao);
+  const txt = document.getElementById('comp-texto').value;
+  estado.composicao.texto = txt;
+  const palavras = txt.trim() ? txt.trim().split(/\s+/).length : 0;
+  const frases = txt.split(/[.!?]+/).filter(s => s.trim().length > 0).length;
+  document.getElementById('comp-palavras').textContent = palavras;
+  document.getElementById('comp-frases').textContent = frases;
+  document.getElementById('comp-caracteres').textContent = txt.length;
+}
+function renderGrelhaComp() {
+  const dim = [['extensao','Extensão','Palavras·frases·tempo'],['coesao','Coesão','Articulação·ligadores'],['erros','Erros ortográficos','Número·tipologia'],['pontuacao','Pontuação','Pontos·vírgulas·maiúsculas'],['lexical','Riqueza lexical','Vocabulário'],['estrutura','Estrutura textual','Introdução·desenvolvimento·fecho'],['caligrafia','Caligrafia','Legibilidade·linearidade']];
+  let html = '<div style="display:grid;grid-template-columns:1fr;gap:8px;">';
+  dim.forEach(d => {
+    html += '<div style="display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center;padding:10px;background:var(--fundo);border-radius:4px;"><div><strong>' + d[1] + '</strong><br><span style="font-size:13px;color:var(--cinza);">' + d[2] + '</span></div><div style="display:flex;gap:6px;">';
+    for (let i = 0; i <= 4; i++) {
+      const sel = estado.composicao.grelha[d[0]] === i ? 'background:var(--prim);color:white;border-color:var(--prim);' : 'background:white;';
+      html += '<button type="button" style="width:36px;height:36px;border-radius:50%;border:2px solid #DDD;cursor:pointer;font-weight:700;font-family:inherit;' + sel + '" onclick="grelhaComp(\'' + d[0] + '\',' + i + ')">' + i + '</button>';
+    }
+    html += '</div></div>';
+  });
+  html += '</div>';
+  document.getElementById('comp-grelha').innerHTML = html;
+}
+function grelhaComp(dim, valor) { estado.composicao.grelha[dim] = valor; guardarEstado(); renderGrelhaComp(); }
+
+// SÍNTESE
+function calcularResultadosLeitura() {
+  const res = {};
+  ['L1','L2','L3','L4'].forEach(l => {
+    const it = estado.leitura.itens.filter(i => i.lista === l);
+    const respondidos = it.filter(i => i.resposta !== null);
+    const ac = it.filter(i => i.resposta === 'correto' || i.resposta === 'ac').length;
+    const trs = it.filter(i => i.resposta === 'correto' || i.resposta === 'ac').map(i => i.tr).filter(t => t !== null);
+    res[l] = { acertos: ac, total: 20, respondidos: respondidos.length, precisao: (ac/20*100), tempoMedio: trs.length ? trs.reduce((a,b)=>a+b,0)/trs.length : 0, erros: respondidos.length - ac };
+  });
+  const p = { L1: res.L1.precisao, L2: res.L2.precisao, L3: res.L3.precisao, L4: res.L4.precisao };
+  res.efeitos = { EL: (p.L1+p.L2+p.L3)/3 - p.L4, ER: (p.L1+p.L2)/2 - p.L3, EF: p.L1 - p.L2 };
+  return res;
+}
+function calcularResultadosEscrita() {
+  const res = {};
+  ['L1','L2','L3','L4'].forEach(l => {
+    const it = estado.escrita.blocos[l];
+    const ac = it.filter(i => i.categoria === 'OK').length;
+    const pre = it.filter(i => i.categoria).length;
+    res[l] = { acertos: ac, total: 20, preenchidos: pre, precisao: (ac/20*100), erros: pre - ac };
+  });
+  return res;
+}
+function calcularTipologiaErros() {
+  const l = { SV:0,SF:0,SS:0,OM:0,AD:0,IN:0,RG:0,LX:0,RC:0,OUT:0 };
+  estado.leitura.itens.forEach(i => { if (i.categoria) l[i.categoria] = (l[i.categoria]||0)+1; });
+  const e = { FO:0,OC:0,OI:0,MO:0,SG:0,AC:0,IN:0 };
+  Object.values(estado.escrita.blocos).forEach(b => b.forEach(i => { if (i.categoria && i.categoria !== 'OK') e[i.categoria] = (e[i.categoria]||0)+1; }));
+  return { leitura: l, escrita: e };
+}
+function determinarSubtipo(r) {
+  const { EL, ER } = r.efeitos;
+  if (EL > 25 && ER > 30) return { nome: 'Dislexia mista', classe: 'subtipo-mista', desc: 'Combinação de EL>25% e ER>30%. Padrão de dificuldades simultaneamente na via fonológica e na via lexical.' };
+  if (EL > 25) return { nome: 'Dislexia fonológica', classe: 'subtipo-fonologica', desc: 'Efeito de Lexicalidade >25%. Dificuldade marcada na descodificação de pseudopalavras. Sugestivo de fragilidade na via fonológica.' };
+  if (ER > 30) return { nome: 'Dislexia de superfície', classe: 'subtipo-superficie', desc: 'Efeito de Regularidade >30%. Dificuldade marcada em palavras irregulares. Sugestivo de fragilidade na via lexical.' };
+  return { nome: 'Padrão dentro do esperado', classe: 'subtipo-normal', desc: 'Sem efeitos significativos. Articulação com BANC e provas funcionais para conclusão diagnóstica.' };
+}
+function magClass(v, t) { return v > t ? 'grande' : v > t * 0.6 ? 'moderada' : 'pequena'; }
+function magNome(v, t) { return v > t ? 'Grande' : v > t * 0.6 ? 'Moderada' : 'Pequena'; }
+
+function renderSinteseCompleta() {
+  capturarEstado();
+  const id = estado.identificacao;
+  const rL = calcularResultadosLeitura();
+  const rE = calcularResultadosEscrita();
+  const tip = calcularTipologiaErros();
+  const subt = determinarSubtipo(rL);
+
+  if (id.nome) {
+    document.getElementById('header-patient-info').style.display = 'block';
+    document.getElementById('hpi-nome').textContent = id.nome;
+    document.getElementById('hpi-idade').textContent = id.idade || '—';
+    document.getElementById('hpi-data').textContent = id.data ? new Date(id.data).toLocaleDateString('pt-PT') : dataAtual();
+  }
+
+  const cL = ['#4A90E2','#16A085','#F39C12','#8E44AD'];
+  let html = '';
+
+  // Resumo executivo
+  html += '<div class="sintese-section"><h3>Resumo executivo</h3>';
+  html += '<div class="interpretacao ' + subt.classe + '"><h4>Padrão identificado: ' + subt.nome + '</h4><p>' + subt.desc + '</p></div>';
+  html += '<h4>Precisões — Leitura</h4><div class="resumo-cards">';
+  ['L1','L2','L3','L4'].forEach((l,i) => {
+    const n = ['Reg. Freq.','Reg. Infreq.','Irregulares','Pseudopal.'][i];
+    html += '<div class="resumo-card" style="border-top-color:' + cL[i] + ';"><div class="label">' + l + '</div><div class="nome" style="color:' + cL[i] + ';">' + n + '</div><div class="valor">' + rL[l].acertos + '/20</div><div class="sub">' + rL[l].precisao.toFixed(0) + '% · TR ' + rL[l].tempoMedio.toFixed(1) + 's</div></div>';
+  });
+  html += '</div><h4>Precisões — Escrita</h4><div class="resumo-cards">';
+  ['L1','L2','L3','L4'].forEach((l,i) => {
+    const n = ['Reg. Freq.','Reg. Infreq.','Irregulares','Pseudopal.'][i];
+    html += '<div class="resumo-card" style="border-top-color:' + cL[i] + ';"><div class="label">' + l + '</div><div class="nome" style="color:' + cL[i] + ';">' + n + '</div><div class="valor">' + rE[l].acertos + '/20</div><div class="sub">' + rE[l].precisao.toFixed(0) + '%</div></div>';
+  });
+  html += '</div></div>';
+
+  // Análise detalhada leitura
+  html += '<div class="sintese-section page-break"><h3>Leitura — Análise detalhada</h3>';
+  html += svgBarChart({ title: 'Precisão por lista (Leitura)', data: [{label:'L1',sublabel:'Reg.Freq.',value:rL.L1.precisao,color:cL[0]},{label:'L2',sublabel:'Reg.Infreq.',value:rL.L2.precisao,color:cL[1]},{label:'L3',sublabel:'Irreg.',value:rL.L3.precisao,color:cL[2]},{label:'L4',sublabel:'Pseudo.',value:rL.L4.precisao,color:cL[3]}], max:100, unit:'%', width:600, height:300 });
+  html += svgBarChart({ title: 'Tempo médio de reacção (TR)', data: [{label:'L1',value:rL.L1.tempoMedio,color:cL[0]},{label:'L2',value:rL.L2.tempoMedio,color:cL[1]},{label:'L3',value:rL.L3.tempoMedio,color:cL[2]},{label:'L4',value:rL.L4.tempoMedio,color:cL[3]}], unit:'s', width:600, height:260, max: Math.max(5, ...[rL.L1.tempoMedio,rL.L2.tempoMedio,rL.L3.tempoMedio,rL.L4.tempoMedio]) * 1.2 });
+
+  const ef = rL.efeitos;
+  html += '<h4>Efeitos diferenciais</h4><table class="tabela-resumo"><thead><tr><th>Efeito</th><th>Fórmula</th><th class="num">Valor</th><th>Magnitude · Interpretação</th></tr></thead><tbody>';
+  html += '<tr><td><strong>Lexicalidade (EL)</strong></td><td>(L1+L2+L3)/3−L4</td><td class="num">' + ef.EL.toFixed(1) + '%</td><td class="magnitude ' + magClass(ef.EL,25) + '">' + magNome(ef.EL,25) + ' (limiar 25%) — ' + (ef.EL>25?'Dependência da via lexical / fragilidade fonológica':'Sem indicação isolada') + '</td></tr>';
+  html += '<tr><td><strong>Regularidade (ER)</strong></td><td>(L1+L2)/2−L3</td><td class="num">' + ef.ER.toFixed(1) + '%</td><td class="magnitude ' + magClass(ef.ER,30) + '">' + magNome(ef.ER,30) + ' (limiar 30%) — ' + (ef.ER>30?'Dependência da via fonológica / fragilidade lexical':'Sem indicação isolada') + '</td></tr>';
+  html += '<tr><td><strong>Frequência (EF)</strong></td><td>L1−L2</td><td class="num">' + ef.EF.toFixed(1) + '%</td><td class="magnitude ' + magClass(ef.EF,20) + '">' + magNome(ef.EF,20) + ' (limiar 20%) — ' + (ef.EF>20?'Léxico ortográfico dependente da exposição':'Sem indicação isolada') + '</td></tr>';
+  html += '</tbody></table>';
+
+  html += '<button class="toggle-detalhe" onclick="toggleDetalhe(\'detalhe-leitura\')">📋 Tabela item-a-item (80 itens)</button><div class="detalhe-itens" id="detalhe-leitura"><table class="tabela-itens"><thead><tr><th>#</th><th>L</th><th>Palavra</th><th>TR</th><th>R</th><th>Transc.</th><th>Cat.</th></tr></thead><tbody>';
+  estado.leitura.itens.forEach((it,idx) => {
+    const rc = it.resposta === 'errado' || it.resposta === 'recusa' ? 'erro' : it.resposta === 'ac' ? 'ac' : '';
+    const bd = it.resposta === 'correto' ? '<span class="badge correto">✓</span>' : it.resposta === 'errado' ? '<span class="badge errado">✗</span>' : it.resposta === 'ac' ? '<span class="badge ac">AC</span>' : it.resposta === 'recusa' ? '<span class="badge recusa">RC</span>' : '—';
+    html += '<tr class="lista-' + it.lista + ' ' + rc + '"><td>' + (idx+1) + '</td><td><strong>' + it.lista + '</strong></td><td><strong>' + escHTML(it.palavra) + '</strong></td><td>' + fmtTR(it.tr) + '</td><td>' + bd + '</td><td>' + escHTML(it.transcricao||'—') + '</td><td>' + escHTML(it.categoria||'—') + '</td></tr>';
+  });
+  html += '</tbody></table></div></div>';
+
+  // Análise detalhada escrita
+  html += '<div class="sintese-section page-break"><h3>Escrita — Análise detalhada</h3>';
+  html += svgBarChart({ title: 'Precisão por lista (Escrita)', data: [{label:'L1',sublabel:'Reg.Freq.',value:rE.L1.precisao,color:cL[0]},{label:'L2',sublabel:'Reg.Infreq.',value:rE.L2.precisao,color:cL[1]},{label:'L3',sublabel:'Irreg.',value:rE.L3.precisao,color:cL[2]},{label:'L4',sublabel:'Pseudo.',value:rE.L4.precisao,color:cL[3]}], max:100, unit:'%', width:600, height:300 });
+  const tE = Object.entries(tip.escrita).filter(([k,v])=>v>0).map(([k,v])=>({label:k,value:v}));
+  if (tE.length>0) html += svgHBarChart({ title:'Tipologia de erros — Escrita', data:tE, width:600 });
+  html += '<button class="toggle-detalhe" onclick="toggleDetalhe(\'detalhe-escrita\')">📋 Tabela item-a-item (80 itens)</button><div class="detalhe-itens" id="detalhe-escrita"><table class="tabela-itens"><thead><tr><th>#</th><th>L</th><th>Palavra</th><th>Produção</th><th>Cat.</th></tr></thead><tbody>';
+  ['L1','L2','L3','L4'].forEach(L => {
+    estado.escrita.blocos[L].forEach((it,idx) => {
+      const rc = it.categoria && it.categoria !== 'OK' ? 'erro' : '';
+      html += '<tr class="lista-' + L + ' ' + rc + '"><td>' + (idx+1) + '</td><td><strong>' + L + '</strong></td><td><strong>' + escHTML(it.palavra) + '</strong></td><td>' + escHTML(it.produzido||'—') + '</td><td>' + escHTML(it.categoria||'—') + '</td></tr>';
+    });
+  });
+  html += '</tbody></table></div></div>';
+
+  // Composição — texto, métricas e ANÁLISE CALIGRÁFICA
+  if (estado.composicao.texto || estado.composicao.duracao > 0 || estado.composicao.foto) {
+    html += '<div class="sintese-section page-break"><h3>Composição — Quantitativos</h3>';
+    const txt = estado.composicao.texto || '';
+    const pal = txt.trim() ? txt.trim().split(/\s+/).length : 0;
+    const fr = txt.split(/[.!?]+/).filter(s => s.trim().length > 0).length;
+    html += '<div class="resumo-cards"><div class="resumo-card"><div class="label">Tempo</div><div class="valor">' + fmtTempo(estado.composicao.duracao) + '</div></div><div class="resumo-card"><div class="label">Palavras</div><div class="valor">' + pal + '</div></div><div class="resumo-card"><div class="label">Frases</div><div class="valor">' + fr + '</div></div><div class="resumo-card"><div class="label">Caracteres</div><div class="valor">' + txt.length + '</div></div></div>';
+
+    if (txt) html += '<h4>Texto da composição</h4><div class="comp-texto-visualizar">' + escHTML(txt) + '</div>';
+
+    // ANÁLISE CALIGRÁFICA NA SÍNTESE
+    if (estado.composicao.foto) {
+      html += '<h4 style="margin-top:24px;">Análise Caligráfica da Composição</h4>';
+      html += '<div style="text-align:center;margin:12px 0;"><img src="' + estado.composicao.foto + '" style="max-width:100%;max-height:500px;border:1px solid #DDD;border-radius:6px;"></div>';
+      const m = estado.composicao.metricasImagem || {};
+      if (m.densidade !== undefined) {
+        html += '<h5 style="margin-top:14px;color:var(--cinza);font-size:13px;text-transform:uppercase;letter-spacing:1px;font-weight:700;">Métricas objectivas</h5>';
+        html += '<div class="metricas-grid">';
+        html += '<div class="metrica-item"><div class="label">Densidade de tinta</div><div class="valor">' + m.densidade + '<span class="unidade">%</span></div></div>';
+        html += '<div class="metrica-item"><div class="label">Linhas detectadas</div><div class="valor">' + m.linhasDetectadas + '</div></div>';
+        html += '<div class="metrica-item"><div class="label">Altura média</div><div class="valor">' + m.alturaMedia + '<span class="unidade">px</span></div></div>';
+        html += '<div class="metrica-item"><div class="label">Espaçamento</div><div class="valor">' + m.espacMedio + '<span class="unidade">px</span></div></div>';
+        html += '<div class="metrica-item"><div class="label">Intensidade do traço</div><div class="valor">' + m.intensidadePressao + '<span class="unidade">/255</span></div></div>';
+        html += '<div class="metrica-item"><div class="label">Variação tonal</div><div class="valor">±' + m.varTonal + '</div></div>';
+        html += '</div>';
+      }
+    }
+    if (estado.composicao.analiseGerada) {
+      html += '<h5 style="margin-top:14px;color:var(--cinza);font-size:13px;text-transform:uppercase;letter-spacing:1px;font-weight:700;">Análise estruturada — Grelha Autoral RC</h5>';
+      html += '<div class="analise-gerada">' + escHTML(estado.composicao.analiseGerada) + '</div>';
+    }
+    html += '</div>';
+  }
+
+  // Síntese clínica
+  html += '<div class="sintese-section"><h3>Síntese clínica preliminar</h3>';
+  html += '<p class="nota">Redija aqui a síntese clínica em prosa, integrando todos os elementos da prova.</p>';
+  html += '<textarea id="sintese-clinica-editor" class="comp-editor" style="min-height:200px;" oninput="estado.sinteseClinica=this.value; guardarEstado();">' + escHTML(estado.sinteseClinica) + '</textarea></div>';
+
+  // Rodapé
+  html += '<div style="text-align:center;font-size:12px;color:var(--cinza);font-style:italic;border-top:2px solid var(--fundo);padding-top:16px;margin-top:30px;">PELED-RC · Nível ' + NIVEL + ' — ' + TITULO + ' · Versão 3.0 · Maio 2026<br>Ricardina Correia · Cédula OPP n.º 8233 · Psicologia Pediátrica · Lisboa<br><em>Documento gerado a ' + dataAtual() + '. Prova clínica estruturada de aplicação não-normativa.</em></div>';
+
+  document.getElementById('sintese-conteudo').innerHTML = html;
+}
+
+function toggleDetalhe(id) { document.getElementById(id).classList.toggle('aberto'); }
+
+function imprimir() {
+  capturarEstado();
+  renderSinteseCompleta();
+  setTimeout(() => window.print(), 200);
+}
+
+function finalizarESalvar() {
+  capturarEstado();
+  const rL = calcularResultadosLeitura(), rE = calcularResultadosEscrita();
+  const tip = calcularTipologiaErros(), subt = determinarSubtipo(rL);
+  const pc = estado.identificacao.nome || getPatientCode() || 'sem_codigo';
+  const dados = {
+    status: 'complete', syncKey: SYNC_KEY, nivel: NIVEL, titulo: TITULO,
+    dataAvaliacao: new Date().toISOString(), patientCode: pc,
+    identificacao: estado.identificacao,
+    scores: {
+      'precisao_L1_leitura': rL.L1.precisao, 'precisao_L2_leitura': rL.L2.precisao, 'precisao_L3_leitura': rL.L3.precisao, 'precisao_L4_leitura': rL.L4.precisao,
+      'precisao_L1_escrita': rE.L1.precisao, 'precisao_L2_escrita': rE.L2.precisao, 'precisao_L3_escrita': rE.L3.precisao, 'precisao_L4_escrita': rE.L4.precisao,
+      'tempo_medio_L1': rL.L1.tempoMedio, 'tempo_medio_L2': rL.L2.tempoMedio, 'tempo_medio_L3': rL.L3.tempoMedio, 'tempo_medio_L4': rL.L4.tempoMedio,
+      'EL': rL.efeitos.EL, 'ER': rL.efeitos.ER, 'EF': rL.efeitos.EF,
+      'subtipo': subt.nome, 'subtipo_classe': subt.classe,
+      'analise_caligrafica_completa': !!(estado.composicao.foto && Object.keys(estado.composicao.grelhaCaligrafia).length >= 5)
+    },
+    dados_completos: { leitura: estado.leitura, escrita: estado.escrita, composicao: estado.composicao, tipologia: tip, sinteseClinica: estado.sinteseClinica }
+  };
+  // Guardar localmente (para a app RC_Avaliacao_Pacientes ler)
+  try { localStorage.setItem('rc_sess:' + pc + ':' + SYNC_KEY, JSON.stringify(dados)); } catch(e) {}
+
+  // Enviar para Google Sheets via Apps Script central (assíncrono, não bloqueia)
+  const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxX2_Ry7VRH6jr7eGBMmtmyZFXZc69blwdO5bqJK0j69HRSexpXXPuEfDC5OHQRMLLL/exec';
+  const payloadSheets = {
+    instrumento: 'PELED_RC_N' + NIVEL,
+    data: (estado.identificacao.data || new Date().toISOString().slice(0,10)),
+    patientCode: pc,
+    nome: estado.identificacao.nome || '',
+    idade: estado.identificacao.idade || '',
+    sexo: estado.identificacao.sexo || '',
+    ano: estado.identificacao.ano || '',
+    escola: estado.identificacao.escola || '',
+    dataNascimento: estado.identificacao.nascimento || '',
+    motivo: estado.identificacao.motivo || '',
+    precisao_L1_leitura: rL.L1.precisao,
+    precisao_L2_leitura: rL.L2.precisao,
+    precisao_L3_leitura: rL.L3.precisao,
+    precisao_L4_leitura: rL.L4.precisao,
+    precisao_L1_escrita: rE.L1.precisao,
+    precisao_L2_escrita: rE.L2.precisao,
+    precisao_L3_escrita: rE.L3.precisao,
+    precisao_L4_escrita: rE.L4.precisao,
+    tempo_medio_L1: rL.L1.tempoMedio,
+    tempo_medio_L2: rL.L2.tempoMedio,
+    tempo_medio_L3: rL.L3.tempoMedio,
+    tempo_medio_L4: rL.L4.tempoMedio,
+    EL: rL.efeitos.EL,
+    ER: rL.efeitos.ER,
+    EF: rL.efeitos.EF,
+    subtipo: subt.nome,
+    composicao_tempo: estado.composicao.duracao || 0,
+    composicao_palavras: (estado.composicao.texto || '').trim() ? estado.composicao.texto.trim().split(/\s+/).length : 0,
+    composicao_frases: (estado.composicao.texto || '').split(/[.!?]+/).filter(s => s.trim().length > 0).length,
+    texto_composicao: estado.composicao.texto || '',
+    analise_caligrafica_completa: !!(estado.composicao.foto && Object.keys(estado.composicao.grelhaCaligrafia || {}).length >= 5),
+    analise_caligrafica_texto: estado.composicao.analiseGerada || '',
+    implicacoes_funcionais: estado.composicao.implicacoes || '',
+    sinteseClinica: estado.sinteseClinica || '',
+    respostas: JSON.stringify(dados.dados_completos)
+  };
+  fetch(APPS_SCRIPT_URL, {
+    method: 'POST',
+    body: JSON.stringify(payloadSheets),
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' }
+  }).then(r => r.json()).then(res => {
+    console.log('[PELED-RC] Sheets:', res);
+  }).catch(err => {
+    console.warn('[PELED-RC] Erro ao enviar para Sheets:', err);
+  });
+
+  try { alert('✓ Sessão guardada localmente!\nDados disponíveis para: ' + pc + '\n\n(Envio para Google Sheets em segundo plano)'); } catch(e) {}
+}
+
+function exportarCSV(tipo) {
+  capturarEstado();
+  const id = estado.identificacao;
+  const prefix = 'PELED_RC_N' + NIVEL + '_' + (id.nome || 'sem_nome').replace(/[^a-zA-Z0-9]/g,'_');
+  if (tipo === 'leitura') {
+    let csv = '\uFEFFavaliando,data,nivel,item_num,lista,indice_lista,palavra,tr_segundos,resposta,transcricao,categoria_erro\n';
+    estado.leitura.itens.forEach((it,idx) => { csv += '"' + (id.nome||'') + '","' + (id.data||'') + '",' + NIVEL + ',' + (idx+1) + ',"' + it.lista + '",' + it.indice + ',"' + it.palavra + '",' + (it.tr!==null?it.tr.toFixed(2):'') + ',"' + (it.resposta||'') + '","' + (it.transcricao||'').replace(/"/g,'""') + '","' + (it.categoria||'') + '"\n'; });
+    downloadBlob(csv, prefix + '_leitura.csv', 'text/csv;charset=utf-8');
+  }
+  if (tipo === 'escrita') {
+    let csv = '\uFEFFavaliando,data,nivel,lista,indice_lista,palavra_ditada,escrita_produzida,categoria_erro\n';
+    ['L1','L2','L3','L4'].forEach(L => { estado.escrita.blocos[L].forEach((it,idx) => { csv += '"' + (id.nome||'') + '","' + (id.data||'') + '",' + NIVEL + ',"' + L + '",' + (idx+1) + ',"' + it.palavra + '","' + (it.produzido||'').replace(/"/g,'""') + '","' + (it.categoria||'') + '"\n'; }); });
+    downloadBlob(csv, prefix + '_escrita.csv', 'text/csv;charset=utf-8');
+  }
+  if (tipo === 'composicao') {
+    let csv = '\uFEFFavaliando,data,nivel,tema,duracao_segundos,n_palavras,n_frases,n_caracteres,texto,implicacoes_funcionais,analise_caligrafica_gerada\n';
+    const txt = estado.composicao.texto || '';
+    const pal = txt.trim() ? txt.trim().split(/\s+/).length : 0;
+    const fr = txt.split(/[.!?]+/).filter(s=>s.trim().length>0).length;
+    csv += '"' + (id.nome||'') + '","' + (id.data||'') + '",' + NIVEL + ',"' + TEMA_COMP + '",' + estado.composicao.duracao + ',' + pal + ',' + fr + ',' + txt.length + ',"' + txt.replace(/"/g,'""').replace(/\n/g,' ') + '","' + (estado.composicao.implicacoes||'').replace(/"/g,'""').replace(/\n/g,' ') + '","' + (estado.composicao.analiseGerada||'').replace(/"/g,'""').replace(/\n/g,' ') + '"\n';
+    downloadBlob(csv, prefix + '_composicao.csv', 'text/csv;charset=utf-8');
+  }
+}
+function exportarJSON() {
+  capturarEstado();
+  const id = estado.identificacao;
+  const prefix = 'PELED_RC_N' + NIVEL + '_' + (id.nome || 'sem_nome').replace(/[^a-zA-Z0-9]/g,'_');
+  downloadBlob(JSON.stringify({ metadata: { protocolo:'PELED-RC', versao:'3.0', nivel:NIVEL, titulo:TITULO, syncKey:SYNC_KEY, dataExportacao: new Date().toISOString(), autor:'Ricardina Correia · OPP 8233' }, identificacao: estado.identificacao, leitura: estado.leitura, escrita: estado.escrita, composicao: estado.composicao, sinteseClinica: estado.sinteseClinica }, null, 2), prefix + '_completo.json', 'application/json');
+}
+function capturarEstado() {
+  ['nome','nascimento','idade','sexo','ano','escola','motivo','processo','data','avaliador','cedula'].forEach(k => {
+    const el = document.getElementById('id-' + k);
+    if (el) estado.identificacao[k] = el.value;
+  });
+  const sce = document.getElementById('sintese-clinica-editor');
+  if (sce) estado.sinteseClinica = sce.value;
+  const il = document.getElementById('implicacoes-funcionais');
+  if (il) estado.composicao.implicacoes = il.value;
+}
+function guardarEstado() {
+  capturarEstado();
+  try { localStorage.setItem('peled_rc_n' + NIVEL + '_estado', JSON.stringify(estado)); } catch(e) {}
+}
+function carregarEstado() {
+  try {
+    const s = localStorage.getItem('peled_rc_n' + NIVEL + '_estado');
+    if (s) {
+      const novo = JSON.parse(s);
+      Object.assign(estado, novo);
+      ['nome','nascimento','idade','sexo','ano','escola','motivo','processo','data','avaliador','cedula'].forEach(k => {
+        const el = document.getElementById('id-' + k);
+        if (el && estado.identificacao[k]) el.value = estado.identificacao[k];
+      });
+      if (estado.composicao.texto) document.getElementById('comp-texto').value = estado.composicao.texto;
+    }
+  } catch(e) {}
+  const pc = getPatientCode();
+  if (pc && !document.getElementById('id-nome').value) document.getElementById('id-nome').value = pc;
+}
+function resetarSessao() {
+  if (!confirm('Iniciar nova avaliação?')) return;
+  try { localStorage.removeItem('peled_rc_n' + NIVEL + '_estado'); } catch(e) {}
+  location.reload();
+}
+
+// Atalhos teclado
+document.addEventListener('keydown', (e) => {
+  if (!document.getElementById('tela-leitura').classList.contains('active')) return;
+  if (document.getElementById('leitura-ativa').style.display === 'none') return;
+  if (['INPUT','SELECT','TEXTAREA'].includes(e.target.tagName)) return;
+  if (e.key === '1') { e.preventDefault(); responder('correto'); }
+  else if (e.key === '2') { e.preventDefault(); responder('errado'); }
+  else if (e.key === '3') { e.preventDefault(); responder('ac'); }
+  else if (e.key === '4') { e.preventDefault(); responder('recusa'); }
+  else if (e.key === 'Enter') { e.preventDefault(); proximoItem(); }
+});
+
+// Inicialização
+document.getElementById('comp-texto').addEventListener('input', atualizarComp);
+renderEscrita();
+renderGrelhaComp();
+carregarEstado();
+restaurarFotoSeExiste();
+inicializarDragDrop();
+setInterval(guardarEstado, 30000);
+</script>
+
+</body>
+</html>

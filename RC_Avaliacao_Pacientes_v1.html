@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>RC Avaliação Pacientes</title>
+<title>RC Avaliação Pacientes — v2 PELED+PECN</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Serif+Display&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -689,7 +689,9 @@ const QID_TO_ABA = {
   // ── Sociograma · Mapa Social (Moreno 1934; Coie & Dodge 1988; Bronfenbrenner 1979) ──
   'q_sociograma':          'SOCIOGRAMA',
   // ── MDQ — Mood Disorder Questionnaire (Hirschfeld et al., 2000) ────
-  'q_mdq':                 'MDQ'
+  'q_mdq':                 'MDQ',
+  // ── ChEAT — Children's Eating Attitude Test (Maloney et al., 1988) ──
+  'q_cheat':               'ChEAT'
 };
 
 
@@ -954,7 +956,12 @@ const SYNC_KEY_TO_ABA = {
   'AQ_BussPerry':          'AQ_BussPerry',
   'AQ-BussPerry':          'AQ_BussPerry',
   'aq':                    'AQ_BussPerry',
-  'AQ':                    'AQ_BussPerry'
+  'AQ':                    'AQ_BussPerry',
+
+  // ── ChEAT — Children's Eating Attitude Test (Maloney et al., 1988) ──
+  'cheat':                 'ChEAT',
+  'ChEAT':                 'ChEAT',
+  'CHEAT':                 'ChEAT'
 };
 
 // Cache em memória das respostas do Sheet (evita fetch repetidos na mesma sessão)
@@ -1569,7 +1576,90 @@ function initCatalog() {
       ageRange:'Adultos (≥16 anos)',
       objective:'Auto-relato (29 itens, ~5-8 min) para avaliação multidimensional da agressividade (Buss & Perry, 1992; adaptação portuguesa Cunha & Gonçalves, 2012, n=633 universitários). Quatro subescalas: Agressividade Física (AF, 9 itens), Agressividade Verbal (AV, 5 itens), Raiva/Ira (7 itens), Hostilidade (HO, 8 itens) + Total AQ. Escala Likert 1-5. Itens 9 e 16 invertidos. Classificação em 4 níveis por sexo (Baixa, Média, Elevada, Muito Elevada). Aviso técnico: a subescala Agressividade Verbal tem consistência interna baixa (α=.56) — interpretar com prudência. Os domínios não são visíveis ao paciente durante o preenchimento.',
       domains:['Agressividade Física (AF)','Agressividade Verbal (AV)','Raiva/Ira','Hostilidade (HO)','Total AQ'],
-      ageMin:192, ageMax:null }
+      ageMin:192, ageMax:null },
+    // ── ChEAT — Children's Eating Attitude Test (Maloney et al., 1988; versão PT Barillari et al., 2011) ──
+    { id:'q_cheat',
+      name:'ChEAT — Atitudes Alimentares (Crianças)',
+      dest:['Paciente'],
+      link:'https://correiaricardina-ui.github.io/questionarios/ChEAT_v1.html',
+      syncKey:'cheat',
+      area:'Alimentação & Imagem Corporal',
+      ageRange:'8&ndash;13 anos',
+      objective:'Rastreio de atitudes e comportamentos alimentares de risco em crianças (Maloney et al., 1988; versão portuguesa Barillari et al., 2011). Auto-resposta de 26 itens (~10 min) com escala de 6 pontos (Sempre/Mto.Freq./Freq.=3, Às Vezes=2, Raramente=1, Nunca=0). Itens 19 e 25 invertidos (0/1/2/2/2/3). Três subescalas: Dieta/Restrição (10 itens, máx 30), Preocupação Alimentar (12 itens, máx 36), Bulimia/Controlo (4 itens, máx 12). Ponto de corte clínico: Total ≥ 20 (risco clínico de perturbação alimentar) — recomenda avaliação especializada. 10–19 = preocupações subclínicas (monitorizar). NUNCA constitui diagnóstico — instrumento de rastreio. Scores e classificações não são visíveis à criança durante o preenchimento.',
+      domains:['Dieta/Restrição','Preocupação Alimentar','Bulimia/Controlo','Total ChEAT'],
+      ageMin:96, ageMax:155 },
+    { id:'q_peled_n1', name:'PELED-RC · Nível 1 (Iniciação)',
+      dest:['Paciente'],
+      link:'https://correiaricardina-ui.github.io/questionarios/PELED_RC_N1_Aplicacao.html',
+      syncKey:'peled_n1',
+      area:'Aprendizagem — Leitura/Escrita',
+      ageRange:'6–8 anos (1.º/2.º ano)',
+      objective:'Prova clínica estruturada autoral RC para identificação diferencial de dislexia (fonológica/superfície/mista) através de Efeito de Lexicalidade (EL), Regularidade (ER) e Frequência (EF). Inclui análise caligráfica estruturada da composição (Grelha Autoral RC · 11 parâmetros).',
+      domains:['precisao_L1_leitura','precisao_L2_leitura','precisao_L3_leitura','precisao_L4_leitura','precisao_L1_escrita','precisao_L2_escrita','precisao_L3_escrita','precisao_L4_escrita','EL','ER','EF','subtipo'],
+      ageMin:72, ageMax:107 },
+    { id:'q_peled_n2', name:'PELED-RC · Nível 2 (Consolidação)',
+      dest:['Paciente'],
+      link:'https://correiaricardina-ui.github.io/questionarios/PELED_RC_N2_Aplicacao.html',
+      syncKey:'peled_n2',
+      area:'Aprendizagem — Leitura/Escrita',
+      ageRange:'8–10 anos (3.º/4.º ano)',
+      objective:'Nível de consolidação ortográfica da PELED-RC — coexistência das duas vias de leitura. Identifica padrões de dislexia através dos efeitos diferenciais. Inclui análise caligráfica estruturada da composição.',
+      domains:['precisao_L1_leitura','precisao_L2_leitura','precisao_L3_leitura','precisao_L4_leitura','precisao_L1_escrita','precisao_L2_escrita','precisao_L3_escrita','precisao_L4_escrita','EL','ER','EF','subtipo'],
+      ageMin:96, ageMax:131 },
+    { id:'q_peled_n3', name:'PELED-RC · Nível 3 (Complexificação)',
+      dest:['Paciente'],
+      link:'https://correiaricardina-ui.github.io/questionarios/PELED_RC_N3_Aplicacao.html',
+      syncKey:'peled_n3',
+      area:'Aprendizagem — Leitura/Escrita',
+      ageRange:'10–12 anos (5.º/6.º ano)',
+      objective:'Nível de complexificação lexical da PELED-RC — léxico ortográfico mais extenso, irregularidades e pseudopalavras mais complexas. Análise caligráfica estruturada da composição com Grelha Autoral RC.',
+      domains:['precisao_L1_leitura','precisao_L2_leitura','precisao_L3_leitura','precisao_L4_leitura','precisao_L1_escrita','precisao_L2_escrita','precisao_L3_escrita','precisao_L4_escrita','EL','ER','EF','subtipo'],
+      ageMin:120, ageMax:155 },
+    { id:'q_peled_n4', name:'PELED-RC · Nível 4 (Avançado)',
+      dest:['Paciente'],
+      link:'https://correiaricardina-ui.github.io/questionarios/PELED_RC_N4_Aplicacao.html',
+      syncKey:'peled_n4',
+      area:'Aprendizagem — Leitura/Escrita',
+      ageRange:'12+ anos (7.º ano em diante)',
+      objective:'Nível avançado da PELED-RC — palavras de baixa frequência, terminologia técnica/científica, pseudopalavras complexas. Composição reflexiva/argumentativa. Análise caligráfica estruturada com Grelha Autoral RC.',
+      domains:['precisao_L1_leitura','precisao_L2_leitura','precisao_L3_leitura','precisao_L4_leitura','precisao_L1_escrita','precisao_L2_escrita','precisao_L3_escrita','precisao_L4_escrita','EL','ER','EF','subtipo'],
+      ageMin:144, ageMax:228 },
+    { id:'q_pecn_n1', name:'PECN-RC · Nível 1 (Iniciação)',
+      dest:['Paciente'],
+      link:'https://correiaricardina-ui.github.io/questionarios/PECN_RC_N1_Aplicacao.html',
+      syncKey:'pecn_n1',
+      area:'Aprendizagem — Cognição Numérica',
+      ageRange:'6–8 anos (1.º/2.º ano)',
+      objective:'Prova clínica estruturada autoral RC para avaliação da cognição numérica — sentido numérico básico. 8 componentes: subitização, comparação não-simbólica e simbólica, leitura/ditado, contagem, linha numérica, fluência aritmética e estratégias. Análise da produção numérica manuscrita (Grelha Autoral RC adaptada · 11 parâmetros).',
+      domains:['precisao_C1','precisao_C2','precisao_C3','precisao_C4','erro_medio_C6','total_C7','total_C8'],
+      ageMin:72, ageMax:107 },
+    { id:'q_pecn_n2', name:'PECN-RC · Nível 2 (Consolidação)',
+      dest:['Paciente'],
+      link:'https://correiaricardina-ui.github.io/questionarios/PECN_RC_N2_Aplicacao.html',
+      syncKey:'pecn_n2',
+      area:'Aprendizagem — Cognição Numérica',
+      ageRange:'8–10 anos (3.º/4.º ano)',
+      objective:'Nível de consolidação operatória da PECN-RC — operações fundamentais (adição, subtracção, multiplicação básica). Inclui análise da produção numérica manuscrita com Grelha Autoral RC adaptada à numeracia.',
+      domains:['precisao_C1','precisao_C2','precisao_C3','precisao_C4','erro_medio_C6','total_C7','total_C8'],
+      ageMin:96, ageMax:131 },
+    { id:'q_pecn_n3', name:'PECN-RC · Nível 3 (Complexificação)',
+      dest:['Paciente'],
+      link:'https://correiaricardina-ui.github.io/questionarios/PECN_RC_N3_Aplicacao.html',
+      syncKey:'pecn_n3',
+      area:'Aprendizagem — Cognição Numérica',
+      ageRange:'10–12 anos (5.º/6.º ano)',
+      objective:'Nível de complexificação numérica da PECN-RC — fracções, decimais, problemas multi-passo. Análise da produção numérica manuscrita com Grelha Autoral RC adaptada à numeracia.',
+      domains:['precisao_C1','precisao_C2','precisao_C3','precisao_C4','erro_medio_C6','total_C7','total_C8'],
+      ageMin:120, ageMax:155 },
+    { id:'q_pecn_n4', name:'PECN-RC · Nível 4 (Avançado)',
+      dest:['Paciente'],
+      link:'https://correiaricardina-ui.github.io/questionarios/PECN_RC_N4_Aplicacao.html',
+      syncKey:'pecn_n4',
+      area:'Aprendizagem — Cognição Numérica',
+      ageRange:'12+ anos (7.º ano em diante)',
+      objective:'Nível avançado da PECN-RC — numeracia complexa, percentagens, problemas algorítmicos. Análise da produção numérica manuscrita com Grelha Autoral RC adaptada à numeracia.',
+      domains:['precisao_C1','precisao_C2','precisao_C3','precisao_C4','erro_medio_C6','total_C7','total_C8'],
+      ageMin:144, ageMax:228 }
   ];
   // Garantir que TODOS os defaults estão no catálogo, sempre
   // (funciona em RC novos e em RC existentes — nunca perde questionários)
@@ -1723,6 +1813,8 @@ function initCatalog() {
       'q_mdq':          { link:'https://correiaricardina-ui.github.io/questionarios/MDQ_v1.html', syncKey:'mdq' },
       // AQ Buss-Perry — Questionário de Agressividade v1.0
       'q_aq_bussperry': { link:'https://correiaricardina-ui.github.io/questionarios/AQ_BussPerry_v1.html', syncKey:'aq_bussperry' },
+      // ChEAT — Children's Eating Attitude Test v1.0
+      'q_cheat':        { link:'https://correiaricardina-ui.github.io/questionarios/ChEAT_v1.html', syncKey:'cheat' },
     };
     // ── Re-store com chave correcta ('q_' + id) — corrige instalações anteriores ──
     // Garante que Conners, FAD e MAP ficam acessíveis pelo META.forEach e getCatalog
@@ -2074,6 +2166,25 @@ function initCatalog() {
       const d = defaults.find(x => x.id === 'q_aq_bussperry');
       if(d) { store.set('q_' + d.id, d); catalog.push('q_aq_bussperry'); store.set('catalog', catalog); }
     }
+    // ── ChEAT — Children's Eating Attitude Test v1.0 ──
+    if(!catalog.includes('q_cheat')) {
+      const d = defaults.find(x => x.id === 'q_cheat');
+      if(d) { store.set('q_' + d.id, d); catalog.push('q_cheat'); store.set('catalog', catalog); }
+    }
+    // ── PELED-RC · 4 níveis · v3.0 (autoral RC) ──
+    ['q_peled_n1','q_peled_n2','q_peled_n3','q_peled_n4'].forEach(qid => {
+      if(!catalog.includes(qid)) {
+        const d = defaults.find(x => x.id === qid);
+        if(d) { store.set('q_' + d.id, d); catalog.push(qid); store.set('catalog', catalog); }
+      }
+    });
+    // ── PECN-RC · 4 níveis · v3.0 (autoral RC) ──
+    ['q_pecn_n1','q_pecn_n2','q_pecn_n3','q_pecn_n4'].forEach(qid => {
+      if(!catalog.includes(qid)) {
+        const d = defaults.find(x => x.id === qid);
+        if(d) { store.set('q_' + d.id, d); catalog.push(qid); store.set('catalog', catalog); }
+      }
+    });
     }
   }
 }
@@ -2505,6 +2616,23 @@ function formatScoreSummary(scores, syncKey) {
       const rLabel = rastreio && rastreio.toUpperCase().includes('POSITIVO') ? ' ⚠ POSITIVO' : ' negativo';
       const subStr = (d != null && b != null && oc != null) ? ` · D=${d} B=${b} OC=${oc}` : '';
       return `<span style="font-size:0.78rem;${cls}">Total=${t}${rLabel}${subStr}</span>`;
+    }
+  }
+  // ChEAT — mostra Total + zona clínica + subescalas
+  // Ponto de corte clínico: Total ≥ 20 (Maloney et al., 1988)
+  if(syncKey === 'cheat') {
+    const total = scores['Total'] ?? scores['total'] ?? null;
+    const dr    = scores['Dieta_Restricao']  ?? scores['dieta']     ?? scores['DR'] ?? null;
+    const pa    = scores['Preoc_Alimentar']  ?? scores['preoc']     ?? scores['PA'] ?? null;
+    const bc    = scores['Bulimia_Controlo'] ?? scores['bulim']     ?? scores['BC'] ?? null;
+    if(total != null) {
+      const t = parseFloat(total);
+      let cls, label;
+      if(t >= 20)      { cls = 'color:#C0392B;font-weight:700;'; label = '⚠ Risco clínico'; }
+      else if(t >= 10) { cls = 'color:#E67E22;font-weight:600;'; label = 'Subclínico';      }
+      else             { cls = 'color:var(--green);font-weight:600;'; label = 'Normativo';  }
+      const subStr = (dr != null && pa != null && bc != null) ? ` · D/R=${dr} P.A.=${pa} B/C=${bc}` : '';
+      return `<span style="font-size:0.78rem;${cls}">Total=${t} ${label}${subStr}</span>`;
     }
   }
   // CDI-2:SR — mostra T-Score Total + classificação + alerta item 9 se ≥ 1
@@ -3234,6 +3362,39 @@ function formatScoreSummary(scores, syncKey) {
     return '<span style="font-size:0.78rem;color:var(--text-light)">AQ Buss-Perry</span>';
   }
 
+  // ── PELED-RC · 4 níveis (autoral RC) ──
+  if(['peled_n1','peled_n2','peled_n3','peled_n4'].includes(syncKey)) {
+    const EL = scores['EL'];
+    const ER = scores['ER'];
+    const subtipo = scores['subtipo'] || '';
+    if(EL != null && ER != null) {
+      const alerta = (EL > 25 || ER > 30);
+      const cls = alerta ? 'color:#C0392B;font-weight:700;' : 'color:var(--green);font-weight:600;';
+      const nivel = syncKey.split('_n')[1];
+      return `<span style="font-size:0.78rem;${cls}">N${nivel} · EL=${Number(EL).toFixed(0)}% · ER=${Number(ER).toFixed(0)}%${subtipo ? ' · ' + subtipo : ''}</span>`;
+    }
+    return '<span style="font-size:0.78rem;color:var(--text-light)">PELED-RC concluída</span>';
+  }
+  // ── PECN-RC · 4 níveis (autoral RC) ──
+  if(['pecn_n1','pecn_n2','pecn_n3','pecn_n4'].includes(syncKey)) {
+    const c1 = scores['precisao_C1'], c2 = scores['precisao_C2'];
+    const c3 = scores['precisao_C3'], c4 = scores['precisao_C4'];
+    if(c1 != null || c2 != null || c3 != null || c4 != null) {
+      const precs = [c1,c2,c3,c4].filter(x => x != null);
+      const minPrec = precs.length ? Math.min(...precs) : null;
+      const alerta = minPrec != null && minPrec < 60;
+      const cls = alerta ? 'color:#C0392B;font-weight:700;' : minPrec != null && minPrec < 75 ? 'color:#E67E22;font-weight:600;' : 'color:var(--green);font-weight:600;';
+      const nivel = syncKey.split('_n')[1];
+      const parts = [];
+      if(c1 != null) parts.push('C1=' + Number(c1).toFixed(0) + '%');
+      if(c2 != null) parts.push('C2=' + Number(c2).toFixed(0) + '%');
+      if(c3 != null) parts.push('C3=' + Number(c3).toFixed(0) + '%');
+      if(c4 != null) parts.push('C4=' + Number(c4).toFixed(0) + '%');
+      return `<span style="font-size:0.78rem;${cls}">N${nivel} · ${parts.join(' · ')}</span>`;
+    }
+    return '<span style="font-size:0.78rem;color:var(--text-light)">PECN-RC concluída</span>';
+  }
+
   return null;
 }
 
@@ -3496,7 +3657,9 @@ function renderAssignments(patientId) {
                 // ── STAXI-NA — v61.0 — auto-relato 9-18 anos ──
                 'STAXI_NA':              ['NomeInformante','NomeCriança','NomeCrianca'],
                 // ── AQ Buss-Perry — auto-relato adulto (≥16 anos) ──
-                'AQ_BussPerry':          ['NomeAvaliado','NomeInformante']
+                'AQ_BussPerry':          ['NomeAvaliado','NomeInformante'],
+                // ── ChEAT — auto-relato criança 8-13 anos ──
+                'ChEAT':                 ['NomeInformante','NomeCriança','NomeCrianca','Informante']
               };
               const RC = {
                 'SWAN':['Relação'],'BRIEF_Pais':['Relação'],'SCARED_R_PAIS':['Relação'],
@@ -3798,7 +3961,9 @@ async function syncAndMark(patientId, idx) {
           // ── CMAS-R — auto-relato (criança/adolescente 8–17) ─────
           'CMAS_R':          ['NomeInformante','NomeCriança','NomeCrianca'],
           // ── FSSC-R — auto-relato (criança/adolescente 8–17) ─────
-          'FSSC_R':          ['NomeInformante','NomeCriança','NomeCrianca']
+          'FSSC_R':          ['NomeInformante','NomeCriança','NomeCrianca'],
+          // ── ChEAT — auto-relato criança 8-13 anos ──
+          'ChEAT':           ['NomeInformante','NomeCriança','NomeCrianca','Informante']
         };
         const RC2 = {
           'SWAN':['Relação'],'BRIEF_Pais':['Relação'],'SCARED_R_PAIS':['Relação'],
