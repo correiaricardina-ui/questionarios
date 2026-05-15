@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PECN-R · Rastreio · Nível 4 — AVANÇADO</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { font-family: 'Atkinson Hyperlegible', 'Quicksand', system-ui, -apple-system, 'Segoe UI', sans-serif; background: #FAFAFA; color: #263238; line-height: 1.5; min-height: 100vh; }
+  body { padding: 24px; max-width: 1100px; margin: 0 auto; }
+  :root { --prim: #1F3A5F; --sec: #607D8B; --fundo: #ECEFF1; --txt: #263238; --cinza: #7F8C8D; --erro: #C0392B; --sucesso: #27AE60; --alerta: #E67E22; }
+
+  .header { background: white; border-top: 4px solid var(--prim); border-radius: 8px 8px 4px 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); padding: 24px 32px; margin-bottom: 20px; }
+  .header h1 { color: var(--prim); font-size: 28px; font-weight: 700; }
+  .header .badge-rastreio { display: inline-block; background: var(--sec); color: white; padding: 3px 10px; border-radius: 4px; font-size: 12px; font-weight: 700; margin-left: 8px; vertical-align: middle; text-transform: uppercase; letter-spacing: 1px; }
+  .header .subtitulo { color: var(--sec); font-size: 14px; font-style: italic; margin-top: 4px; }
+  .header .nivel { color: var(--txt); font-size: 18px; font-weight: 600; margin-top: 8px; }
+  .header .info { color: var(--cinza); font-size: 13px; margin-top: 2px; }
+  .header .patient-info { background: var(--fundo); padding: 10px 14px; border-radius: 6px; margin-top: 12px; border-left: 4px solid var(--prim); font-size: 13px; }
+
+  .nav-bar { background: white; border-radius: 6px; padding: 12px 16px; margin-bottom: 20px; box-shadow: 0 1px 4px rgba(0,0,0,0.04); display: flex; gap: 6px; flex-wrap: wrap; }
+  .nav-btn { background: #F1F3F5; border: 2px solid transparent; color: var(--cinza); padding: 8px 14px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600; font-family: inherit; }
+  .nav-btn:hover { background: var(--fundo); color: var(--prim); }
+  .nav-btn.active { background: var(--prim); color: white; border-color: var(--prim); }
+  .nav-btn.done { background: var(--sucesso); color: white; }
+
+  .card { background: white; border-radius: 8px; padding: 24px 28px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); margin-bottom: 18px; }
+  .card h2 { color: var(--prim); font-size: 22px; font-weight: 700; padding-bottom: 8px; margin-bottom: 14px; border-bottom: 3px solid var(--fundo); }
+  .card h3 { color: var(--sec); font-size: 16px; font-weight: 700; margin-top: 16px; margin-bottom: 8px; }
+  .card .instrucao { background: var(--fundo); border-left: 4px solid var(--sec); padding: 12px 16px; margin: 12px 0; font-style: italic; border-radius: 0 6px 6px 0; font-size: 14px; }
+  .card .nota { color: var(--cinza); font-size: 13px; font-style: italic; margin-top: 6px; }
+
+  .form-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; margin: 18px 0; }
+  .form-field { display: flex; flex-direction: column; }
+  .form-field label { font-size: 12px; font-weight: 600; color: var(--prim); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .form-field input { padding: 9px 12px; border: 2px solid #E0E0E0; border-radius: 5px; font-size: 14px; font-family: inherit; }
+  .form-field.full { grid-column: 1 / -1; }
+
+  .btn { background: var(--prim); color: white; border: none; padding: 11px 22px; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: inherit; }
+  .btn:hover { opacity: 0.88; }
+  .btn-secondary { background: white; color: var(--prim); border: 2px solid var(--prim); }
+  .btn-large { padding: 14px 28px; font-size: 15px; }
+  .btn-group { display: flex; gap: 10px; margin-top: 16px; flex-wrap: wrap; }
+
+  /* Estímulo de subitização (pontos) */
+  .estimulo-pontos { background: white; border: 2px solid var(--prim); border-radius: 12px; padding: 30px; margin: 16px 0; position: relative; min-height: 200px; }
+  .estimulo-pontos .pontos-grid { position: relative; width: 100%; height: 180px; }
+  .ponto { position: absolute; width: 18px; height: 18px; border-radius: 50%; background: var(--txt); }
+
+  /* Estímulo de comparação */
+  .estimulo-num { background: linear-gradient(180deg, white 0%, var(--fundo) 100%); border: 2px solid var(--prim); border-radius: 12px; padding: 24px; margin: 16px 0; display: flex; align-items: center; justify-content: space-around; }
+  .estimulo-num .opcao { font-size: 64px; font-weight: 700; color: var(--txt); cursor: pointer; padding: 16px 32px; border-radius: 12px; transition: all 0.2s; }
+  .estimulo-num .opcao:hover { background: var(--fundo); }
+  .estimulo-num .opcao.selected { background: var(--prim); color: white; }
+
+  /* Estímulo de leitura/ditado */
+  .estimulo-grande { background: linear-gradient(180deg, white 0%, var(--fundo) 100%); border: 2px solid var(--prim); border-radius: 12px; padding: 30px; margin: 16px 0; text-align: center; font-size: 72px; font-weight: 700; color: var(--txt); }
+
+  .input-resposta { width: 100%; padding: 16px; font-size: 28px; text-align: center; border: 2px solid var(--prim); border-radius: 8px; font-family: inherit; font-weight: 700; }
+
+  .progresso { background: #E8E8E8; height: 6px; border-radius: 3px; overflow: hidden; margin: 16px 0 10px; }
+  .progresso-bar { background: linear-gradient(90deg, var(--prim) 0%, var(--sec) 100%); height: 100%; transition: width 0.3s ease; }
+  .progresso-text { display: flex; justify-content: space-between; font-size: 12px; color: var(--cinza); margin-bottom: 14px; }
+
+  .timer-display { font-size: 32px; font-weight: 700; color: var(--sec); text-align: center; font-variant-numeric: tabular-nums; margin: 16px 0; }
+  .timer-display.warning { color: var(--erro); }
+
+  /* C7 — Fluência */
+  .c7-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 6px; margin: 14px 0; }
+  .c7-item { background: var(--fundo); padding: 10px; border-radius: 6px; display: flex; flex-direction: column; gap: 4px; }
+  .c7-item .operacao { font-weight: 700; font-size: 16px; color: var(--prim); text-align: center; }
+  .c7-item input { padding: 6px 8px; border: 1px solid #DDD; border-radius: 4px; font-size: 14px; text-align: center; font-family: inherit; font-weight: 700; }
+  .c7-item.correto input { background: #D4EFDF; }
+  .c7-item.errado input { background: #FADBD8; }
+
+  /* Semáforo */
+  .semaforo { border-radius: 16px; padding: 24px 28px; margin: 20px 0; box-shadow: 0 4px 16px rgba(0,0,0,0.08); border: 3px solid; }
+  .semaforo.verde { background: linear-gradient(135deg, #D4EFDF 0%, #A9DFBF 100%); border-color: #27AE60; }
+  .semaforo.amarelo { background: linear-gradient(135deg, #FCF3CF 0%, #F9E79F 100%); border-color: #F39C12; }
+  .semaforo.vermelho { background: linear-gradient(135deg, #FADBD8 0%, #F5B7B1 100%); border-color: #C0392B; }
+  .semaforo .icone { font-size: 56px; text-align: center; margin-bottom: 12px; }
+  .semaforo .titulo { font-size: 22px; font-weight: 800; text-align: center; margin-bottom: 10px; }
+  .semaforo.verde .titulo { color: #1E8449; }
+  .semaforo.amarelo .titulo { color: #B9770E; }
+  .semaforo.vermelho .titulo { color: #922B21; }
+  .semaforo .recomendacao { background: rgba(255,255,255,0.7); padding: 14px 18px; border-radius: 8px; font-size: 14px; line-height: 1.6; }
+  .semaforo .recomendacao strong { display: block; margin-bottom: 4px; }
+
+  .resumo-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin: 14px 0; }
+  .resumo-card { background: var(--fundo); padding: 14px; border-radius: 8px; border-top: 4px solid var(--prim); }
+  .resumo-card .label { font-size: 10px; color: var(--cinza); text-transform: uppercase; font-weight: 600; }
+  .resumo-card .nome { font-size: 12px; font-weight: 700; color: var(--prim); margin: 3px 0; }
+  .resumo-card .valor { font-size: 24px; font-weight: 800; color: var(--txt); }
+  .resumo-card .sub { font-size: 11px; color: var(--cinza); margin-top: 2px; }
+
+  .tela { display: none; }
+  .tela.active { display: block; }
+  .rodape { text-align: center; color: var(--cinza); font-size: 11px; font-style: italic; padding: 16px 0; }
+
+  @media print {
+    body { background: white !important; padding: 0; max-width: none; font-size: 11pt; }
+    .nav-bar, .btn-group, .btn { display: none !important; }
+    .header { box-shadow: none; border-radius: 0; padding: 14px 18px; }
+    .card { box-shadow: none; border: none; padding: 12px 18px; page-break-inside: avoid; }
+    .tela { display: none !important; }
+    .tela.printable { display: block !important; }
+    @page { margin: 1.5cm; size: A4; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>PECN-R<span class="badge-rastreio">Rastreio</span></h1>
+  <div class="subtitulo">Prova Estruturada de Cognição Numérica — Versão Reduzida</div>
+  <div class="nivel">Nível 4 — AVANÇADO</div>
+  <div class="info">7.º+ ano · 12+ anos · Numeracia avançada</div>
+  <div class="patient-info" id="header-patient-info" style="display:none;">
+    <strong>Avaliando:</strong> <span id="hpi-nome">—</span> · <strong>Idade:</strong> <span id="hpi-idade">—</span> · <strong>Data:</strong> <span id="hpi-data">—</span>
+  </div>
+</div>
+
+<div class="nav-bar">
+  <button class="nav-btn active" onclick="navegar('identificacao')" id="nav-identificacao">1. Identificação</button>
+  <button class="nav-btn" onclick="navegar('c1')" id="nav-c1">C1 · Subitização</button>
+  <button class="nav-btn" onclick="navegar('c3')" id="nav-c3">C3 · Comparação</button>
+  <button class="nav-btn" onclick="navegar('c4')" id="nav-c4">C4 · Leit/Ditado</button>
+  <button class="nav-btn" onclick="navegar('c7')" id="nav-c7">C7 · Fluência</button>
+  <button class="nav-btn" onclick="navegar('resultado')" id="nav-resultado">Resultado</button>
+</div>
+
+<div class="tela active" id="tela-identificacao">
+  <div class="card">
+    <h2>Identificação do avaliando</h2>
+    <p class="nota">Rastreio rápido (12-15 minutos). Identifica indicação para PECN-RC completa.</p>
+    <div class="form-grid">
+      <div class="form-field"><label>Nome (iniciais ou código)</label><input type="text" id="id-nome" placeholder="ex: J.M."></div>
+      <div class="form-field"><label>Idade (anos / meses)</label><input type="text" id="id-idade" placeholder="ex: 7a 4m"></div>
+      <div class="form-field"><label>Ano escolar</label><input type="text" id="id-ano"></div>
+      <div class="form-field"><label>Data</label><input type="date" id="id-data"></div>
+      <div class="form-field full"><label>Motivo do rastreio</label><input type="text" id="id-motivo"></div>
+    </div>
+    <div class="btn-group">
+      <button class="btn btn-large" onclick="capturarIdentificacao(); guardarEstado(); navegar('c1');">Iniciar Rastreio →</button>
+    </div>
+  </div>
+</div>
+
+<!-- C1 — Subitização -->
+<div class="tela" id="tela-c1">
+  <div id="c1-intro" class="card">
+    <h2>C1 — Subitização · 4 itens</h2>
+    <div class="instrucao">"Vou mostrar-te um conjunto de pontos. Diz-me o mais depressa que conseguires quantos pontos vês, sem contar um a um."</div>
+    <div class="btn-group">
+      <button class="btn btn-large" onclick="iniciarC1()">Iniciar →</button>
+    </div>
+  </div>
+  <div id="c1-ativa" style="display:none;">
+    <div class="card">
+      <div class="progresso-text"><span>Item <strong id="c1-num">1</strong>/4</span><span>Tempo: <strong id="c1-timer">0.0s</strong></span></div>
+      <div class="progresso"><div class="progresso-bar" id="c1-bar" style="width:0%"></div></div>
+      <div class="estimulo-pontos"><div class="pontos-grid" id="c1-pontos"></div></div>
+      <div class="form-field"><label>Resposta do avaliando</label><input type="number" id="c1-resposta" class="input-resposta" autofocus></div>
+      <div class="btn-group">
+        <button class="btn btn-large" onclick="responderC1()">Próximo →</button>
+      </div>
+    </div>
+  </div>
+  <div id="c1-completa" style="display:none;" class="card">
+    <h2>C1 concluída ✓</h2>
+    <div class="btn-group"><button class="btn btn-large" onclick="navegar('c3')">Avançar para C3 →</button></div>
+  </div>
+</div>
+
+<!-- C3 — Comparação simbólica -->
+<div class="tela" id="tela-c3">
+  <div id="c3-intro" class="card">
+    <h2>C3 — Comparação de magnitudes · 6 pares</h2>
+    <div class="instrucao">"Vou mostrar-te dois números. Aponta ou diz qual deles é o maior, o mais depressa que conseguires."</div>
+    <div class="btn-group"><button class="btn btn-large" onclick="iniciarC3()">Iniciar →</button></div>
+  </div>
+  <div id="c3-ativa" style="display:none;">
+    <div class="card">
+      <div class="progresso-text"><span>Item <strong id="c3-num">1</strong>/6</span><span>Tempo: <strong id="c3-timer">0.0s</strong></span></div>
+      <div class="progresso"><div class="progresso-bar" id="c3-bar" style="width:0%"></div></div>
+      <div class="estimulo-num"><div class="opcao" id="c3-esq" onclick="responderC3('esq')">—</div><div class="opcao" id="c3-dir" onclick="responderC3('dir')">—</div></div>
+      <p class="nota" style="text-align:center;">Clique no número maior</p>
+    </div>
+  </div>
+  <div id="c3-completa" style="display:none;" class="card">
+    <h2>C3 concluída ✓</h2>
+    <div class="btn-group"><button class="btn btn-large" onclick="navegar('c4')">Avançar para C4 →</button></div>
+  </div>
+</div>
+
+<!-- C4 — Leitura + Ditado de números -->
+<div class="tela" id="tela-c4">
+  <div id="c4-intro" class="card">
+    <h2>C4 — Leitura e Ditado de números · 4+4 itens</h2>
+    <div class="instrucao"><strong>Leitura:</strong> "Vou mostrar-te um número. Lê-o em voz alta."<br><strong>Ditado:</strong> "Vou dizer-te um número. Escreve-o nesta folha."</div>
+    <div class="btn-group"><button class="btn btn-large" onclick="iniciarC4Leitura()">Iniciar Leitura →</button></div>
+  </div>
+  <div id="c4-leitura" style="display:none;">
+    <div class="card">
+      <h3>Leitura · Item <span id="c4l-num">1</span>/4</h3>
+      <div class="estimulo-grande" id="c4l-estimulo">—</div>
+      <div class="form-field"><label>Avaliando leu correctamente?</label></div>
+      <div class="btn-group">
+        <button class="btn" style="background:#27AE60" onclick="responderC4L(true)">✓ Correcto</button>
+        <button class="btn" style="background:#C0392B" onclick="responderC4L(false)">✗ Errado</button>
+      </div>
+    </div>
+  </div>
+  <div id="c4-ditado-intro" style="display:none;" class="card">
+    <h3>Ditado de números</h3>
+    <p>Agora dite ao avaliando os 4 números seguintes para escrever em folha pautada.</p>
+    <div class="btn-group"><button class="btn btn-large" onclick="iniciarC4Ditado()">Iniciar Ditado →</button></div>
+  </div>
+  <div id="c4-ditado" style="display:none;">
+    <div class="card">
+      <h3>Ditado · Registo das produções</h3>
+      <div id="c4d-blocos"></div>
+      <div class="btn-group">
+        <button class="btn btn-large" onclick="calcularC4(); navegar('c7')">Avançar para C7 →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- C7 — Fluência aritmética -->
+<div class="tela" id="tela-c7">
+  <div id="c7-intro" class="card">
+    <h2>C7 — Fluência aritmética · 2×1 minuto</h2>
+    <div class="instrucao">"Vou dar-te uma folha com somas. Faz o máximo que conseguires em 1 minuto. Depois faço o mesmo com subtracções."</div>
+    <p class="nota">Aplicar primeiro as somas (1 minuto), depois as subtracções (1 minuto). O avaliando pode escrever no ecrã ou em folha à parte (transcrever depois).</p>
+    <div class="btn-group"><button class="btn btn-large" onclick="iniciarC7Somas()">Iniciar Somas →</button></div>
+  </div>
+  <div id="c7-somas" style="display:none;">
+    <div class="card">
+      <h3>Somas · Tempo restante: <span id="c7s-timer" class="timer-display" style="display:inline-block;font-size:24px;margin:0;">1:00</span></h3>
+      <div class="c7-grid" id="c7s-grid"></div>
+      <div class="btn-group">
+        <button class="btn" onclick="terminarC7Somas()">Terminar Somas e Avançar →</button>
+      </div>
+    </div>
+  </div>
+  <div id="c7-subtracoes" style="display:none;">
+    <div class="card">
+      <h3>Subtracções · Tempo restante: <span id="c7sub-timer" class="timer-display" style="display:inline-block;font-size:24px;margin:0;">1:00</span></h3>
+      <div class="c7-grid" id="c7sub-grid"></div>
+      <div class="btn-group">
+        <button class="btn" onclick="terminarC7Sub()">Terminar Subtracções →</button>
+      </div>
+    </div>
+  </div>
+  <div id="c7-completa" style="display:none;" class="card">
+    <h2>C7 concluída ✓</h2>
+    <div class="btn-group"><button class="btn btn-large" onclick="navegar('resultado')">Ver Resultado →</button></div>
+  </div>
+</div>
+
+<!-- Resultado -->
+<div class="tela printable" id="tela-resultado">
+  <div class="card">
+    <h2>Resultado do Rastreio</h2>
+    <div class="btn-group" style="margin-bottom:18px;">
+      <button class="btn btn-large" onclick="imprimir()">🖨️ Imprimir / PDF</button>
+      <button class="btn btn-secondary" onclick="finalizarESalvar()">💾 Guardar Sessão</button>
+    </div>
+    <div id="resultado-conteudo"></div>
+  </div>
+</div>
+
+<div class="rodape">PECN-R · Nível 4 — AVANÇADO · Versão Rastreio 1.0 · Maio 2026<br>Ricardina Correia · Cédula OPP n.º 8233 · Psicologia Pediátrica · Lisboa</div>
+
+<script>
+const NIVEL = 4;
+const TITULO = "AVANÇADO";
+const CFG = {"C1":[{"qtd":19,"disposicao":"aleatoria"},{"qtd":22,"disposicao":"aleatoria"},{"qtd":17,"disposicao":"aleatoria"},{"qtd":25,"disposicao":"aleatoria"}],"C3":[{"esq":12345,"dir":12354},{"esq":56789,"dir":57689},{"esq":23456,"dir":23465},{"esq":78901,"dir":78910},{"esq":45678,"dir":45687},{"esq":89123,"dir":89213}],"C4_leitura":[12345,67890,145000,1250000],"C4_ditado":[23456,78901,305000,2750000],"C7_somas":["1456+289","2347+1185","3258+1647","4856+2189","5736+2845","6427+3158","7569+2486","8347+1923","9156+2748","3845+2167","5673+1485","7124+2856","4569+1837","6238+2945","8147+1568","5276+1893","7825+2418","9356+2174","4683+2547","6915+1738"],"C7_subtracoes":["5234-1856","7458-2349","6125-1837","9347-3625","8456-2789","7123-2548","6589-2147","5374-1856","9148-3567","7625-2389","8347-2856","5928-1745","7456-2189","6582-1937","8147-3258","9265-2748","5837-1546","7193-2685","8456-2937","6285-1748"]};
+const SYNC_KEY = "pecn_r_n4";
+
+const estado = {
+  identificacao: {},
+  C1: { items: CFG.C1.map(c => ({ ...c, resposta: null, correto: null, tr: null })), indice: 0, itemInicio: null },
+  C3: { items: CFG.C3.map(p => ({ ...p, resposta: null, correto: null, tr: null })), indice: 0, itemInicio: null },
+  C4L: { items: CFG.C4_leitura.map(n => ({ numero: n, correto: null })), indice: 0 },
+  C4D: { items: CFG.C4_ditado.map(n => ({ numero: n, produzido: '', correto: null })) },
+  C7S: { items: CFG.C7_somas.map(op => ({ operacao: op, resposta: '', correto: null })), inicio: null, fim: null },
+  C7Sub: { items: CFG.C7_subtracoes.map(op => ({ operacao: op, resposta: '', correto: null })), inicio: null, fim: null }
+};
+
+function escHTML(s) { if (s==null) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function dataAtual() { return new Date().toLocaleDateString('pt-PT', {day:'2-digit',month:'long',year:'numeric'}); }
+function getURLParam(n) { return new URLSearchParams(window.location.search).get(n); }
+function getPatientCode() { return getURLParam('paciente') || getURLParam('patient') || getURLParam('code') || ''; }
+
+function navegar(tela) {
+  document.querySelectorAll('.tela').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tela-' + tela).classList.add('active');
+  const nb = document.getElementById('nav-' + tela);
+  if (nb) nb.classList.add('active');
+  window.scrollTo(0, 0);
+  if (tela === 'resultado') renderResultado();
+}
+
+// === C1 SUBITIZAÇÃO ===
+function gerarPontosAleatorios(qtd, w, h) {
+  const pontos = []; const minDist = 28;
+  let attempts = 0;
+  while (pontos.length < qtd && attempts < 1000) {
+    const x = Math.random() * (w - 30) + 15;
+    const y = Math.random() * (h - 30) + 15;
+    let ok = true;
+    for (const p of pontos) {
+      const d = Math.sqrt((x-p.x)**2 + (y-p.y)**2);
+      if (d < minDist) { ok = false; break; }
+    }
+    if (ok) pontos.push({ x, y });
+    attempts++;
+  }
+  return pontos;
+}
+function renderPontosC1() {
+  const item = estado.C1.items[estado.C1.indice];
+  const grid = document.getElementById('c1-pontos');
+  grid.innerHTML = '';
+  // Aguardar render para ter dimensões
+  setTimeout(() => {
+    const w = grid.offsetWidth, h = grid.offsetHeight;
+    const pontos = gerarPontosAleatorios(item.qtd, w, h);
+    pontos.forEach(p => {
+      const d = document.createElement('div'); d.className = 'ponto';
+      d.style.left = (p.x - 9) + 'px'; d.style.top = (p.y - 9) + 'px';
+      grid.appendChild(d);
+    });
+  }, 50);
+}
+let timerC1 = null;
+function iniciarC1() {
+  estado.C1.indice = 0;
+  document.getElementById('c1-intro').style.display = 'none';
+  document.getElementById('c1-ativa').style.display = 'block';
+  mostrarC1();
+}
+function mostrarC1() {
+  const idx = estado.C1.indice;
+  if (idx >= 4) { finalizarC1(); return; }
+  document.getElementById('c1-num').textContent = idx + 1;
+  document.getElementById('c1-bar').style.width = ((idx+1)/4*100) + '%';
+  document.getElementById('c1-resposta').value = '';
+  document.getElementById('c1-resposta').focus();
+  renderPontosC1();
+  estado.C1.itemInicio = Date.now();
+  if (timerC1) clearInterval(timerC1);
+  timerC1 = setInterval(() => {
+    const t = (Date.now() - estado.C1.itemInicio) / 1000;
+    document.getElementById('c1-timer').textContent = t.toFixed(1) + 's';
+  }, 100);
+}
+function responderC1() {
+  const r = parseInt(document.getElementById('c1-resposta').value, 10);
+  if (isNaN(r)) { alert('Introduza uma resposta numérica.'); return; }
+  const idx = estado.C1.indice;
+  const item = estado.C1.items[idx];
+  item.resposta = r; item.correto = (r === item.qtd);
+  item.tr = (Date.now() - estado.C1.itemInicio) / 1000;
+  estado.C1.indice++;
+  guardarEstado();
+  mostrarC1();
+}
+function finalizarC1() {
+  if (timerC1) clearInterval(timerC1);
+  document.getElementById('c1-ativa').style.display = 'none';
+  document.getElementById('c1-completa').style.display = 'block';
+  document.getElementById('nav-c1').classList.add('done');
+  guardarEstado();
+}
+
+// === C3 COMPARAÇÃO ===
+let timerC3 = null;
+function iniciarC3() {
+  estado.C3.indice = 0;
+  document.getElementById('c3-intro').style.display = 'none';
+  document.getElementById('c3-ativa').style.display = 'block';
+  mostrarC3();
+}
+function mostrarC3() {
+  const idx = estado.C3.indice;
+  if (idx >= 6) { finalizarC3(); return; }
+  const item = estado.C3.items[idx];
+  document.getElementById('c3-num').textContent = idx + 1;
+  document.getElementById('c3-bar').style.width = ((idx+1)/6*100) + '%';
+  document.getElementById('c3-esq').textContent = item.esq;
+  document.getElementById('c3-dir').textContent = item.dir;
+  document.getElementById('c3-esq').classList.remove('selected');
+  document.getElementById('c3-dir').classList.remove('selected');
+  estado.C3.itemInicio = Date.now();
+  if (timerC3) clearInterval(timerC3);
+  timerC3 = setInterval(() => {
+    const t = (Date.now() - estado.C3.itemInicio) / 1000;
+    document.getElementById('c3-timer').textContent = t.toFixed(1) + 's';
+  }, 100);
+}
+function responderC3(lado) {
+  const idx = estado.C3.indice;
+  const item = estado.C3.items[idx];
+  item.resposta = lado;
+  const correcto = item.esq > item.dir ? 'esq' : 'dir';
+  item.correto = (lado === correcto);
+  item.tr = (Date.now() - estado.C3.itemInicio) / 1000;
+  document.getElementById('c3-' + lado).classList.add('selected');
+  setTimeout(() => { estado.C3.indice++; guardarEstado(); mostrarC3(); }, 300);
+}
+function finalizarC3() {
+  if (timerC3) clearInterval(timerC3);
+  document.getElementById('c3-ativa').style.display = 'none';
+  document.getElementById('c3-completa').style.display = 'block';
+  document.getElementById('nav-c3').classList.add('done');
+  guardarEstado();
+}
+
+// === C4 LEITURA + DITADO ===
+function iniciarC4Leitura() {
+  estado.C4L.indice = 0;
+  document.getElementById('c4-intro').style.display = 'none';
+  document.getElementById('c4-leitura').style.display = 'block';
+  mostrarC4L();
+}
+function mostrarC4L() {
+  const idx = estado.C4L.indice;
+  if (idx >= 4) {
+    document.getElementById('c4-leitura').style.display = 'none';
+    document.getElementById('c4-ditado-intro').style.display = 'block';
+    return;
+  }
+  document.getElementById('c4l-num').textContent = idx + 1;
+  document.getElementById('c4l-estimulo').textContent = estado.C4L.items[idx].numero;
+}
+function responderC4L(correcto) {
+  estado.C4L.items[estado.C4L.indice].correto = correcto;
+  estado.C4L.indice++;
+  guardarEstado();
+  mostrarC4L();
+}
+function iniciarC4Ditado() {
+  document.getElementById('c4-ditado-intro').style.display = 'none';
+  document.getElementById('c4-ditado').style.display = 'block';
+  let html = '';
+  CFG.C4_ditado.forEach((n, idx) => {
+    html += '<div class="c7-item" style="display:grid;grid-template-columns:60px 1fr 1fr 100px;gap:8px;padding:10px;margin-bottom:5px;align-items:center;">';
+    html += '<span style="font-weight:700">N' + (idx+1) + ':</span>';
+    html += '<span style="font-weight:700;font-size:18px;color:var(--prim)">Ditar: <span style="background:var(--fundo);padding:4px 10px;border-radius:4px">' + n + '</span></span>';
+    html += '<input type="text" placeholder="Avaliando escreveu..." oninput="estado.C4D.items[' + idx + '].produzido=this.value; estado.C4D.items[' + idx + '].correto=(this.value.trim()===\'' + n + '\'); guardarEstado();" value="' + (estado.C4D.items[idx].produzido || '') + '">';
+    html += '<select onchange="estado.C4D.items[' + idx + '].correto=this.value===\'sim\'; guardarEstado();"><option value="">—</option><option value="sim"' + (estado.C4D.items[idx].correto===true?' selected':'') + '>OK</option><option value="nao"' + (estado.C4D.items[idx].correto===false?' selected':'') + '>Erro</option></select>';
+    html += '</div>';
+  });
+  document.getElementById('c4d-blocos').innerHTML = html;
+}
+function calcularC4() {
+  document.getElementById('nav-c4').classList.add('done');
+  guardarEstado();
+}
+
+// === C7 FLUÊNCIA ===
+let timerC7 = null;
+function eval_op(op) {
+  try { return eval(op); } catch(e) { return NaN; }
+}
+function renderC7Grid(containerId, items, prefix) {
+  let html = '';
+  items.forEach((it, idx) => {
+    const cls = it.correto === true ? 'correto' : it.correto === false ? 'errado' : '';
+    html += '<div class="c7-item ' + cls + '" id="' + prefix + '-item-' + idx + '">';
+    html += '<div class="operacao">' + it.operacao + ' =</div>';
+    html += '<input type="number" placeholder="?" value="' + (it.resposta||'') + '" oninput="atualizarC7(\'' + prefix + '\',' + idx + ',this.value)">';
+    html += '</div>';
+  });
+  document.getElementById(containerId).innerHTML = html;
+}
+function atualizarC7(prefix, idx, valor) {
+  const ref = prefix === 'c7s' ? estado.C7S : estado.C7Sub;
+  ref.items[idx].resposta = valor;
+  const esperado = eval_op(ref.items[idx].operacao);
+  const v = parseFloat(valor);
+  if (valor === '' || isNaN(v)) ref.items[idx].correto = null;
+  else ref.items[idx].correto = (v === esperado);
+  // visual feedback
+  const item = document.getElementById(prefix + '-item-' + idx);
+  if (item) {
+    item.classList.remove('correto','errado');
+    if (ref.items[idx].correto === true) item.classList.add('correto');
+    else if (ref.items[idx].correto === false) item.classList.add('errado');
+  }
+  guardarEstado();
+}
+function iniciarC7Somas() {
+  document.getElementById('c7-intro').style.display = 'none';
+  document.getElementById('c7-somas').style.display = 'block';
+  estado.C7S.inicio = Date.now();
+  renderC7Grid('c7s-grid', estado.C7S.items, 'c7s');
+  let t = 60;
+  document.getElementById('c7s-timer').textContent = '1:00';
+  if (timerC7) clearInterval(timerC7);
+  timerC7 = setInterval(() => {
+    t--;
+    document.getElementById('c7s-timer').textContent = '0:' + String(t).padStart(2,'0');
+    if (t <= 10) document.getElementById('c7s-timer').classList.add('warning');
+    if (t <= 0) { clearInterval(timerC7); terminarC7Somas(); }
+  }, 1000);
+}
+function terminarC7Somas() {
+  if (timerC7) clearInterval(timerC7);
+  estado.C7S.fim = Date.now();
+  document.getElementById('c7-somas').style.display = 'none';
+  document.getElementById('c7-subtracoes').style.display = 'block';
+  estado.C7Sub.inicio = Date.now();
+  renderC7Grid('c7sub-grid', estado.C7Sub.items, 'c7sub');
+  let t = 60;
+  document.getElementById('c7sub-timer').textContent = '1:00';
+  if (timerC7) clearInterval(timerC7);
+  timerC7 = setInterval(() => {
+    t--;
+    document.getElementById('c7sub-timer').textContent = '0:' + String(t).padStart(2,'0');
+    if (t <= 10) document.getElementById('c7sub-timer').classList.add('warning');
+    if (t <= 0) { clearInterval(timerC7); terminarC7Sub(); }
+  }, 1000);
+}
+function terminarC7Sub() {
+  if (timerC7) clearInterval(timerC7);
+  estado.C7Sub.fim = Date.now();
+  document.getElementById('c7-subtracoes').style.display = 'none';
+  document.getElementById('c7-completa').style.display = 'block';
+  document.getElementById('nav-c7').classList.add('done');
+  guardarEstado();
+}
+
+// === CÁLCULOS + SEMÁFORO ===
+function calcularResultados() {
+  const r = {};
+  r.C1 = { acertos: estado.C1.items.filter(i => i.correto === true).length, total: 4 };
+  r.C1.precisao = r.C1.acertos / 4 * 100;
+  r.C3 = { acertos: estado.C3.items.filter(i => i.correto === true).length, total: 6 };
+  r.C3.precisao = r.C3.acertos / 6 * 100;
+  r.C4 = { 
+    leitura_ac: estado.C4L.items.filter(i => i.correto === true).length, 
+    leitura_total: 4,
+    ditado_ac: estado.C4D.items.filter(i => i.correto === true).length,
+    ditado_total: 4
+  };
+  r.C4.precisao = (r.C4.leitura_ac + r.C4.ditado_ac) / 8 * 100;
+  r.C7 = {
+    somas_ac: estado.C7S.items.filter(i => i.correto === true).length,
+    somas_tentativas: estado.C7S.items.filter(i => i.resposta !== '').length,
+    subtracoes_ac: estado.C7Sub.items.filter(i => i.correto === true).length,
+    subtracoes_tentativas: estado.C7Sub.items.filter(i => i.resposta !== '').length
+  };
+  return r;
+}
+function determinarSemaforo(r) {
+  const sinaisAlarme = [
+    r.C1.precisao < 50,
+    r.C3.precisao < 50,
+    r.C4.precisao < 50,
+    (r.C7.somas_ac + r.C7.subtracoes_ac) < (NIVEL === 1 ? 12 : NIVEL === 2 ? 16 : NIVEL === 3 ? 20 : 22)
+  ].filter(Boolean).length;
+  const sinaisVigilancia = [
+    r.C1.precisao < 75,
+    r.C3.precisao < 75,
+    r.C4.precisao < 75,
+    (r.C7.somas_ac + r.C7.subtracoes_ac) < (NIVEL === 1 ? 18 : NIVEL === 2 ? 24 : NIVEL === 3 ? 30 : 32)
+  ].filter(Boolean).length;
+  
+  if (sinaisAlarme >= 2) {
+    return { cor:'vermelho', icone:'🔴', titulo:'Indicação clara para PECN-RC completa',
+      recomendacao: 'Vários sinais de fragilidade na cognição numérica (' + sinaisAlarme + ' sinais de alarme). Recomenda-se aplicação da PECN-RC completa (Nível ' + NIVEL + ') para caracterização das 8 componentes e análise da produção numérica manuscrita. Articular com BANC, ABEMA e avaliação pedagógica em matemática.' };
+  }
+  if (sinaisVigilancia >= 2) {
+    return { cor:'amarelo', icone:'🟡', titulo:'Vigilância clínica recomendada',
+      recomendacao: 'Sinais subclínicos identificados (' + sinaisVigilancia + ' indicadores de vigilância). Recomenda-se acompanhamento pedagógico orientado e reavaliação em 6 meses. Considerar PECN-RC completa se as dificuldades persistirem ou se houver impacto funcional significativo.' };
+  }
+  return { cor:'verde', icone:'🟢', titulo:'Sem indicação de avaliação completa',
+    recomendacao: 'Desempenho global no rastreio dentro do esperado para o nível etário. Sem indicação para aplicação da PECN-RC completa neste momento. Manter acompanhamento pedagógico habitual.' };
+}
+
+function renderResultado() {
+  const id = estado.identificacao;
+  const r = calcularResultados();
+  const sem = determinarSemaforo(r);
+  
+  if (id.nome) {
+    document.getElementById('header-patient-info').style.display = 'block';
+    document.getElementById('hpi-nome').textContent = id.nome;
+    document.getElementById('hpi-idade').textContent = id.idade || '—';
+    document.getElementById('hpi-data').textContent = id.data ? new Date(id.data).toLocaleDateString('pt-PT') : dataAtual();
+  }
+  
+  let html = '';
+  html += '<div class="semaforo ' + sem.cor + '">';
+  html += '<div class="icone">' + sem.icone + '</div>';
+  html += '<div class="titulo">' + sem.titulo + '</div>';
+  html += '<div class="recomendacao"><strong>Recomendação clínica:</strong>' + escHTML(sem.recomendacao) + '</div>';
+  html += '</div>';
+  
+  html += '<h3>Resumo por componente</h3><div class="resumo-cards">';
+  html += '<div class="resumo-card"><div class="label">C1</div><div class="nome">Subitização</div><div class="valor">' + r.C1.acertos + '/4</div><div class="sub">' + r.C1.precisao.toFixed(0) + '%</div></div>';
+  html += '<div class="resumo-card"><div class="label">C3</div><div class="nome">Comparação</div><div class="valor">' + r.C3.acertos + '/6</div><div class="sub">' + r.C3.precisao.toFixed(0) + '%</div></div>';
+  html += '<div class="resumo-card"><div class="label">C4</div><div class="nome">Leit/Ditado nº</div><div class="valor">' + (r.C4.leitura_ac + r.C4.ditado_ac) + '/8</div><div class="sub">' + r.C4.precisao.toFixed(0) + '% · L' + r.C4.leitura_ac + '+D' + r.C4.ditado_ac + '</div></div>';
+  html += '<div class="resumo-card"><div class="label">C7</div><div class="nome">Fluência</div><div class="valor">' + (r.C7.somas_ac + r.C7.subtracoes_ac) + '</div><div class="sub">S' + r.C7.somas_ac + '/' + r.C7.somas_tentativas + ' · Sub' + r.C7.subtracoes_ac + '/' + r.C7.subtracoes_tentativas + '</div></div>';
+  html += '</div>';
+  
+  html += '<p class="nota" style="margin-top:14px;"><strong>Importante:</strong> Esta é uma versão de rastreio reduzida com 4 componentes-chave (de 8 da prova completa). Para caracterização das outras componentes (comparação não-simbólica C2, contagem C5, linha numérica C6, estratégias C8) e análise da produção numérica manuscrita, é necessária a PECN-RC completa.</p>';
+  
+  html += '<div style="text-align:center;font-size:11px;color:var(--cinza);font-style:italic;border-top:2px solid var(--fundo);padding-top:14px;margin-top:24px;">PECN-R · Nível ' + NIVEL + ' — ' + TITULO + ' · Versão Rastreio 1.0 · Maio 2026<br>Ricardina Correia · Cédula OPP n.º 8233 · Lisboa<br><em>Documento gerado a ' + dataAtual() + '.</em></div>';
+
+  document.getElementById('resultado-conteudo').innerHTML = html;
+}
+
+function imprimir() { capturarIdentificacao(); renderResultado(); setTimeout(() => window.print(), 200); }
+
+function finalizarESalvar() {
+  capturarIdentificacao();
+  const r = calcularResultados();
+  const sem = determinarSemaforo(r);
+  const pc = estado.identificacao.nome || getPatientCode() || 'sem_codigo';
+  const dados = {
+    status: 'complete', syncKey: SYNC_KEY, nivel: NIVEL, titulo: TITULO,
+    dataAvaliacao: new Date().toISOString(), patientCode: pc,
+    identificacao: estado.identificacao,
+    scores: {
+      'precisao_C1': r.C1.precisao, 'precisao_C3': r.C3.precisao, 'precisao_C4': r.C4.precisao,
+      'total_C7_somas': r.C7.somas_ac, 'total_C7_subtracoes': r.C7.subtracoes_ac,
+      'semaforo': sem.cor, 'titulo_rastreio': sem.titulo
+    },
+    dados_completos: { C1: estado.C1, C3: estado.C3, C4L: estado.C4L, C4D: estado.C4D, C7S: estado.C7S, C7Sub: estado.C7Sub, semaforo: sem }
+  };
+  try { localStorage.setItem('rc_sess:' + pc + ':' + SYNC_KEY, JSON.stringify(dados)); } catch(e) {}
+  
+  const payloadSheets = {
+    instrumento: 'PECN_R_N' + NIVEL,
+    data: (estado.identificacao.data || new Date().toISOString().slice(0,10)),
+    patientCode: pc, nome: estado.identificacao.nome || '',
+    idade: estado.identificacao.idade || '', ano: estado.identificacao.ano || '',
+    motivo: estado.identificacao.motivo || '',
+    precisao_C1: r.C1.precisao, precisao_C3: r.C3.precisao, precisao_C4: r.C4.precisao,
+    C4_leitura_ac: r.C4.leitura_ac, C4_ditado_ac: r.C4.ditado_ac,
+    C7_somas_acertos: r.C7.somas_ac, C7_somas_tentativas: r.C7.somas_tentativas,
+    C7_subtracoes_acertos: r.C7.subtracoes_ac, C7_subtracoes_tentativas: r.C7.subtracoes_tentativas,
+    semaforo: sem.cor, titulo_rastreio: sem.titulo, recomendacao: sem.recomendacao,
+    respostas: JSON.stringify(dados.dados_completos)
+  };
+  fetch('https://script.google.com/macros/s/AKfycbxX2_Ry7VRH6jr7eGBMmtmyZFXZc69blwdO5bqJK0j69HRSexpXXPuEfDC5OHQRMLLL/exec', {
+    method: 'POST', body: JSON.stringify(payloadSheets),
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' }
+  }).then(r => r.json()).then(res => console.log('[PECN-R] Sheets:', res))
+    .catch(err => console.warn('[PECN-R] Erro Sheets:', err));
+  
+  alert('✓ Sessão guardada localmente!\nDisponível na app RC_Avaliação para: ' + pc);
+}
+
+function capturarIdentificacao() {
+  ['nome','idade','ano','data','motivo'].forEach(k => {
+    const el = document.getElementById('id-' + k);
+    if (el) estado.identificacao[k] = el.value;
+  });
+}
+function guardarEstado() {
+  capturarIdentificacao();
+  try { localStorage.setItem('pecn_r_n' + NIVEL + '_estado', JSON.stringify(estado)); } catch(e) {}
+}
+function carregarEstado() {
+  try {
+    const s = localStorage.getItem('pecn_r_n' + NIVEL + '_estado');
+    if (s) {
+      Object.assign(estado, JSON.parse(s));
+      ['nome','idade','ano','data','motivo'].forEach(k => {
+        const el = document.getElementById('id-' + k);
+        if (el && estado.identificacao[k]) el.value = estado.identificacao[k];
+      });
+    }
+  } catch(e) {}
+  const pc = getPatientCode();
+  if (pc && !document.getElementById('id-nome').value) document.getElementById('id-nome').value = pc;
+}
+
+carregarEstado();
+setInterval(guardarEstado, 30000);
+</script>
+
+</body>
+</html>

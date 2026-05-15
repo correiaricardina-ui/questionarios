@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>RC Avaliação Pacientes — v2 PELED+PECN</title>
+<title>RC Avaliação Pacientes — v3 PELED+PECN+Rastreio</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Serif+Display&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -1659,6 +1659,78 @@ function initCatalog() {
       ageRange:'12+ anos (7.º ano em diante)',
       objective:'Nível avançado da PECN-RC — numeracia complexa, percentagens, problemas algorítmicos. Análise da produção numérica manuscrita com Grelha Autoral RC adaptada à numeracia.',
       domains:['precisao_C1','precisao_C2','precisao_C3','precisao_C4','erro_medio_C6','total_C7','total_C8'],
+      ageMin:144, ageMax:228 },
+    { id:'q_peled_r_n1', name:'PELED-R · Rastreio · Nível 1 (Iniciação)',
+      dest:['Paciente'],
+      link:'https://correiaricardina-ui.github.io/questionarios/PELED_R_N1_Aplicacao.html',
+      syncKey:'peled_r_n1',
+      area:'Aprendizagem — Leitura/Escrita (Rastreio)',
+      ageRange:'6–8 anos (1.º/2.º ano)',
+      objective:'Versão de rastreio reduzida da PELED-RC (12-15 min). 24 itens de leitura + 12 de ditado. Identifica indicação para avaliação diferencial completa. Saída em semáforo clínico (verde/amarelo/vermelho) com recomendação directa.',
+      domains:['precisao_L1_leitura','precisao_L4_leitura','EL','ER','semaforo'],
+      ageMin:72, ageMax:107 },
+    { id:'q_peled_r_n2', name:'PELED-R · Rastreio · Nível 2 (Consolidação)',
+      dest:['Paciente'],
+      link:'https://correiaricardina-ui.github.io/questionarios/PELED_R_N2_Aplicacao.html',
+      syncKey:'peled_r_n2',
+      area:'Aprendizagem — Leitura/Escrita (Rastreio)',
+      ageRange:'8–10 anos (3.º/4.º ano)',
+      objective:'Rastreio rápido da PELED-RC Nível 2 (consolidação ortográfica). 24+12 itens, ~15 min. Semáforo clínico.',
+      domains:['precisao_L1_leitura','precisao_L4_leitura','EL','ER','semaforo'],
+      ageMin:96, ageMax:131 },
+    { id:'q_peled_r_n3', name:'PELED-R · Rastreio · Nível 3 (Complexificação)',
+      dest:['Paciente'],
+      link:'https://correiaricardina-ui.github.io/questionarios/PELED_R_N3_Aplicacao.html',
+      syncKey:'peled_r_n3',
+      area:'Aprendizagem — Leitura/Escrita (Rastreio)',
+      ageRange:'10–12 anos (5.º/6.º ano)',
+      objective:'Rastreio rápido da PELED-RC Nível 3 (complexificação lexical). 24+12 itens, ~15 min. Semáforo clínico.',
+      domains:['precisao_L1_leitura','precisao_L4_leitura','EL','ER','semaforo'],
+      ageMin:120, ageMax:155 },
+    { id:'q_peled_r_n4', name:'PELED-R · Rastreio · Nível 4 (Avançado)',
+      dest:['Paciente'],
+      link:'https://correiaricardina-ui.github.io/questionarios/PELED_R_N4_Aplicacao.html',
+      syncKey:'peled_r_n4',
+      area:'Aprendizagem — Leitura/Escrita (Rastreio)',
+      ageRange:'12+ anos (7.º+ ano)',
+      objective:'Rastreio rápido da PELED-RC Nível 4 (avançado). 24+12 itens, ~15 min. Semáforo clínico.',
+      domains:['precisao_L1_leitura','precisao_L4_leitura','EL','ER','semaforo'],
+      ageMin:144, ageMax:228 },
+    { id:'q_pecn_r_n1', name:'PECN-R · Rastreio · Nível 1 (Iniciação)',
+      dest:['Paciente'],
+      link:'https://correiaricardina-ui.github.io/questionarios/PECN_R_N1_Aplicacao.html',
+      syncKey:'pecn_r_n1',
+      area:'Aprendizagem — Cognição Numérica (Rastreio)',
+      ageRange:'6–8 anos (1.º/2.º ano)',
+      objective:'Versão de rastreio reduzida da PECN-RC (12-15 min). 4 componentes-chave: subitização (C1), comparação simbólica (C3), leitura+ditado de números (C4), fluência aritmética (C7). Semáforo clínico.',
+      domains:['precisao_C1','precisao_C3','precisao_C4','total_C7_somas','semaforo'],
+      ageMin:72, ageMax:107 },
+    { id:'q_pecn_r_n2', name:'PECN-R · Rastreio · Nível 2 (Consolidação)',
+      dest:['Paciente'],
+      link:'https://correiaricardina-ui.github.io/questionarios/PECN_R_N2_Aplicacao.html',
+      syncKey:'pecn_r_n2',
+      area:'Aprendizagem — Cognição Numérica (Rastreio)',
+      ageRange:'8–10 anos (3.º/4.º ano)',
+      objective:'Rastreio rápido da PECN-RC Nível 2. 4 componentes-chave, ~15 min. Semáforo clínico.',
+      domains:['precisao_C1','precisao_C3','precisao_C4','total_C7_somas','semaforo'],
+      ageMin:96, ageMax:131 },
+    { id:'q_pecn_r_n3', name:'PECN-R · Rastreio · Nível 3 (Complexificação)',
+      dest:['Paciente'],
+      link:'https://correiaricardina-ui.github.io/questionarios/PECN_R_N3_Aplicacao.html',
+      syncKey:'pecn_r_n3',
+      area:'Aprendizagem — Cognição Numérica (Rastreio)',
+      ageRange:'10–12 anos (5.º/6.º ano)',
+      objective:'Rastreio rápido da PECN-RC Nível 3. 4 componentes-chave, ~15 min. Semáforo clínico.',
+      domains:['precisao_C1','precisao_C3','precisao_C4','total_C7_somas','semaforo'],
+      ageMin:120, ageMax:155 },
+    { id:'q_pecn_r_n4', name:'PECN-R · Rastreio · Nível 4 (Avançado)',
+      dest:['Paciente'],
+      link:'https://correiaricardina-ui.github.io/questionarios/PECN_R_N4_Aplicacao.html',
+      syncKey:'pecn_r_n4',
+      area:'Aprendizagem — Cognição Numérica (Rastreio)',
+      ageRange:'12+ anos (7.º+ ano)',
+      objective:'Rastreio rápido da PECN-RC Nível 4. 4 componentes-chave, ~15 min. Semáforo clínico.',
+      domains:['precisao_C1','precisao_C3','precisao_C4','total_C7_somas','semaforo'],
       ageMin:144, ageMax:228 }
   ];
   // Garantir que TODOS os defaults estão no catálogo, sempre
@@ -2180,6 +2252,20 @@ function initCatalog() {
     });
     // ── PECN-RC · 4 níveis · v3.0 (autoral RC) ──
     ['q_pecn_n1','q_pecn_n2','q_pecn_n3','q_pecn_n4'].forEach(qid => {
+      if(!catalog.includes(qid)) {
+        const d = defaults.find(x => x.id === qid);
+        if(d) { store.set('q_' + d.id, d); catalog.push(qid); store.set('catalog', catalog); }
+      }
+    });
+    // ── PELED-R · Rastreio · 4 níveis · v1.0 (autoral RC) ──
+    ['q_peled_r_n1','q_peled_r_n2','q_peled_r_n3','q_peled_r_n4'].forEach(qid => {
+      if(!catalog.includes(qid)) {
+        const d = defaults.find(x => x.id === qid);
+        if(d) { store.set('q_' + d.id, d); catalog.push(qid); store.set('catalog', catalog); }
+      }
+    });
+    // ── PECN-R · Rastreio · 4 níveis · v1.0 (autoral RC) ──
+    ['q_pecn_r_n1','q_pecn_r_n2','q_pecn_r_n3','q_pecn_r_n4'].forEach(qid => {
       if(!catalog.includes(qid)) {
         const d = defaults.find(x => x.id === qid);
         if(d) { store.set('q_' + d.id, d); catalog.push(qid); store.set('catalog', catalog); }
@@ -3393,6 +3479,37 @@ function formatScoreSummary(scores, syncKey) {
       return `<span style="font-size:0.78rem;${cls}">N${nivel} · ${parts.join(' · ')}</span>`;
     }
     return '<span style="font-size:0.78rem;color:var(--text-light)">PECN-RC concluída</span>';
+  }
+  // ── PELED-R · Rastreio · 4 níveis (autoral RC) ──
+  if(['peled_r_n1','peled_r_n2','peled_r_n3','peled_r_n4'].includes(syncKey)) {
+    const semaforo = scores['semaforo'] || '';
+    const titulo = scores['titulo_rastreio'] || '';
+    const EL = scores['EL'];
+    const ER = scores['ER'];
+    const nivel = syncKey.split('_n')[1];
+    let cor = '#7F8C8D', icone = '⚪';
+    if(semaforo === 'verde') { cor = '#27AE60'; icone = '🟢'; }
+    else if(semaforo === 'amarelo') { cor = '#E67E22'; icone = '🟡'; }
+    else if(semaforo === 'vermelho') { cor = '#C0392B'; icone = '🔴'; }
+    if(semaforo) {
+      return `<span style="font-size:0.78rem;color:${cor};font-weight:700;">${icone} PELED-R N${nivel} · ${titulo}${EL != null && ER != null ? ' · EL=' + Number(EL).toFixed(0) + '% · ER=' + Number(ER).toFixed(0) + '%' : ''}</span>`;
+    }
+    return '<span style="font-size:0.78rem;color:var(--text-light)">PELED-R concluído</span>';
+  }
+
+  // ── PECN-R · Rastreio · 4 níveis (autoral RC) ──
+  if(['pecn_r_n1','pecn_r_n2','pecn_r_n3','pecn_r_n4'].includes(syncKey)) {
+    const semaforo = scores['semaforo'] || '';
+    const titulo = scores['titulo_rastreio'] || '';
+    const nivel = syncKey.split('_n')[1];
+    let cor = '#7F8C8D', icone = '⚪';
+    if(semaforo === 'verde') { cor = '#27AE60'; icone = '🟢'; }
+    else if(semaforo === 'amarelo') { cor = '#E67E22'; icone = '🟡'; }
+    else if(semaforo === 'vermelho') { cor = '#C0392B'; icone = '🔴'; }
+    if(semaforo) {
+      return `<span style="font-size:0.78rem;color:${cor};font-weight:700;">${icone} PECN-R N${nivel} · ${titulo}</span>`;
+    }
+    return '<span style="font-size:0.78rem;color:var(--text-light)">PECN-R concluído</span>';
   }
 
   return null;
