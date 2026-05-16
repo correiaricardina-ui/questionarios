@@ -283,8 +283,6 @@ tr:hover td{background:#fafbfd}
       <button class="btn btn-secondary" style="padding:6px 14px;font-size:0.82rem;" onclick="exportarCSV()">⬇ Exportar CSV</button>
       <button class="btn btn-secondary" style="padding:6px 14px;font-size:0.82rem;" onclick="exportarPDF()">📄 Exportar PDF</button>
       <button class="btn btn-secondary" style="padding:6px 14px;font-size:0.82rem;" onclick="window.print()">🖨 Imprimir</button>
-      <button class="btn btn-secondary" style="padding:6px 14px;font-size:0.82rem;" onclick="exportarRespostasPDF(sessaoActual)">📋 Respostas PDF</button>
-      <button class="btn btn-secondary" style="padding:6px 14px;font-size:0.82rem;" onclick="exportarInterpretacaoPDF(sessaoActual)">📊 Exportar Interpretação PDF</button>
       <input type="file" id="import-file-input" accept=".csv,.xlsx,.xls" style="display:none" onchange="processarFicheiroImportado(this)">
     </div>
     <div id="import-feedback" style="margin-bottom:12px;display:none;"></div>
@@ -659,6 +657,10 @@ function verDetalhe(i){
       '<div class="card" style="padding:12px"><div style="font-size:0.75rem;color:var(--text-light)">OCD</div><div style="font-weight:600">'+fmtN(d.ocd)+' / 9</div></div>'+
     '</div>'+
     '<div style="margin-bottom:20px"><h4 style="color:var(--blue);font-size:0.9rem;margin-bottom:10px;">Interpretação</h4>'+tbl+paragrafo+'</div>'+
+    '<div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;">'+
+      '<button class="btn btn-secondary" style="padding:8px 16px;font-size:0.85rem;" onclick="exportarRespostasPDF(sessaoActual)">📋 Ver Respostas Item-a-Item</button>'+
+      '<button class="btn btn-secondary" style="padding:8px 16px;font-size:0.85rem;font-weight:600;" onclick="exportarInterpretacaoPDF(sessaoActual)">📊 Relatório Completo (PDF / Imprimir)</button>'+
+    '</div>'+
     '<div style="background:var(--gray);border-radius:8px;padding:10px 14px;font-size:0.78rem;color:var(--text-light)">'+
       'Limiares: T≥70 = Clínico &nbsp;·&nbsp; T 65–69 = Borderline &nbsp;·&nbsp; T&lt;65 = Normativo &nbsp;·&nbsp; '+
       'Normas: Ebesutani et al. (2010), amostra comunitária, idades 9–18'+
