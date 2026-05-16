@@ -558,6 +558,10 @@ function renderTabela(rows){
   document.getElementById('painel-content').innerHTML=html;
 }
 
+// Helper: '0' deve aparecer como 0, não como '—'. JavaScript trata 0 como falsy
+// em `||`, por isso precisamos de uma verificação explícita por null/undefined/''.
+function fmtN(v){return (v===''||v==null)?'—':v;}
+
 function extrairCampos(row){
   if(Array.isArray(row)){
     return {
@@ -568,7 +572,7 @@ function extrairCampos(row){
     };
   }
   return {
-    date:row.data||row.date,
+    date:row.data||row.date||row['Data']||'',
     patientCode:row.patientCode||row['Código']||row.codigo||'',
     nomeJovem:row.nomeJovem||row['NomeJovem']||row.nome_jovem||row.childName||'',
     nomeEE:row.nomeEE||row['NomeEE']||row.nome_ee||'',
@@ -655,15 +659,15 @@ function verDetalhe(i){
     '</div>'+
     '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:20px">'+
       '<div class="card" style="padding:12px"><div style="font-size:0.75rem;color:var(--text-light)">Data</div><div style="font-weight:600">'+(d.date?new Date(d.date).toLocaleDateString('pt-PT'):'')+'</div></div>'+
-      '<div class="card" style="padding:12px"><div style="font-size:0.75rem;color:var(--text-light)">Relação</div><div style="font-weight:600">'+(d.relation||'—')+'</div></div>'+
+      '<div class="card" style="padding:12px"><div style="font-size:0.75rem;color:var(--text-light)">Relação</div><div style="font-weight:600">'+(d.anoEscolar||d.relation||'—')+'</div></div>'+
       '<div class="card" style="padding:12px"><div style="font-size:0.75rem;color:var(--text-light)">Idade / Sexo</div><div style="font-weight:600">'+(d.age||'—')+' · '+(d.gender==='Female'?'F':d.gender==='Male'?'M':d.gender||'—')+'</div></div>'+
     '</div>'+
     '<div style="display:grid;grid-template-columns:repeat(3,1fr) 1fr;gap:12px;margin-bottom:20px">'+
-      '<div class="card" style="padding:12px"><div style="font-size:0.75rem;color:var(--text-light)">SP (Fobia Social)</div><div style="font-weight:600">'+(d.sp||'—')+' / 9</div></div>'+
-      '<div class="card" style="padding:12px"><div style="font-size:0.75rem;color:var(--text-light)">SAD (Sep. Anx.)</div><div style="font-weight:600">'+(d.sad||'—')+' / 9</div></div>'+
-      '<div class="card" style="padding:12px"><div style="font-size:0.75rem;color:var(--text-light)">GAD (Gen. Anx.)</div><div style="font-weight:600">'+(d.gad||'—')+' / 9</div></div>'+
-      '<div class="card" style="padding:12px"><div style="font-size:0.75rem;color:var(--text-light)">PD (Pânico)</div><div style="font-weight:600">'+(d.pd||'—')+' / 9</div></div>'+
-      '<div class="card" style="padding:12px"><div style="font-size:0.75rem;color:var(--text-light)">OCD</div><div style="font-weight:600">'+(d.ocd||'—')+' / 9</div></div>'+
+      '<div class="card" style="padding:12px"><div style="font-size:0.75rem;color:var(--text-light)">SP (Fobia Social)</div><div style="font-weight:600">'+fmtN(d.sp)+' / 9</div></div>'+
+      '<div class="card" style="padding:12px"><div style="font-size:0.75rem;color:var(--text-light)">SAD (Sep. Anx.)</div><div style="font-weight:600">'+fmtN(d.sad)+' / 9</div></div>'+
+      '<div class="card" style="padding:12px"><div style="font-size:0.75rem;color:var(--text-light)">GAD (Gen. Anx.)</div><div style="font-weight:600">'+fmtN(d.gad)+' / 9</div></div>'+
+      '<div class="card" style="padding:12px"><div style="font-size:0.75rem;color:var(--text-light)">PD (Pânico)</div><div style="font-weight:600">'+fmtN(d.pd)+' / 9</div></div>'+
+      '<div class="card" style="padding:12px"><div style="font-size:0.75rem;color:var(--text-light)">OCD</div><div style="font-weight:600">'+fmtN(d.ocd)+' / 9</div></div>'+
     '</div>'+
     '<div style="margin-bottom:20px"><h4 style="color:var(--blue);font-size:0.9rem;margin-bottom:10px;">Interpretação</h4>'+tbl+paragrafo+'</div>'+
     '<div style="background:var(--gray);border-radius:8px;padding:10px 14px;font-size:0.78rem;color:var(--text-light)">'+
