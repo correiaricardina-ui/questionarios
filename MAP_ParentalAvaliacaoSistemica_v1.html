@@ -530,7 +530,7 @@ function atualizarStepper(){var idx=SECAO_ORDER.indexOf(secaoAtual);for(var i=0;
 function avancarSecao(de){var prox={1:'s2',2:'s3',3:'s4',4:'s5',5:'s6',6:'s7'};if(de===1&&!validarId())return;if(de===7){submeterFormulario();return;}mostrarSecao(prox[de]);}
 function voltarSecao(de){var ant={2:'id',3:'s2',4:'s3',5:'s4',6:'s5',7:'s6'};mostrarSecao(ant[de]);}
 function iniciarQuestionario(){document.getElementById('data-preenchi').value=new Date().toISOString().split('T')[0];DOMINIOS_ESTADO={};ROTINAS_ESTADO={};CONSEQUENCIAS_ESTADO={};LIKERT_ESTADO={};renderLikert();renderDominios();renderRotinas();renderConsequencias();mostrarSecao('id');showPage('page-questionario');}
-function validarId(){var code=document.getElementById('patient-code').value.trim().toUpperCase();if(!code){alert('Por favor indique o código do paciente.');return false;}var nc=document.getElementById('nome-crianca');if(nc&&!nc.value.trim()){alert('Por favor indique o nome da criança.');return false;}return true;}
+function validarId(){var code=document.getElementById('patient-code').value.trim().toUpperCase();if(!code){alert('Por favor indique o código do paciente.');return false;}var nc=document.getElementById('nome-crianca');if(nc&&!nc.value.trim()){alert('Por favor indique o nome da criança.');return false;}var np=document.getElementById('nome-progenitor');if(np&&!np.value.trim()){alert('Por favor indique o seu nome.');np.focus();return false;}var rc=document.getElementById('relacao-crianca');if(rc&&!rc.value){alert('Por favor indique a sua relação com a criança.');rc.focus();return false;}return true;}
 
 // ══════════════════════════════════════════════
 // RENDER LIKERT
@@ -777,6 +777,7 @@ function submeterFormulario(){
   var payload={
     instrumento:'MAP_Parental',
     patientCode:dados.id.patientCode,
+    data:dados.id.data||'',
     nomeCrianca:dados.id.nomeCrianca||'',
     nomeProgenitor:dados.id.nome,
     relacao:dados.id.relacao,
@@ -827,7 +828,7 @@ async function carregarDoSheet(){
     // Merge: começar com sessões locais, adicionar do Sheet se não duplicadas
     var merged=sessoes.slice(); // cópia das locais
     var localKeys=new Set(merged.map(function(s){
-      return (s.id&&s.id.patientCode||'')+'|'+(s.id&&s.id.relacao||'')+'|'+(s.id&&s.id.data||'');
+      return (s.id&&s.id.patientCode||'')+'|'+(s.id&&s.id.relacao||'')+'|'+(s.id&&s.id.nome||'')+'|'+(s.id&&s.id.data||'');
     }));
     rows.forEach(function(row){
       var s=null;
@@ -846,12 +847,12 @@ async function carregarDoSheet(){
            s3:{},s4:{},s5:{},s6:{},s7:{},ts:Date.now()};
       }
       // Só adicionar se não for duplicado
-      var key=(s.id&&s.id.patientCode||'')+'|'+(s.id&&s.id.relacao||'')+'|'+(s.id&&s.id.data||'');
+      var key=(s.id&&s.id.patientCode||'')+'|'+(s.id&&s.id.relacao||'')+'|'+(s.id&&s.id.nome||'')+'|'+(s.id&&s.id.data||'');
       if(!localKeys.has(key)){merged.push(s);localKeys.add(key);}
       else {
         // Actualizar entrada local com dados do Sheet se tiver DadosCompletos mais ricos
         var idx=merged.findIndex(function(m){
-          return ((m.id&&m.id.patientCode||'')+'|'+(m.id&&m.id.relacao||'')+'|'+(m.id&&m.id.data||''))===key;
+          return ((m.id&&m.id.patientCode||'')+'|'+(m.id&&m.id.relacao||'')+'|'+(m.id&&m.id.nome||'')+'|'+(m.id&&m.id.data||''))===key;
         });
         if(idx>=0&&dc&&Object.keys(merged[idx].s3||{}).length===0) merged[idx]=s;
       }
@@ -1007,11 +1008,11 @@ function importarJSON(input){
       var arr=Array.isArray(data)?data:[data];
       var added=0;
       var existingKeys=new Set(sessoes.map(function(s){
-        return (s.id&&s.id.patientCode||'')+'|'+(s.id&&s.id.relacao||'')+'|'+(s.id&&s.id.data||'');
+        return (s.id&&s.id.patientCode||'')+'|'+(s.id&&s.id.relacao||'')+'|'+(s.id&&s.id.nome||'')+'|'+(s.id&&s.id.data||'');
       }));
       arr.forEach(function(s){
         if(!s||!s.id) return;
-        var key=(s.id.patientCode||'')+'|'+(s.id.relacao||'')+'|'+(s.id.data||'');
+        var key=(s.id.patientCode||'')+'|'+(s.id.relacao||'')+'|'+(s.id.nome||'')+'|'+(s.id.data||'');
         if(!existingKeys.has(key)){sessoes.push(s);existingKeys.add(key);added++;}
       });
       try{localStorage.setItem('rc_copar_sessoes',JSON.stringify(sessoes));}catch(e){}
