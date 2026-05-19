@@ -691,7 +691,9 @@ const QID_TO_ABA = {
   // ── MDQ — Mood Disorder Questionnaire (Hirschfeld et al., 2000) ────
   'q_mdq':                 'MDQ',
   // ── ChEAT — Children's Eating Attitude Test (Maloney et al., 1988) ──
-  'q_cheat':               'ChEAT'
+  'q_cheat':               'ChEAT',
+  // ── AQ-Child — Quociente de Espectro do Autismo, Versão Criança (Auyeung et al., 2008) ──
+  'q_aq_child':            'AQ_Child'
 };
 
 
@@ -961,7 +963,13 @@ const SYNC_KEY_TO_ABA = {
   // ── ChEAT — Children's Eating Attitude Test (Maloney et al., 1988) ──
   'cheat':                 'ChEAT',
   'ChEAT':                 'ChEAT',
-  'CHEAT':                 'ChEAT'
+  'CHEAT':                 'ChEAT',
+
+  // ── AQ-Child — Quociente de Espectro do Autismo, Versão Criança (Auyeung et al., 2008) ──
+  'aqchild':               'AQ_Child',
+  'AQ_Child':              'AQ_Child',
+  'AQ-Child':              'AQ_Child',
+  'aq_child':              'AQ_Child'
 };
 
 // Cache em memória das respostas do Sheet (evita fetch repetidos na mesma sessão)
@@ -1731,7 +1739,18 @@ function initCatalog() {
       ageRange:'12+ anos (7.º+ ano)',
       objective:'Rastreio rápido da PECN-RC Nível 4. 4 componentes-chave, ~15 min. Semáforo clínico.',
       domains:['precisao_C1','precisao_C3','precisao_C4','total_C7_somas','semaforo'],
-      ageMin:144, ageMax:228 }
+      ageMin:144, ageMax:228 },
+    // ── AQ-Child — Quociente de Espectro do Autismo, Versão Criança (Auyeung et al., 2008; trad. PT Coelho, 2020) ──
+    { id:'q_aq_child',
+      name:'AQ-Child — Quociente de Espectro do Autismo (Versão Criança)',
+      dest:['Mãe','Pai','Enc. Educação'],
+      link:'https://correiaricardina-ui.github.io/questionarios/AQ_Child_v1.html',
+      syncKey:'aqchild',
+      area:'Neurodesenvolvimento',
+      ageRange:'4–11 anos',
+      objective:'Rastreio de traços do espectro do autismo em crianças (Auyeung, Baron-Cohen, Wheelwright & Allison, 2008; tradução portuguesa Coelho, 2020). Preenchimento por pais/cuidadores · 50 itens · escala Likert 4 pontos (Concordo plenamente · Concordo · Discordo · Discordo totalmente). 24 itens directos + 26 itens reversos. Cinco subescalas (10 itens cada): Habilidades Sociais (S), Atenção Alternante (A), Atenção aos Detalhes (D), Comunicação (C), Imaginação (I). Total = 0–150. Cut-off clínico ≥ 76 (Sens. 95% · Espec. 95%). Médias normativas: controlos M=41,7 (DP=18,6); SA/AAF M=104,8 (DP=15,6); autismo M=103,0 (DP=16,3). Instrumento de triagem — não substitui avaliação clínica nem confere diagnóstico.',
+      domains:['Habilidades Sociais (S)','Atenção Alternante (A)','Atenção aos Detalhes (D)','Comunicação (C)','Imaginação (I)','Total'],
+      ageMin:48, ageMax:143 }
   ];
   // Garantir que TODOS os defaults estão no catálogo, sempre
   // (funciona em RC novos e em RC existentes — nunca perde questionários)
@@ -1887,6 +1906,8 @@ function initCatalog() {
       'q_aq_bussperry': { link:'https://correiaricardina-ui.github.io/questionarios/AQ_BussPerry_v1.html', syncKey:'aq_bussperry' },
       // ChEAT — Children's Eating Attitude Test v1.0
       'q_cheat':        { link:'https://correiaricardina-ui.github.io/questionarios/ChEAT_v1.html', syncKey:'cheat' },
+      // AQ-Child — Quociente de Espectro do Autismo (Versão Criança) v1.0
+      'q_aq_child':     { link:'https://correiaricardina-ui.github.io/questionarios/AQ_Child_v1.html', syncKey:'aqchild' },
     };
     // ── Re-store com chave correcta ('q_' + id) — corrige instalações anteriores ──
     // Garante que Conners, FAD e MAP ficam acessíveis pelo META.forEach e getCatalog
