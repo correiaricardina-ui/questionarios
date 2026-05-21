@@ -1784,22 +1784,55 @@ var T_TO_PERC = {
 };
 
 // ─── Determinar grupo normativo ───────────────────────
+// Devolve string do grupo (ex: 'F_14_18') ou objecto {reason, detail} se não der.
+// Se a data de avaliação for inválida ou anterior à data de nascimento,
+// faz fallback para a data de hoje e devolve {group, refFallback:true, ageUsed}.
 function getAgeGroup(gender, dob, refDate) {
-  if (!dob) return null;
-  var d = new Date(refDate || Date.now());
+  if (!dob) return { reason: 'no_dob', detail: 'Sem data de nascimento.' };
   var b = new Date(dob);
-  if (isNaN(b.getTime())) return null;
+  if (isNaN(b.getTime())) return { reason: 'bad_dob', detail: 'Data de nascimento inválida.' };
+
+  var today = new Date();
+  var d = refDate ? new Date(refDate) : today;
+  var refFallback = false;
+  // Data de avaliação inválida ou anterior ao nascimento → usar hoje
+  if (isNaN(d.getTime()) || d.getTime() < b.getTime()) {
+    d = today;
+    refFallback = true;
+  }
+
   var age = d.getFullYear() - b.getFullYear();
   var m = d.getMonth() - b.getMonth();
   if (m < 0 || (m === 0 && d.getDate() < b.getDate())) age--;
-  if (age < 5 || age > 18) return null;
-  var g = (gender || '').toLowerCase();
-  var isFemale = g.indexOf('f') !== -1 || g.indexOf('rap') !== -1 || g === 'f';
+  if (age < 5 || age > 18) {
+    return { reason: 'age_oor', detail: 'Idade calculada (' + age + ' anos) fora do intervalo 5–18 anos do BRIEF-2.' };
+  }
+
+  // Género — explícito para evitar ambiguidade entre 'rapariga' e 'rapaz'
+  var g = (gender || '').toLowerCase().trim();
+  var isFemale;
+  if (g === 'm' || g === 'masculino' || g === 'male' || g === 'rapaz') isFemale = false;
+  else if (g === 'f' || g === 'feminino' || g === 'feminina' || g === 'female' || g === 'rapariga') isFemale = true;
+  else isFemale = (g.charAt(0) === 'f');  // fallback heurístico
+
   var prefix = isFemale ? 'F_' : 'M_';
-  if (age <= 6)  return prefix + '5_6';
-  if (age <= 8)  return prefix + '7_8';
-  if (age <= 13) return prefix + '9_13';
-  return prefix + '14_18';
+  var band;
+  if (age <= 6)       band = '5_6';
+  else if (age <= 8)  band = '7_8';
+  else if (age <= 13) band = '9_13';
+  else                band = '14_18';
+
+  var grp = prefix + band;
+  if (refFallback) return { group: grp, refFallback: true, ageUsed: age };
+  return grp;
+}
+
+// Helper: extrai a string do grupo a partir do retorno de getAgeGroup
+function normGroupString(r) {
+  if (!r) return null;
+  if (typeof r === 'string') return r;
+  if (r.group) return r.group;
+  return null;
 }
 
 // ─── Lookup T-score a partir do score bruto ───────────
@@ -2013,7 +2046,7 @@ function renderTabela(rows) {
       '<td style="text-align:center;font-weight:600;">'+esc(row.IM||'—')+'</td>'+
       (function(){
         var gefRaw = +row.GEF||0;
-        var agGrp = getAgeGroup(row.gender, row.dob, row.date);
+        var agGrp = normGroupString(getAgeGroup(row.gender, row.dob, row.date));
         var t = agGrp ? lookupT(agGrp, 'GEF', gefRaw) : null;
         if (t !== null) {
           var cor = t >= 65 ? 'var(--red)' : t >= 60 ? 'var(--orange)' : 'var(--green)';
@@ -2081,8 +2114,16 @@ function verDetalhe(idx) {
   ];
 
   // Determinar grupo normativo
-  var ageGroup = getAgeGroup(row.gender, row.dob, row.date);
-  var hasNorms = !!ageGroup;
+  var ageGroupRaw = getAgeGroup(row.gender, row.dob, row.date);
+  var ageGroup    = normGroupString(ageGroupRaw);
+  var hasNorms    = !!ageGroup;
+  // Diagnóstico para a mensagem de aviso
+  var normsWarn = '';
+  if (!hasNorms && ageGroupRaw && ageGroupRaw.reason) {
+    normsWarn = ageGroupRaw.detail || '';
+  }
+  var refFallbackUsed = (ageGroupRaw && ageGroupRaw.refFallback) ? true : false;
+  var ageUsedToday    = (ageGroupRaw && ageGroupRaw.ageUsed) || null;
 
   var barHtml = '';
   var allScales = ['INI','MUD','CE','INC','MT','PO','OM','MON','IRC','IM','GEF'];
@@ -2178,8 +2219,16 @@ function verDetalhe(idx) {
     '<div style="margin-bottom:20px;">'+
       '<div style="font-weight:700;font-size:0.9rem;color:var(--blue);margin-bottom:12px;border-bottom:2px solid var(--blue-pale);padding-bottom:6px;">📊 Perfil de T-Scores</div>'+
       (hasNorms
-        ? '<div style="font-size:0.75rem;color:var(--text-light);margin-bottom:10px;">T-scores normalizados por sexo e idade · Clínico T≥65 · Borderline T=60-64 · Normativo T&lt;60</div>'
-        : '<div style="font-size:0.75rem;color:var(--orange);margin-bottom:10px;">⚠️ Não foi possível determinar o grupo normativo (verificar data de nascimento e género). As barras mostram proporção do score bruto face ao máximo.</div>')+
+        ? ('<div style="font-size:0.75rem;color:var(--text-light);margin-bottom:10px;">'+
+            'T-scores normalizados por sexo e idade · Clínico T≥65 · Borderline T=60-64 · Normativo T&lt;60'+
+            (refFallbackUsed
+              ? '<br><span style="color:var(--orange);">⚠️ Data de avaliação inválida ou anterior ao nascimento — foi usada a data de hoje para determinar o grupo normativo (idade='+ageUsedToday+' anos). Confirme a data do questionário.</span>'
+              : '')+
+           '</div>')
+        : ('<div style="font-size:0.75rem;color:var(--orange);margin-bottom:10px;">'+
+           '⚠️ Não foi possível determinar o grupo normativo. '+esc(normsWarn||'Verificar data de nascimento e género.')+
+           ' As barras mostram proporção do score bruto face ao máximo.'+
+           '</div>'))+
       barHtml+
     '</div>'+
     (function(){
@@ -2383,6 +2432,27 @@ document.addEventListener('DOMContentLoaded', function(){
   var today = new Date().toISOString().slice(0,10);
   var fd = document.getElementById('fill-date');
   if (fd && !fd.value) fd.value = today;
+  // Não permitir datas futuras como preenchimento
+  if (fd) fd.max = today;
+
+  // Validação cruzada: data de preenchimento >= data de nascimento
+  var dobInput = document.getElementById('child-dob');
+  function validarDatas() {
+    if (!dobInput || !fd) return;
+    var dob = dobInput.value;
+    if (dob) {
+      fd.min = dob;  // navegador bloqueia escolha de datas anteriores
+      if (fd.value && fd.value < dob) {
+        // Corrigir automaticamente — usar hoje (ou DOB se hoje < dob, embora improvável)
+        fd.value = (today >= dob) ? today : dob;
+      }
+    } else {
+      fd.removeAttribute('min');
+    }
+  }
+  if (dobInput) dobInput.addEventListener('change', validarDatas);
+  if (fd)       fd.addEventListener('change', validarDatas);
+  validarDatas();
 });
 
 function voltarParaIdentificacao() {
