@@ -336,15 +336,13 @@ th { background: var(--blue-xpale); color: var(--blue); font-weight: 600; font-s
         Sessões registadas · Ricardina Correia · Cédula 8233
       </p>
 
-      <!-- 7 BOTÕES OBRIGATÓRIOS — Secção 14 da Skill -->
+      <!-- 5 BOTÕES NA BARRA PRINCIPAL — Secção 14 v28 da Skill (📋 Respostas PDF e 📊 Relatório Completo PDF vivem DENTRO do modal de detalhe) -->
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;" class="no-print">
         <button class="btn btn-secondary btn-xs" onclick="carregarDados()">↺ Sincronizar</button>
         <button class="btn btn-secondary btn-xs" onclick="document.getElementById('import-file-input').click()">⬆ Importar</button>
         <button class="btn btn-secondary btn-xs" onclick="exportarCSV()">⬇ Exportar CSV</button>
         <button class="btn btn-secondary btn-xs" onclick="window.print()">📄 Exportar PDF</button>
         <button class="btn btn-secondary btn-xs" onclick="window.print()">🖨 Imprimir</button>
-        <button class="btn btn-secondary btn-xs" onclick="exportarRespostasPDF(sessaoActual)">📋 Respostas PDF</button>
-        <button class="btn btn-secondary btn-xs" onclick="exportarInterpretacaoPDF(sessaoActual)">📊 Exportar Interpretação PDF</button>
         <input type="file" id="import-file-input" accept=".csv" style="display:none" onchange="processarFicheiroImportado(this)">
       </div>
       <div id="import-feedback" style="margin-bottom:12px;display:none;"></div>
@@ -946,7 +944,11 @@ function verDetalhe(idx) {
   var s = sessoes[idx];
   if (!s) return;
   sessaoActual = s;
-  var html = '<button class="btn btn-secondary btn-xs no-print" style="float:right" onclick="fecharModal()">✕ Fechar</button>';
+  var html = '<div class="no-print" style="display:flex;justify-content:flex-end;gap:6px;margin-bottom:8px;flex-wrap:wrap">' +
+    '<button class="btn btn-secondary btn-xs" onclick="exportarRespostasPDF(sessoes['+idx+'])">📋 Respostas PDF</button>' +
+    '<button class="btn btn-secondary btn-xs" onclick="exportarInterpretacaoPDF(sessoes['+idx+'])">📊 Relatório Completo PDF</button>' +
+    '<button class="btn btn-secondary btn-xs" onclick="fecharModal()">✕ Fechar</button>' +
+    '</div>';
   html += '<h3 style="font-family:\'DM Serif Display\',serif;color:var(--blue);margin-bottom:6px">' + escHtml(s.NomeCrianca||'—') + ' · ' + escHtml(s.Codigo||'—') + '</h3>';
   html += '<p style="color:var(--text-light);font-size:.85rem;margin-bottom:14px">Informante: <strong>'+escHtml(s.NomeInformante||'—')+'</strong> · Data: '+(s.date?new Date(s.date).toLocaleDateString('pt-PT'):'—')+'</p>';
 
@@ -1213,15 +1215,17 @@ function exportarInterpretacaoPDF(sessao) {
     'Avaliado/a: <strong>'+escHtml(sessao.NomeCrianca||'—')+'</strong> &nbsp;|&nbsp; '+
     'Informante: <strong>'+escHtml(sessao.NomeInformante||'—')+'</strong> &nbsp;|&nbsp; '+
     'Data: '+dt+' &nbsp;|&nbsp; Ricardina Correia · Cédula 8233</p>'+
-    '<h2>1. Médias por Inteligência</h2>'+
+    '<h2>1. Perfil Visual das 8 Inteligências</h2>'+
+    '<div style="background:#fff;border:1px solid #DDE3EA;border-radius:8px;padding:12px;margin-bottom:12px;page-break-inside:avoid">'+radarSVG(sessao.sub||{})+'</div>'+
+    '<h2>2. Médias por Inteligência</h2>'+
     '<table><thead><tr><th>Inteligência</th><th style="text-align:center">Média</th><th>Banda</th></tr></thead>'+
     '<tbody>'+rowsIntel+'</tbody></table>'+
-    '<h2>2. Índices Compostos</h2>'+
+    '<h2>3. Índices Compostos</h2>'+
     '<table><thead><tr><th>Sigla</th><th style="text-align:center">Valor</th><th>Banda</th></tr></thead>'+
     '<tbody>'+rowsIdx+'</tbody></table>'+
-    '<h2>3. Perfil Prototípico</h2>'+perfilHtml+
-    '<h2>4. Alertas Clínicos</h2>'+alertasHtml+
-    '<h2>5. Respostas item-a-item</h2>'+
+    '<h2>4. Perfil Prototípico</h2>'+perfilHtml+
+    '<h2>5. Alertas Clínicos</h2>'+alertasHtml+
+    '<h2>6. Respostas item-a-item</h2>'+
     '<table><thead><tr><th style="text-align:center">#</th><th>Cód.</th><th>Item</th><th style="text-align:center">Resp.</th></tr></thead>'+
     '<tbody>'+rowsResp+'</tbody></table>'+
     '<p style="margin-top:24px;font-style:italic;color:#999">Interpretação automática — integrar sempre no contexto clínico completo da avaliação.</p>'+
