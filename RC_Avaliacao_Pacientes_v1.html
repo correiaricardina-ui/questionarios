@@ -693,7 +693,11 @@ const QID_TO_ABA = {
   // ── ChEAT — Children's Eating Attitude Test (Maloney et al., 1988) ──
   'q_cheat':               'ChEAT',
   // ── AQ-Child — Quociente de Espectro do Autismo, Versão Criança (Auyeung et al., 2008) ──
-  'q_aq_child':            'AQ_Child'
+  'q_aq_child':            'AQ_Child',
+  // ── EADRS — Escala de Avaliação Dimensional do Risco Suicidário (Ricardina Correia, 2026) ──
+  'q_eadrs_p':             'EADRS_P',
+  'q_eadrs_a':             'EADRS_A',
+  'q_eadrs_dc':            'EADRS_DC'
 };
 
 
@@ -969,7 +973,18 @@ const SYNC_KEY_TO_ABA = {
   'aqchild':               'AQ_Child',
   'AQ_Child':              'AQ_Child',
   'AQ-Child':              'AQ_Child',
-  'aq_child':              'AQ_Child'
+  'aq_child':              'AQ_Child',
+
+  // ── EADRS — Risco Suicidário (Ricardina Correia, 2026) ──
+  'eadrs_p':               'EADRS_P',
+  'EADRS_P':               'EADRS_P',
+  'EADRS-P':               'EADRS_P',
+  'eadrs_a':               'EADRS_A',
+  'EADRS_A':               'EADRS_A',
+  'EADRS-A':               'EADRS_A',
+  'eadrs_dc':              'EADRS_DC',
+  'EADRS_DC':              'EADRS_DC',
+  'EADRS-DC':              'EADRS_DC'
 };
 
 // Cache em memória das respostas do Sheet (evita fetch repetidos na mesma sessão)
@@ -1750,7 +1765,38 @@ function initCatalog() {
       ageRange:'4–11 anos',
       objective:'Rastreio de traços do espectro do autismo em crianças (Auyeung, Baron-Cohen, Wheelwright & Allison, 2008; tradução portuguesa Coelho, 2020). Preenchimento por pais/cuidadores · 50 itens · escala Likert 4 pontos (Concordo plenamente · Concordo · Discordo · Discordo totalmente). 24 itens directos + 26 itens reversos. Cinco subescalas (10 itens cada): Habilidades Sociais (S), Atenção Alternante (A), Atenção aos Detalhes (D), Comunicação (C), Imaginação (I). Total = 0–150. Cut-off clínico ≥ 76 (Sens. 95% · Espec. 95%). Médias normativas: controlos M=41,7 (DP=18,6); SA/AAF M=104,8 (DP=15,6); autismo M=103,0 (DP=16,3). Instrumento de triagem — não substitui avaliação clínica nem confere diagnóstico.',
       domains:['Habilidades Sociais (S)','Atenção Alternante (A)','Atenção aos Detalhes (D)','Comunicação (C)','Imaginação (I)','Total'],
-      ageMin:48, ageMax:143 }
+      ageMin:48, ageMax:143 },
+    // ── EADRS — Escala de Avaliação Dimensional do Risco Suicidário (Ricardina Correia, 2026) ──
+    { id:'q_eadrs_p',
+      name:'EADRS-P — Risco Suicidário Pediátrico',
+      dest:['Aplicador clínico'],
+      link:'https://correiaricardina-ui.github.io/questionarios/EADRS_P_v1.html',
+      syncKey:'eadrs_p',
+      area:'Risco suicidário',
+      ageRange:'6–11 anos',
+      objective:'Avaliação dimensional do risco suicidário em contexto pediátrico — aplicação por entrevistador clínico. Estrutura multidimensional inspirada em Posner et al. (2011): Bloco A (ideação ordinal 1–5, dicotómica), Bloco B (intensidade 0–10, escala 0–2 em 5 itens · cortes 0-3 Baixa / 4-6 Média / 7-10 Alta), Bloco C (comportamento suicida + ANS), Bloco D (letalidade 0–5). Auto + Heteroavaliação pelo cuidador, integração pelo critério mais grave. Janelas: ao longo da vida + últimos 3 meses.',
+      domains:['Ideação (A)','Intensidade (B)','Comportamento (C)','Letalidade (D)','Classificação integrada'],
+      ageMin:72, ageMax:143 },
+    { id:'q_eadrs_a',
+      name:'EADRS-A — Risco Suicidário Adolescente',
+      dest:['Paciente'],
+      link:'https://correiaricardina-ui.github.io/questionarios/EADRS_A_v1.html',
+      syncKey:'eadrs_a',
+      area:'Risco suicidário',
+      ageRange:'12–18 anos',
+      objective:'Avaliação dimensional do risco suicidário em adolescentes — autoadministrada com supervisão clínica. Estrutura multidimensional inspirada em Posner et al. (2011): Bloco A (ideação ordinal 1–5, dicotómica), Bloco B (intensidade 0–25, escala 1–5 em 5 itens · cortes 5-10 Baixa / 11-17 Média / 18-25 Alta), Bloco C (comportamento suicida + ANS), Bloco D (letalidade 0–5). Janelas: ao longo da vida + últimos 3 meses.',
+      domains:['Ideação (A)','Intensidade (B)','Comportamento (C)','Letalidade (D)','Classificação dimensional'],
+      ageMin:144, ageMax:227 },
+    { id:'q_eadrs_dc',
+      name:'EADRS-DC — Risco Suicidário · Défice Cognitivo',
+      dest:['Aplicador clínico'],
+      link:'https://correiaricardina-ui.github.io/questionarios/EADRS_DC_v1.html',
+      syncKey:'eadrs_dc',
+      area:'Risco suicidário',
+      ageRange:'Qualquer idade com limitação de auto-relato',
+      objective:'Avaliação dimensional do risco suicidário em pessoas com défice cognitivo (perturbação do neurodesenvolvimento, demência, lesão cerebral, défice intelectual) — aplicação por entrevistador clínico com suportes visuais e linguagem simplificada. Bloco A (5 itens · Sim/Não/Não compreende), Bloco B (intensidade 3 itens escala 0–2 · soma 0–6 · cortes 0-2 Baixa / 3-4 Média / 5-6 Alta), Bloco C (comportamento + ANS), Bloco D (letalidade 0–5). Auto + Heteroavaliação pelo cuidador (preponderante em casos de défice de auto-relato), integração pelo critério mais grave. Janelas: ao longo da vida + últimos 3 meses.',
+      domains:['Ideação (A) com opção NC','Intensidade (B)','Comportamento (C)','Letalidade (D)','Classificação integrada (hetero preponderante)'],
+      ageMin:0, ageMax:null }
   ];
   // Garantir que TODOS os defaults estão no catálogo, sempre
   // (funciona em RC novos e em RC existentes — nunca perde questionários)
@@ -3797,7 +3843,11 @@ function renderAssignments(patientId) {
                 // ── AQ Buss-Perry — auto-relato adulto (≥16 anos) ──
                 'AQ_BussPerry':          ['NomeAvaliado','NomeInformante'],
                 // ── ChEAT — auto-relato criança 8-13 anos ──
-                'ChEAT':                 ['NomeInformante','NomeCriança','NomeCrianca','Informante']
+                'ChEAT':                 ['NomeInformante','NomeCriança','NomeCrianca','Informante'],
+                // ── EADRS — Risco Suicidário (Ricardina Correia, 2026) ──
+                'EADRS_P':               ['NomeInformante','Relação','Tipo'],
+                'EADRS_A':               [],
+                'EADRS_DC':              ['NomeInformante','Relação','Tipo']
               };
               const RC = {
                 'SWAN':['Relação'],'BRIEF_Pais':['Relação'],'SCARED_R_PAIS':['Relação'],
@@ -4101,7 +4151,11 @@ async function syncAndMark(patientId, idx) {
           // ── FSSC-R — auto-relato (criança/adolescente 8–17) ─────
           'FSSC_R':          ['NomeInformante','NomeCriança','NomeCrianca'],
           // ── ChEAT — auto-relato criança 8-13 anos ──
-          'ChEAT':           ['NomeInformante','NomeCriança','NomeCrianca','Informante']
+          'ChEAT':           ['NomeInformante','NomeCriança','NomeCrianca','Informante'],
+          // ── EADRS — Risco Suicidário (Ricardina Correia, 2026) ──
+          'EADRS_P':         ['NomeInformante','Relação','Tipo'],
+          'EADRS_A':         [],
+          'EADRS_DC':        ['NomeInformante','Relação','Tipo']
         };
         const RC2 = {
           'SWAN':['Relação'],'BRIEF_Pais':['Relação'],'SCARED_R_PAIS':['Relação'],
