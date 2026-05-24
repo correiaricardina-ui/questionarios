@@ -224,9 +224,6 @@ tr:last-child td{border-bottom:none;}
           <button class="btn btn-secondary" style="padding:6px 14px;font-size:0.82rem;" onclick="importarCSV()">⬆ Importar</button>
           <button class="btn btn-secondary" style="padding:6px 14px;font-size:0.82rem;" onclick="exportarCSV()">⬇ Exportar CSV</button>
           <button class="btn btn-secondary" style="padding:6px 14px;font-size:0.82rem;" onclick="exportarPDF()">📄 Exportar PDF</button>
-          <button class="btn btn-secondary" style="padding:6px 14px;font-size:0.82rem;" onclick="window.print()">🖨 Imprimir</button>
-          <button class="btn btn-secondary" style="padding:6px 14px;font-size:0.82rem;" onclick="exportarRespostasPDF(sessaoActual)">📋 Respostas PDF</button>
-          <button class="btn btn-secondary" style="padding:6px 14px;font-size:0.82rem;" onclick="exportarInterpretacaoPDF(sessaoActual)">📊 Exportar Interpretação PDF</button>
           <button class="btn btn-secondary" style="padding:6px 14px;font-size:0.82rem;" onclick="showPage('page-home')">← Sair</button>
         </div>
       </div>
@@ -548,7 +545,10 @@ function verDetalhe(idx){
   html+='<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;">';
   html+='<div><div style="font-family:DM Serif Display,serif;font-size:1.3rem;color:var(--blue);">FAD-GF — '+row.patientCode+'</div>';
   html+='<div style="font-size:0.82rem;color:var(--text-light);">'+row.date+' · '+(row.childName||row.patientCode)+' · '+row.respondent+(row.respondentName?' ('+row.respondentName+')':'')+' </div></div>';
-  html+='<button onclick="var o=document.getElementById(&quot;modal-det&quot;);if(o)o.remove();" style="background:none;border:none;font-size:1.4rem;cursor:pointer;color:var(--text-light);">&#10005;</button>';
+  html+='<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:flex-end;" class="no-print">';
+  html+='<button class="btn btn-secondary" style="padding:5px 11px;font-size:0.78rem;" onclick="exportarRespostasPDF(sessaoActual)">📋 Respostas PDF</button>';
+  html+='<button class="btn btn-secondary" style="padding:5px 11px;font-size:0.78rem;" onclick="exportarInterpretacaoPDF(sessaoActual)">📊 Relatório Completo PDF</button>';
+  html+='<button onclick="var o=document.getElementById(&quot;modal-det&quot;);if(o)o.remove();" style="background:none;border:none;font-size:1.4rem;cursor:pointer;color:var(--text-light);padding:0 6px;line-height:1;" title="Fechar">&#10005;</button>';
   html+='</div>';
   html+='<div class="result-card" style="margin-bottom:16px;">';
   html+='<div class="result-score">'+parseFloat(row.score).toFixed(2)+'</div>';
@@ -569,7 +569,6 @@ function verDetalhe(idx){
     });
     html+='</tbody></table></details>';
   }
-  html+='<div style="margin-top:20px;text-align:center;" class="no-print"><button class="btn btn-secondary" onclick="window.print()">🖨 Imprimir</button></div>';
   html+='</div>';
   overlay.id='modal-det';
   overlay.innerHTML=html;
@@ -640,40 +639,85 @@ function exportarRespostasPDF(sessao){
   w.document.write(html);w.document.close();
 }
 
+// ── EXPORTAR RELATÓRIO COMPLETO PDF ──────────────────────────────────────────
+// Inclui: cabeçalho + score com perfil colorido + interpretação qualitativa +
+// respostas item-a-item com cotação.
 function exportarInterpretacaoPDF(sessao){
   if(!sessao){alert('Sem sessão seleccionada. Clique "Ver →" numa linha antes de exportar.');return;}
   var sc=parseFloat(sessao.score)||0;
   var cls=sc<=2.0?'Funcional / Saudável':sc<=2.5?'Zona Borderline':'Disfunção Familiar';
   var cor=sc<=2.0?'#27AE60':sc<=2.5?'#E67E22':'#C0392B';
-  var pct=Math.min(100,Math.round(((sc-1)/3)*100));
+  var pct=Math.min(100,Math.max(0,Math.round(((sc-1)/3)*100)));
   var interp=sc<=2.0
-    ?'A família apresenta um funcionamento geral saudável. Demonstra boa capacidade de resolução de problemas, comunicação funcional e clareza de papéis. Não se identificam sinais de perturbação familiar significativa.'
+    ?'A família apresenta um funcionamento geral <strong>saudável</strong>. Demonstra boa capacidade de resolução de problemas, comunicação funcional e clareza de papéis. Não se identificam sinais de perturbação familiar significativa.'
     :sc<=2.5
-    ?'A família apresenta um funcionamento na zona borderline. Existem algumas dificuldades no funcionamento familiar que merecem monitorização. Pode beneficiar de intervenção preventiva ou psicoeducação familiar.'
-    :'A família apresenta disfunção familiar clinicamente significativa. Identificam-se dificuldades relevantes no funcionamento que requerem avaliação aprofundada e possivelmente intervenção terapêutica.';
-  var html='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>FAD-GF — Interpretação</title>'+
-    '<style>body{font-family:DM Sans,sans-serif;color:#2C3E50;padding:28px;font-size:0.85rem;}'+
-    'h1{color:#3B5A7A;font-size:1.2rem;}'+
+    ?'A família apresenta um funcionamento na <strong>zona borderline</strong>. Existem algumas dificuldades no funcionamento familiar que merecem monitorização. Pode beneficiar de intervenção preventiva ou psicoeducação familiar.'
+    :'A família apresenta <strong>disfunção familiar clinicamente significativa</strong>. Identificam-se dificuldades relevantes no funcionamento que requerem avaliação aprofundada e possivelmente intervenção terapêutica. Recomenda-se aplicação do FAD-60 (versão completa) para discriminar os domínios mais comprometidos.';
+
+  // Respostas item-a-item
+  var linhasResp='';
+  if(sessao.answers){
+    var ans=sessao.answers.toString().split('|');
+    linhasResp=ITEMS_FADGF.map(function(item,i){
+      var v=parseInt(ans[i])||0;
+      var sci=item.inv?(5-v):v;
+      var sentido=item.inv?'Inv.':'Dir.';
+      return '<tr>'+
+        '<td style="padding:3px 6px;border-bottom:1px solid #f0f0f0;color:#999;text-align:center;">'+item.num+'</td>'+
+        '<td style="padding:3px 6px;border-bottom:1px solid #f0f0f0;font-size:11px;">'+item.text+'</td>'+
+        '<td style="padding:3px 6px;border-bottom:1px solid #f0f0f0;text-align:center;font-weight:600;">'+v+'</td>'+
+        '<td style="padding:3px 6px;border-bottom:1px solid #f0f0f0;text-align:center;font-size:10px;color:#999;">'+sentido+'</td>'+
+        '<td style="padding:3px 6px;border-bottom:1px solid #f0f0f0;text-align:center;font-weight:600;color:#5B7FA6;">'+sci+'</td>'+
+        '</tr>';
+    }).join('');
+  }
+
+  var dt=sessao.date||new Date().toLocaleDateString('pt-PT');
+
+  var html='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>FAD-GF — Relatório Completo · '+(sessao.patientCode||'')+'</title>'+
+    '<style>'+
+    'body{font-family:DM Sans,Arial,sans-serif;color:#2C3E50;padding:24px;font-size:0.85rem;max-width:900px;margin:0 auto;}'+
+    'h1{color:#3B5A7A;font-size:1.3rem;margin-bottom:4px;}'+
+    'h2{color:#3B5A7A;font-size:1rem;margin:22px 0 10px;border-bottom:2px solid #D6E4F0;padding-bottom:5px;}'+
+    '.cab{color:#6B7A8D;margin-bottom:16px;font-size:0.85rem;}'+
     '.score-box{background:#EBF2F8;border-radius:10px;padding:20px;text-align:center;margin:16px 0;}'+
     '.score-num{font-size:2.4rem;font-weight:700;color:#3B5A7A;}'+
     '.bar-wrap{background:#DDE3EA;border-radius:4px;height:10px;width:100%;margin:10px 0;}'+
-    '.np{margin-bottom:14px;}@media print{.np{display:none;}}</style></head><body>'+
-    '<div class="np"><button onclick="window.print()">🖨 Imprimir</button></div>'+
-    '<h1>FAD-GF — Relatório de Avaliação</h1>'+
-    '<p>Código: <strong>'+(sessao.patientCode||'')+'</strong>'+
-    (sessao.childName?' · Criança: <strong>'+sessao.childName+'</strong>':'')+
-    (sessao.respondentName?' · Respondente: <strong>'+sessao.respondentName+'</strong>':'')+
-    ' · Data: '+(sessao.date||'')+' · Ricardina Correia · Cédula 8233</p>'+
-    '<div class="score-box">'+
-    '<div class="score-num">'+sc.toFixed(2)+'</div>'+
-    '<div style="font-weight:600;color:'+cor+';margin-top:4px;">'+cls+'</div>'+
-    '<div class="bar-wrap"><div style="background:'+cor+';height:10px;border-radius:4px;width:'+pct+'%;"></div></div>'+
-    '<div style="font-size:0.78rem;color:#6B7A8D;">Escala: 1.0 (sem disfunção) → 4.0 (disfunção máxima) · Corte: ≥ 2.0</div>'+
+    'table{width:100%;border-collapse:collapse;margin-bottom:10px;}'+
+    'th{background:#D6E4F0;padding:7px 8px;color:#3B5A7A;text-align:left;font-size:0.8rem;}'+
+    '.sintese-box{background:#F4F8FB;border-radius:8px;padding:12px 16px;font-size:0.88rem;line-height:1.6;color:#2C3E50;margin-bottom:14px;border-left:3px solid '+cor+';}'+
+    '.nota{margin-top:24px;font-style:italic;color:#999;font-size:0.76rem;border-top:1px solid #DDE3EA;padding-top:10px;}'+
+    '.np{margin-bottom:14px;}@media print{.np{display:none;} body{padding:14px;}}'+
+    '</style></head><body>'+
+    '<div class="np"><button onclick="window.print()" style="padding:8px 16px;cursor:pointer;background:#3B5A7A;color:#fff;border:none;border-radius:4px;font-size:0.9rem;">🖨 Imprimir / Guardar PDF</button></div>'+
+    '<h1>FAD-GF — Relatório Completo de Avaliação</h1>'+
+    '<div class="cab">'+
+      'Código: <strong>'+(sessao.patientCode||'—')+'</strong>'+
+      (sessao.childName?' &nbsp;|&nbsp; Criança: <strong>'+sessao.childName+'</strong>':'')+
+      (sessao.respondentName?' &nbsp;|&nbsp; Respondente: <strong>'+sessao.respondentName+'</strong> ('+(sessao.respondent||'')+')':(sessao.respondent?' &nbsp;|&nbsp; Respondente: <strong>'+sessao.respondent+'</strong>':''))+
+      ' &nbsp;|&nbsp; Data: '+dt+
+      '<br>Ricardina Correia · Psicologia Pediátrica · Cédula n.º 8233 · Ordem dos Psicólogos Portugueses'+
     '</div>'+
-    '<h2 style="font-size:1rem;color:#3B5A7A;margin-top:16px;">Interpretação</h2>'+
-    '<p style="line-height:1.6;">'+interp+'</p>'+
-    '<p style="margin-top:20px;font-size:0.78rem;color:#999;font-style:italic;">Interpretação automática — integrar sempre no contexto clínico completo da avaliação. FAD-GF (Epstein, Baldwin & Bishop, 1983) · Versão portuguesa: Pires et al. (2016)</p>'+
+
+    '<h2>1. Resultado da Escala</h2>'+
+    '<div class="score-box">'+
+      '<div class="score-num" style="color:'+cor+';">'+sc.toFixed(2)+'</div>'+
+      '<div style="font-weight:600;color:'+cor+';margin-top:4px;font-size:1.05rem;">'+cls+'</div>'+
+      '<div class="bar-wrap"><div style="background:'+cor+';height:10px;border-radius:4px;width:'+pct+'%;"></div></div>'+
+      '<div style="font-size:0.78rem;color:#6B7A8D;">Escala: 1.0 (sem disfunção) → 4.0 (disfunção máxima) · Corte clínico: 2.0 (Miller et al., 1985)</div>'+
+    '</div>'+
+
+    '<h2>2. Interpretação Clínica</h2>'+
+    '<div class="sintese-box">'+interp+'</div>'+
+
+    (linhasResp?'<h2>3. Respostas Item a Item</h2>'+
+      '<table><thead><tr><th style="text-align:center;width:40px;">Nº</th><th>Afirmação</th><th style="text-align:center;width:60px;">Resp.</th><th style="text-align:center;width:60px;">Sentido</th><th style="text-align:center;width:60px;">Score</th></tr></thead>'+
+      '<tbody>'+linhasResp+'</tbody></table>'+
+      '<div style="font-size:0.76rem;color:#999;margin-top:4px;">Escala: 1 (Concordo fortemente) → 4 (Discordo fortemente). Itens invertidos cotados como (5 − resposta).</div>':'')+
+
+    '<div class="nota">Interpretação automática gerada com base no ponto de corte proposto por Miller, Epstein, Bishop &amp; Keitner (1985). A escala GF é um indicador de rastreio do funcionamento familiar global; os dados devem ser sempre integrados no contexto clínico completo da avaliação, em articulação com entrevista, observação e restantes instrumentos. FAD — Family Assessment Device · Epstein, Baldwin &amp; Bishop (1983) · Versão portuguesa: Pires et al. (2016).</div>'+
     '</body></html>';
+
   var w=window.open('','_blank');
   if(!w){alert('Pop-up bloqueado. Permite pop-ups para este site.');return;}
   w.document.write(html);w.document.close();

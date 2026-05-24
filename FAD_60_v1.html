@@ -233,9 +233,6 @@ tr:last-child td{border-bottom:none;}
           <button class="btn btn-secondary" style="padding:6px 14px;font-size:0.82rem;" onclick="importarCSV()">⬆ Importar</button>
           <button class="btn btn-secondary" style="padding:6px 14px;font-size:0.82rem;" onclick="exportarCSV()">⬇ Exportar CSV</button>
           <button class="btn btn-secondary" style="padding:6px 14px;font-size:0.82rem;" onclick="exportarPDF()">📄 Exportar PDF</button>
-          <button class="btn btn-secondary" style="padding:6px 14px;font-size:0.82rem;" onclick="window.print()">🖨 Imprimir</button>
-          <button class="btn btn-secondary" style="padding:6px 14px;font-size:0.82rem;" onclick="exportarRespostasPDF(sessaoActual)">📋 Respostas PDF</button>
-          <button class="btn btn-secondary" style="padding:6px 14px;font-size:0.82rem;" onclick="exportarInterpretacaoPDF(sessaoActual)">📊 Exportar Interpretação PDF</button>
           <button class="btn btn-secondary" style="padding:6px 14px;font-size:0.82rem;" onclick="showPage('page-home')">← Sair</button>
         </div>
       </div>
@@ -626,7 +623,11 @@ function verDetalhe(idx){
   html+='<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;">';
   html+='<div><div style="font-family:DM Serif Display,serif;font-size:1.3rem;color:var(--blue);">FAD-60 — '+(row.patientCode||'')+'</div>';
   html+='<div style="font-size:0.82rem;color:var(--text-light);">'+(row.date||'')+' · '+(row.childName||row.patientCode)+' · '+(row.respondent||'')+(row.respondentName?' ('+row.respondentName+')':'')+' </div></div>';
-  html+='<button onclick="var o=document.getElementById(\'modal-det\');if(o)o.remove();" style="background:none;border:none;font-size:1.4rem;cursor:pointer;color:var(--text-light);">&#10005;</button>';
+  html+='<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:flex-end;" class="no-print">';
+  html+='<button class="btn btn-secondary" style="padding:5px 11px;font-size:0.78rem;" onclick="exportarRespostasPDF(sessaoActual)">📋 Respostas PDF</button>';
+  html+='<button class="btn btn-secondary" style="padding:5px 11px;font-size:0.78rem;" onclick="exportarInterpretacaoPDF(sessaoActual)">📊 Relatório Completo PDF</button>';
+  html+='<button onclick="var o=document.getElementById(\'modal-det\');if(o)o.remove();" style="background:none;border:none;font-size:1.4rem;cursor:pointer;color:var(--text-light);padding:0 6px;line-height:1;" title="Fechar">&#10005;</button>';
+  html+='</div>';
   html+='</div>';
 
   // Perfil por subscala
@@ -692,7 +693,6 @@ function verDetalhe(idx){
     html+='</tbody></table></details>';
   }
 
-  html+='<div style="margin-top:20px;text-align:center;" class="no-print"><button class="btn btn-secondary" onclick="window.print()">🖨 Imprimir</button></div>';
   html+='</div>';
   overlay.innerHTML=html;
   overlay.addEventListener('click',function(e){if(e.target===overlay) overlay.remove();});
@@ -780,42 +780,150 @@ function exportarRespostasPDF(sessao){
   w.document.write(html);w.document.close();
 }
 
-// ── EXPORTAR INTERPRETAÇÃO PDF ────────────────────────────────────────────────
+// ── EXPORTAR RELATÓRIO COMPLETO PDF ──────────────────────────────────────────
+// Inclui: cabeçalho + scores por subescala + barras de perfil coloridas +
+// interpretação qualitativa automática (GF + subescalas) + respostas item-a-item.
 function exportarInterpretacaoPDF(sessao){
   if(!sessao){alert('Sem sessão seleccionada. Clique "Ver →" numa linha antes de exportar.');return;}
   var dt=sessao.date||new Date().toLocaleDateString('pt-PT');
+
+  // ── 1. Tabela de scores com barra de perfil colorida ──
   var linhasSub=SUBSCALAS.map(function(ss){
     var sc=parseFloat(sessao['score_'+ss.code]);
     if(isNaN(sc)) return '';
     var cor=sc<=ss.cut?'#27AE60':'#C0392B';
     var cls=sc<=ss.cut?'Funcional':'Disfuncional';
-    var pct=Math.min(100,Math.round(((sc-1)/3)*100));
-    return '<tr><td>'+ss.code+'</td><td>'+ss.name+'</td>'+
-      '<td style="text-align:center;font-weight:700;color:'+cor+';">'+sc.toFixed(2)+'</td>'+
-      '<td><div style="background:#eee;border-radius:3px;height:8px;width:120px;"><div style="background:'+cor+';border-radius:3px;height:8px;width:'+pct+'%;"></div></div></td>'+
-      '<td style="color:'+cor+';font-weight:600;">'+cls+'</td>'+
-      '<td style="font-size:0.78rem;color:#6B7A8D;">≥ '+ss.cut+'</td></tr>';
+    var pct=Math.min(100,Math.max(0,Math.round(((sc-1)/3)*100)));
+    return '<tr>'+
+      '<td style="padding:6px 8px;border-bottom:1px solid #DDE3EA;"><strong>'+ss.code+'</strong></td>'+
+      '<td style="padding:6px 8px;border-bottom:1px solid #DDE3EA;">'+ss.name+'</td>'+
+      '<td style="padding:6px 8px;border-bottom:1px solid #DDE3EA;text-align:center;font-weight:700;color:'+cor+';">'+sc.toFixed(2)+'</td>'+
+      '<td style="padding:6px 8px;border-bottom:1px solid #DDE3EA;">'+
+        '<div style="background:#eee;border-radius:3px;height:10px;width:140px;overflow:hidden;">'+
+          '<div style="background:'+cor+';height:10px;width:'+pct+'%;"></div>'+
+        '</div>'+
+      '</td>'+
+      '<td style="padding:6px 8px;border-bottom:1px solid #DDE3EA;color:'+cor+';font-weight:600;">'+cls+'</td>'+
+      '<td style="padding:6px 8px;border-bottom:1px solid #DDE3EA;font-size:0.78rem;color:#6B7A8D;text-align:center;">≥ '+ss.cut+'</td>'+
+      '</tr>';
   }).join('');
-  var html='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>FAD-60 — Interpretação</title>'+
-    '<style>body{font-family:DM Sans,sans-serif;color:#2C3E50;padding:28px;font-size:0.85rem;}'+
-    'h1{color:#3B5A7A;font-size:1.2rem;margin-bottom:6px;}'+
-    'table{width:100%;border-collapse:collapse;margin-top:12px;}'+
-    'th{background:#D6E4F0;padding:7px;color:#3B5A7A;text-align:left;}'+
-    'td{padding:6px 8px;border-bottom:1px solid #DDE3EA;}'+
-    '.np{margin-bottom:16px;}@media print{.np{display:none;}}</style></head><body>'+
-    '<div class="np"><button onclick="window.print()">🖨 Imprimir</button></div>'+
-    '<h1>FAD-60 — Relatório de Avaliação</h1>'+
-    '<p>Código: <strong>'+(sessao.patientCode||'')+'</strong>'+
-    (sessao.childName?' &nbsp;|&nbsp; Criança: <strong>'+sessao.childName+'</strong>':'')+
-    (sessao.respondentName?' &nbsp;|&nbsp; Respondente: <strong>'+sessao.respondentName+'</strong>':'')+
-    ' &nbsp;|&nbsp; Data: '+dt+' &nbsp;|&nbsp; Ricardina Correia · Cédula 8233</p>'+
-    '<h2 style="font-size:1rem;margin-top:20px;">Scores por Subescala</h2>'+
-    '<table><thead><tr><th>Sub</th><th>Subescala</th><th>Score</th><th>Perfil</th><th>Zona</th><th>Corte</th></tr></thead>'+
+
+  // ── 2. Interpretação qualitativa automática ──
+  var interpsTxt={
+    PS:['A família identifica problemas e actua de forma eficaz.','Dificuldades crónicas na resolução de problemas. Considerar treino de resolução de problemas.'],
+    CO:['Comunicação clara e directa. Expressão emocional funcional.','Comunicação disfuncional ou evitante. Trabalhar assertividade e expressão emocional.'],
+    RO:['Papéis claros e responsabilidades distribuídas de forma justa.','Confusão de papéis ou sobrecarga. Clarificar responsabilidades e reestruturar divisão de tarefas.'],
+    AR:['Respostas afetivas adequadas à situação.','Respostas afetivas desadequadas. Trabalhar regulação emocional familiar.'],
+    AI:['Equilíbrio saudável entre autonomia e proximidade.','Desinteresse ou emaranhamento. Explorar vinculação e limites familiares.'],
+    BC:['Regras claras, flexíveis e consistentes.','Ausência ou rigidez de regras. Psicoeducação sobre disciplina positiva.'],
+    GF:['Funcionamento global saudável.','Disfunção familiar global. Avaliação abrangente de todas as subescalas.']
+  };
+
+  // Síntese GF
+  var gf=parseFloat(sessao['score_GF']);
+  var interpGF='';
+  if(!isNaN(gf)){
+    if(gf<=2.0) interpGF='Funcionamento familiar global <strong>saudável</strong>. Não se identificam sinais de perturbação significativa no padrão de funcionamento familiar.';
+    else if(gf<=2.5) interpGF='Funcionamento familiar global em <strong>zona borderline</strong>. Existem dificuldades que merecem monitorização. Considerar psicoeducação familiar.';
+    else interpGF='<strong>Disfunção familiar global clinicamente significativa</strong>. Avaliação aprofundada recomendada. Considerar intervenção terapêutica familiar.';
+  }
+
+  // Identificação das subescalas problemáticas
+  var disfuncionais=[];
+  var funcionais=[];
+  SUBSCALAS.forEach(function(ss){
+    var sc=parseFloat(sessao['score_'+ss.code]);
+    if(isNaN(sc)) return;
+    if(sc>ss.cut) disfuncionais.push({code:ss.code,name:ss.name,score:sc});
+    else funcionais.push({code:ss.code,name:ss.name,score:sc});
+  });
+  var sintese='';
+  if(disfuncionais.length===0){
+    sintese='Todas as subescalas se situam dentro dos limites de funcionalidade. Padrão familiar globalmente preservado.';
+  } else {
+    sintese='Apresenta resultados disfuncionais em <strong>'+
+      disfuncionais.map(function(d){return d.code+' ('+d.score.toFixed(2)+')';}).join(', ')+
+      '</strong>. ';
+    if(funcionais.length>0){
+      sintese+='Subescalas preservadas: '+funcionais.map(function(f){return f.code;}).join(', ')+'.';
+    }
+  }
+
+  // Linhas de interpretação detalhada por subescala
+  var linhasInterp=SUBSCALAS.map(function(ss){
+    var sc=parseFloat(sessao['score_'+ss.code]);
+    if(isNaN(sc)) return '';
+    var idx2=sc<=ss.cut?0:1;
+    var cor=sc<=ss.cut?'#27AE60':'#C0392B';
+    return '<div style="margin-bottom:8px;padding:8px 12px;background:#F4F8FB;border-left:3px solid '+cor+';border-radius:0 6px 6px 0;font-size:0.85rem;">'+
+      '<strong style="color:'+cor+';">'+ss.code+' ('+sc.toFixed(2)+'):</strong> '+interpsTxt[ss.code][idx2]+
+      '</div>';
+  }).join('');
+
+  // ── 3. Respostas item-a-item ──
+  var linhasResp='';
+  if(sessao.answers){
+    var ans=sessao.answers.toString().split('|');
+    linhasResp=ITEMS.map(function(item,i){
+      var v=parseInt(ans[i])||0;
+      var sc=cotarItem(item.num,v);
+      var sentido=INV_SET[item.num]?'Inv.':'Dir.';
+      return '<tr>'+
+        '<td style="padding:3px 6px;border-bottom:1px solid #f0f0f0;color:#999;text-align:center;">'+item.num+'</td>'+
+        '<td style="padding:3px 6px;border-bottom:1px solid #f0f0f0;color:#5B7FA6;font-size:11px;"><strong>'+item.sub+'</strong></td>'+
+        '<td style="padding:3px 6px;border-bottom:1px solid #f0f0f0;font-size:11px;">'+item.text+'</td>'+
+        '<td style="padding:3px 6px;border-bottom:1px solid #f0f0f0;text-align:center;font-weight:600;">'+v+'</td>'+
+        '<td style="padding:3px 6px;border-bottom:1px solid #f0f0f0;text-align:center;font-size:10px;color:#999;">'+sentido+'</td>'+
+        '<td style="padding:3px 6px;border-bottom:1px solid #f0f0f0;text-align:center;font-weight:600;color:#5B7FA6;">'+sc+'</td>'+
+        '</tr>';
+    }).join('');
+  }
+
+  // ── 4. HTML completo ──
+  var html='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>FAD-60 — Relatório Completo · '+(sessao.patientCode||'')+'</title>'+
+    '<style>'+
+    'body{font-family:DM Sans,Arial,sans-serif;color:#2C3E50;padding:24px;font-size:0.85rem;max-width:900px;margin:0 auto;}'+
+    'h1{color:#3B5A7A;font-size:1.3rem;margin-bottom:4px;}'+
+    'h2{color:#3B5A7A;font-size:1rem;margin:22px 0 10px;border-bottom:2px solid #D6E4F0;padding-bottom:5px;}'+
+    '.cab{color:#6B7A8D;margin-bottom:16px;font-size:0.85rem;}'+
+    'table{width:100%;border-collapse:collapse;margin-bottom:10px;}'+
+    'th{background:#D6E4F0;padding:7px 8px;color:#3B5A7A;text-align:left;font-size:0.8rem;}'+
+    '.np{margin-bottom:16px;}'+
+    '.sintese-box{background:#F4F8FB;border-radius:8px;padding:12px 16px;font-size:0.88rem;line-height:1.6;color:#2C3E50;margin-bottom:14px;}'+
+    '.nota{margin-top:24px;font-style:italic;color:#999;font-size:0.76rem;border-top:1px solid #DDE3EA;padding-top:10px;}'+
+    '@media print{.np{display:none;} body{padding:14px;}}'+
+    '</style></head><body>'+
+    '<div class="np"><button onclick="window.print()" style="padding:8px 16px;cursor:pointer;background:#3B5A7A;color:#fff;border:none;border-radius:4px;font-size:0.9rem;">🖨 Imprimir / Guardar PDF</button></div>'+
+    '<h1>FAD-60 — Relatório Completo de Avaliação</h1>'+
+    '<div class="cab">'+
+      'Código: <strong>'+(sessao.patientCode||'—')+'</strong>'+
+      (sessao.childName?' &nbsp;|&nbsp; Criança: <strong>'+sessao.childName+'</strong>':'')+
+      (sessao.respondentName?' &nbsp;|&nbsp; Respondente: <strong>'+sessao.respondentName+'</strong> ('+(sessao.respondent||'')+')':(sessao.respondent?' &nbsp;|&nbsp; Respondente: <strong>'+sessao.respondent+'</strong>':''))+
+      ' &nbsp;|&nbsp; Data: '+dt+
+      '<br>Ricardina Correia · Psicologia Pediátrica · Cédula n.º 8233 · Ordem dos Psicólogos Portugueses'+
+    '</div>'+
+
+    '<h2>1. Scores por Subescala</h2>'+
+    '<table><thead><tr><th style="width:50px;">Sub</th><th>Subescala</th><th style="text-align:center;width:70px;">Score</th><th style="width:160px;">Perfil</th><th style="width:120px;">Zona</th><th style="text-align:center;width:70px;">Corte</th></tr></thead>'+
     '<tbody>'+linhasSub+'</tbody></table>'+
-    '<p style="margin-top:20px;font-style:italic;color:#999;font-size:0.78rem;">Interpretação automática — integrar sempre no contexto clínico completo da avaliação. FAD (Epstein, Baldwin & Bishop, 1983)</p>'+
+    '<div style="font-size:0.76rem;color:#999;margin-top:4px;">Escala: 1 (Concordo fortemente) → 4 (Discordo fortemente). Itens invertidos cotados como (5 − resposta). Scores ≤ corte = Funcional · Scores > corte = Disfuncional. Cortes: Miller et al. (1985).</div>'+
+
+    '<h2>2. Síntese Clínica</h2>'+
+    (interpGF?'<div class="sintese-box"><strong>Funcionamento Geral (GF):</strong> '+interpGF+'</div>':'')+
+    '<div class="sintese-box">'+sintese+'</div>'+
+
+    '<h2>3. Interpretação Detalhada por Subescala</h2>'+
+    linhasInterp+
+
+    (linhasResp?'<h2>4. Respostas Item a Item</h2>'+
+      '<table><thead><tr><th style="text-align:center;width:30px;">Nº</th><th style="width:42px;">Sub</th><th>Afirmação</th><th style="text-align:center;width:50px;">Resp.</th><th style="text-align:center;width:50px;">Sentido</th><th style="text-align:center;width:50px;">Score</th></tr></thead>'+
+      '<tbody>'+linhasResp+'</tbody></table>':'')+
+
+    '<div class="nota">Interpretação automática gerada com base nos pontos de corte propostos por Miller, Epstein, Bishop &amp; Keitner (1985). Deve ser sempre integrada no contexto clínico completo da avaliação, em articulação com entrevista, observação e restantes instrumentos. FAD — Family Assessment Device · Epstein, Baldwin &amp; Bishop (1983).</div>'+
     '</body></html>';
+
   var w=window.open('','_blank');
-  if(!w){alert('Pop-up bloqueado.');return;}
+  if(!w){alert('Pop-up bloqueado. Permite pop-ups para este site.');return;}
   w.document.write(html);w.document.close();
 }
 
