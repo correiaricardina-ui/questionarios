@@ -694,10 +694,23 @@ const QID_TO_ABA = {
   'q_cheat':               'ChEAT',
   // ── AQ-Child — Quociente de Espectro do Autismo, Versão Criança (Auyeung et al., 2008) ──
   'q_aq_child':            'AQ_Child',
-  // ── EADRS — Escala de Avaliação Dimensional do Risco Suicidário (Ricardina Correia, 2026) ──
-  'q_eadrs_p':             'EADRS_P',
-  'q_eadrs_a':             'EADRS_A',
-  'q_eadrs_dc':            'EADRS_DC'
+  // ── ISS-I / ESI — Stress Infantil v1.0 ──────────────────
+  'q_iss_esi':             'ISS_ESI',
+  // ── C-SSRS-P · Risco Suicidário Pediátrica (Ricardina Correia, 2026) ──
+  'q_c_ssrs_p':            'C_SSRS_P',
+  // ── C-SSRS-A · Risco Suicidário Adolescente (Ricardina Correia, 2026) ──
+  'q_c_ssrs_a':            'C_SSRS_A',
+  // ── C-SSRS-DC · Risco Suicidário Défice Cognitivo (Ricardina Correia, 2026) ──
+  'q_c_ssrs_dc':           'C_SSRS_DC',
+  // ── M-CHAT-R/F · Despiste Precoce de Autismo (© 2009 Robins/Fein/Barton · trad. Carla Cintrão Almeida) ──
+  'q_m_chat_r_f':          'M_CHAT_R_F',
+  // ── Família CARS2 · v70.0 — Adaptações inspiradas (Via B) na CARS-2 (Schopler et al., 2010, WPS) ──
+  // CARS2-HP · Funcionamento Elevado (Ricardina Correia, 2026) ──
+  'q_cars2_hp':            'CARS2_HP',
+  // CARS2-QPC · Questionário Parental (Ricardina Correia, 2026) ──
+  'q_cars2_qpc':           'CARS2_QPC',
+  // CARS2-ST · Versão Standard (Ricardina Correia, 2026) ──
+  'q_cars2_st':            'CARS2_ST'
 };
 
 
@@ -975,16 +988,68 @@ const SYNC_KEY_TO_ABA = {
   'AQ-Child':              'AQ_Child',
   'aq_child':              'AQ_Child',
 
-  // ── EADRS — Risco Suicidário (Ricardina Correia, 2026) ──
-  'eadrs_p':               'EADRS_P',
-  'EADRS_P':               'EADRS_P',
-  'EADRS-P':               'EADRS_P',
-  'eadrs_a':               'EADRS_A',
-  'EADRS_A':               'EADRS_A',
-  'EADRS-A':               'EADRS_A',
-  'eadrs_dc':              'EADRS_DC',
-  'EADRS_DC':              'EADRS_DC',
-  'EADRS-DC':              'EADRS_DC'
+  // ── ISS-I / ESI — Stress Infantil (Lucarelli & Lipp, 1998) ──
+  'iss_esi':               'ISS_ESI',
+  'ISS_ESI':               'ISS_ESI',
+  'ISS-I/ESI':             'ISS_ESI',
+  'ISS-I':                 'ISS_ESI',
+  'ISSI':                  'ISS_ESI',
+  'ESI':                   'ISS_ESI',
+
+  // ── C-SSRS-P — Risco Suicidário Pediátrica (Ricardina Correia, 2026) ──
+  'c_ssrs_p':              'C_SSRS_P',
+  'C_SSRS_P':              'C_SSRS_P',
+  'C-SSRS-P':              'C_SSRS_P',
+  'cssrsp':                'C_SSRS_P',
+  'CSSRSP':                'C_SSRS_P',
+
+  // ── C-SSRS-A — Risco Suicidário Adolescente (Ricardina Correia, 2026) ──
+  'c_ssrs_a':              'C_SSRS_A',
+  'C_SSRS_A':              'C_SSRS_A',
+  'C-SSRS-A':              'C_SSRS_A',
+  'cssrsa':                'C_SSRS_A',
+  'CSSRSA':                'C_SSRS_A',
+
+  // ── C-SSRS-DC — Risco Suicidário Défice Cognitivo (Ricardina Correia, 2026) ──
+  'c_ssrs_dc':             'C_SSRS_DC',
+  'C_SSRS_DC':             'C_SSRS_DC',
+  'C-SSRS-DC':             'C_SSRS_DC',
+  'cssrsdc':               'C_SSRS_DC',
+  'CSSRSDC':               'C_SSRS_DC',
+
+  // ── M-CHAT-R/F — Despiste Precoce de Autismo (© 2009 Robins/Fein/Barton · trad. Carla Cintrão Almeida) ──
+  'm_chat_r_f':            'M_CHAT_R_F',
+  'M_CHAT_R_F':            'M_CHAT_R_F',
+  'M-CHAT-R-F':            'M_CHAT_R_F',
+  'M-CHAT-R/F':            'M_CHAT_R_F',
+  'M-CHAT-RF':             'M_CHAT_R_F',
+  'mchat':                 'M_CHAT_R_F',
+  'MCHAT':                 'M_CHAT_R_F',
+  'mchatrf':               'M_CHAT_R_F',
+  'MCHATRF':               'M_CHAT_R_F',
+
+  // ── Família CARS2 (v70.0) — Adaptações inspiradas (Via B) na CARS-2 (Schopler et al., 2010, WPS) ──
+  // CARS2-HP — Funcionamento Elevado (Ricardina Correia, 2026) ──
+  'cars2_hp':              'CARS2_HP',
+  'CARS2_HP':              'CARS2_HP',
+  'CARS2-HP':              'CARS2_HP',
+  'eari_af':               'CARS2_HP',
+  'EARI-AF':               'CARS2_HP',
+  'EARI_AF':               'CARS2_HP',
+  // CARS2-QPC — Questionário Parental (Ricardina Correia, 2026) ──
+  'cars2_qpc':             'CARS2_QPC',
+  'CARS2_QPC':             'CARS2_QPC',
+  'CARS2-QPC':             'CARS2_QPC',
+  'eari_qp':               'CARS2_QPC',
+  'EARI-QP':               'CARS2_QPC',
+  'EARI_QP':               'CARS2_QPC',
+  // CARS2-ST — Versão Standard (Ricardina Correia, 2026) ──
+  'cars2_st':              'CARS2_ST',
+  'CARS2_ST':              'CARS2_ST',
+  'CARS2-ST':              'CARS2_ST',
+  'eari_as':               'CARS2_ST',
+  'EARI-AS':               'CARS2_ST',
+  'EARI_AS':               'CARS2_ST'
 };
 
 // Cache em memória das respostas do Sheet (evita fetch repetidos na mesma sessão)
@@ -1132,6 +1197,14 @@ function initCatalog() {
     { id:'q_swan',       name:'SWAN',                  dest:['Pais','Mãe','Pai','Enc. Educação','Professor(a)'], link:'https://correiaricardina-ui.github.io/questionarios/SWAN_v1.html', syncKey:'swan', area:'Atenção, PHDA & Funções Executivas', ageRange:'6–18 anos', objective:'Avaliar sintomas de PHDA em contexto dimensional', domains:['Desatenção','Hiperatividade-Impulsividade'] , ageMin:72, ageMax:215},
     { id:'q_scared_r_crianca', name:'SCARED-R — Criança',    dest:['Paciente'], link:'https://correiaricardina-ui.github.io/questionarios/SCARED_R_Crianca.html', syncKey:'scared_r_crianca', area:'Ansiedade, Depressão & Internalização', ageRange:'8–18 anos', objective:'Avaliação de perturbações de ansiedade — versão autorrelato', domains:['Pânico','Ansiedade Generalizada','Separação','Fobia Social','Fobia Específica','Obsessivo-Compulsiva','Stress Pós-Traumático','Total'] , ageMin:96, ageMax:215},
     { id:'q_scared_r_pais',    name:'SCARED-R — Pais/Cuid.', dest:['Mãe','Pai','Enc. Educação'], link:'https://correiaricardina-ui.github.io/questionarios/SCARED_R_Pais.html', syncKey:'scared_r_pais', area:'Ansiedade, Depressão & Internalização', ageRange:'8–18 anos', objective:'Avaliação de perturbações de ansiedade — versão pais/cuidadores', domains:['Pânico','Ansiedade Generalizada','Separação','Fobia Social','Fobia Específica','Obsessivo-Compulsiva','Stress Pós-Traumático','Total'] , ageMin:96, ageMax:215},
+    // ── ISS-I / ESI — Inventário de Sintomas de Stress Infantil (Lucarelli & Lipp, 1998 · adapt. técnica PT-PT) ──
+    { id:'q_iss_esi',          name:'ISS-I / ESI — Inventário de Sintomas de Stress Infantil',
+      dest:['Paciente'],
+      link:'https://correiaricardina-ui.github.io/questionarios/ISS_ESI_v1.html',
+      syncKey:'iss_esi', area:'Ansiedade, Depressão & Internalização', ageRange:'6–14 anos',
+      objective:'Auto-relato infantil (33 itens · Likert 0-4 · ~10-15 min) da sintomatologia de stress em 4 domínios: F (Reações Físicas), P (Reações Psicológicas), D (Comp. Depressivo) e PF (Reações Psicofisiológicas). 4 itens sentinela (22, 23, 24, 25 — alerta clínico se ≥ 2). SEM normas portuguesas — leitura criterial (≤25/26-45/46-65/>65 % do máximo) + leitura desenvolvimental por faixa etária (6-8 / 9-11 / 12-14 anos). Lucarelli & Lipp (1998) · adaptação técnica PT-PT.',
+      domains:['Reações Físicas (F)','Reações Psicológicas (P)','Reações Psic. Comp. Depressivo (D)','Reações Psicofisiológicas (PF)','TOTAL'],
+      ageMin:72, ageMax:179 },
     { id:'q_qc_mae', name:'QC Coparentalidade — Mãe', dest:['Mãe'],
       link:'https://correiaricardina-ui.github.io/questionarios/QC_Mae.html',
       syncKey:'qc_mae', area:'Família & Parentalidade', ageRange:'Adultos',
@@ -1622,37 +1695,83 @@ function initCatalog() {
       objective:'Rastreio de traços do espectro do autismo em crianças (Auyeung, Baron-Cohen, Wheelwright & Allison, 2008; tradução portuguesa Coelho, 2020). Preenchimento por pais/cuidadores · 50 itens · escala Likert 4 pontos (Concordo plenamente · Concordo · Discordo · Discordo totalmente). 24 itens directos + 26 itens reversos. Cinco subescalas (10 itens cada): Habilidades Sociais (S), Atenção Alternante (A), Atenção aos Detalhes (D), Comunicação (C), Imaginação (I). Total = 0–150. Cut-off clínico ≥ 76 (Sens. 95% · Espec. 95%). Médias normativas: controlos M=41,7 (DP=18,6); SA/AAF M=104,8 (DP=15,6); autismo M=103,0 (DP=16,3). Instrumento de triagem — não substitui avaliação clínica nem confere diagnóstico.',
       domains:['Habilidades Sociais (S)','Atenção Alternante (A)','Atenção aos Detalhes (D)','Comunicação (C)','Imaginação (I)','Total'],
       ageMin:48, ageMax:143 },
-    // ── EADRS — Escala de Avaliação Dimensional do Risco Suicidário (Ricardina Correia, 2026) ──
-    { id:'q_eadrs_p',
-      name:'EADRS-P — Risco Suicidário Pediátrico',
+    // ── C-SSRS-P — Risco Suicidário · Versão Pediátrica (Ricardina Correia, 2026) ──
+    { id:'q_c_ssrs_p',
+      name:'C-SSRS-P — Risco Suicidário (Pediátrica)',
       dest:['Aplicador clínico'],
-      link:'https://correiaricardina-ui.github.io/questionarios/EADRS_P_v1.html',
-      syncKey:'eadrs_p',
+      link:'https://correiaricardina-ui.github.io/questionarios/C-SSRS-P_Pediatrica_v1.html',
+      syncKey:'c_ssrs_p',
       area:'Risco suicidário',
       ageRange:'6–11 anos',
-      objective:'Avaliação dimensional do risco suicidário em contexto pediátrico — aplicação por entrevistador clínico. Estrutura multidimensional inspirada em Posner et al. (2011): Bloco A (ideação ordinal 1–5, dicotómica), Bloco B (intensidade 0–10, escala 0–2 em 5 itens · cortes 0-3 Baixa / 4-6 Média / 7-10 Alta), Bloco C (comportamento suicida + ANS), Bloco D (letalidade 0–5). Auto + Heteroavaliação pelo cuidador, integração pelo critério mais grave. Janelas: ao longo da vida + últimos 3 meses.',
-      domains:['Ideação (A)','Intensidade (B)','Comportamento (C)','Letalidade (D)','Classificação integrada'],
+      objective:'Avaliação dimensional do risco suicidário em crianças (Ricardina Correia, 2026 · construção original PT-PT inspirada em Posner et al., 2011). Aplicação por entrevistador clínico · 17 itens × 2 janelas (Vida + Últimos 3 meses). Autoavaliação + Heteroavaliação por cuidador (integração final pelo critério mais grave — princípio conservador). Bloco A (ideação) níveis ordinais 1-5; Bloco B (intensidade) 5 itens escala 0-2 (soma 0-10, cortes Baixa 0-3/Média 4-6/Alta 7-10); Bloco C (comportamento) Sim/Não; Bloco D (letalidade) 0-5. Classificação hierárquica: Mínimo → Baixo → Moderado → Elevado → Crítico. Não substitui juízo clínico nem versão validada para uso normativo.',
+      domains:['Ideação (Bloco A)','Intensidade (Bloco B)','Comportamento (Bloco C)','Letalidade (Bloco D)','Classificação integrada Auto+Hetero'],
       ageMin:72, ageMax:143 },
-    { id:'q_eadrs_a',
-      name:'EADRS-A — Risco Suicidário Adolescente',
+    // ── C-SSRS-A — Risco Suicidário · Versão Adolescente (Ricardina Correia, 2026) ──
+    { id:'q_c_ssrs_a',
+      name:'C-SSRS-A — Risco Suicidário (Adolescente)',
       dest:['Paciente'],
-      link:'https://correiaricardina-ui.github.io/questionarios/EADRS_A_v1.html',
-      syncKey:'eadrs_a',
+      link:'https://correiaricardina-ui.github.io/questionarios/C-SSRS-A_Adolescente_v1.html',
+      syncKey:'c_ssrs_a',
       area:'Risco suicidário',
       ageRange:'12–18 anos',
-      objective:'Avaliação dimensional do risco suicidário em adolescentes — autoadministrada com supervisão clínica. Estrutura multidimensional inspirada em Posner et al. (2011): Bloco A (ideação ordinal 1–5, dicotómica), Bloco B (intensidade 0–25, escala 1–5 em 5 itens · cortes 5-10 Baixa / 11-17 Média / 18-25 Alta), Bloco C (comportamento suicida + ANS), Bloco D (letalidade 0–5). Janelas: ao longo da vida + últimos 3 meses.',
-      domains:['Ideação (A)','Intensidade (B)','Comportamento (C)','Letalidade (D)','Classificação dimensional'],
-      ageMin:144, ageMax:227 },
-    { id:'q_eadrs_dc',
-      name:'EADRS-DC — Risco Suicidário · Défice Cognitivo',
+      objective:'Avaliação dimensional do risco suicidário em adolescentes (Ricardina Correia, 2026 · construção original PT-PT inspirada em Posner et al., 2011). Auto-administrada com supervisão clínica · SÓ Autoavaliação (sem heteroavaliação). 17 itens × 2 janelas (Vida + Últimos 3 meses). Bloco A (ideação) níveis ordinais 1-5; Bloco B (intensidade) 5 itens escala 1-5 (soma 5-25, cortes Baixa 5-10/Média 11-17/Alta 18-25); Bloco C (comportamento) Sim/Não; Bloco D (letalidade) 0-5. Classificação hierárquica: Mínimo → Baixo → Moderado → Elevado → Crítico. Não substitui juízo clínico nem versão validada para uso normativo.',
+      domains:['Ideação (Bloco A)','Intensidade (Bloco B)','Comportamento (Bloco C)','Letalidade (Bloco D)','Classificação (3 meses + Vida)'],
+      ageMin:144, ageMax:215 },
+    // ── C-SSRS-DC — Risco Suicidário · Versão Défice Cognitivo (Ricardina Correia, 2026) ──
+    { id:'q_c_ssrs_dc',
+      name:'C-SSRS-DC — Risco Suicidário (Défice Cognitivo)',
       dest:['Aplicador clínico'],
-      link:'https://correiaricardina-ui.github.io/questionarios/EADRS_DC_v1.html',
-      syncKey:'eadrs_dc',
+      link:'https://correiaricardina-ui.github.io/questionarios/C-SSRS-DC_DeficeCognitivo_v1.html',
+      syncKey:'c_ssrs_dc',
       area:'Risco suicidário',
-      ageRange:'Qualquer idade com limitação de auto-relato',
-      objective:'Avaliação dimensional do risco suicidário em pessoas com défice cognitivo (perturbação do neurodesenvolvimento, demência, lesão cerebral, défice intelectual) — aplicação por entrevistador clínico com suportes visuais e linguagem simplificada. Bloco A (5 itens · Sim/Não/Não compreende), Bloco B (intensidade 3 itens escala 0–2 · soma 0–6 · cortes 0-2 Baixa / 3-4 Média / 5-6 Alta), Bloco C (comportamento + ANS), Bloco D (letalidade 0–5). Auto + Heteroavaliação pelo cuidador (preponderante em casos de défice de auto-relato), integração pelo critério mais grave. Janelas: ao longo da vida + últimos 3 meses.',
-      domains:['Ideação (A) com opção NC','Intensidade (B)','Comportamento (C)','Letalidade (D)','Classificação integrada (hetero preponderante)'],
-      ageMin:0, ageMax:null }
+      ageRange:'Qualquer idade',
+      objective:'Avaliação dimensional do risco suicidário em pessoas com limitação de auto-relato (perturbação do neurodesenvolvimento, demência, lesão cerebral, dificuldade comunicacional). Ricardina Correia (2026) · construção original PT-PT inspirada em Posner et al. (2011). Aplicação por entrevistador com suportes visuais (pictogramas, escala visual de intensidade), linguagem simplificada. Auto + Heteroavaliação por cuidador habitual (heteroavaliação preponderante quando auto-relato não fiável). INOVAÇÃO: Bloco A inclui opção "Não compreende" (regista indeterminação clínica formal — não conta como Sim nem como Não). Bloco B REDUZIDO a 3 itens (Frequência, Controlabilidade, Razões para viver) escala 0-2, soma 0-6 (cortes Baixa 0-2/Média 3-4/Alta 5-6). Classificação hierárquica: Mínimo → Baixo → Moderado → Elevado → Crítico.',
+      domains:['Ideação (Bloco A, c/ "Não compreende")','Intensidade (Bloco B, 3 itens)','Comportamento (Bloco C)','Letalidade (Bloco D)','Classificação integrada Auto+Hetero'],
+      ageMin:0, ageMax:1200 },
+    // ── M-CHAT-R/F — Despiste Precoce de Autismo (© 2009 Robins/Fein/Barton · trad. Carla Cintrão Almeida) ──
+    { id:'q_m_chat_r_f',
+      name:'M-CHAT-R/F — Despiste Precoce de Autismo',
+      dest:['Paciente'],
+      link:'https://correiaricardina-ui.github.io/questionarios/M-CHAT-R-F_v1.html',
+      syncKey:'m_chat_r_f',
+      area:'Despiste neurodesenvolvimento',
+      ageRange:'16–30 meses',
+      objective:'Despiste precoce de Perturbação do Espetro do Autismo (PEA) em crianças entre 16 e 30 meses. Modified Checklist for Autism in Toddlers, Revised, with Follow-Up (© 2009 Diana Robins, Deborah Fein, & Marianne Barton) · Tradução PT-PT: Carla Cintrão Almeida · www.mchatscreen.com. Instrumento de 2 etapas preenchido pelos pais com supervisão clínica: Etapa 1 (20 itens Sim/Não) com algoritmo de cotação dirigido por item — items 2/5/12 "Sim"=Falha, restantes "Não"=Falha; categorias Baixo 0-2 / Moderado 3-7 / Alto 8-20. Etapa 2 condicional (só se score 3-7) com entrevista de seguimento estruturada item-a-item; clínico regista Esclarecido (Passa) / Confirmado (Falha) por item; ≥2 confirmados = rastreio positivo. Categorias finais: Baixo · Moderado—Negativo · Moderado—Positivo · Alto. Aviso: instrumento de despiste, NÃO de diagnóstico — qualquer criança com resultado positivo deve ser referenciada para avaliação de diagnóstico e possível sinalização para intervenção precoce (SNIPI, Pediatria do Desenvolvimento, Pedopsiquiatria, HP Coimbra).',
+      domains:['Etapa 1 (20 itens · score 0-20)','Etapa 2 condicional (entrevista de seguimento)','Comunicação social','Linguagem','Brincadeira simbólica','Comportamentos sensoriais','Comportamentos repetitivos'],
+      ageMin:16, ageMax:30, ageUnit:'meses' },
+    // ── CARS2-HP · v70.0 — Funcionamento Elevado (Ricardina Correia, 2026) ──
+    { id:'q_cars2_hp',
+      name:'CARS2-HP — Espetro do Autismo (Funcionamento Elevado)',
+      dest:['Aplicador clínico'],
+      link:'https://correiaricardina-ui.github.io/questionarios/CARS2-HP_v1.html',
+      syncKey:'cars2_hp',
+      area:'Despiste neurodesenvolvimento',
+      ageRange:'≥6 anos · QI≥80 · verbal funcional',
+      objective:'Avaliação clínica integrativa da severidade de sinais compatíveis com Perturbação do Espetro do Autismo (PEA) em crianças, adolescentes e adultos com funcionamento elevado: idade cronológica ≥6 anos, estimativa de QI ≥80 e comunicação verbal funcional. Adaptação inspirada (Via B) na CARS2-HF (Schopler, Van Bourgondien, Wellman & Love, 2010, Western Psychological Services), com formulação clínica original em português europeu — conteúdo literário do instrumento de referência NÃO reproduzido. Cotação clínica integrativa por psicólogo após observação directa + anamnese + integração de fontes (parental, educativa). 15 domínios com escala 1.0–4.0 (passos 0.5); soma 15.0–60.0. Pontos de corte (Vaughan, 2011; Dawkins, Meyer & Van Bourgondien, 2016): Mínimo 15-27.5 / Ligeiro a moderado 28-33.5 / Severo 34-60. Sinalização adicional: domínios com cotação ≥3.0 configuram atipicidade clinicamente relevante. Não existem normas portuguesas validadas; finalidade clínica complementar — não substitui avaliação clínica integrada nem instrumentos como ADOS-2, ADI-R, Vineland-3.',
+      domains:['Compreensão socioemocional','Expressão e regulação emocional','Relação com os outros','Uso do corpo','Uso de objetos no jogo e atividade','Adaptação à mudança e interesses restritos','Resposta visual','Resposta auditiva','Resposta gustativa/olfativa/tátil','Medo ou ansiedade','Comunicação verbal','Comunicação não-verbal','Capacidade de pensamento e integração cognitiva','Nível de atividade','Nível e consistência da resposta intelectual'],
+      ageMin:72, ageMax:1200, ageUnit:'meses' },
+    // ── CARS2-QPC · v70.0 — Questionário Parental (Ricardina Correia, 2026) ──
+    { id:'q_cars2_qpc',
+      name:'CARS2-QPC — Questionário Parental para Espetro do Autismo',
+      dest:['Mãe','Pai','Encarregado de Educação'],
+      link:'https://correiaricardina-ui.github.io/questionarios/CARS2-QPC_v1.html',
+      syncKey:'cars2_qpc',
+      area:'Despiste neurodesenvolvimento',
+      ageRange:'Crianças/Adolescentes',
+      objective:'Questionário parental para avaliação integrativa do Espetro do Autismo (PEA), preenchido por pais/cuidadores principais sobre o comportamento habitual da criança ou adolescente. Adaptação inspirada (Via B) na CARS-2 QPC (Schopler, Van Bourgondien, Wellman & Love, 2010, WPS), com formulação clínica original em PT-PT — conteúdo literário do instrumento de referência NÃO reproduzido. 81 itens distribuídos por 15 domínios; escala Likert 0-4 (Nunca/Raramente/Por vezes/Frequentemente/Sempre) + opção N/A (não aplicável/não observado). Lógica de cotação direccional: 33 itens descrevem comportamento típico esperado (0-1 = preocupante); 48 itens descrevem comportamento atípico (3-4 = preocupante); resposta 2 nunca preocupante; N/A não conta. Saída qualitativa: percentagem de itens preocupantes por domínio (sinalizado ≥50%) + contagem de domínios sinalizados + categoria clínica (≤3 mínima/ligeira · 4-7 moderada · ≥8 marcada). Pais e mãe podem submeter em separado (dedupe por nome_informante). Tempo: 25-40 min. Indicador qualitativo; não substitui observação clínica directa (CARS2-HP/ST) nem instrumentos como ADI-R, ADOS-2.',
+      domains:['Relação com pessoas (6 itens)','Imitação (5)','Resposta emocional (6)','Uso do corpo (5)','Uso de objetos (6)','Adaptação à mudança (5)','Resposta visual (5)','Resposta auditiva (5)','Resposta gust./olf./tátil (6)','Medo ou nervosismo (5)','Comunicação verbal (6)','Comunicação não-verbal (5)','Nível de atividade (5)','Resposta intelectual (5)','Impressões clínicas globais (6)'],
+      ageMin:0, ageMax:1200, ageUnit:'meses' },
+    // ── CARS2-ST · v70.0 — Versão Standard (Ricardina Correia, 2026) ──
+    { id:'q_cars2_st',
+      name:'CARS2-ST — Espetro do Autismo (Versão Standard)',
+      dest:['Aplicador clínico'],
+      link:'https://correiaricardina-ui.github.io/questionarios/CARS2-ST_v1.html',
+      syncKey:'cars2_st',
+      area:'Despiste neurodesenvolvimento',
+      ageRange:'<6 anos OU QI≤79 OU verbal limitada/ausente',
+      objective:'Avaliação clínica integrativa da severidade de sinais compatíveis com Perturbação do Espetro do Autismo (PEA) em crianças mais novas ou com maior compromisso funcional: idade cronológica <6 anos, OU estimativa de QI ≤79, OU comunicação verbal limitada/ausente. Adaptação inspirada (Via B) na CARS-2 Standard Form (Schopler, Van Bourgondien, Wellman & Love, 2010, WPS), com formulação clínica original em PT-PT — conteúdo literário do instrumento de referência NÃO reproduzido. Calibrada para valorizar manifestações comportamentais observáveis (motoras, sensoriais, comportamentais), com menor exigência de inferência sobre processos mentais subtis. Inclui dois domínios próprios da versão Standard: Imitação (item 2) e Impressões Clínicas Globais (item 15). Cotação clínica integrativa por psicólogo. 15 domínios com escala 1.0–4.0 (passos 0.5); soma 15.0–60.0. Pontos de corte (Schopler et al., 1980; Chlebowski, Green, Barton & Fein, 2010; Schopler et al., 2010): Mínimo 15-29.5 / Ligeiro a moderado 30-36.5 / Severo 37-60 (cortes mais altos que a CARS2-HP). Sinalização adicional: domínios com cotação ≥3.0 configuram atipicidade clinicamente relevante. Identificação inclui QI estimado e nível de comunicação verbal. Não existem normas portuguesas validadas; finalidade clínica complementar — não substitui avaliação clínica integrada nem instrumentos como ADOS-2 (Toddler/M1/M2), ADI-R, Bayley-III/WPPSI-IV/Leiter-3, Vineland-3.',
+      domains:['Relação com pessoas','Imitação','Resposta emocional','Uso do corpo','Uso de objetos','Adaptação à mudança','Resposta visual','Resposta auditiva','Resposta gustativa/olfativa/tátil','Medo ou nervosismo','Comunicação verbal','Comunicação não-verbal','Nível de atividade','Nível e consistência da resposta intelectual','Impressões clínicas globais'],
+      ageMin:0, ageMax:1200, ageUnit:'meses' }
   ];
   // Garantir que TODOS os defaults estão no catálogo, sempre
   // (funciona em RC novos e em RC existentes — nunca perde questionários)
@@ -1810,6 +1929,23 @@ function initCatalog() {
       'q_cheat':        { link:'https://correiaricardina-ui.github.io/questionarios/ChEAT_v1.html', syncKey:'cheat' },
       // AQ-Child — Quociente de Espectro do Autismo (Versão Criança) v1.0
       'q_aq_child':     { link:'https://correiaricardina-ui.github.io/questionarios/AQ_Child_v1.html', syncKey:'aqchild' },
+      // ── ISS-I / ESI — Inventário de Sintomas de Stress Infantil v1.0 ──
+      'q_iss_esi':      { link:'https://correiaricardina-ui.github.io/questionarios/ISS_ESI_v1.html', syncKey:'iss_esi' },
+      // ── C-SSRS-P · Risco Suicidário Pediátrica v1.0 (Ricardina Correia, 2026) ──
+      'q_c_ssrs_p':     { link:'https://correiaricardina-ui.github.io/questionarios/C-SSRS-P_Pediatrica_v1.html', syncKey:'c_ssrs_p' },
+      // ── C-SSRS-A · Risco Suicidário Adolescente v1.0 (Ricardina Correia, 2026) ──
+      'q_c_ssrs_a':     { link:'https://correiaricardina-ui.github.io/questionarios/C-SSRS-A_Adolescente_v1.html', syncKey:'c_ssrs_a' },
+      // ── C-SSRS-DC · Risco Suicidário Défice Cognitivo v1.0 (Ricardina Correia, 2026) ──
+      'q_c_ssrs_dc':    { link:'https://correiaricardina-ui.github.io/questionarios/C-SSRS-DC_DeficeCognitivo_v1.html', syncKey:'c_ssrs_dc' },
+      // ── M-CHAT-R/F · Despiste Precoce de Autismo v1.0 (© 2009 Robins/Fein/Barton · trad. Carla Cintrão Almeida) ──
+      'q_m_chat_r_f':   { link:'https://correiaricardina-ui.github.io/questionarios/M-CHAT-R-F_v1.html', syncKey:'m_chat_r_f' },
+      // ── Família CARS2 · v70.0 — Adaptações inspiradas (Via B) na CARS-2 (Schopler et al., 2010, WPS) ──
+      // CARS2-HP · Espetro do Autismo (Funcionamento Elevado) v1.0 (Ricardina Correia, 2026) ──
+      'q_cars2_hp':     { link:'https://correiaricardina-ui.github.io/questionarios/CARS2-HP_v1.html', syncKey:'cars2_hp' },
+      // CARS2-QPC · Questionário Parental para Espetro do Autismo v1.0 (Ricardina Correia, 2026) ──
+      'q_cars2_qpc':    { link:'https://correiaricardina-ui.github.io/questionarios/CARS2-QPC_v1.html', syncKey:'cars2_qpc' },
+      // CARS2-ST · Espetro do Autismo (Versão Standard) v1.0 (Ricardina Correia, 2026) ──
+      'q_cars2_st':     { link:'https://correiaricardina-ui.github.io/questionarios/CARS2-ST_v1.html', syncKey:'cars2_st' },
     };
     // ── Re-store com chave correcta ('q_' + id) — corrige instalações anteriores ──
     // Garante que Conners, FAD e MAP ficam acessíveis pelo META.forEach e getCatalog
@@ -2165,6 +2301,46 @@ function initCatalog() {
     if(!catalog.includes('q_cheat')) {
       const d = defaults.find(x => x.id === 'q_cheat');
       if(d) { store.set('q_' + d.id, d); catalog.push('q_cheat'); store.set('catalog', catalog); }
+    }
+    // ── ISS-I / ESI — Inventário de Sintomas de Stress Infantil v1.0 ──
+    if(!catalog.includes('q_iss_esi')) {
+      const d = defaults.find(x => x.id === 'q_iss_esi');
+      if(d) { store.set('q_' + d.id, d); catalog.push('q_iss_esi'); store.set('catalog', catalog); }
+    }
+    // ── C-SSRS-P · Risco Suicidário Pediátrica v1.0 (Ricardina Correia, 2026) ──
+    if(!catalog.includes('q_c_ssrs_p')) {
+      const d = defaults.find(x => x.id === 'q_c_ssrs_p');
+      if(d) { store.set('q_' + d.id, d); catalog.push('q_c_ssrs_p'); store.set('catalog', catalog); }
+    }
+    // ── C-SSRS-A · Risco Suicidário Adolescente v1.0 (Ricardina Correia, 2026) ──
+    if(!catalog.includes('q_c_ssrs_a')) {
+      const d = defaults.find(x => x.id === 'q_c_ssrs_a');
+      if(d) { store.set('q_' + d.id, d); catalog.push('q_c_ssrs_a'); store.set('catalog', catalog); }
+    }
+    // ── C-SSRS-DC · Risco Suicidário Défice Cognitivo v1.0 (Ricardina Correia, 2026) ──
+    if(!catalog.includes('q_c_ssrs_dc')) {
+      const d = defaults.find(x => x.id === 'q_c_ssrs_dc');
+      if(d) { store.set('q_' + d.id, d); catalog.push('q_c_ssrs_dc'); store.set('catalog', catalog); }
+    }
+    // ── M-CHAT-R/F · Despiste Precoce de Autismo v1.0 (© 2009 Robins/Fein/Barton · trad. Carla Cintrão Almeida) ──
+    if(!catalog.includes('q_m_chat_r_f')) {
+      const d = defaults.find(x => x.id === 'q_m_chat_r_f');
+      if(d) { store.set('q_' + d.id, d); catalog.push('q_m_chat_r_f'); store.set('catalog', catalog); }
+    }
+    // ── CARS2-HP · Funcionamento Elevado v1.0 (Ricardina Correia, 2026) ──
+    if(!catalog.includes('q_cars2_hp')) {
+      const d = defaults.find(x => x.id === 'q_cars2_hp');
+      if(d) { store.set('q_' + d.id, d); catalog.push('q_cars2_hp'); store.set('catalog', catalog); }
+    }
+    // ── CARS2-QPC · Questionário Parental v1.0 (Ricardina Correia, 2026) ──
+    if(!catalog.includes('q_cars2_qpc')) {
+      const d = defaults.find(x => x.id === 'q_cars2_qpc');
+      if(d) { store.set('q_' + d.id, d); catalog.push('q_cars2_qpc'); store.set('catalog', catalog); }
+    }
+    // ── CARS2-ST · Versão Standard v1.0 (Ricardina Correia, 2026) ──
+    if(!catalog.includes('q_cars2_st')) {
+      const d = defaults.find(x => x.id === 'q_cars2_st');
+      if(d) { store.set('q_' + d.id, d); catalog.push('q_cars2_st'); store.set('catalog', catalog); }
     }
     }
   }
@@ -3609,10 +3785,23 @@ function renderAssignments(patientId) {
                 'AQ_BussPerry':          ['NomeAvaliado','NomeInformante'],
                 // ── ChEAT — auto-relato criança 8-13 anos ──
                 'ChEAT':                 ['NomeInformante','NomeCriança','NomeCrianca','Informante'],
-                // ── EADRS — Risco Suicidário (Ricardina Correia, 2026) ──
-                'EADRS_P':               ['NomeInformante','Relação','Tipo'],
-                'EADRS_A':               [],
-                'EADRS_DC':              ['NomeInformante','Relação','Tipo']
+                // ── ISS-I / ESI — auto-relato criança 6-14 anos ──
+                'ISS_ESI':               ['NomeInformante','NomeCriança','NomeCrianca','Informante'],
+                // ── C-SSRS-P · Risco Suicidário Pediátrica — Auto+Hetero (Tipo distingue) ──
+                'C_SSRS_P':              ['NomeInformante','Tipo'],
+                // ── C-SSRS-A · Risco Suicidário Adolescente — Só Auto ──
+                'C_SSRS_A':              ['NomeInformante'],
+                // ── C-SSRS-DC · Risco Suicidário Défice Cognitivo — Auto+Hetero (Tipo distingue) ──
+                'C_SSRS_DC':             ['NomeInformante','Tipo'],
+                // ── M-CHAT-R/F · Despiste Precoce de Autismo — sem campo Tipo (parente único informa) ──
+                'M_CHAT_R_F':            ['NomeInformante'],
+                // ── Família CARS2 (v70.0) ──
+                // CARS2-HP — cotação clínica por psicólogo (clinician-rated) ──
+                'CARS2_HP':              ['Psicologo'],
+                // CARS2-QPC — parent/cuidador-completed (pai+mãe podem submeter em separado) ──
+                'CARS2_QPC':             ['NomeInformante','Relacao'],
+                // CARS2-ST — cotação clínica por psicólogo (clinician-rated) ──
+                'CARS2_ST':              ['Psicologo']
               };
               const RC = {
                 'SWAN':['Relação'],'BRIEF_Pais':['Relação'],'SCARED_R_PAIS':['Relação'],
@@ -3917,10 +4106,23 @@ async function syncAndMark(patientId, idx) {
           'FSSC_R':          ['NomeInformante','NomeCriança','NomeCrianca'],
           // ── ChEAT — auto-relato criança 8-13 anos ──
           'ChEAT':           ['NomeInformante','NomeCriança','NomeCrianca','Informante'],
-          // ── EADRS — Risco Suicidário (Ricardina Correia, 2026) ──
-          'EADRS_P':         ['NomeInformante','Relação','Tipo'],
-          'EADRS_A':         [],
-          'EADRS_DC':        ['NomeInformante','Relação','Tipo']
+          // ── ISS-I / ESI — auto-relato criança 6-14 anos ──
+          'ISS_ESI':         ['NomeInformante','NomeCriança','NomeCrianca','Informante'],
+          // ── C-SSRS-P · Risco Suicidário Pediátrica — Auto+Hetero (Tipo distingue) ──
+          'C_SSRS_P':        ['NomeInformante','Tipo'],
+          // ── C-SSRS-A · Risco Suicidário Adolescente — Só Auto ──
+          'C_SSRS_A':        ['NomeInformante'],
+          // ── C-SSRS-DC · Risco Suicidário Défice Cognitivo — Auto+Hetero (Tipo distingue) ──
+          'C_SSRS_DC':       ['NomeInformante','Tipo'],
+          // ── M-CHAT-R/F · Despiste Precoce de Autismo — sem campo Tipo (parente único informa) ──
+          'M_CHAT_R_F':      ['NomeInformante'],
+          // ── Família CARS2 (v70.0) ──
+          // CARS2-HP — cotação clínica por psicólogo (clinician-rated) ──
+          'CARS2_HP':        ['Psicologo'],
+          // CARS2-QPC — parent/cuidador-completed (pai+mãe podem submeter em separado) ──
+          'CARS2_QPC':       ['NomeInformante','Relacao'],
+          // CARS2-ST — cotação clínica por psicólogo (clinician-rated) ──
+          'CARS2_ST':        ['Psicologo']
         };
         const RC2 = {
           'SWAN':['Relação'],'BRIEF_Pais':['Relação'],'SCARED_R_PAIS':['Relação'],
@@ -4363,7 +4565,7 @@ document.addEventListener('DOMContentLoaded', () => {
   store.del('pw');
   // Forçar re-leitura do META em cada arranque — limpa chaves com prefixo errado
   (function forceMetaRefresh() {
-    const META_VERSION = 'v26_abril2026_perfecionismo';
+    const META_VERSION = 'v27_maio2026_cars2';
     if(localStorage.getItem('cns_meta_version') !== META_VERSION) {
       // Limpar chaves de metadados de questionários para forçar recriação
       Object.keys(localStorage)

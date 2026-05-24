@@ -317,8 +317,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--gray);color:var(--text);m
       <button class="btn btn-secondary" style="padding:6px 14px;font-size:0.82rem" onclick="exportarCSV()">&darr; Exportar CSV</button>
       <button class="btn btn-secondary" style="padding:6px 14px;font-size:0.82rem" onclick="exportarPDF()">&#128196; Exportar PDF</button>
       <button class="btn btn-secondary" style="padding:6px 14px;font-size:0.82rem" onclick="window.print()">&#128424; Imprimir</button>
-      <button class="btn btn-secondary" style="padding:6px 14px;font-size:0.82rem" onclick="exportarRespostasPDF(sessaoActual)">&#128203; Respostas PDF</button>
-      <button class="btn btn-secondary" style="padding:6px 14px;font-size:0.82rem" onclick="exportarInterpretacaoPDF(sessaoActual)">&#128202; Exportar Interpretação PDF</button>
       <input type="file" id="import-file-input" accept=".csv" style="display:none" onchange="processarFicheiroImportado(this)">
     </div>
     <div id="import-feedback" style="margin-bottom:12px;display:none"></div>
@@ -351,9 +349,13 @@ body{font-family:'DM Sans',sans-serif;background:var(--gray);color:var(--text);m
 <!-- ============================================================ -->
 <div id="modal-detalhe" class="modal-overlay" style="display:none">
   <div class="modal-box">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;padding-bottom:12px;border-bottom:1px solid var(--gray-bdr)">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:18px;padding-bottom:12px;border-bottom:1px solid var(--gray-bdr)">
       <div id="modal-titulo" style="font-family:'DM Serif Display',serif;font-size:1.3rem;color:var(--blue)">Detalhe</div>
-      <button class="btn btn-secondary btn-xs" onclick="fecharModal()">&times; Fechar</button>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end" class="no-print">
+        <button class="btn btn-secondary btn-xs" onclick="exportarRespostasPDF(sessaoActual)">&#128203; Respostas PDF</button>
+        <button class="btn btn-secondary btn-xs" onclick="exportarInterpretacaoPDF(sessaoActual)">&#128202; Relatório Completo PDF</button>
+        <button class="btn btn-secondary btn-xs" onclick="fecharModal()">&times; Fechar</button>
+      </div>
     </div>
     <div id="modal-conteudo"></div>
   </div>
