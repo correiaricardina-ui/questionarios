@@ -357,6 +357,93 @@ var SUBSCALAS = ['Cooperação','Cooperação','Cooperação','Cooperação','Co
 
 var LABELS_LIKERT = ['Nunca','Raramente','Às Vezes','Normalmente','Sempre'];
 
+// ─── VALIDAÇÃO DEFENSIVA — CAMADAS DE BLINDAGEM ─────────────────────────────
+// Histórico do bug (maio 2026): registos cuja coluna "*_Media" na Sheet ficou
+// contaminada com a data de preenchimento faziam o parseFloat devolver o ano
+// (ex.: 2026) e a classificação automática produzia "Elevada cooperação"
+// com base num valor impossível.
+//
+// Estratégia de blindagem (sete camadas redundantes):
+//   1. Cálculo SEMPRE a partir das respostas (recalcScoresFromAnswers).
+//   2. Validação dos raws contra os intervalos teóricos por subescala.
+//   3. Validação das médias contra o intervalo [1.0, 5.0].
+//   4. Funções de classificação rejeitam input fora do intervalo.
+//   5. Validação obrigatória antes da submissão (impede novos contaminados).
+//   6. Self-check no arranque executa os casos canónicos do diagnóstico —
+//      qualquer regressão futura é apanhada com banner vermelho fail-fast.
+//   7. Auditoria automática na abertura do painel + banner amarelo de aviso.
+
+var QC_ESCALA_MIN = 1.0;
+var QC_ESCALA_MAX = 5.0;
+
+// Intervalos teóricos dos raws por subescala (escala Likert 1–5):
+//   Cooperação:   5 itens directos → raw ∈ [5, 25]
+//   Triangulação: 4 itens directos → raw ∈ [4, 20]
+//   Conflito:     5 itens, item 13 (idx 12) invertido (6−x):
+//                  mínimo = 4×1 + (6−5) = 5; máximo = 4×5 + (6−1) = 25
+//                  Mas se todos a 1: 4×1 + (6−1) = 9
+//                  Se todos a 5:     4×5 + (6−5) = 21
+//                  → raw teoricamente possível ∈ [5, 25], realisticamente vai
+//                  ser quase sempre [9, 21] mas usamos [5, 25] como gate.
+var QC_RAW_BOUNDS = {
+  coop:   { min: 5,  max: 25, n: 5 },
+  triang: { min: 4,  max: 20, n: 4 },
+  conf:   { min: 5,  max: 25, n: 5 }
+};
+
+function mediaValida(m){
+  var n = (typeof m === 'number') ? m : parseFloat(m);
+  return Number.isFinite(n) && n >= QC_ESCALA_MIN && n <= QC_ESCALA_MAX;
+}
+
+function rawValido(raw, sub){
+  var n = (typeof raw === 'number') ? raw : parseFloat(raw);
+  var b = QC_RAW_BOUNDS[sub];
+  return Number.isFinite(n) && n >= b.min && n <= b.max;
+}
+
+// Validação completa de um objecto scores: raws + médias. Devolve lista de
+// problemas encontrados (vazia = tudo OK).
+function validarScoresQC(scores){
+  if(!scores || typeof scores !== 'object') return ['scores ausente ou não-objecto'];
+  var prob = [];
+  if(!rawValido(scores.coop, 'coop'))     prob.push('Cooperacao_Raw='+scores.coop+' fora de ['+QC_RAW_BOUNDS.coop.min+','+QC_RAW_BOUNDS.coop.max+']');
+  if(!rawValido(scores.triang, 'triang')) prob.push('Triangulacao_Raw='+scores.triang+' fora de ['+QC_RAW_BOUNDS.triang.min+','+QC_RAW_BOUNDS.triang.max+']');
+  if(!rawValido(scores.conf, 'conf'))     prob.push('Conflito_Raw='+scores.conf+' fora de ['+QC_RAW_BOUNDS.conf.min+','+QC_RAW_BOUNDS.conf.max+']');
+  if(!mediaValida(scores.coopM))   prob.push('Cooperacao_Media='+scores.coopM+' fora de ['+QC_ESCALA_MIN+','+QC_ESCALA_MAX+']');
+  if(!mediaValida(scores.triangM)) prob.push('Triangulacao_Media='+scores.triangM+' fora de ['+QC_ESCALA_MIN+','+QC_ESCALA_MAX+']');
+  if(!mediaValida(scores.confM))   prob.push('Conflito_Media='+scores.confM+' fora de ['+QC_ESCALA_MIN+','+QC_ESCALA_MAX+']');
+  return prob;
+}
+
+// Recalcula scores a partir das respostas item-a-item. Devolve null se as
+// respostas não forem um array completo e válido de N_ITENS valores 1–5.
+function recalcScoresFromAnswers(answers){
+  if(!Array.isArray(answers) || answers.length !== N_ITENS) return null;
+  for(var i=0; i<N_ITENS; i++){
+    var v = Number(answers[i]);
+    if(!Number.isFinite(v) || v < 1 || v > 5) return null;
+  }
+  var s = calcularScores(answers);
+  // Defesa redundante: o próprio cálculo tem de respeitar os intervalos teóricos.
+  // Se não respeitar, é bug de cálculo (não de dados) e deve ser sinalizado.
+  if(validarScoresQC(s).length > 0) return null;
+  return s;
+}
+
+// Devolve scores fiáveis: tenta primeiro recalcular a partir de answers; se
+// não for possível, devolve os valores em cache validados (apenas se TUDO —
+// raws e médias — cair nos intervalos permitidos). Caso contrário marca como
+// inválido.
+function scoresFiaveis(answers, cache){
+  var fresh = recalcScoresFromAnswers(answers);
+  if(fresh) return { scores: fresh, fonte: 'recalculado', valido: true, problemas: [] };
+  // Fallback: aceitar cache apenas se a validação completa passar
+  var prob = validarScoresQC(cache);
+  if(prob.length === 0) return { scores: cache, fonte: 'cache', valido: true, problemas: [] };
+  return { scores: cache || {}, fonte: 'cache-contaminado', valido: false, problemas: prob };
+}
+
 // ─── ESTADO ─────────────────────────────────────────────────────────────────
 var respostasActuais = new Array(N_ITENS).fill(null);
 var sessoes = [];
@@ -382,6 +469,14 @@ function showClinico(){
 function doLogin(){
   var pw = document.getElementById('login-pw').value;
   if(pw === 'CNS2024'){
+    // BLINDAGEM (camada 6): se o self-check falhou, NÃO permitir acesso ao
+    // painel clínico — relatórios potencialmente errados não podem ser gerados.
+    if(__SELFCHECK_OK === false){
+      alert('⚠ Acesso ao painel bloqueado: o self-check do sistema falhou. '+
+            'Não é seguro gerar relatórios clínicos enquanto a cotação não estiver verificada. '+
+            'Veja o banner vermelho no topo da página e contacte a Dra. Ricardina Correia.');
+      return;
+    }
     showPage('page-clinico');
     carregarDados();
   } else {
@@ -492,6 +587,21 @@ function submeter(){
   var scores = calcularScores(respostasActuais);
   var data = new Date().toLocaleDateString('pt-PT');
 
+  // BLINDAGEM (camada 2): validar scores antes da submissão. Se algo falhar,
+  // o questionário NÃO é enviado para a Sheet e a Ricardina é avisada. Só
+  // entra em vigor quando o questionário está completo — submissões parciais
+  // são autorizadas explicitamente acima via confirm().
+  if(nRespondidas === N_ITENS){
+    var problemas = validarScoresQC(scores);
+    if(problemas.length > 0){
+      alert('⚠ Erro de validação dos scores. A submissão foi bloqueada para proteger a integridade dos dados.\n\n'+
+            'Problemas detectados:\n  • '+problemas.join('\n  • ')+
+            '\n\nContacte a Dra. Ricardina Correia.');
+      console.error('[QC] Submissão bloqueada — scores inválidos:', scores, problemas);
+      return;
+    }
+  }
+
   var payload = {
     instrumento: 'QC_Coparentalidade',
     versao: VERSAO,
@@ -567,31 +677,80 @@ async function carregarDados(){
       // Chave única por código + data (permite múltiplas sessões do mesmo código)
       var date=r['Data']||r.date||'';
       var uid=code+'_'+(date||'sheet')+'_sheet';
+      // Parse respostas primeiro — são a fonte fiável
+      var answers;
+      try { answers = JSON.parse(r['Respostas']||r['respostas']||'[]'); }
+      catch(e){ answers = []; }
+      // Cache da Sheet (pode estar contaminada — ver QC_ESCALA_MIN/MAX acima)
+      var cache = {
+        coop:  Number(r['Cooperacao_Raw'] ||r['Coop_Raw'] ||r['coop_raw'] ||0),
+        triang:Number(r['Triangulacao_Raw']||r['Triang_Raw']||r['triang_raw']||0),
+        conf:  Number(r['Conflito_Raw']   ||r['Conf_Raw'] ||r['conf_raw'] ||0),
+        coopM: r['Cooperacao_Media']||r['Coop_Media']||r['coop_media']||'',
+        triangM:r['Triangulacao_Media']||r['Triang_Media']||r['triang_media']||'',
+        confM: r['Conflito_Media']||r['Conf_Media']||r['conf_media']||''
+      };
+      // Recalcular a partir das respostas (single source of truth); cache só
+      // é usada como fallback quando respostas não estão disponíveis.
+      var resultado = scoresFiaveis(answers, cache);
+      if(resultado.fonte === 'recalculado' &&
+         (cache.coopM && !mediaValida(cache.coopM) || cache.triangM && !mediaValida(cache.triangM) || cache.confM && !mediaValida(cache.confM))){
+        console.warn('[QC] Sessão '+code+' ('+date+'): médias da Sheet estavam contaminadas e foram recalculadas a partir das respostas. Cache:', cache, 'Recalculado:', resultado.scores);
+      }
       // Sempre actualizar (para garantir dados frescos)
       local[uid]={
         uid:uid,code:code,
         nomeCrianca:r['NomeCriança']||r['NomeCrianca']||r.nomeCrianca||'',
         nomeInf:r['Respondente']||r.nome_informante||'',
         date:date,
-        scores:{
-          coop:  Number(r['Cooperacao_Raw'] ||r['Coop_Raw'] ||r['coop_raw'] ||0),
-          triang:Number(r['Triangulacao_Raw']||r['Triang_Raw']||r['triang_raw']||0),
-          conf:  Number(r['Conflito_Raw']   ||r['Conf_Raw'] ||r['conf_raw'] ||0),
-          coopM: r['Cooperacao_Media']||r['Coop_Media']||r['coop_media']||'',
-          triangM:r['Triangulacao_Media']||r['Triang_Media']||r['triang_media']||'',
-          confM: r['Conflito_Media']||r['Conf_Media']||r['conf_media']||''
-        },
-        answers:JSON.parse(r['Respostas']||r['respostas']||'[]'),
+        scores: resultado.scores,
+        scoresFonte: resultado.fonte,
+        scoresValido: resultado.valido,
+        answers: answers,
         versao:VERSAO,fromSheet:true
       };
     });
     store(SK,local);
     sessoes=Object.values(local);
+    // Migração defensiva: recalcular qualquer sessão em localStorage cujas
+    // médias caches sejam inválidas mas com respostas válidas disponíveis.
+    migrarSessoesContaminadas();
     renderPanel();
   }catch(e){
     var local=load(SK)||{};
     sessoes=Object.values(local);
+    migrarSessoesContaminadas();
     renderPanel();
+  }
+}
+
+// Percorre as sessões em memória e reparara qualquer uma com médias inválidas
+// (ex.: contaminadas pela data) usando recalcScoresFromAnswers().
+function migrarSessoesContaminadas(){
+  var reparadas = 0;
+  var local = load(SK)||{};
+  sessoes.forEach(function(s){
+    var sc = s.scores||{};
+    var coopBad = sc.coopM!=='' && sc.coopM!=null && !mediaValida(sc.coopM);
+    var triangBad = sc.triangM!=='' && sc.triangM!=null && !mediaValida(sc.triangM);
+    var confBad = sc.confM!=='' && sc.confM!=null && !mediaValida(sc.confM);
+    if(coopBad || triangBad || confBad){
+      var fresh = recalcScoresFromAnswers(s.answers);
+      if(fresh){
+        s.scores = fresh;
+        s.scoresFonte = 'recalculado-migracao';
+        s.scoresValido = true;
+        if(s.uid && local[s.uid]) local[s.uid] = s;
+        reparadas++;
+      } else {
+        s.scoresValido = false;
+        s.scoresFonte = 'cache-contaminado';
+      }
+    }
+  });
+  if(reparadas > 0){
+    store(SK, local);
+    console.warn('[QC] '+reparadas+' sessão(ões) com médias contaminadas foram recalculadas a partir das respostas. Veja __auditarSessoes() para detalhe.');
   }
 }
 
@@ -601,7 +760,25 @@ function renderPanel(){
     c.innerHTML='<p style="color:var(--text-light);text-align:center;padding:32px">Sem sessões registadas.</p>';
     return;
   }
-  var html='<div style="overflow-x:auto"><table class="panel-table">'+
+  // BLINDAGEM (camada 7): auditoria automática + banner amarelo se houver
+  // contaminações detectadas. A Ricardina vê imediatamente que registos
+  // precisam de revisão clínica, sem ter de abrir a consola.
+  var probsAuditoria = sessoes.filter(function(s){
+    var sc=s.scores||{};
+    return (sc.coopM!=='' && sc.coopM!=null && !mediaValida(sc.coopM)) ||
+           (sc.triangM!=='' && sc.triangM!=null && !mediaValida(sc.triangM)) ||
+           (sc.confM!=='' && sc.confM!=null && !mediaValida(sc.confM)) ||
+           (s.scoresValido === false);
+  });
+  var banner = '';
+  if(probsAuditoria.length > 0){
+    banner = '<div style="background:#FEF3C7;border:1px solid #F59E0B;border-radius:8px;padding:12px 16px;margin-bottom:14px;font-size:.85rem;color:#78350F">'+
+      '<strong>⚠ '+probsAuditoria.length+' sessão(ões) com médias inválidas detectadas.</strong> '+
+      'Foram automaticamente recalculadas a partir das respostas item-a-item sempre que possível. '+
+      'Para detalhe, abra a consola (F12) e execute <code style="background:#FDE68A;padding:1px 5px;border-radius:3px">__auditarSessoes()</code>.'+
+      '</div>';
+  }
+  var html=banner+'<div style="overflow-x:auto"><table class="panel-table">'+
     '<thead><tr>'+
     '<th>Código</th><th>Data</th><th>Respondente</th>'+
     '<th title="Cooperação">Coop.</th>'+
@@ -612,8 +789,13 @@ function renderPanel(){
   sessoes.sort(function(a,b){return (b.date||'').localeCompare(a.date||'')});
   sessoes.forEach(function(s,idx){
     var sc=s.scores||{};
+    // Indicador visual de score contaminado (mesmo após recálculo, mantemos memória)
+    var flagContam = (s.scoresFonte === 'cache-contaminado') ?
+      '<span title="Médias originais contaminadas — não foi possível recalcular" style="color:#C0392B;font-weight:700"> ⚠</span>' :
+      (s.scoresFonte && /recalculado/.test(s.scoresFonte) ?
+        '<span title="Médias recalculadas a partir das respostas" style="color:#F59E0B"> ↻</span>' : '');
     html+='<tr>'+
-      '<td><strong>'+(s.code||'—')+'</strong>'+(s.nomeCrianca?'<br><span style="font-size:.75rem;color:var(--text-light)">'+s.nomeCrianca+'</span>':'')+
+      '<td><strong>'+(s.code||'—')+'</strong>'+flagContam+(s.nomeCrianca?'<br><span style="font-size:.75rem;color:var(--text-light)">'+s.nomeCrianca+'</span>':'')+
       '</td>'+
       '<td>'+(s.date||'—')+'</td>'+
       '<td>'+(s.nomeInf||VERSAO)+'</td>'+
@@ -635,24 +817,28 @@ function verDetalhe(idx){
   document.getElementById('modal-titulo').textContent=
     'Detalhe · '+(s.code||'')+(s.nomeCrianca?' · '+s.nomeCrianca:'');
 
-  // Interpretação por médias
-  var cM=parseFloat(sc.coopM)||0;
-  var tM=parseFloat(sc.triangM)||0;
-  var fM=parseFloat(sc.confM)||0;
+  // BLINDAGEM (camada 7): parseFloat sem ||0 — preferimos NaN quando inválido
+  // para que as funções de classificação detectem com mediaValida() em vez de
+  // engolir silenciosamente como "0". Mostra também origem dos scores.
+  var cM = mediaValida(sc.coopM)   ? parseFloat(sc.coopM)   : NaN;
+  var tM = mediaValida(sc.triangM) ? parseFloat(sc.triangM) : NaN;
+  var fM = mediaValida(sc.confM)   ? parseFloat(sc.confM)   : NaN;
 
-  function interpCoop(m){
-    if(m>=4) return {c:'#27AE60',z:'Elevada cooperação'};
-    if(m>=3) return {c:'#E67E22',z:'Cooperação moderada'};
-    return {c:'#C0392B',z:'Cooperação baixa'};
-  }
-  function interpNeg(m){
-    if(m<=1.5) return {c:'#27AE60',z:'Ausente / muito baixo'};
-    if(m<=2.5) return {c:'#E67E22',z:'Moderado'};
-    return {c:'#C0392B',z:'Elevado'};
-  }
   var iC=interpCoop(cM);
   var iT=interpNeg(tM);
   var iF=interpNeg(fM);
+
+  // Aviso de proveniência dos scores (visível ao clínico no modal de detalhe)
+  var avisoFonte = '';
+  if(s.scoresFonte === 'cache-contaminado'){
+    avisoFonte = '<div style="background:#FEE2E2;border:1px solid #C0392B;border-radius:6px;padding:8px 12px;margin-bottom:12px;font-size:.82rem;color:#7F1D1D">'+
+      '<strong>⚠ Dados contaminados — não foi possível recalcular.</strong> '+
+      'As médias originais estão fora do intervalo válido [1.0, 5.0] e as respostas item-a-item não estão disponíveis. '+
+      'NÃO usar este relatório clinicamente sem verificar os dados na Sheet.</div>';
+  } else if(s.scoresFonte && /recalculado/.test(s.scoresFonte)){
+    avisoFonte = '<div style="background:#DBEAFE;border:1px solid #3B82F6;border-radius:6px;padding:6px 12px;margin-bottom:12px;font-size:.78rem;color:#1E3A8A">'+
+      '↻ Scores recalculados automaticamente a partir das respostas item-a-item (as médias cached na Sheet estavam contaminadas).</div>';
+  }
 
   function barra(m,inv){
     var pct=inv?(((5-m)/4)*100):(((m-1)/4)*100);
@@ -685,6 +871,7 @@ function verDetalhe(idx){
   }
 
   var html=
+    avisoFonte +
     '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px">'+
     scoreBox('Cooperação','badge-coop',sc.coop,sc.coopM,'(máx 25)')+
     scoreBox('Triangulação','badge-triang',sc.triang,sc.triangM,'(máx 20)')+
@@ -751,7 +938,38 @@ function interpRow(label,raw,media,max,interp,inv){
     '</tr>';
 }
 
+// ─── CLASSIFICAÇÃO POR MÉDIA ─────────────────────────────────────────────────
+// Funções no escopo do módulo (não dentro de verDetalhe) para serem testáveis
+// e reutilizadas pelo painel, modal de detalhe e PDF do relatório.
+// Limiares (escala 1–5, médias por item):
+//   Cooperação:  M ≥ 4 → Elevada · 3 ≤ M < 4 → Moderada · M < 3 → Baixa
+//   Triang/Conf: M ≤ 1.5 → Ausente · 1.5 < M ≤ 2.5 → Moderado · M > 2.5 → Elevado
+function interpCoop(m){
+  if(!mediaValida(m)) return {c:'#6B7A8D',z:'Média inválida — verificar dados'};
+  if(m>=4) return {c:'#27AE60',z:'Elevada cooperação'};
+  if(m>=3) return {c:'#E67E22',z:'Cooperação moderada'};
+  return {c:'#C0392B',z:'Cooperação baixa'};
+}
+function interpNeg(m){
+  if(!mediaValida(m)) return {c:'#6B7A8D',z:'Média inválida — verificar dados'};
+  if(m<=1.5) return {c:'#27AE60',z:'Ausente / muito baixo'};
+  if(m<=2.5) return {c:'#E67E22',z:'Moderado'};
+  return {c:'#C0392B',z:'Elevado'};
+}
+
 function buildSumario(cM,tM,fM){
+  // Defesa: nunca gerar interpretação clínica automática com médias fora do
+  // intervalo válido [1.0, 5.0]. Devolve aviso explícito em vez de texto
+  // clínico baseado em valor impossível.
+  var invalidos = [];
+  if(!mediaValida(cM)) invalidos.push('Cooperação='+cM);
+  if(!mediaValida(tM)) invalidos.push('Triangulação='+tM);
+  if(!mediaValida(fM)) invalidos.push('Conflito='+fM);
+  if(invalidos.length){
+    return '<strong style="color:#C0392B">⚠ Médias fora do intervalo válido (1.0–5.0): '+invalidos.join(', ')+
+      '. A interpretação clínica automática foi suspensa para este registo. '+
+      'Verifique os dados na Sheet ou recalcule a partir das respostas item-a-item antes de utilizar este relatório clinicamente.</strong>';
+  }
   var parts=[];
   // Cooperação
   if(cM>=4) parts.push('A <strong>cooperação coparental</strong> situa-se num nível <strong>elevado</strong> (M='+cM+'), reflectindo apoio mútuo nas funções parentais.');
@@ -771,16 +989,23 @@ function buildSumario(cM,tM,fM){
 function exportarRelatorioModal(){
   var s = sessaoActual;
   if(!s){ alert('Sem sessão seleccionada.'); return; }
+  // BLINDAGEM: bloquear exportação se scores forem reconhecidamente contaminados
+  if(s.scoresFonte === 'cache-contaminado' || s.scoresValido === false){
+    if(!confirm('⚠ Os scores desta sessão estão marcados como contaminados (não foi possível recalcular a partir das respostas). '+
+                'O relatório vai indicar isso explicitamente, mas não deve ser usado clinicamente sem revisão. Continuar?')) return;
+  }
   var sc = s.scores||{};
-  var cM = parseFloat(sc.coopM)||0;
-  var tM = parseFloat(sc.triangM)||0;
-  var fM = parseFloat(sc.confM)||0;
+  var cM = mediaValida(sc.coopM)   ? parseFloat(sc.coopM)   : NaN;
+  var tM = mediaValida(sc.triangM) ? parseFloat(sc.triangM) : NaN;
+  var fM = mediaValida(sc.confM)   ? parseFloat(sc.confM)   : NaN;
 
   function zona(label, m, inv){
+    if(!mediaValida(m)) return '⚠ Média inválida';
     if(!inv) return m>=4?'Elevada cooperação':m>=3?'Cooperação moderada':'Cooperação baixa';
     return m<=1.5?'Ausente / muito baixo':m<=2.5?'Moderado':'Elevado';
   }
   function cor(label, m, inv){
+    if(!mediaValida(m)) return '#6B7A8D';
     if(!inv) return m>=4?'#27AE60':m>=3?'#E67E22':'#C0392B';
     return m<=1.5?'#27AE60':m<=2.5?'#E67E22':'#C0392B';
   }
@@ -817,6 +1042,15 @@ function exportarRelatorioModal(){
   }
 
   var dateStr = s.date ? (s.date.length > 10 ? new Date(s.date).toLocaleDateString('pt-PT') : s.date) : '—';
+  // Aviso de proveniência no PDF (visível também na versão impressa)
+  var avisoPDF = '';
+  if(s.scoresFonte === 'cache-contaminado'){
+    avisoPDF = '<div style="background:#FEE2E2;border:2px solid #C0392B;border-radius:6px;padding:10px 14px;margin-bottom:14px;font-size:10.5px;color:#7F1D1D">'+
+      '<strong>⚠ DADOS CONTAMINADOS — relatório suspenso.</strong> As médias estão fora do intervalo válido e não foi possível recalcular a partir das respostas. NÃO usar este relatório clinicamente.</div>';
+  } else if(s.scoresFonte && /recalculado/.test(s.scoresFonte)){
+    avisoPDF = '<div style="background:#DBEAFE;border:1px solid #3B82F6;border-radius:6px;padding:6px 12px;margin-bottom:12px;font-size:10px;color:#1E3A8A">'+
+      '↻ Scores recalculados automaticamente a partir das respostas item-a-item (cache da Sheet estava contaminada).</div>';
+  }
   var html = '<!DOCTYPE html><html><head><meta charset="UTF-8">'+
     '<title>QC '+VERSAO+' — '+s.code+'</title>'+
     '<style>body{font-family:sans-serif;font-size:11px;color:#2C3E50;padding:24px;max-width:800px;margin:0 auto}'+
@@ -831,6 +1065,7 @@ function exportarRelatorioModal(){
     '<p>Código: <strong>'+s.code+'</strong>'+(s.nomeCrianca?' · '+s.nomeCrianca:'')+
     ' · Respondente: '+(s.nomeInf||VERSAO)+' · Data: '+dateStr+
     ' · Ricardina Correia · Cédula 8233 · Psicologia Pediátrica</p>'+
+    avisoPDF +
     '<h2>📊 Perfil de Resultados</h2>'+
     '<table><thead><tr><th>Subescala</th><th style="text-align:center">Raw</th><th style="text-align:center">Média</th><th>Perfil</th><th>Classificação</th></tr></thead>'+
     '<tbody>'+tableRows+'</tbody></table>'+
@@ -919,13 +1154,22 @@ function processarFicheiroImportado(input){
       var date=row['Data']||'';
       var uid=code+'_'+date+'_imp';
       if(local[uid])continue;
+      var impAnswers;
+      try { impAnswers = JSON.parse(row['Respostas']||'[]'); }
+      catch(e){ impAnswers = []; }
+      var impCache = {
+        coop:row['Coop_Raw'], coopM:row['Coop_Media'],
+        triang:row['Triang_Raw'], triangM:row['Triang_Media'],
+        conf:row['Conf_Raw'], confM:row['Conf_Media']
+      };
+      var impRes = scoresFiaveis(impAnswers, impCache);
       local[uid]={
         uid:uid,code:code,nomeCrianca:row['NomeCriança']||'',
         nomeInf:row['Respondente']||'',date:date,
-        scores:{coop:row['Coop_Raw'],coopM:row['Coop_Media'],
-          triang:row['Triang_Raw'],triangM:row['Triang_Media'],
-          conf:row['Conf_Raw'],confM:row['Conf_Media']},
-        answers:JSON.parse(row['Respostas']||'[]'),versao:VERSAO
+        scores: impRes.scores,
+        scoresFonte: impRes.fonte,
+        scoresValido: impRes.valido,
+        answers: impAnswers, versao:VERSAO
       };
       imp++;
     }
@@ -966,10 +1210,13 @@ function exportarRespostasPDF(sessao){
 // ─── PDF INTERPRETAÇÃO ────────────────────────────────────────────────────────
 function exportarInterpretacaoPDF(sessao){
   if(!sessao){ alert('Seleccione primeiro uma sessão (clique em "Ver →").'); return; }
+  if(sessao.scoresFonte === 'cache-contaminado' || sessao.scoresValido === false){
+    if(!confirm('⚠ Os scores desta sessão estão contaminados. Continuar mesmo assim (o PDF vai indicar)?')) return;
+  }
   var sc=sessao.scores||{};
-  var cM=parseFloat(sc.coopM)||0;
-  var tM=parseFloat(sc.triangM)||0;
-  var fM=parseFloat(sc.confM)||0;
+  var cM = mediaValida(sc.coopM)   ? parseFloat(sc.coopM)   : NaN;
+  var tM = mediaValida(sc.triangM) ? parseFloat(sc.triangM) : NaN;
+  var fM = mediaValida(sc.confM)   ? parseFloat(sc.confM)   : NaN;
   var sumario=buildSumario(cM,tM,fM);
   var html='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>QC Interpretação</title>'+
     '<style>body{font-family:sans-serif;font-size:11px;color:#2C3E50;padding:20px}'+
@@ -997,10 +1244,292 @@ function exportarInterpretacaoPDF(sessao){
   w.document.write(html); w.document.close();
 }
 
+// ─── TESTES UNITÁRIOS E AUDITORIA ────────────────────────────────────────────
+// Para executar abrir DevTools (F12) → consola → escrever:
+//   __runTests()        — verifica que o cálculo da Cooperação e a defesa contra
+//                         valores impossíveis estão a funcionar.
+//   __auditarSessoes()  — lista todas as sessões carregadas com médias fora do
+//                         intervalo válido [1.0, 5.0] e indica se foi possível
+//                         recalcular a partir das respostas.
+
+function __runTests(){
+  var resultados = [];
+  function teste(desc, fn){
+    try { fn(); resultados.push({teste: desc, estado: '✓ passou'}); }
+    catch(e) { resultados.push({teste: desc, estado: '✗ FALHOU', erro: e.message}); }
+  }
+  function eq(a, b, msg){
+    if(a !== b) throw new Error((msg||'') + ' — esperado ' + JSON.stringify(b) + ', obtido ' + JSON.stringify(a));
+  }
+  // 1. Casos pedidos no diagnóstico
+  teste('Cooperação [2,2,2,2,3] → Raw=11, M=2.20, "Cooperação baixa"', function(){
+    var s = calcularScores([2,2,2,2,3, 1,1,1,1, 1,1,1,1,1]);
+    eq(s.coop, 11, 'raw');
+    eq(s.coopM, '2.20', 'media');
+    eq(interpCoop(parseFloat(s.coopM)).z, 'Cooperação baixa', 'classificação');
+  });
+  teste('Cooperação [5,5,5,4,3] → Raw=22, M=4.40, "Elevada cooperação"', function(){
+    var s = calcularScores([5,5,5,4,3, 1,1,1,1, 1,1,1,1,1]);
+    eq(s.coop, 22);
+    eq(s.coopM, '4.40');
+    eq(interpCoop(parseFloat(s.coopM)).z, 'Elevada cooperação');
+  });
+  teste('Cooperação [3,3,3,3,3] → Raw=15, M=3.00, "Cooperação moderada"', function(){
+    var s = calcularScores([3,3,3,3,3, 1,1,1,1, 1,1,1,1,1]);
+    eq(s.coop, 15);
+    eq(s.coopM, '3.00');
+    eq(interpCoop(parseFloat(s.coopM)).z, 'Cooperação moderada');
+  });
+  // 2. Defesa contra o bug reportado
+  teste('REGRESSÃO: interpCoop(2026) NÃO devolve "Elevada cooperação"', function(){
+    var r = interpCoop(2026);
+    if(r.z === 'Elevada cooperação') throw new Error('REGRESSÃO DO BUG: 2026 ainda classifica como Elevada');
+    if(!/inválid/i.test(r.z)) throw new Error('Esperado "Média inválida", obtido: ' + r.z);
+  });
+  teste('REGRESSÃO: parseFloat de string ISO de data devolve ano → tem de ser rejeitado', function(){
+    var contaminado = parseFloat('2026-04-23T23:00:00.000Z');
+    eq(contaminado, 2026, 'parseFloat confirma comportamento');
+    eq(mediaValida(contaminado), false, 'mediaValida deve rejeitar');
+    eq(interpCoop(contaminado).z, 'Média inválida — verificar dados');
+  });
+  teste('buildSumario suspende interpretação clínica com médias inválidas', function(){
+    var s = buildSumario(2026, 1.5, 2.0);
+    if(!/intervalo válido/.test(s)) throw new Error('Esperado aviso de intervalo, obtido: ' + s);
+    if(/Elevada cooperação/.test(s)) throw new Error('Não deve gerar interpretação clínica com input inválido');
+  });
+  // 3. Mínimos e máximos teóricos (cobre as outras subescalas)
+  teste('Mínimo teórico [1,1,1,...]: raws e médias correctos (item 13 invertido)', function(){
+    var s = calcularScores([1,1,1,1,1, 1,1,1,1, 1,1,1,1,1]);
+    eq(s.coop, 5);    eq(s.coopM, '1.00');
+    eq(s.triang, 4);  eq(s.triangM, '1.00');
+    // item 13 (idx 12) invertido: 6-1=5; soma conflito = 1+1+1+5+1 = 9
+    eq(s.conf, 9);    eq(s.confM, '1.80');
+  });
+  teste('Máximo teórico [5,5,5,...]: raws e médias correctos (item 13 invertido)', function(){
+    var s = calcularScores([5,5,5,5,5, 5,5,5,5, 5,5,5,5,5]);
+    eq(s.coop, 25);   eq(s.coopM, '5.00');
+    eq(s.triang, 20); eq(s.triangM, '5.00');
+    // item 13 (idx 12) invertido: 6-5=1; soma conflito = 5+5+5+1+5 = 21
+    eq(s.conf, 21);   eq(s.confM, '4.20');
+  });
+  // 4. Recálculo a partir de answers ignora cache contaminada
+  teste('scoresFiaveis: prefere recálculo a cache contaminada', function(){
+    var cache = { coop:11, triang:4, conf:5,
+                  coopM:'2026', triangM:'2026', confM:'2026' };
+    var r = scoresFiaveis([2,2,2,2,3, 1,1,1,1, 1,1,1,1,1], cache);
+    eq(r.fonte, 'recalculado');
+    eq(r.valido, true);
+    eq(r.scores.coopM, '2.20');
+  });
+  teste('scoresFiaveis: aceita cache válida quando respostas não disponíveis', function(){
+    var cache = { coop:11, triang:4, conf:5,
+                  coopM:'2.20', triangM:'1.00', confM:'1.00' };
+    var r = scoresFiaveis([], cache);
+    eq(r.fonte, 'cache');
+    eq(r.valido, true);
+  });
+  teste('scoresFiaveis: marca como contaminado quando cache inválida e sem respostas', function(){
+    var cache = { coopM:'2026', triangM:'2026', confM:'2026' };
+    var r = scoresFiaveis([], cache);
+    eq(r.fonte, 'cache-contaminado');
+    eq(r.valido, false);
+  });
+  // 5. Outras subescalas — também defendidas
+  teste('Triangulação contaminada → "Média inválida"', function(){
+    eq(interpNeg(2026).z, 'Média inválida — verificar dados');
+  });
+  teste('Conflito contaminado → "Média inválida"', function(){
+    eq(interpNeg(2026).z, 'Média inválida — verificar dados');
+  });
+
+  // 6. BLINDAGEM — validação dos raw scores
+  teste('rawValido: Cooperação raw=11 aceite, raw=99 rejeitado', function(){
+    eq(rawValido(11, 'coop'), true);
+    eq(rawValido(99, 'coop'), false);
+    eq(rawValido(0, 'coop'), false);
+    eq(rawValido('11', 'coop'), true);
+  });
+  teste('rawValido: Triangulação raw=10 aceite, raw=25 rejeitado', function(){
+    eq(rawValido(10, 'triang'), true);
+    eq(rawValido(25, 'triang'), false);
+  });
+  teste('validarScoresQC apanha todos os 6 campos contaminados', function(){
+    var prob = validarScoresQC({coop:99,triang:99,conf:99,coopM:2026,triangM:2026,confM:2026});
+    if(prob.length !== 6) throw new Error('esperado 6 problemas, obtido '+prob.length);
+  });
+  teste('validarScoresQC silencia scores totalmente válidos', function(){
+    var prob = validarScoresQC({coop:11,triang:4,conf:9,coopM:'2.20',triangM:'1.00',confM:'1.80'});
+    eq(prob.length, 0);
+  });
+
+  // 7. BLINDAGEM — recalcScoresFromAnswers rejeita respostas inválidas/omissas
+  teste('recalcScoresFromAnswers rejeita array de tamanho errado', function(){
+    eq(recalcScoresFromAnswers([1,2,3]), null);
+  });
+  teste('recalcScoresFromAnswers rejeita resposta null no meio', function(){
+    var ans = [2,2,2,2,3, 1,1,1,1, 1,1,1,1,1];
+    ans[7] = null;
+    eq(recalcScoresFromAnswers(ans), null);
+  });
+  teste('recalcScoresFromAnswers rejeita resposta > 5', function(){
+    eq(recalcScoresFromAnswers([2,2,2,2,3, 1,1,1,1, 1,1,1,1,99]), null);
+  });
+  teste('recalcScoresFromAnswers rejeita string que não converte', function(){
+    eq(recalcScoresFromAnswers([2,2,2,2,'abc', 1,1,1,1, 1,1,1,1,1]), null);
+  });
+
+  // 8. BLINDAGEM — self-check integral
+  teste('__selfCheck devolve true em sistema saudável', function(){
+    var ok = __selfCheck();
+    if(!ok) throw new Error('self-check falhou');
+  });
+
+  // 9. BLINDAGEM — verificação de retrocompatibilidade nas funções existentes
+  teste('calcularScores produz coopM como string (compatibilidade)', function(){
+    var s = calcularScores([3,3,3,3,3, 3,3,3,3, 3,3,3,3,3]);
+    eq(typeof s.coopM, 'string');
+    eq(s.coopM, '3.00');
+  });
+  teste('mediaValida aceita string ou número indiferentemente', function(){
+    eq(mediaValida('2.20'), true);
+    eq(mediaValida(2.20), true);
+    eq(mediaValida('2026'), false);
+    eq(mediaValida(2026), false);
+    eq(mediaValida(NaN), false);
+    eq(mediaValida(null), false);
+    eq(mediaValida(undefined), false);
+    eq(mediaValida(''), false);
+  });
+
+  // 10. BLINDAGEM — bordas do intervalo (1.0 e 5.0 incluídos)
+  teste('Bordas do intervalo: 1.0 e 5.0 são válidas; 0.99 e 5.01 não', function(){
+    eq(mediaValida(1.0), true);
+    eq(mediaValida(5.0), true);
+    eq(mediaValida(0.99), false);
+    eq(mediaValida(5.01), false);
+  });
+
+  console.table(resultados);
+  var falhas = resultados.filter(function(r){return /FALHOU/.test(r.estado)});
+  if(falhas.length){
+    console.error('❌ ' + falhas.length + ' teste(s) falharam de ' + resultados.length);
+  } else {
+    console.log('✓ Todos os ' + resultados.length + ' testes passaram.');
+  }
+  return resultados;
+}
+window.__runTests = __runTests;
+
+// Auditoria retrospectiva: percorre todas as sessões em memória e identifica
+// as que têm médias fora do intervalo válido [1.0, 5.0]. Devolve a lista
+// (vazia se tudo estiver bem) para revisão clínica.
+function __auditarSessoes(){
+  if(!sessoes || !sessoes.length){
+    console.log('Sem sessões carregadas. Faça login no painel clínico primeiro.');
+    return [];
+  }
+  var problemas = [];
+  sessoes.forEach(function(s){
+    var sc = s.scores||{};
+    var camposBad = [];
+    if(sc.coopM!=='' && sc.coopM!=null && !mediaValida(sc.coopM))   camposBad.push('Cooperacao_Media='+sc.coopM);
+    if(sc.triangM!=='' && sc.triangM!=null && !mediaValida(sc.triangM)) camposBad.push('Triangulacao_Media='+sc.triangM);
+    if(sc.confM!=='' && sc.confM!=null && !mediaValida(sc.confM))   camposBad.push('Conflito_Media='+sc.confM);
+    if(camposBad.length){
+      var podeRecalcular = !!recalcScoresFromAnswers(s.answers);
+      problemas.push({
+        code: s.code,
+        nomeCrianca: s.nomeCrianca||'',
+        nomeInf: s.nomeInf||'',
+        date: s.date||'',
+        problemas: camposBad.join(' · '),
+        recalculavel: podeRecalcular ? 'Sim (executar migrarSessoesContaminadas)' : 'Não — respostas em falta',
+        fonte: s.scoresFonte || 'desconhecida'
+      });
+    }
+  });
+  if(problemas.length === 0){
+    console.log('✓ Auditoria QC '+VERSAO+': '+sessoes.length+' sessões analisadas, nenhuma com médias inválidas.');
+  } else {
+    console.warn('⚠ Auditoria QC '+VERSAO+': '+problemas.length+'/'+sessoes.length+' sessões com médias inválidas:');
+    console.table(problemas);
+  }
+  return problemas;
+}
+window.__auditarSessoes = __auditarSessoes;
+
+// ─── SELF-CHECK (CAMADA 6 DA BLINDAGEM) ─────────────────────────────────────
+// Corre os casos canónicos do diagnóstico do bug (Sara Dias, etc.) no arranque
+// do ficheiro. Se algum falhar, mostra banner vermelho fixo no topo da página
+// e bloqueia o painel clínico para evitar uso clínico de um sistema partido.
+// Esta é a defesa contra regressões futuras — qualquer alteração que parta o
+// cálculo da cooperação é apanhada antes da Ricardina abrir o painel.
+
+var __SELFCHECK_OK = null; // null = ainda não correu; true/false = resultado
+
+function __selfCheck(){
+  var falhas = [];
+  function check(desc, fn){
+    try { var r = fn(); if(r !== true) throw new Error('devolveu '+JSON.stringify(r)); }
+    catch(e) { falhas.push(desc + ' — ' + e.message); }
+  }
+  // Caso canónico 1: Sara Dias (input do diagnóstico do bug)
+  check('Cooperação [2,2,2,2,3] → M=2.20 → Cooperação baixa', function(){
+    var s = calcularScores([2,2,2,2,3, 1,1,1,1, 1,1,1,1,1]);
+    return s.coop === 11 && s.coopM === '2.20' &&
+           interpCoop(parseFloat(s.coopM)).z === 'Cooperação baixa';
+  });
+  // Caso canónico 2: pai (input do diagnóstico do bug)
+  check('Cooperação [5,5,5,4,3] → M=4.40 → Elevada cooperação', function(){
+    var s = calcularScores([5,5,5,4,3, 1,1,1,1, 1,1,1,1,1]);
+    return s.coop === 22 && s.coopM === '4.40' &&
+           interpCoop(parseFloat(s.coopM)).z === 'Elevada cooperação';
+  });
+  // Caso canónico 3: moderada
+  check('Cooperação [3,3,3,3,3] → M=3.00 → Cooperação moderada', function(){
+    var s = calcularScores([3,3,3,3,3, 1,1,1,1, 1,1,1,1,1]);
+    return s.coopM === '3.00' && interpCoop(parseFloat(s.coopM)).z === 'Cooperação moderada';
+  });
+  // Defesa contra o bug original
+  check('REGRESSÃO: interpCoop(2026) não classifica "Elevada cooperação"', function(){
+    var r = interpCoop(2026);
+    return r.z !== 'Elevada cooperação' && /inválid/i.test(r.z);
+  });
+  check('REGRESSÃO: validarScoresQC rejeita Cooperacao_Media=2026', function(){
+    var prob = validarScoresQC({coop:11,triang:4,conf:9,coopM:2026,triangM:1,confM:1});
+    return prob.length > 0;
+  });
+  // Validação dos raws
+  check('Raw fora do intervalo é rejeitado', function(){
+    return !rawValido(99, 'coop') && rawValido(11, 'coop');
+  });
+
+  __SELFCHECK_OK = falhas.length === 0;
+  if(!__SELFCHECK_OK){
+    console.error('[QC] ❌ SELF-CHECK FALHOU. Sistema bloqueado para uso clínico.', falhas);
+    // Banner vermelho fixo no topo da página
+    try {
+      var banner = document.createElement('div');
+      banner.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:9999;background:#C0392B;color:white;padding:14px 20px;font-family:sans-serif;font-size:13px;line-height:1.5;box-shadow:0 2px 8px rgba(0,0,0,.3)';
+      banner.innerHTML = '<strong>⚠ ERRO CRÍTICO — Self-check falhou</strong><br>'+
+        'O cálculo da cotação ou a validação têm um defeito. O painel clínico foi bloqueado para evitar relatórios incorrectos. '+
+        'Falhas: <code style="background:rgba(0,0,0,.2);padding:2px 6px;border-radius:3px">'+falhas.join(' · ')+'</code>';
+      document.body.insertBefore(banner, document.body.firstChild);
+    } catch(e) {}
+  } else {
+    console.log('[QC] ✓ Self-check passou — sistema operacional.');
+  }
+  return __SELFCHECK_OK;
+}
+window.__selfCheck = __selfCheck;
+
 // ─── INÍCIO ────────────────────────────────────────────────────────────────────
 if(location.protocol==='file:'){
   document.getElementById('file-warn').style.display='block';
 }
+
+// Self-check obrigatório antes de qualquer fluxo clínico
+__selfCheck();
 
 // Limpar entradas antigas do localStorage (chave código_sheet sem data)
 (function(){
