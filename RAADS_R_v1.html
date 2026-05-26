@@ -303,8 +303,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--gray);color:var(--text);m
         <button class="btn btn-secondary btn-sm" onclick="exportarCSV()">⬇ Exportar CSV</button>
         <button class="btn btn-secondary btn-sm" onclick="exportarPDF()">📄 Exportar PDF</button>
         <button class="btn btn-secondary btn-sm" onclick="window.print()">🖨 Imprimir</button>
-        <button class="btn btn-secondary btn-sm" onclick="exportarRespostasPDF(sessaoActual)">📋 Respostas PDF</button>
-        <button class="btn btn-secondary btn-sm" onclick="exportarInterpretacaoPDF(sessaoActual)">📊 Exportar Interpretação PDF</button>
         <input type="file" id="import-file" accept=".csv" style="display:none" onchange="processarFicheiroImportado(this)">
       </div>
 
@@ -806,6 +804,11 @@ function verDetalhe(key) {
   sumario += '<span style="font-size:.78rem;color:var(--text-light);font-style:italic">Esta interpretação é automática e deve ser integrada no contexto clínico completo da avaliação.</span>';
 
   var html = '';
+  // Cluster de botões dentro do modal (v28 — acções específicas da sessão aberta)
+  html += '<div class="no-print" style="display:flex;justify-content:flex-end;gap:6px;margin-bottom:12px;flex-wrap:wrap">'
+        + '<button class="btn btn-secondary btn-sm" onclick="exportarRespostasPDF(sessaoActual)">📋 Respostas PDF</button>'
+        + '<button class="btn btn-secondary btn-sm" onclick="exportarInterpretacaoPDF(sessaoActual)">📊 Relatório Completo PDF</button>'
+        + '</div>';
   html += '<table class="interp-table">';
   html += '<thead><tr><th>Escala</th><th>Score</th><th>Máximo</th><th>%</th><th>Barra</th><th>Nível</th></tr></thead>';
   html += '<tbody>';
@@ -1008,7 +1011,7 @@ function exportarRespostasPDF(s) {
   w.document.close();
 }
 
-// ── Interpretação PDF ──
+// ── Relatório Completo PDF ── (scores + gráfico + interpretação + respostas item-a-item)
 function exportarInterpretacaoPDF(s) {
   if(!s){alert('Seleccione uma sessão (clique em "Ver →").');return;}
   var sc=s.scores||{};
@@ -1021,6 +1024,8 @@ function exportarInterpretacaoPDF(s) {
     {label:'Sensoriomotora',score:sc.senso||0,  max:45},
     {label:'Circunscrita',  score:sc.circ||0,   max:66},
   ];
+
+  // ── 1. Tabela de scores ──
   var rows_sub=subs.map(function(sub){
     var p=sub.score/sub.max;
     var c=p>=0.67?'#C0392B':p>=0.33?'#E67E22':'#27AE60';
@@ -1031,34 +1036,95 @@ function exportarInterpretacaoPDF(s) {
       +'<td><div style="background:#eee;border-radius:3px;height:8px;width:100px;display:inline-block"><div style="background:'+c+';border-radius:3px;height:8px;width:'+bw+'%"></div></div></td>'
       +'<td style="color:'+c+';font-weight:600">'+nivel+'</td></tr>';
   }).join('');
-  var elev=subs.filter(function(s){return s.score/s.max>=0.67;}).map(function(s){return s.label;});
-  var sumario='Score total: <strong>'+tot+'/240</strong> — <strong style="color:'+cor+'">'+interp+'</strong>. ';
-  if(elev.length) sumario+='Subescalas elevadas: <strong>'+elev.join(', ')+'</strong>. ';
-  sumario+='<em style="color:#999">Interpretação automática — integrar no contexto clínico completo.</em>';
 
+  // ── 2. Gráfico SVG (reutiliza buildSVGChart do modal) ──
+  var svgChart = (typeof buildSVGChart === 'function') ? buildSVGChart(subs, tot) : '';
+
+  // ── 3. Sumário interpretativo ──
+  var elev=subs.filter(function(x){return x.score/x.max>=0.67;}).map(function(x){return x.label;});
+  var mod =subs.filter(function(x){return x.score/x.max>=0.33 && x.score/x.max<0.67;}).map(function(x){return x.label;});
+  var sumario='O score total obtido foi de <strong>'+tot+'/240</strong>, correspondendo a uma interpretação de <strong style="color:'+cor+'">'+interp+'</strong>. ';
+  if(elev.length) sumario+='As subescalas com nível elevado (≥ 67% do máximo) foram: <strong>'+elev.join(', ')+'</strong>. ';
+  if(mod.length)  sumario+='Com nível moderado: <strong>'+mod.join(', ')+'</strong>. ';
+  if(!elev.length && !mod.length) sumario+='Todas as subescalas se situam num nível baixo. ';
+  sumario+='<em style="color:#999;font-size:10px">Esta interpretação é automática e deve ser integrada no contexto clínico completo da avaliação.</em>';
+
+  // ── 4. Respostas item-a-item ──
+  var respostasHtml='';
+  if(s.answers && s.answers.length){
+    var opts=['É verdade agora e quando era novo','Só é verdade agora','Só era verdade antes dos 16 anos','Nunca foi verdade'];
+    var grupoLabel={A:'A',B:'B'}; // A = itens normais, B = reverse-scored
+    respostasHtml = ITENS.map(function(it,i){
+      var r = (s.answers[i]!==null && s.answers[i]!==undefined) ? s.answers[i] : '—';
+      var label = (typeof r==='number') ? (r+' — '+opts[r]) : r;
+      return '<tr><td style="text-align:center;color:#999">'+it.n+'</td>'
+           +'<td style="text-align:center;color:#5B7FA6;font-size:10px">'+(grupoLabel[it.g]||it.g||'')+'</td>'
+           +'<td style="font-size:10px">'+it.t+'</td>'
+           +'<td style="font-weight:600;font-size:10px">'+label+'</td></tr>';
+    }).join('');
+  }
+
+  // ── 5. Construir HTML completo do PDF ──
   var w=window.open('','_blank');
   if(!w){alert('Pop-up bloqueado.');return;}
-  w.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Interpretação RAADS-R</title>'
-    +'<style>body{font-family:Arial,sans-serif;font-size:11px;padding:24px;color:#2C3E50}'
-    +'h2{color:#3B5A7A;margin-bottom:4px}h3{color:#3B5A7A;margin:20px 0 8px}'
-    +'table{width:100%;border-collapse:collapse;margin-bottom:16px}'
-    +'th{background:#3B5A7A;color:#fff;padding:5px 8px;text-align:left}'
-    +'td{padding:5px 8px;border-bottom:1px solid #eee}'
-    +'.sumario{background:#EBF2F8;border-radius:6px;padding:10px 14px;font-size:11px;line-height:1.6}'
-    +'.no-print{margin-bottom:16px}@media print{.no-print{display:none}}</style></head><body>'
-    +'<div class="no-print"><button onclick="window.print()">🖨 Imprimir / Guardar PDF</button></div>'
-    +'<h2>RAADS-R — Relatório de Interpretação</h2>'
-    +'<p style="color:#6B7A8D;margin-bottom:20px">Código: <strong>'+s.code+'</strong> · Respondente: <strong>'+(s.nome_informante||'—')+'</strong> · Data: '+(s.date||'—')+' · Ricardina Correia · Cédula 8233</p>'
-    +'<h3>Score Total e Subescalas</h3>'
-    +'<table><thead><tr><th>Escala</th><th>Score</th><th>Máximo</th><th>%</th><th>Barra</th><th>Nível</th></tr></thead><tbody>'
-    +'<tr style="background:#EBF2F8"><td><strong>Score Total</strong></td><td style="font-weight:700;text-align:center">'+tot+'</td><td style="text-align:center;color:#999">240</td><td style="text-align:center">'+Math.round(tot/240*100)+'%</td>'
+
+  var html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Relatório Completo RAADS-R — '+s.code+'</title>'
+    +'<style>'
+    +'body{font-family:Arial,sans-serif;font-size:11px;padding:24px;color:#2C3E50;max-width:900px;margin:0 auto}'
+    +'h2{color:#3B5A7A;margin-bottom:4px;font-size:16px}'
+    +'h3{color:#3B5A7A;margin:18px 0 8px;font-size:13px;border-bottom:2px solid #D6E4F0;padding-bottom:4px}'
+    +'table{width:100%;border-collapse:collapse;margin-bottom:12px}'
+    +'th{background:#3B5A7A;color:#fff;padding:5px 8px;text-align:left;font-size:11px}'
+    +'td{padding:4px 8px;border-bottom:1px solid #eee}'
+    +'.sumario{background:#EBF2F8;border-radius:6px;padding:10px 14px;font-size:11px;line-height:1.65}'
+    +'.cabecalho{color:#6B7A8D;margin-bottom:16px;font-size:11px}'
+    +'.limiares{margin-top:10px;font-size:10px;color:#6B7A8D;padding:8px;background:#F4F6F9;border-radius:4px}'
+    +'.no-print{margin-bottom:16px}'
+    +'@media print{.no-print{display:none}body{padding:12px}h3{page-break-after:avoid}table{page-break-inside:auto}tr{page-break-inside:avoid}}'
+    +'</style></head><body>'
+    +'<div class="no-print"><button onclick="window.print()" style="padding:6px 14px;cursor:pointer;font-size:12px">🖨 Imprimir / Guardar PDF</button></div>'
+    +'<h2>RAADS-R — Relatório Completo de Avaliação</h2>'
+    +'<p class="cabecalho">Código: <strong>'+s.code+'</strong>'
+    +(s.nome_informante ? ' &nbsp;|&nbsp; Respondente: <strong>'+s.nome_informante+'</strong>' : '')
+    +(s.idade ? ' &nbsp;|&nbsp; Idade: <strong>'+s.idade+'</strong>' : '')
+    +(s.genero ? ' &nbsp;|&nbsp; Género: <strong>'+s.genero+'</strong>' : '')
+    +' &nbsp;|&nbsp; Data: <strong>'+(s.date||'—')+'</strong>'
+    +' &nbsp;|&nbsp; Ricardina Correia · Cédula 8233</p>'
+
+    // Bloco 1 — Scores
+    +'<h3>1. Score Total e Subescalas</h3>'
+    +'<table><thead><tr><th>Escala</th><th style="text-align:center">Score</th><th style="text-align:center">Máximo</th><th style="text-align:center">%</th><th>Barra</th><th>Nível</th></tr></thead><tbody>'
+    +'<tr style="background:#EBF2F8"><td><strong>Score Total</strong></td><td style="font-weight:700;text-align:center;font-size:13px">'+tot+'</td><td style="text-align:center;color:#999">240</td><td style="text-align:center">'+Math.round(tot/240*100)+'%</td>'
     +'<td><div style="background:#eee;border-radius:3px;height:8px;width:100px;display:inline-block"><div style="background:'+cor+';border-radius:3px;height:8px;width:'+Math.round(tot/240*100)+'%"></div></div></td>'
     +'<td style="color:'+cor+';font-weight:600">'+interp+'</td></tr>'
     +rows_sub+'</tbody></table>'
-    +'<h3>Sumário Interpretativo</h3>'
+
+    // Bloco 2 — Gráfico
+    +'<h3>2. Perfil Visual das Subescalas</h3>'
+    +'<div style="text-align:center;margin-bottom:12px">'+svgChart+'</div>'
+
+    // Bloco 3 — Limiares
+    +'<div class="limiares"><strong>Limiares RAADS-R:</strong> '
+    +'<span style="color:#27AE60">■</span> Improvável PEA: &lt; 65 &nbsp; '
+    +'<span style="color:#E67E22">■</span> Zona possível PEA: 65–89 &nbsp; '
+    +'<span style="color:#C0392B">■</span> Consistente com PEA: ≥ 90<br>'
+    +'<span style="font-size:9px">Ritvo et al. (2011). J Autism Dev Disord, 41, 1076–1089.</span></div>'
+
+    // Bloco 4 — Sumário interpretativo
+    +'<h3>3. Sumário Interpretativo</h3>'
     +'<div class="sumario">'+sumario+'</div>'
-    +'<p style="margin-top:20px;font-size:10px;color:#999">Limiares RAADS-R: &lt;65 Improvável PEA · 65–89 Zona possível PEA · ≥90 Consistente com PEA<br>Ritvo et al. (2011). J Autism Dev Disord, 41, 1076–1089.</p>'
-    +'</body></html>');
+
+    // Bloco 5 — Respostas item-a-item
+    +(respostasHtml
+        ? '<h3>4. Respostas por Item</h3>'
+          +'<table><thead><tr><th style="text-align:center">#</th><th style="text-align:center">Grupo</th><th>Item</th><th>Resposta</th></tr></thead>'
+          +'<tbody>'+respostasHtml+'</tbody></table>'
+          +'<p style="font-size:9px;color:#999;margin-top:4px"><em>Grupo A = itens directos · Grupo B = itens inversos (cotação invertida).</em></p>'
+        : '<p style="color:#999;font-style:italic;margin-top:14px">Respostas item-a-item não disponíveis para esta sessão.</p>'
+      )
+    +'</body></html>';
+
+  w.document.write(html);
   w.document.close();
 }
 
