@@ -1,0 +1,906 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MCP-Breve — Mapeamento da Configuração Parental · Ricardina Correia</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<style>
+:root{
+  --blue:#3B5A7A;--blue-mid:#5B7FA6;--blue-light:#A8C4D8;--blue-pale:#D6E4F0;--blue-xpale:#EBF2F8;
+  --gray:#F4F6F9;--gray-bdr:#DDE3EA;--text:#2C3E50;--text-light:#6B7A8D;
+  --red:#C0392B;--green:#27AE60;--orange:#E67E22;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:var(--gray);color:var(--text);min-height:100vh}
+
+.app-header{background:var(--blue);color:white;padding:12px 28px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 8px rgba(0,0,0,.15);flex-wrap:wrap;gap:8px}
+.app-title{font-size:1.05rem;font-weight:700;letter-spacing:.3px}
+.app-subtitle{font-size:.78rem;opacity:.75;margin-top:2px}
+.header-right{font-size:.78rem;opacity:.75;text-align:right}
+
+.page{display:none}
+.container{max-width:760px;margin:0 auto;padding:24px 16px}
+.container-wide{max-width:1060px;margin:0 auto;padding:24px 16px}
+.card{background:white;border-radius:12px;padding:28px;box-shadow:0 2px 8px rgba(59,90,122,.08);border:1px solid var(--gray-bdr);margin-bottom:20px}
+.card-title{font-family:'DM Serif Display',serif;color:var(--blue);font-size:1.2rem;margin-bottom:6px;display:flex;align-items:center;gap:10px}
+.card-title-num{background:var(--blue);color:white;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.82rem;font-weight:700;flex-shrink:0;font-family:'DM Sans',sans-serif}
+.card-desc{font-size:.84rem;color:var(--text-light);margin-bottom:20px;line-height:1.6}
+
+.btn{border:none;border-radius:8px;padding:10px 20px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;font-size:.9rem;transition:opacity .15s}
+.btn:hover{opacity:.88}
+.btn-primary{background:var(--blue);color:white}
+.btn-secondary{background:var(--blue-pale);color:var(--blue)}
+.btn-success{background:var(--green);color:white}
+.btn-danger{background:var(--red);color:white}
+.btn-small{padding:6px 12px;font-size:.82rem}
+
+.field-label{font-size:.82rem;font-weight:600;color:var(--text-light);display:block;margin-bottom:5px}
+.field-hint{font-size:.75rem;color:var(--text-light);margin-top:3px}
+input[type=text],input[type=number],input[type=date],input[type=password],select,textarea{
+  width:100%;padding:9px 13px;border:1.5px solid var(--gray-bdr);border-radius:8px;
+  font-family:'DM Sans',sans-serif;font-size:.9rem;outline:none;transition:border-color .2s;background:white
+}
+input:focus,select:focus,textarea:focus{border-color:var(--blue-mid)}
+textarea{resize:vertical;min-height:70px}
+.mb16{margin-bottom:16px}.mb20{margin-bottom:20px}
+
+.likert-item{margin-bottom:20px;padding-bottom:20px;border-bottom:1px solid var(--gray-bdr)}
+.likert-item:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0}
+.likert-statement{font-size:.9rem;color:var(--text);margin-bottom:10px;line-height:1.5}
+.likert-scale{display:flex;gap:6px;flex-wrap:wrap}
+.likert-scale label{display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;min-width:50px}
+.likert-scale input[type=radio]{display:none}
+.likert-dot{width:36px;height:36px;border-radius:50%;border:2px solid var(--gray-bdr);display:flex;align-items:center;justify-content:center;font-size:.82rem;font-weight:600;color:var(--text-light);transition:all .15s;background:white}
+.likert-scale input[type=radio]:checked+.likert-dot{background:var(--blue);border-color:var(--blue);color:white}
+.likert-mini{font-size:.7rem;color:var(--text-light);text-align:center;line-height:1.2;max-width:60px}
+
+.progress-wrap{height:6px;background:var(--gray-bdr);border-radius:3px;margin-bottom:8px}
+.progress-fill{height:6px;background:var(--blue);border-radius:3px;transition:width .3s}
+
+.radio-group{display:flex;gap:6px;flex-wrap:wrap}
+.radio-group label{display:flex;align-items:center;gap:5px;cursor:pointer;padding:7px 12px;border-radius:6px;border:1.5px solid var(--gray-bdr);font-size:.82rem;transition:all .15s;background:white}
+.radio-group label:hover{border-color:var(--blue-mid);background:var(--blue-xpale)}
+.radio-group input[type=radio]{display:none}
+.radio-group label:has(input:checked){border-color:var(--blue);background:var(--blue-xpale);color:var(--blue);font-weight:600}
+
+.coab-item{border:1px solid var(--gray-bdr);border-radius:12px;background:white;margin-bottom:14px;padding:16px;position:relative}
+.coab-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.coab-titulo{font-weight:700;color:var(--blue);font-size:.95rem}
+.coab-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.coab-add{border:2px dashed var(--blue-light);background:var(--blue-xpale);border-radius:12px;padding:14px;text-align:center;cursor:pointer;font-weight:600;color:var(--blue);transition:all .15s}
+.coab-add:hover{background:var(--blue-pale);border-color:var(--blue-mid)}
+.coab-empty{padding:24px;text-align:center;color:var(--text-light);font-size:.88rem;background:var(--gray);border-radius:12px;margin-bottom:14px}
+
+.matriz-tabela{width:100%;border-collapse:collapse;font-size:.85rem}
+.matriz-tabela th,.matriz-tabela td{padding:10px 8px;text-align:left;border-bottom:1px solid var(--gray-bdr);vertical-align:top}
+.matriz-tabela th{background:var(--blue-xpale);color:var(--blue);font-weight:600;font-size:.8rem}
+.matriz-tabela .col-sit{width:42%;font-weight:600;color:var(--text)}
+.matriz-tabela select{font-size:.82rem;padding:7px 10px}
+
+.landing-card{max-width:580px;margin:60px auto;text-align:center}
+.landing-icon{font-size:2.8rem;margin-bottom:12px}
+.landing-title{font-family:'DM Serif Display',serif;font-size:1.7rem;color:var(--blue);margin-bottom:8px}
+.landing-sub{color:var(--text-light);margin-bottom:28px;line-height:1.6}
+.landing-btns{display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
+.landing-btn{flex:1;min-width:190px;max-width:230px;padding:18px 14px;border-radius:12px;background:var(--blue-xpale);border:1px solid var(--blue-pale);cursor:pointer;text-align:center;transition:all .2s}
+.landing-btn:hover{background:var(--blue-pale);transform:translateY(-2px)}
+.landing-btn-icon{font-size:1.6rem;margin-bottom:6px}
+.landing-btn-title{font-weight:600;color:var(--blue);font-size:.95rem}
+.landing-btn-sub{font-size:.78rem;color:var(--text-light);margin-top:3px}
+
+.login-card{max-width:400px;margin:80px auto;text-align:center}
+.login-error{color:var(--red);font-size:.82rem;margin-top:8px;display:none}
+
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:flex-start;justify-content:center;z-index:1000;padding:16px;overflow-y:auto}
+.modal-box{background:white;border-radius:16px;padding:28px;max-width:920px;width:100%;box-shadow:0 12px 48px rgba(0,0,0,.25);margin:0 auto}
+
+table{width:100%;border-collapse:collapse;font-size:.85rem}
+th{background:var(--blue-xpale);color:var(--blue);padding:8px 10px;text-align:left;font-weight:600}
+td{padding:7px 10px;border-bottom:1px solid var(--gray-bdr);vertical-align:top}
+tr:last-child td{border-bottom:none}
+
+.heatmap-cell{padding:7px 10px;text-align:center;font-size:.78rem;font-weight:600;border-radius:4px}
+.hm-self{background:#d6e4f0;color:#2C3E50}
+.hm-shared{background:#fef3e2;color:#c07000}
+.hm-other{background:#fde2e0;color:#8e2820}
+.hm-varia{background:#ebf2f8;color:#6B7A8D}
+.hm-na{background:var(--gray);color:var(--text-light)}
+
+.flag-clinico{display:inline-block;padding:3px 10px;border-radius:12px;font-size:.75rem;font-weight:600;margin-right:6px;margin-bottom:4px}
+.flag-amber{background:#fef3e2;color:#c07000;border:1px solid #f5d49a}
+.flag-red{background:#fde2e0;color:#8e2820;border:1px solid #f3b4af}
+.flag-green{background:#eafaf1;color:#1e7e3c;border:1px solid #b8e6cb}
+
+.aviso-adhoc{background:#fef9e6;border-left:4px solid var(--orange);padding:12px 16px;border-radius:0 8px 8px 0;font-size:.82rem;color:#7a5300;margin-bottom:18px;line-height:1.5}
+.aviso-breve{background:var(--blue-xpale);border-left:4px solid var(--blue);padding:12px 16px;border-radius:0 8px 8px 0;font-size:.82rem;color:var(--blue);margin-bottom:18px;line-height:1.5}
+
+.session-row{cursor:pointer;transition:background .15s}
+.session-row:hover{background:var(--blue-xpale)}
+
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:600px){.grid2{grid-template-columns:1fr}.coab-grid{grid-template-columns:1fr}.landing-btns{flex-direction:column;align-items:center}}
+@media print{.app-header,.no-print{display:none!important}body{background:white}.card{box-shadow:none;border:1px solid #ddd}}
+</style>
+</head>
+<body>
+
+<header class="app-header">
+  <div>
+    <div class="app-title">MCP-Breve — Mapeamento da Configuração Parental</div>
+    <div class="app-subtitle">Versão Breve · Ricardina Correia · Psicologia Pediátrica</div>
+  </div>
+  <div class="header-right">Cédula OPP n.º 8233</div>
+</header>
+
+<!-- HOME -->
+<div id="page-home" class="page">
+  <div class="container">
+    <div class="card landing-card">
+      <div class="landing-icon">🏡</div>
+      <div class="landing-title">Mapeamento da Configuração Parental</div>
+      <p class="landing-sub">
+        Versão breve do MCP, focada em situações onde o eixo intergeracional é secundário mas relevante na formulação clínica.<br>
+        <span style="font-size:.8rem">4 secções · ~6–8 min</span>
+      </p>
+      <div class="landing-btns">
+        <div class="landing-btn" onclick="iniciarFormulario()">
+          <div class="landing-btn-icon">📝</div>
+          <div class="landing-btn-title">Preencher</div>
+          <div class="landing-btn-sub">Para o/a progenitor/a</div>
+        </div>
+        <div class="landing-btn" onclick="showPage('page-login')">
+          <div class="landing-btn-icon">🔒</div>
+          <div class="landing-btn-title">Painel Clínico</div>
+          <div class="landing-btn-sub">Acesso restrito</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FORMULÁRIO -->
+<div id="page-form" class="page">
+  <div class="container">
+
+    <div class="card no-print" style="padding:14px 20px;margin-bottom:16px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+        <span style="font-size:.82rem;font-weight:600;color:var(--blue)" id="prog-label">Identificação</span>
+        <span style="font-size:.78rem;color:var(--text-light)" id="prog-num">1 / 5</span>
+      </div>
+      <div class="progress-wrap"><div class="progress-fill" id="prog-fill" style="width:20%"></div></div>
+    </div>
+
+    <!-- IDENTIFICAÇÃO -->
+    <div id="section-id">
+      <div class="card">
+        <div class="card-title"><div class="card-title-num">ID</div> Identificação</div>
+        <p class="card-desc">Informação inicial sobre o respondente e a configuração familiar.</p>
+
+        <div class="mb16">
+          <label class="field-label">Código do paciente</label>
+          <input type="text" id="patient-code" placeholder="ex: AG04082018" style="text-transform:uppercase" oninput="this.value=this.value.toUpperCase()">
+          <div class="field-hint">Iniciais + data de nascimento (DDMMAAAA).</div>
+        </div>
+        <div class="mb16">
+          <label class="field-label">Nome da criança</label>
+          <input type="text" id="nome-crianca" placeholder="ex: Áurea">
+        </div>
+        <div class="mb16">
+          <label class="field-label">O seu nome</label>
+          <input type="text" id="nome-informante" placeholder="ex: Diogo">
+        </div>
+        <div class="mb16">
+          <label class="field-label">A sua relação com a criança</label>
+          <select id="relacao-informante">
+            <option value="">— Selecione —</option>
+            <option value="mae">Mãe</option>
+            <option value="pai">Pai</option>
+            <option value="madrasta">Madrasta</option>
+            <option value="padrasto">Padrasto</option>
+            <option value="tutor">Tutor/a legal</option>
+            <option value="outro">Outro</option>
+          </select>
+        </div>
+        <div class="mb16">
+          <label class="field-label">Tipo de configuração predominante</label>
+          <select id="config-tipo">
+            <option value="">— Selecione —</option>
+            <option value="avos">Progenitor(a) + avó(s) ou avô(s)</option>
+            <option value="tios">Progenitor(a) + tio(s)/tia(s)</option>
+            <option value="irmao">Progenitor(a) + irmão/irmã adulto/a</option>
+            <option value="outra">Progenitor(a) + outra figura</option>
+            <option value="mista">Configuração mista</option>
+          </select>
+        </div>
+        <div class="mb16">
+          <label class="field-label">Há quanto tempo (em anos) vive nesta configuração com a criança?</label>
+          <input type="number" id="tempo-coabitacao" min="0" step="0.5" placeholder="ex: 2">
+        </div>
+        <div style="display:flex;justify-content:flex-end" class="no-print">
+          <button class="btn btn-primary" onclick="irPara('s1')">Seguinte: Coabitantes →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- S1 — Coabitantes -->
+    <div id="section-s1" style="display:none">
+      <div class="card">
+        <div class="card-title"><div class="card-title-num">1</div> Mapa dos coabitantes</div>
+        <p class="card-desc">Indique todos os adultos que vivem em casa com a criança, para além de si.</p>
+        <div id="coabitantes-container"></div>
+        <div class="coab-add" onclick="adicionarCoabitante()">+ Adicionar pessoa</div>
+
+        <hr style="border:none;border-top:1px solid var(--gray-bdr);margin:24px 0">
+
+        <div class="mb16">
+          <label class="field-label">Esta configuração existe desde quando?</label>
+          <div class="radio-group">
+            <label><input type="radio" name="config-inicio" value="nascimento"><span>Desde o nascimento</span></label>
+            <label><input type="radio" name="config-inicio" value="separacao"><span>Após separação parental</span></label>
+            <label><input type="radio" name="config-inicio" value="outra"><span>Outra razão</span></label>
+          </div>
+        </div>
+
+        <div style="display:flex;justify-content:space-between" class="no-print">
+          <button class="btn btn-secondary" onclick="irPara('id')">← Identificação</button>
+          <button class="btn btn-primary" onclick="irPara('s2')">Seguinte: Quotidiano →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- S2 — Quotidiano -->
+    <div id="section-s2" style="display:none">
+      <div class="card">
+        <div class="card-title"><div class="card-title-num">2</div> Distribuição funcional do quotidiano</div>
+        <p class="card-desc">Para cada situação típica, indique <strong>quem é tipicamente responsável</strong>.</p>
+
+        <div id="s2-aviso" style="display:none;padding:14px;background:var(--blue-xpale);border-left:4px solid var(--blue);border-radius:0 8px 8px 0;margin-bottom:16px;font-size:.85rem">
+          Para preencher esta secção, é necessário ter pelo menos um coabitante registado. <a href="#" onclick="irPara('s1');return false" style="color:var(--blue);font-weight:600">← Voltar à secção 1</a>
+        </div>
+
+        <div id="s2-tabela-container" style="overflow-x:auto"></div>
+
+        <div style="display:flex;justify-content:space-between;margin-top:20px" class="no-print">
+          <button class="btn btn-secondary" onclick="irPara('s1')">← Coabitantes</button>
+          <button class="btn btn-primary" onclick="irPara('s3')">Seguinte: Autoridade →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- S3 — Autoridade -->
+    <div id="section-s3" style="display:none">
+      <div class="card">
+        <div class="card-title"><div class="card-title-num">3</div> Autoridade educativa</div>
+        <p class="card-desc">Indique o grau em que cada afirmação descreve a sua experiência em casa. <strong>1 = Nunca · 5 = Sempre</strong></p>
+        <div id="s3-itens"></div>
+
+        <div style="display:flex;justify-content:space-between;margin-top:20px" class="no-print">
+          <button class="btn btn-secondary" onclick="irPara('s2')">← Quotidiano</button>
+          <button class="btn btn-primary" onclick="irPara('s4')">Seguinte: A sua posição →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- S4 — Posição do informante (ex-S6) -->
+    <div id="section-s4" style="display:none">
+      <div class="card">
+        <div class="card-title"><div class="card-title-num">4</div> A sua posição na casa</div>
+        <p class="card-desc">Reflita sobre como sente o seu lugar parental dentro desta configuração. <strong>1 = Nunca · 5 = Sempre</strong></p>
+        <div id="s4-itens"></div>
+
+        <div style="display:flex;justify-content:space-between;margin-top:20px" class="no-print">
+          <button class="btn btn-secondary" onclick="irPara('s3')">← Autoridade</button>
+          <button class="btn btn-success" onclick="submeterFormulario()" style="font-size:1rem;padding:12px 28px">✓ Guardar e Finalizar</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- OBRIGADO -->
+<div id="page-obrigado" class="page">
+  <div class="container">
+    <div class="card" style="text-align:center;padding:48px 28px;max-width:520px;margin:40px auto">
+      <div style="font-size:3rem;margin-bottom:16px">✅</div>
+      <h2 style="font-family:'DM Serif Display',serif;color:var(--blue);margin-bottom:12px">Respostas guardadas</h2>
+      <p style="color:var(--text-light);margin-bottom:24px;line-height:1.6">As suas respostas foram registadas com sucesso.</p>
+      <button class="btn btn-secondary" onclick="showPage('page-home')">← Voltar ao início</button>
+    </div>
+  </div>
+</div>
+
+<!-- LOGIN -->
+<div id="page-login" class="page">
+  <div class="container">
+    <div class="card login-card">
+      <div style="font-size:2.2rem;margin-bottom:12px">🔒</div>
+      <div style="font-family:'DM Serif Display',serif;font-size:1.4rem;color:var(--blue);margin-bottom:6px">Painel Clínico</div>
+      <div style="color:var(--text-light);font-size:.85rem;margin-bottom:24px">Acesso restrito · Ricardina Correia</div>
+      <div style="text-align:left;margin-bottom:16px">
+        <label class="field-label">Palavra-passe</label>
+        <input type="password" id="login-pw" placeholder="••••••••" onkeydown="if(event.key==='Enter') tentarLogin()">
+      </div>
+      <button class="btn btn-primary" style="width:100%" onclick="tentarLogin()">Entrar</button>
+      <div id="login-error" class="login-error">Palavra-passe incorreta.</div>
+      <div style="font-size:.82rem;color:var(--text-light);margin-top:14px;cursor:pointer;text-decoration:underline" onclick="showPage('page-home')">← Voltar</div>
+    </div>
+  </div>
+</div>
+
+<!-- PAINEL CLÍNICO -->
+<div id="page-clinico" class="page">
+  <div class="container-wide">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:10px">
+      <h2 style="font-family:'DM Serif Display',serif;color:var(--blue)">Painel Clínico — MCP Breve</h2>
+      <div style="display:flex;gap:8px;flex-wrap:wrap" class="no-print">
+        <button class="btn btn-secondary btn-small" onclick="showPage('page-home')">← Início</button>
+        <button class="btn btn-primary btn-small" onclick="compararPerfis()">⚖ Comparar Perfis</button>
+        <button class="btn btn-secondary btn-small" onclick="exportarTudo()">↓ Exportar JSON</button>
+        <label class="btn btn-secondary btn-small" style="cursor:pointer">↑ Importar JSON<input type="file" accept=".json" style="display:none" onchange="importarJSON(this)"></label>
+      </div>
+    </div>
+
+    <div class="aviso-breve">
+      <strong>ℹ Versão breve.</strong> Esta versão cobre apenas a estrutura básica (coabitantes, quotidiano, autoridade, posição). Para casos onde o eixo intergeracional é central na formulação, use a <strong>versão completa</strong> que inclui também relação afetiva por figura, resposta dos outros à ansiedade e síntese aberta.
+    </div>
+
+    <div class="aviso-adhoc">
+      <strong>⚠ Instrumento ad-hoc.</strong> O MCP é um instrumento clínico operacional, sem validação psicométrica formal. Os resultados devem ser usados como orientação clínica, sempre articulados com entrevista.
+    </div>
+
+    <div id="sessoes-container"></div>
+  </div>
+</div>
+
+<!-- MODAIS -->
+<div id="modal-overlay" class="modal-overlay" style="display:none" onclick="fecharModal(event)">
+  <div class="modal-box">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px">
+      <h3 id="modal-titulo" style="font-family:'DM Serif Display',serif;color:var(--blue);font-size:1.2rem"></h3>
+      <button onclick="document.getElementById('modal-overlay').style.display='none'" class="btn btn-secondary btn-small">✕ Fechar</button>
+    </div>
+    <div id="modal-body"></div>
+  </div>
+</div>
+
+<div id="modal-comp" class="modal-overlay" style="display:none" onclick="fecharModalComp(event)">
+  <div class="modal-box">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px">
+      <h3 style="font-family:'DM Serif Display',serif;color:var(--blue);font-size:1.2rem">⚖ Comparação de Configurações</h3>
+      <button onclick="document.getElementById('modal-comp').style.display='none'" class="btn btn-secondary btn-small">✕ Fechar</button>
+    </div>
+    <div id="modal-comp-body"></div>
+  </div>
+</div>
+
+<script>
+const PASSWORD='CNS2024';
+const STORAGE_KEY='rc_mcp_breve_sessoes';
+
+const COABITANTE_OPCOES=[
+  {value:'avo_mat',label:'Avó materna'},{value:'avoh_mat',label:'Avô materno'},
+  {value:'avo_pat',label:'Avó paterna'},{value:'avoh_pat',label:'Avô paterno'},
+  {value:'tio_mat',label:'Tio/Tia materno/a'},{value:'tio_pat',label:'Tio/Tia paterno/a'},
+  {value:'irmao_adulto',label:'Irmão/Irmã adulto/a'},{value:'madrasta',label:'Madrasta'},
+  {value:'padrasto',label:'Padrasto'},{value:'companheiro',label:'Companheiro/a do/a progenitor/a'},
+  {value:'outro',label:'Outro'}
+];
+
+const FUNCAO_OPCOES=[
+  {value:'ativo',label:'Exerce papel ativo de cuidado'},
+  {value:'algum',label:'Exerce algum papel de cuidado'},
+  {value:'presente',label:'Presente sem papel de cuidado'}
+];
+
+const SITUACOES_S2=[
+  {id:'escola',label:'Levar à escola / ir buscar'},
+  {id:'refeicoes',label:'Refeições principais'},
+  {id:'banho',label:'Banho e higiene'},
+  {id:'adormecimento',label:'Ritual de adormecimento'},
+  {id:'noite',label:'Resposta a despertares noturnos'},
+  {id:'doenca',label:'Doença ou mal-estar da criança'}
+];
+
+const ITENS_S3=[
+  {id:'s3_1',texto:'Quando estabeleço uma regra, sinto que a minha autoridade é reconhecida em casa.',inv:false},
+  {id:'s3_2',texto:'Os outros adultos da casa apoiam as minhas decisões educativas.',inv:false},
+  {id:'s3_3',texto:'Os outros adultos da casa desautorizam-me perante a [criança].',inv:true},
+  {id:'s3_4',texto:'Quando há desacordo educativo entre mim e os outros adultos da casa, esse desacordo é visível para a [criança].',inv:true},
+  {id:'s3_5',texto:'Há situações em que cedo na minha posição educativa por causa dos outros adultos da casa.',inv:true},
+  {id:'s3_6',texto:'Sinto que partilho a responsabilidade educativa de forma equilibrada com os outros adultos da casa.',inv:false}
+];
+
+// S4 do Breve = S6 do Completo
+const ITENS_S4=[
+  {id:'s4_1',texto:'Sinto que tenho espaço suficiente em casa para exercer o meu papel parental como gostaria.',inv:false},
+  {id:'s4_2',texto:'Sinto que a minha forma de cuidar da [criança] é respeitada pelos outros adultos da casa.',inv:false},
+  {id:'s4_3',texto:'Há tensões em casa por causa de questões educativas relacionadas com a [criança].',inv:true},
+  {id:'s4_4',texto:'Já considerei viver noutra casa para ter mais autonomia parental.',inv:true}
+];
+
+const SECCOES_ORDEM=['id','s1','s2','s3','s4'];
+const SECCOES_LABEL={id:'Identificação',s1:'Coabitantes',s2:'Quotidiano',s3:'Autoridade',s4:'A sua posição'};
+
+var sessoes=[];
+var coabitantes=[];
+var coabUid=0;
+
+function loadSessoes(){
+  try{var raw=localStorage.getItem(STORAGE_KEY);sessoes=raw?JSON.parse(raw):[];}catch(e){sessoes=[];}
+}
+function saveSessoes(){try{localStorage.setItem(STORAGE_KEY,JSON.stringify(sessoes));}catch(e){}}
+
+function showPage(id){
+  document.querySelectorAll('.page').forEach(function(p){p.style.display='none'});
+  document.getElementById(id).style.display='block';
+  window.scrollTo(0,0);
+  if(id==='page-clinico')renderSessoes();
+}
+
+function iniciarFormulario(){
+  coabitantes=[];coabUid=0;
+  document.querySelectorAll('#page-form input[type=text],#page-form input[type=number],#page-form textarea').forEach(function(e){e.value='';});
+  document.querySelectorAll('#page-form select').forEach(function(s){s.selectedIndex=0;});
+  document.querySelectorAll('#page-form input[type=radio]').forEach(function(r){r.checked=false;});
+  document.getElementById('coabitantes-container').innerHTML='';
+  irPara('id');
+  showPage('page-form');
+}
+
+function irPara(sec){
+  SECCOES_ORDEM.forEach(function(s){
+    var el=document.getElementById('section-'+s);
+    if(el)el.style.display=(s===sec)?'block':'none';
+  });
+  var idx=SECCOES_ORDEM.indexOf(sec);
+  document.getElementById('prog-label').textContent=SECCOES_LABEL[sec];
+  document.getElementById('prog-num').textContent=(idx+1)+' / '+SECCOES_ORDEM.length;
+  document.getElementById('prog-fill').style.width=((idx+1)/SECCOES_ORDEM.length*100)+'%';
+  if(sec==='s2')renderS2();
+  if(sec==='s3')renderS3();
+  if(sec==='s4')renderS4();
+  window.scrollTo(0,0);
+}
+
+function adicionarCoabitante(){
+  var uid=++coabUid;
+  coabitantes.push({uid:uid,relacao:'',outro:'',idade:'',tempo:'',funcao:''});
+  renderCoabitantes();
+}
+function removerCoabitante(uid){
+  if(!confirm('Remover este coabitante?'))return;
+  coabitantes=coabitantes.filter(function(c){return c.uid!==uid;});
+  renderCoabitantes();
+}
+function atualizarCoabitante(uid,campo,valor){
+  var c=coabitantes.find(function(x){return x.uid===uid;});
+  if(c){
+    c[campo]=valor;
+    if(campo==='relacao' && valor==='outro'){
+      var inp=document.getElementById('coab-outro-'+uid);
+      if(inp)inp.style.display='block';
+    } else if(campo==='relacao'){
+      var inp=document.getElementById('coab-outro-'+uid);
+      if(inp){inp.style.display='none';c.outro='';}
+    }
+  }
+}
+function renderCoabitantes(){
+  var cont=document.getElementById('coabitantes-container');
+  if(coabitantes.length===0){
+    cont.innerHTML='<div class="coab-empty">Ainda não foram adicionados coabitantes. Use o botão abaixo.</div>';
+    return;
+  }
+  var html='';
+  coabitantes.forEach(function(c,i){
+    html+='<div class="coab-item">';
+    html+='<div class="coab-header"><div class="coab-titulo">Pessoa '+(i+1)+'</div>';
+    html+='<button class="btn btn-danger btn-small" onclick="removerCoabitante('+c.uid+')">Remover</button></div>';
+    html+='<div class="coab-grid">';
+    html+='<div><label class="field-label">Relação com a criança</label><select onchange="atualizarCoabitante('+c.uid+',\'relacao\',this.value)">';
+    html+='<option value="">— Selecione —</option>';
+    COABITANTE_OPCOES.forEach(function(o){html+='<option value="'+o.value+'"'+(c.relacao===o.value?' selected':'')+'>'+o.label+'</option>';});
+    html+='</select>';
+    html+='<input type="text" id="coab-outro-'+c.uid+'" placeholder="Especifique..." value="'+(c.outro||'')+'" style="margin-top:6px;'+(c.relacao==='outro'?'':'display:none')+'" onchange="atualizarCoabitante('+c.uid+',\'outro\',this.value)">';
+    html+='</div>';
+    html+='<div><label class="field-label">Idade aproximada</label><input type="number" min="0" value="'+(c.idade||'')+'" placeholder="ex: 64" onchange="atualizarCoabitante('+c.uid+',\'idade\',this.value)"></div>';
+    html+='</div>';
+    html+='<div class="coab-grid">';
+    html+='<div><label class="field-label">Tempo de coabitação (anos)</label><input type="number" min="0" step="0.5" value="'+(c.tempo||'')+'" placeholder="ex: 2" onchange="atualizarCoabitante('+c.uid+',\'tempo\',this.value)"></div>';
+    html+='<div><label class="field-label">Função na vida da criança</label><select onchange="atualizarCoabitante('+c.uid+',\'funcao\',this.value)">';
+    html+='<option value="">— Selecione —</option>';
+    FUNCAO_OPCOES.forEach(function(o){html+='<option value="'+o.value+'"'+(c.funcao===o.value?' selected':'')+'>'+o.label+'</option>';});
+    html+='</select></div></div></div>';
+  });
+  cont.innerHTML=html;
+}
+
+function nomeCrianca(){return (document.getElementById('nome-crianca').value||'criança');}
+function labelCoabitante(c){
+  if(c.relacao==='outro' && c.outro)return c.outro;
+  var op=COABITANTE_OPCOES.find(function(o){return o.value===c.relacao;});
+  return op?op.label:'(sem relação definida)';
+}
+function substTexto(t){return t.replace(/\[criança\]/g,nomeCrianca());}
+
+function renderS2(){
+  var cont=document.getElementById('s2-tabela-container');
+  var aviso=document.getElementById('s2-aviso');
+  var ativos=coabitantes.filter(function(c){return c.funcao==='ativo'||c.funcao==='algum';});
+  if(ativos.length===0){
+    aviso.style.display='block';cont.innerHTML='';return;
+  }
+  aviso.style.display='none';
+  var html='<table class="matriz-tabela">';
+  html+='<thead><tr><th class="col-sit">Situação</th><th>Quem assegura tipicamente?</th></tr></thead><tbody>';
+  SITUACOES_S2.forEach(function(s){
+    html+='<tr><td class="col-sit">'+s.label+'</td>';
+    html+='<td><select id="s2-'+s.id+'">';
+    html+='<option value="">— Selecione —</option><option value="eu_so">Eu, sozinho/a</option>';
+    ativos.forEach(function(c){html+='<option value="eu_com_'+c.uid+'">Eu, com '+labelCoabitante(c)+'</option>';});
+    ativos.forEach(function(c){html+='<option value="so_'+c.uid+'">'+labelCoabitante(c)+' sozinho/a</option>';});
+    html+='<option value="varia">Varia conforme o dia</option><option value="na">Não se aplica</option>';
+    html+='</select></td></tr>';
+  });
+  html+='</tbody></table>';
+  cont.innerHTML=html;
+}
+
+function renderLikert(containerId,itens,prefixoName){
+  var cont=document.getElementById(containerId);
+  var html='';
+  itens.forEach(function(it,i){
+    html+='<div class="likert-item">';
+    html+='<div class="likert-statement"><strong>'+(i+1)+'.</strong> '+substTexto(it.texto)+'</div>';
+    html+='<div class="likert-scale">';
+    var labels=['Nunca','Raramente','Às Vezes','Frequentemente','Sempre'];
+    for(var v=1;v<=5;v++){
+      html+='<label><input type="radio" name="'+prefixoName+'_'+it.id+'" value="'+v+'"><span class="likert-dot">'+v+'</span><span class="likert-mini">'+labels[v-1]+'</span></label>';
+    }
+    html+='</div></div>';
+  });
+  cont.innerHTML=html;
+}
+function renderS3(){renderLikert('s3-itens',ITENS_S3,'s3');}
+function renderS4(){renderLikert('s4-itens',ITENS_S4,'s4');}
+
+function recolherFormulario(){
+  var s={
+    id:{
+      patientCode:document.getElementById('patient-code').value.trim(),
+      nomeCrianca:document.getElementById('nome-crianca').value.trim(),
+      nomeInformante:document.getElementById('nome-informante').value.trim(),
+      relacao:document.getElementById('relacao-informante').value,
+      configTipo:document.getElementById('config-tipo').value,
+      tempoCoabitacao:document.getElementById('tempo-coabitacao').value,
+      data:new Date().toISOString()
+    },
+    s1:{
+      coabitantes:JSON.parse(JSON.stringify(coabitantes)),
+      inicio:(document.querySelector('input[name=config-inicio]:checked')||{}).value||''
+    },
+    s2:{},
+    s3:{itens:{}},
+    s4:{itens:{}}
+  };
+  SITUACOES_S2.forEach(function(sit){
+    var el=document.getElementById('s2-'+sit.id);
+    s.s2[sit.id]=el?el.value:'';
+  });
+  ['s3','s4'].forEach(function(sec){
+    var itens=sec==='s3'?ITENS_S3:ITENS_S4;
+    itens.forEach(function(it){
+      var r=document.querySelector('input[name='+sec+'_'+it.id+']:checked');
+      s[sec].itens[it.id]=r?parseInt(r.value,10):null;
+    });
+  });
+  return s;
+}
+
+function submeterFormulario(){
+  if(!document.getElementById('patient-code').value.trim()){
+    alert('Por favor preencha o código do paciente.');irPara('id');return;
+  }
+  if(!confirm('Submeter o questionário?'))return;
+  var s=recolherFormulario();
+  sessoes.push(s);
+  saveSessoes();
+  showPage('page-obrigado');
+}
+
+function tentarLogin(){
+  var pw=document.getElementById('login-pw').value;
+  if(pw===PASSWORD){
+    document.getElementById('login-error').style.display='none';
+    showPage('page-clinico');
+  } else {
+    document.getElementById('login-error').style.display='block';
+  }
+}
+
+function renderSessoes(){
+  loadSessoes();
+  var cont=document.getElementById('sessoes-container');
+  if(sessoes.length===0){
+    cont.innerHTML='<div class="card" style="text-align:center;color:var(--text-light);padding:36px"><div style="font-size:2rem;margin-bottom:10px">📭</div>Nenhuma sessão guardada ainda.</div>';
+    return;
+  }
+  var html='<div class="card" style="padding:0"><table><thead><tr><th>Código</th><th>Criança</th><th>Informante</th><th>Configuração</th><th>Data</th><th>Ações</th></tr></thead><tbody>';
+  sessoes.forEach(function(s,i){
+    var dt=s.id.data?new Date(s.id.data).toLocaleDateString('pt-PT'):'—';
+    html+='<tr class="session-row" onclick="abrirSessao('+i+')">';
+    html+='<td><strong>'+(s.id.patientCode||'—')+'</strong></td>';
+    html+='<td>'+(s.id.nomeCrianca||'—')+'</td>';
+    html+='<td>'+(s.id.nomeInformante||'—')+' <span style="color:var(--text-light);font-size:.78rem">('+labelRelacaoCurto(s.id.relacao)+')</span></td>';
+    html+='<td><span style="font-size:.78rem;color:var(--text-light)">'+(s.id.configTipo||'—')+'</span></td>';
+    html+='<td>'+dt+'</td>';
+    html+='<td><button class="btn btn-secondary btn-small" onclick="event.stopPropagation();exportarSessao('+i+')">↓</button> <button class="btn btn-danger btn-small" onclick="event.stopPropagation();removerSessao('+i+')">✕</button></td>';
+    html+='</tr>';
+  });
+  html+='</tbody></table></div>';
+  cont.innerHTML=html;
+}
+
+function removerSessao(i){
+  if(!confirm('Remover esta sessão?'))return;
+  sessoes.splice(i,1);
+  saveSessoes();
+  renderSessoes();
+}
+
+function abrirSessao(i){
+  var s=sessoes[i];if(!s)return;
+  document.getElementById('modal-titulo').textContent='MCP-Breve — '+(s.id.patientCode||'')+' · '+(s.id.nomeInformante||'')+' ('+labelRelacaoCurto(s.id.relacao)+')';
+  document.getElementById('modal-body').innerHTML=renderDetalhe(s);
+  document.getElementById('modal-overlay').style.display='flex';
+}
+
+function labelRelacaoCurto(r){
+  var m={mae:'Mãe',pai:'Pai',madrasta:'Madrasta',padrasto:'Padrasto',tutor:'Tutor/a',outro:'Outro'};
+  return m[r]||r||'—';
+}
+function labelCoabitanteFromObj(c){
+  if(c.relacao==='outro' && c.outro)return c.outro;
+  var op=COABITANTE_OPCOES.find(function(o){return o.value===c.relacao;});
+  return op?op.label:'—';
+}
+function labelFuncao(f){
+  var op=FUNCAO_OPCOES.find(function(o){return o.value===f;});
+  return op?op.label:'—';
+}
+function labelInicio(v){
+  var m={nascimento:'Desde o nascimento',separacao:'Após separação parental',outra:'Outra razão'};
+  return m[v]||'—';
+}
+function labelS2(v,coabs){
+  if(!v||v==='')return '—';
+  if(v==='eu_so')return 'Eu sozinho/a';
+  if(v==='varia')return 'Varia';
+  if(v==='na')return 'N/A';
+  if(v.indexOf('eu_com_')===0){
+    var uid=parseInt(v.replace('eu_com_',''),10);
+    var c=coabs.find(function(x){return x.uid===uid;});
+    return 'Eu + '+(c?labelCoabitanteFromObj(c):'?');
+  }
+  if(v.indexOf('so_')===0){
+    var uid=parseInt(v.replace('so_',''),10);
+    var c=coabs.find(function(x){return x.uid===uid;});
+    return (c?labelCoabitanteFromObj(c):'?')+' sozinho/a';
+  }
+  return v;
+}
+
+function calcMedia(itens,obj,invIds){
+  invIds=invIds||[];
+  var soma=0,n=0;
+  Object.keys(obj).forEach(function(k){
+    var v=obj[k];if(v==null||isNaN(v))return;
+    var ajustado=invIds.indexOf(k)>=0?(6-v):v;
+    soma+=ajustado;n++;
+  });
+  return n?(soma/n):null;
+}
+function classifMedia(m){
+  if(m==null)return {label:'—',color:'var(--text-light)'};
+  if(m<2.0)return {label:'Baixa',color:'var(--green)'};
+  if(m<3.0)return {label:'Ligeira',color:'var(--blue-mid)'};
+  if(m<4.0)return {label:'Moderada',color:'var(--orange)'};
+  return {label:'Elevada',color:'var(--red)'};
+}
+
+function bandeirasClínicas(s){
+  var flags=[];
+  if(s.s3 && s.s3.itens && s.s3.itens.s3_3>=3)flags.push({txt:'Desautorização perante a criança',cls:'flag-amber'});
+  if(s.s3 && s.s3.itens && s.s3.itens.s3_4>=3)flags.push({txt:'Desacordo educativo visível para a criança',cls:'flag-amber'});
+  if(s.s4 && s.s4.itens && s.s4.itens.s4_4>=3)flags.push({txt:'Considera viver noutra casa por autonomia parental',cls:'flag-red'});
+  if(s.s4 && s.s4.itens && s.s4.itens.s4_3>=4)flags.push({txt:'Tensões educativas em casa elevadas',cls:'flag-amber'});
+  if(s.s3 && s.s3.itens && s.s3.itens.s3_2>=4 && s.s3.itens.s3_6>=4)flags.push({txt:'Apoio educativo coabitantes (positivo)',cls:'flag-green'});
+  return flags;
+}
+
+function renderTabelaLikert(itens,defs){
+  if(!itens)return '<p>—</p>';
+  var html='<table style="margin-bottom:10px"><thead><tr><th style="width:75%">Item</th><th>Resposta</th></tr></thead><tbody>';
+  defs.forEach(function(it,i){
+    var v=itens[it.id];
+    var labels=['Nunca','Raramente','Às Vezes','Frequentemente','Sempre'];
+    var label=v?(v+' — '+labels[v-1]):'—';
+    var cor='var(--text-light)';
+    if(v!=null){
+      if(it.inv){cor=v>=4?'var(--red)':(v>=3?'var(--orange)':'var(--text)');}
+      else{cor=v<=2?'var(--orange)':'var(--text)';}
+    }
+    html+='<tr><td style="font-size:.82rem">'+(i+1)+'. '+substTexto(it.texto)+'</td><td style="color:'+cor+';font-weight:600">'+label+'</td></tr>';
+  });
+  html+='</tbody></table>';
+  return html;
+}
+
+function renderDetalhe(s){
+  var html='';
+  html+='<h3 style="font-family:\'DM Serif Display\',serif;color:var(--blue);margin-bottom:12px">Identificação</h3>';
+  html+='<table style="margin-bottom:18px"><tbody>';
+  html+='<tr><td style="width:30%;font-weight:600">Código</td><td>'+(s.id.patientCode||'—')+'</td></tr>';
+  html+='<tr><td style="font-weight:600">Criança</td><td>'+(s.id.nomeCrianca||'—')+'</td></tr>';
+  html+='<tr><td style="font-weight:600">Informante</td><td>'+(s.id.nomeInformante||'—')+' ('+labelRelacaoCurto(s.id.relacao)+')</td></tr>';
+  html+='<tr><td style="font-weight:600">Configuração</td><td>'+(s.id.configTipo||'—')+'</td></tr>';
+  html+='<tr><td style="font-weight:600">Tempo de coabitação</td><td>'+(s.id.tempoCoabitacao?s.id.tempoCoabitacao+' anos':'—')+'</td></tr>';
+  html+='<tr><td style="font-weight:600">Data</td><td>'+(s.id.data?new Date(s.id.data).toLocaleDateString('pt-PT'):'—')+'</td></tr>';
+  html+='</tbody></table>';
+
+  var flags=bandeirasClínicas(s);
+  if(flags.length>0){
+    html+='<h3 style="font-family:\'DM Serif Display\',serif;color:var(--blue);margin-bottom:8px">Sinais clínicos</h3>';
+    html+='<div style="margin-bottom:18px">';
+    flags.forEach(function(f){html+='<span class="flag-clinico '+f.cls+'">'+f.txt+'</span>';});
+    html+='</div>';
+  }
+
+  html+='<h3 style="font-family:\'DM Serif Display\',serif;color:var(--blue);margin-bottom:8px">Coabitantes (S1)</h3>';
+  if(s.s1.coabitantes && s.s1.coabitantes.length>0){
+    html+='<table style="margin-bottom:14px"><thead><tr><th>Relação</th><th>Idade</th><th>Tempo coabitação</th><th>Função</th></tr></thead><tbody>';
+    s.s1.coabitantes.forEach(function(c){
+      html+='<tr><td>'+labelCoabitanteFromObj(c)+'</td><td>'+(c.idade||'—')+'</td><td>'+(c.tempo?c.tempo+' anos':'—')+'</td><td>'+labelFuncao(c.funcao)+'</td></tr>';
+    });
+    html+='</tbody></table>';
+  } else {
+    html+='<p style="color:var(--text-light);font-size:.85rem;margin-bottom:14px">Sem coabitantes registados.</p>';
+  }
+  html+='<p style="font-size:.82rem;margin-bottom:18px"><strong>Início desta configuração:</strong> '+labelInicio(s.s1.inicio)+'</p>';
+
+  html+='<h3 style="font-family:\'DM Serif Display\',serif;color:var(--blue);margin-bottom:8px">Distribuição funcional (S2)</h3>';
+  html+='<table style="margin-bottom:18px"><thead><tr><th>Situação</th><th>Quem assegura</th></tr></thead><tbody>';
+  SITUACOES_S2.forEach(function(sit){
+    var v=s.s2[sit.id]||'';
+    var label=labelS2(v,s.s1.coabitantes);
+    var cls='hm-na';
+    if(v==='eu_so')cls='hm-self';
+    else if(v.indexOf('eu_com_')===0)cls='hm-shared';
+    else if(v.indexOf('so_')===0)cls='hm-other';
+    else if(v==='varia')cls='hm-varia';
+    html+='<tr><td>'+sit.label+'</td><td><span class="heatmap-cell '+cls+'">'+label+'</span></td></tr>';
+  });
+  html+='</tbody></table>';
+
+  html+='<h3 style="font-family:\'DM Serif Display\',serif;color:var(--blue);margin-bottom:8px">Autoridade educativa (S3)</h3>';
+  html+=renderTabelaLikert(s.s3.itens,ITENS_S3);
+  var m3=calcMedia(ITENS_S3,s.s3.itens,['s3_3','s3_4','s3_5']);
+  var c3=classifMedia(m3);
+  html+='<p style="font-size:.85rem;margin-bottom:18px"><strong>Média de autoridade reconhecida:</strong> <span style="color:'+c3.color+';font-weight:700">'+(m3?m3.toFixed(2):'—')+' ('+c3.label+')</span> <span style="color:var(--text-light);font-size:.78rem">— média invertida nos itens 3, 4 e 5</span></p>';
+
+  html+='<h3 style="font-family:\'DM Serif Display\',serif;color:var(--blue);margin-bottom:8px">Posição do informante (S4)</h3>';
+  html+=renderTabelaLikert(s.s4.itens,ITENS_S4);
+  var m4=calcMedia(ITENS_S4,s.s4.itens,['s4_3','s4_4']);
+  var c4=classifMedia(m4);
+  html+='<p style="font-size:.85rem;margin-bottom:18px"><strong>Média de bem-estar parental percebido:</strong> <span style="color:'+c4.color+';font-weight:700">'+(m4?m4.toFixed(2):'—')+' ('+c4.label+')</span> <span style="color:var(--text-light);font-size:.78rem">— média invertida nos itens 3 e 4</span></p>';
+
+  html+='<div class="no-print" style="margin-top:24px;padding-top:16px;border-top:1px solid var(--gray-bdr);display:flex;gap:8px;justify-content:flex-end">';
+  html+='<button class="btn btn-secondary btn-small" onclick="imprimirRelatorio()">🖨 Imprimir / PDF</button></div>';
+  return html;
+}
+
+function fecharModal(e){if(e.target===document.getElementById('modal-overlay'))document.getElementById('modal-overlay').style.display='none';}
+
+function compararPerfis(){
+  if(sessoes.length<2){alert('São necessárias pelo menos 2 sessões para comparar.');return;}
+  var sel=sessoes.slice(0,4);
+  var html='<p style="color:var(--text-light);font-size:.85rem;margin-bottom:16px">Comparação entre as configurações reportadas.</p>';
+  html+='<table><thead><tr><th>Indicador</th>';
+  sel.forEach(function(s){html+='<th>'+(s.id.nomeInformante||'—')+'<br><span style="font-weight:400;font-size:.75rem">'+labelRelacaoCurto(s.id.relacao)+' · '+(s.id.patientCode||'')+'</span></th>';});
+  html+='</tr></thead><tbody>';
+
+  html+='<tr><td><strong>Autoridade educativa (S3)</strong></td>';
+  sel.forEach(function(s){
+    var m=calcMedia(ITENS_S3,s.s3.itens,['s3_3','s3_4','s3_5']);
+    var c=classifMedia(m);
+    html+='<td style="color:'+c.color+';font-weight:700">'+(m?m.toFixed(2):'—')+'<br><span style="font-weight:400;font-size:.75rem">'+c.label+'</span></td>';
+  });
+  html+='</tr>';
+
+  html+='<tr><td><strong>Desautorização perante a criança</strong><br><span style="font-size:.75rem;color:var(--text-light)">S3 item 3</span></td>';
+  sel.forEach(function(s){
+    var v=s.s3.itens.s3_3;
+    var cor=v>=3?'var(--red)':(v>=2?'var(--orange)':'var(--text)');
+    html+='<td style="color:'+cor+';font-weight:700">'+(v||'—')+'</td>';
+  });
+  html+='</tr>';
+
+  html+='<tr><td><strong>Bem-estar parental (S4)</strong></td>';
+  sel.forEach(function(s){
+    var m=calcMedia(ITENS_S4,s.s4.itens,['s4_3','s4_4']);
+    var c=classifMedia(m);
+    html+='<td style="color:'+c.color+';font-weight:700">'+(m?m.toFixed(2):'—')+'<br><span style="font-weight:400;font-size:.75rem">'+c.label+'</span></td>';
+  });
+  html+='</tr>';
+
+  html+='<tr><td><strong>Considerou viver noutra casa</strong><br><span style="font-size:.75rem;color:var(--text-light)">S4 item 4</span></td>';
+  sel.forEach(function(s){
+    var v=s.s4.itens.s4_4;
+    var cor=v>=3?'var(--red)':(v>=2?'var(--orange)':'var(--text)');
+    html+='<td style="color:'+cor+';font-weight:700">'+(v||'—')+'</td>';
+  });
+  html+='</tr>';
+
+  html+='</tbody></table>';
+  document.getElementById('modal-comp-body').innerHTML=html;
+  document.getElementById('modal-comp').style.display='flex';
+}
+function fecharModalComp(e){if(e.target===document.getElementById('modal-comp'))document.getElementById('modal-comp').style.display='none';}
+
+function exportarTudo(){
+  var blob=new Blob([JSON.stringify(sessoes,null,2)],{type:'application/json'});
+  var a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download='MCP_Breve_'+new Date().toISOString().split('T')[0]+'.json';a.click();
+}
+function exportarSessao(i){
+  var s=sessoes[i];if(!s)return;
+  var blob=new Blob([JSON.stringify(s,null,2)],{type:'application/json'});
+  var a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download='MCPbreve_'+(s.id.patientCode||'s'+(i+1))+'_'+(s.id.relacao||'').replace(/\s/g,'_')+'.json';a.click();
+}
+function importarJSON(input){
+  var file=input.files[0];if(!file)return;
+  var reader=new FileReader();
+  reader.onload=function(e){
+    try{
+      var data=JSON.parse(e.target.result);
+      var arr=Array.isArray(data)?data:[data];
+      var added=0;
+      var existingKeys=new Set(sessoes.map(function(s){return (s.id&&s.id.patientCode||'')+'|'+(s.id&&s.id.relacao||'')+'|'+(s.id&&s.id.data||'');}));
+      arr.forEach(function(s){
+        if(!s||!s.id)return;
+        var key=(s.id.patientCode||'')+'|'+(s.id.relacao||'')+'|'+(s.id.data||'');
+        if(!existingKeys.has(key)){sessoes.push(s);existingKeys.add(key);added++;}
+      });
+      saveSessoes();
+      renderSessoes();
+      alert(added+' sessão(ões) importada(s).');
+    }catch(err){alert('Erro: '+err.message);}
+    input.value='';
+  };
+  reader.readAsText(file);
+}
+
+function imprimirRelatorio(){
+  var html=document.getElementById('modal-body').innerHTML;
+  var titulo=document.getElementById('modal-titulo').textContent;
+  var w=window.open('','_blank');
+  if(!w){alert('Pop-up bloqueado.');return;}
+  w.document.write('<html><head><meta charset="UTF-8"><title>MCP-Breve — '+titulo+'</title>');
+  w.document.write('<style>body{font-family:DM Sans,Arial,sans-serif;color:#2C3E50;padding:32px;max-width:900px;margin:0 auto;font-size:13px}h1,h2,h3{color:#3B5A7A}h1{font-size:1.4rem;margin-bottom:8px}h3{font-size:1rem;margin:18px 0 8px;border-bottom:2px solid #D6E4F0;padding-bottom:4px}table{width:100%;border-collapse:collapse;margin-bottom:14px;font-size:12px}th{background:#EBF2F8;color:#3B5A7A;padding:6px 8px;text-align:left;font-weight:600}td{padding:6px 8px;border-bottom:1px solid #DDE3EA;vertical-align:top}.flag-clinico{display:inline-block;padding:3px 10px;border-radius:12px;font-size:.75rem;font-weight:600;margin-right:6px;margin-bottom:4px}.flag-amber{background:#fef3e2;color:#c07000}.flag-red{background:#fde2e0;color:#8e2820}.flag-green{background:#eafaf1;color:#1e7e3c}.heatmap-cell{padding:4px 8px;border-radius:4px;font-weight:600}.hm-self{background:#d6e4f0}.hm-shared{background:#fef3e2;color:#c07000}.hm-other{background:#fde2e0;color:#8e2820}.hm-varia{background:#ebf2f8}.no-print{display:none}.footer{margin-top:30px;padding-top:10px;border-top:1px solid #ddd;font-size:11px;color:#999;text-align:right}@media print{body{padding:16px}.no-print{display:none!important}}</style></head><body>');
+  w.document.write('<h1>MCP-Breve — Mapeamento da Configuração Parental</h1>');
+  w.document.write('<h2 style="font-weight:400;font-size:1rem;margin-bottom:18px">'+titulo+'</h2>');
+  w.document.write(html);
+  w.document.write('<div class="footer">Ricardina Correia · Cédula OPP 8233 · '+new Date().toLocaleDateString('pt-PT')+'<br><em>Instrumento ad-hoc — uso clínico orientativo.</em></div>');
+  w.document.write('</body></html>');
+  w.document.close();
+  setTimeout(function(){w.print();},400);
+}
+
+loadSessoes();
+showPage('page-home');
+</script>
+</body>
+</html>

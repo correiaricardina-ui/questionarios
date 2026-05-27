@@ -710,7 +710,14 @@ const QID_TO_ABA = {
   // CARS2-QPC · Questionário Parental (Ricardina Correia, 2026) ──
   'q_cars2_qpc':           'CARS2_QPC',
   // CARS2-ST · Versão Standard (Ricardina Correia, 2026) ──
-  'q_cars2_st':            'CARS2_ST'
+  'q_cars2_st':            'CARS2_ST',
+  // ── MCP · Mapeamento de Configuração Parental (Ricardina Correia, 2026) ──
+  'q_mcp_breve':           'MCP_Breve',
+  'q_mcp_completo':        'MCP_Completo',
+  // ── UCLA-PTSD Adaptado · Rastreio PSPT Pediátrica (Ricardina Correia, 2026) ──
+  'q_ucla_ptsd_adaptado':  'UCLA_PTSD_Adaptado',
+  // ── ISAS · Inventário de Afirmações sobre Autolesão (Klonsky & Glenn, 2009) ──
+  'q_isas':                'ISAS'
 };
 
 
@@ -1049,7 +1056,28 @@ const SYNC_KEY_TO_ABA = {
   'CARS2-ST':              'CARS2_ST',
   'eari_as':               'CARS2_ST',
   'EARI-AS':               'CARS2_ST',
-  'EARI_AS':               'CARS2_ST'
+  'EARI_AS':               'CARS2_ST',
+  // ── MCP · Mapeamento de Configuração Parental (Ricardina Correia, 2026) ──
+  // MCP Breve · rastreio rápido da configuração parental e clima educativo
+  'mcp_breve':             'MCP_Breve',
+  'MCP_Breve':             'MCP_Breve',
+  'MCP-Breve':             'MCP_Breve',
+  'mcpbreve':              'MCP_Breve',
+  // MCP Completo · mapeamento aprofundado (incl. relação afetiva e acomodação dos outros)
+  'mcp_completo':          'MCP_Completo',
+  'MCP_Completo':          'MCP_Completo',
+  'MCP-Completo':          'MCP_Completo',
+  'mcpcompleto':           'MCP_Completo',
+  // ── UCLA-PTSD Adaptado · Rastreio PSPT Pediátrica (Ricardina Correia, 2026) ──
+  // Adaptação inspirada (Via B) operacionalizando os critérios A–H do DSM-5-TR · 7–11 anos
+  'ucla_ptsd_adaptado':    'UCLA_PTSD_Adaptado',
+  'UCLA_PTSD_Adaptado':    'UCLA_PTSD_Adaptado',
+  'ucla_ptsd':             'UCLA_PTSD_Adaptado',
+  'ucla':                  'UCLA_PTSD_Adaptado',
+  // ── ISAS · Inventário de Afirmações sobre Autolesão (Klonsky & Glenn, 2009) ──
+  // Auto-resposta · 12–25 anos · 13 funções (6 intrapessoais + 7 interpessoais) + Total/78
+  'isas':                  'ISAS',
+  'ISAS':                  'ISAS'
 };
 
 // Cache em memória das respostas do Sheet (evita fetch repetidos na mesma sessão)
@@ -1771,7 +1799,56 @@ function initCatalog() {
       ageRange:'<6 anos OU QI≤79 OU verbal limitada/ausente',
       objective:'Avaliação clínica integrativa da severidade de sinais compatíveis com Perturbação do Espetro do Autismo (PEA) em crianças mais novas ou com maior compromisso funcional: idade cronológica <6 anos, OU estimativa de QI ≤79, OU comunicação verbal limitada/ausente. Adaptação inspirada (Via B) na CARS-2 Standard Form (Schopler, Van Bourgondien, Wellman & Love, 2010, WPS), com formulação clínica original em PT-PT — conteúdo literário do instrumento de referência NÃO reproduzido. Calibrada para valorizar manifestações comportamentais observáveis (motoras, sensoriais, comportamentais), com menor exigência de inferência sobre processos mentais subtis. Inclui dois domínios próprios da versão Standard: Imitação (item 2) e Impressões Clínicas Globais (item 15). Cotação clínica integrativa por psicólogo. 15 domínios com escala 1.0–4.0 (passos 0.5); soma 15.0–60.0. Pontos de corte (Schopler et al., 1980; Chlebowski, Green, Barton & Fein, 2010; Schopler et al., 2010): Mínimo 15-29.5 / Ligeiro a moderado 30-36.5 / Severo 37-60 (cortes mais altos que a CARS2-HP). Sinalização adicional: domínios com cotação ≥3.0 configuram atipicidade clinicamente relevante. Identificação inclui QI estimado e nível de comunicação verbal. Não existem normas portuguesas validadas; finalidade clínica complementar — não substitui avaliação clínica integrada nem instrumentos como ADOS-2 (Toddler/M1/M2), ADI-R, Bayley-III/WPPSI-IV/Leiter-3, Vineland-3.',
       domains:['Relação com pessoas','Imitação','Resposta emocional','Uso do corpo','Uso de objetos','Adaptação à mudança','Resposta visual','Resposta auditiva','Resposta gustativa/olfativa/tátil','Medo ou nervosismo','Comunicação verbal','Comunicação não-verbal','Nível de atividade','Nível e consistência da resposta intelectual','Impressões clínicas globais'],
-      ageMin:0, ageMax:1200, ageUnit:'meses' }
+      ageMin:0, ageMax:1200, ageUnit:'meses' },
+    // ── MCP · Mapeamento de Configuração Parental — Ricardina Correia, 2026 ─
+    // MCP Breve · rastreio rápido da configuração parental e clima educativo
+    { id:'q_mcp_breve',
+      name:'MCP Breve — Mapeamento de Configuração Parental',
+      dest:['Mãe','Pai','Madrasta','Padrasto','Enc. Educação','Tutor(a) legal'],
+      link:'https://correiaricardina-ui.github.io/questionarios/MCP_Breve.html',
+      syncKey:'mcp_breve',
+      area:'Família & Parentalidade',
+      ageRange:'3–17 anos',
+      objective:'Instrumento clínico ad-hoc (sem validação psicométrica formal — uso orientativo, articulado com entrevista). Mapeamento BREVE da configuração parental quotidiana em famílias com múltiplos adultos coabitantes: caracterização dos coabitantes (S1), distribuição funcional em 6 situações-chave (S2), autoridade educativa reconhecida (S3, 6 itens Likert) e posição/bem-estar parental do informante (S4, 4 itens Likert). Itens 3, 4 e 5 da S3 e 3 e 4 da S4 são invertidos. Pai e mãe podem submeter em separado (dedupe por nome_informante). Saída clínica: heatmap da distribuição funcional + Média de Autoridade Reconhecida + Média de Bem-Estar Parental Percebido.',
+      domains:['Coabitantes (S1)','Distribuição funcional (S2)','Autoridade educativa reconhecida (S3)','Posição e bem-estar parental (S4)','Média Autoridade','Média Bem-Estar'],
+      ageMin:36, ageMax:215 },
+    // MCP Completo · mapeamento aprofundado (incl. relação afetiva e acomodação dos outros)
+    { id:'q_mcp_completo',
+      name:'MCP Completo — Mapeamento de Configuração Parental',
+      dest:['Mãe','Pai','Madrasta','Padrasto','Enc. Educação','Tutor(a) legal'],
+      link:'https://correiaricardina-ui.github.io/questionarios/MCP_Completo.html',
+      syncKey:'mcp_completo',
+      area:'Família & Parentalidade',
+      ageRange:'3–17 anos',
+      objective:'Instrumento clínico ad-hoc (sem validação psicométrica formal — uso orientativo, articulado com entrevista). Mapeamento APROFUNDADO da configuração parental e clima educativo em famílias com múltiplos adultos coabitantes: coabitantes (S1, com início e perspectiva de futuro), distribuição funcional (S2, 6 situações), autoridade educativa (S3, 6 itens + resposta aberta), relação afetiva da criança com cada figura adulta (S4, 3 itens × N figuras + duas perguntas qualitativas), acomodação/resposta dos outros adultos a sintomas da criança (S5, 5 itens), posição parental do informante (S6, 4 itens + aberta) e síntese clínica (S7, duas questões abertas: "o que funciona" / "o que mudaria"). Pai e mãe podem submeter em separado (dedupe por nome_informante). Saída clínica: heatmap S2 + mapa relacional S4 por figura + Média Autoridade (S3) + Média Acomodação parcial (S5: itens 1-3) + Média Bem-Estar (S6) + comentários abertos.',
+      domains:['Coabitantes (S1)','Distribuição funcional (S2)','Autoridade educativa (S3)','Relação afetiva por figura (S4)','Resposta dos outros / Acomodação (S5)','Posição e bem-estar parental (S6)','Síntese clínica aberta (S7)','Média Autoridade','Média Acomodação','Média Bem-Estar'],
+      ageMin:36, ageMax:215 },
+    // ── UCLA-PTSD Adaptado · Rastreio de PSPT Pediátrica — Ricardina Correia, 2026 ──
+    // Adaptação inspirada (Via B) · operacionalização clínica dos critérios A–H do DSM-5-TR · 7–11 anos
+    // Clinician-rated: cotação clínica integrativa por psicólogo, baseada em entrevista com a criança e/ou cuidadores
+    { id:'q_ucla_ptsd_adaptado',
+      name:'UCLA-PTSD Adaptado — Rastreio de PSPT Pediátrica',
+      dest:['Aplicador clínico'],
+      link:'https://correiaricardina-ui.github.io/questionarios/UCLA_PTSD_Adaptado.html',
+      syncKey:'ucla_ptsd_adaptado',
+      area:'Trauma & Stress',
+      ageRange:'7–11 anos (estendível 3–18)',
+      objective:'Instrumento clínico ad-hoc (sem validação psicométrica formal — uso orientativo, articulado com entrevista clínica). Adaptação inspirada (Via B do protocolo) operacionalizando os critérios A–H do DSM-5-TR para Perturbação de Stress Pós-Traumático pediátrica, com formulação original em português europeu — NÃO constitui reprodução do UCLA PTSD Reaction Index for DSM-5 (Steinberg, Brymer, Pynoos et al.). Cotação clínica integrativa por psicólogo. Estrutura em 8 módulos: M1 Exposição (Critério A — 13 tipos de eventos sim/não + idade na altura), Evento Índice (tipo, idade, modalidade, descrição), M2 Intrusão (5 itens B Likert 0-4), M3 Evitamento (2 itens C), M4 Cognição/humor (7 itens D), M5 Ativação (6 itens E), M6 Dissociação (2 itens — especificador), M7 Duração F + Início H em meses, M8 Interferência funcional G (5 domínios). Total sintomático = B+C+D+E (0-80). Bandas: Mínima 0-19 / Ligeira 20-34 / Moderada 35-49 / Severa 50-80. Regra DSM-5-TR cumprida = A+B+C+D+E+F+G todos positivos. Especificadores: dissociativo (Dis1 ou Dis2 ≥ 2) e expressão tardia (início ≥ 6 meses). Padrões T1-T5 com hipótese clínica e ação sugerida. Não substitui o UCLA PTSD-RI, o CAPS-CA-5 ou outros instrumentos validados.',
+      domains:['Exposição (Critério A)','Evento Índice','Intrusão (B)','Evitamento (C)','Cognição/humor (D)','Ativação (E)','Dissociação (especificador)','Duração e Início (F, H)','Interferência funcional (G)','Total sintomático','Banda','Padrão T1–T5','Regra DSM-5-TR'],
+      ageMin:36, ageMax:215 },
+    // ── ISAS · Inventário de Afirmações sobre Autolesão (Klonsky & Glenn, 2009) ──
+    // Auto-resposta (adolescente/jovem adulto) · 12–25 anos
+    // Identifica comportamentos de autolesão não suicida (Sec. I) e as 13 funções subjacentes (Sec. II)
+    { id:'q_isas',
+      name:'ISAS — Inventário de Afirmações sobre Autolesão',
+      dest:['Paciente/Adolescente','Adulto'],
+      link:'https://correiaricardina-ui.github.io/questionarios/ISAS_v1.html',
+      syncKey:'isas',
+      area:'Comportamento / Autolesão (NSSI)',
+      ageRange:'12–25 anos',
+      objective:'Auto-resposta · Klonsky & Glenn (2009). Caracterização de comportamentos de autolesão não suicida (Secção I — 12 comportamentos + 7 questões contextuais) e identificação funcional das 13 funções subjacentes (Secção II — 39 itens Likert 0-2 organizados em 6 funções intrapessoais e 7 interpessoais). Score por função 0-6 (Baixa 0-2 / Média 3-4 / Alta 5-6). Domínios: Intrapessoal 0-36 (Reg. afecto, Anti-dissociação, Anti-suicídio, Marcar sofrimento, Auto-punição, Endurecimento) e Interpessoal 0-42 (Autonomia, Limites interpessoais, Influência, Vinculação a pares, Vingança, Auto-cuidado, Procura de sensações). TOTAL 0-78 com bandas: Sem investimento 0 / Baixo 1-26 / Moderado 27-52 / Elevado 53-78. Perfis funcionais: Baixo investimento funcional, Intrapessoal predominante, Interpessoal predominante, Misto. Alertas críticos: Anti-suicídio ≥4 (articular com EADRS-A e pedopsiquiatria), Auto-punição ≥4 (trabalho sobre auto-conceito e auto-crítica), Influência interpessoal ≥4 (dinâmica familiar e sinalização).',
+      domains:['Caracterização (Sec. I)','13 funções (Sec. II)','Intrapessoal (0-36)','Interpessoal (0-42)','TOTAL (0-78)','Perfil funcional','Top 3 funções','Alertas críticos (AS/AP/IN)'],
+      ageMin:144, ageMax:300 }
   ];
   // Garantir que TODOS os defaults estão no catálogo, sempre
   // (funciona em RC novos e em RC existentes — nunca perde questionários)
@@ -1946,6 +2023,13 @@ function initCatalog() {
       'q_cars2_qpc':    { link:'https://correiaricardina-ui.github.io/questionarios/CARS2-QPC_v1.html', syncKey:'cars2_qpc' },
       // CARS2-ST · Espetro do Autismo (Versão Standard) v1.0 (Ricardina Correia, 2026) ──
       'q_cars2_st':     { link:'https://correiaricardina-ui.github.io/questionarios/CARS2-ST_v1.html', syncKey:'cars2_st' },
+      // ── MCP · Mapeamento de Configuração Parental v1.0 (Ricardina Correia, 2026) ──
+      'q_mcp_breve':    { link:'https://correiaricardina-ui.github.io/questionarios/MCP_Breve.html',    syncKey:'mcp_breve' },
+      'q_mcp_completo': { link:'https://correiaricardina-ui.github.io/questionarios/MCP_Completo.html', syncKey:'mcp_completo' },
+      // ── UCLA-PTSD Adaptado v1.0 · Rastreio PSPT Pediátrica (Ricardina Correia, 2026) ──
+      'q_ucla_ptsd_adaptado': { link:'https://correiaricardina-ui.github.io/questionarios/UCLA_PTSD_Adaptado.html', syncKey:'ucla_ptsd_adaptado' },
+      // ── ISAS v1.0 · Inventário de Afirmações sobre Autolesão (Klonsky & Glenn, 2009) ──
+      'q_isas': { link:'https://correiaricardina-ui.github.io/questionarios/ISAS_v1.html', syncKey:'isas' },
     };
     // ── Re-store com chave correcta ('q_' + id) — corrige instalações anteriores ──
     // Garante que Conners, FAD e MAP ficam acessíveis pelo META.forEach e getCatalog
@@ -2341,6 +2425,26 @@ function initCatalog() {
     if(!catalog.includes('q_cars2_st')) {
       const d = defaults.find(x => x.id === 'q_cars2_st');
       if(d) { store.set('q_' + d.id, d); catalog.push('q_cars2_st'); store.set('catalog', catalog); }
+    }
+    // ── MCP Breve · Mapeamento de Configuração Parental v1.0 (Ricardina Correia, 2026) ──
+    if(!catalog.includes('q_mcp_breve')) {
+      const d = defaults.find(x => x.id === 'q_mcp_breve');
+      if(d) { store.set('q_' + d.id, d); catalog.push('q_mcp_breve'); store.set('catalog', catalog); }
+    }
+    // ── MCP Completo · Mapeamento de Configuração Parental v1.0 (Ricardina Correia, 2026) ──
+    if(!catalog.includes('q_mcp_completo')) {
+      const d = defaults.find(x => x.id === 'q_mcp_completo');
+      if(d) { store.set('q_' + d.id, d); catalog.push('q_mcp_completo'); store.set('catalog', catalog); }
+    }
+    // ── UCLA-PTSD Adaptado v1.0 · Rastreio PSPT Pediátrica (Ricardina Correia, 2026) ──
+    if(!catalog.includes('q_ucla_ptsd_adaptado')) {
+      const d = defaults.find(x => x.id === 'q_ucla_ptsd_adaptado');
+      if(d) { store.set('q_' + d.id, d); catalog.push('q_ucla_ptsd_adaptado'); store.set('catalog', catalog); }
+    }
+    // ── ISAS v1.0 · Inventário de Afirmações sobre Autolesão (Klonsky & Glenn, 2009) ──
+    if(!catalog.includes('q_isas')) {
+      const d = defaults.find(x => x.id === 'q_isas');
+      if(d) { store.set('q_' + d.id, d); catalog.push('q_isas'); store.set('catalog', catalog); }
     }
     }
   }
@@ -3519,6 +3623,119 @@ function formatScoreSummary(scores, syncKey) {
     return '<span style="font-size:0.78rem;color:var(--text-light)">AQ Buss-Perry</span>';
   }
 
+  // ── MCP Breve · Mapeamento de Configuração Parental (Ricardina Correia, 2026) ──
+  // Mostra Média Autoridade Reconhecida (S3) + Média Bem-Estar Parental (S4)
+  // Escala 1-4; valores mais altos = mais favorável (já com inversão aplicada)
+  if(syncKey === 'mcp_breve') {
+    const mAut = scores['Media_Autoridade'] ?? scores['media_autoridade'] ?? scores['mediaAutoridade'] ?? scores['m_aut'];
+    const mBe  = scores['Media_BemEstar']  ?? scores['media_bemestar']  ?? scores['mediaBemEstar']  ?? scores['m_be'];
+    if(mAut != null || mBe != null) {
+      function corM(v) {
+        if(v == null) return 'var(--text-light)';
+        const x = parseFloat(v);
+        if(isNaN(x)) return 'var(--text-light)';
+        // 1-4: ≤2 preocupante, ≤2.5 atenção, >2.5 favorável (escala MCP — clínico, não psicométrico)
+        return x <= 2 ? '#C0392B' : x <= 2.5 ? '#E67E22' : '#27AE60';
+      }
+      const partes = [];
+      if(mAut != null) partes.push('<span style="color:' + corM(mAut) + ';font-weight:700">Aut=' + parseFloat(mAut).toFixed(2) + '</span>');
+      if(mBe  != null) partes.push('<span style="color:' + corM(mBe)  + ';font-weight:700">BE=' + parseFloat(mBe).toFixed(2) + '</span>');
+      return '<span style="font-size:0.78rem">MCP-B · ' + partes.join(' · ') + '</span>';
+    }
+    return '<span style="font-size:0.78rem;color:var(--text-light)">MCP Breve</span>';
+  }
+
+  // ── MCP Completo · Mapeamento de Configuração Parental (Ricardina Correia, 2026) ──
+  // Mostra Média Autoridade (S3) + Média Acomodação parcial (S5: itens 1-3) + Média Bem-Estar (S6)
+  if(syncKey === 'mcp_completo') {
+    const mAut  = scores['Media_Autoridade']  ?? scores['media_autoridade']  ?? scores['mediaAutoridade']  ?? scores['m_aut'];
+    const mAcom = scores['Media_Acomodacao']  ?? scores['media_acomodacao']  ?? scores['mediaAcomodacao']  ?? scores['m_acom'];
+    const mBe   = scores['Media_BemEstar']    ?? scores['media_bemestar']    ?? scores['mediaBemEstar']    ?? scores['m_be'];
+    if(mAut != null || mAcom != null || mBe != null) {
+      function corM(v) {
+        if(v == null) return 'var(--text-light)';
+        const x = parseFloat(v);
+        if(isNaN(x)) return 'var(--text-light)';
+        return x <= 2 ? '#C0392B' : x <= 2.5 ? '#E67E22' : '#27AE60';
+      }
+      // Acomodação tem leitura invertida: valores ALTOS = mais acomodação = mais preocupante
+      function corAcom(v) {
+        if(v == null) return 'var(--text-light)';
+        const x = parseFloat(v);
+        if(isNaN(x)) return 'var(--text-light)';
+        return x >= 3 ? '#C0392B' : x >= 2.5 ? '#E67E22' : '#27AE60';
+      }
+      const partes = [];
+      if(mAut  != null) partes.push('<span style="color:' + corM(mAut)     + ';font-weight:700">Aut=' + parseFloat(mAut).toFixed(2) + '</span>');
+      if(mAcom != null) partes.push('<span style="color:' + corAcom(mAcom) + ';font-weight:700">Acom=' + parseFloat(mAcom).toFixed(2) + '</span>');
+      if(mBe   != null) partes.push('<span style="color:' + corM(mBe)      + ';font-weight:700">BE=' + parseFloat(mBe).toFixed(2) + '</span>');
+      return '<span style="font-size:0.78rem">MCP · ' + partes.join(' · ') + '</span>';
+    }
+    return '<span style="font-size:0.78rem;color:var(--text-light)">MCP Completo</span>';
+  }
+
+  // ── UCLA-PTSD Adaptado · Rastreio PSPT Pediátrica (Ricardina Correia, 2026) ──
+  // Mostra Total Sintomático (0-80) + Banda + Padrão T1-T5
+  // Total sintomático 0-19 MÍNIMA / 20-34 LIGEIRA / 35-49 MODERADA / 50-80 SEVERA
+  // Padrão T1 (sem sintomatologia) / T2 (subliminar) / T3 (PSPT provável) / T4 (T3+dissociativo) / T5 (quadro complexo)
+  if(syncKey === 'ucla_ptsd_adaptado') {
+    const tot   = scores['TotalSintomatico'] ?? scores['totalSintomatico'] ?? scores['total_sintomatico'] ?? scores['Total'];
+    const banda = scores['Banda']            ?? scores['banda'];
+    const tag   = scores['PadraoTag']        ?? scores['padraoTag']        ?? scores['padrao_tag'] ??
+                  (scores['padrao'] && scores['padrao'].tag);
+    if(tot != null || tag != null || banda != null) {
+      // Cor por padrão (consistente com badges do painel clínico do questionário)
+      function corPad(p) {
+        if(p === 'T1') return '#27AE60';                // verde — sem sintomatologia
+        if(p === 'T2') return '#5B7FA6';                // azul-médio — subliminar
+        if(p === 'T3') return '#E67E22';                // laranja — PSPT provável
+        if(p === 'T4' || p === 'T5') return '#C0392B';  // vermelho — clínico/complexo
+        return 'var(--text-light)';
+      }
+      const partes = [];
+      if(tot != null)   partes.push('<span style="color:' + corPad(tag) + ';font-weight:700">' + parseInt(tot,10) + '/80</span>');
+      if(banda)         partes.push('<span style="color:var(--text-light)">' + String(banda) + '</span>');
+      if(tag)           partes.push('<span style="color:' + corPad(tag) + ';font-weight:700">' + String(tag) + '</span>');
+      return '<span style="font-size:0.78rem">UCLA · ' + partes.join(' · ') + '</span>';
+    }
+    return '<span style="font-size:0.78rem;color:var(--text-light)">UCLA-PTSD</span>';
+  }
+
+  // ── ISAS · Inventário de Afirmações sobre Autolesão (Klonsky & Glenn, 2009) ──
+  // Mostra Total (0-78) + Perfil funcional + Top 1 função
+  // Total 0=Sem investimento, 1-26=Baixo, 27-52=Moderado, 53-78=Elevado
+  // Alertas vermelhos no resumo do cartão se algum eixo crítico (AS/AP/IN) ≥ 4
+  if(syncKey === 'isas') {
+    const tot   = scores['Total']            ?? scores['total']          ?? scores['TOTAL'];
+    const intra = scores['Intrapessoal']     ?? scores['intra']          ?? scores['INTRA'];
+    const inter = scores['Interpessoal']     ?? scores['inter']          ?? scores['INTER'];
+    const perf  = scores['PerfilFuncional']  ?? scores['perfil']         ?? scores['perfilFuncional'];
+    const top1  = scores['Top1']             ?? scores['top1']           ?? (Array.isArray(scores['top3']) ? scores['top3'][0] : null);
+    // Alertas individuais — Anti-suicídio (AS), Auto-punição (AP), Influência interpessoal (IN)
+    const as_  = scores['Anti_Suic'] ?? scores['AS'];
+    const ap_  = scores['AutoPun']   ?? scores['AP'];
+    const in_  = scores['Influencia']?? scores['IN'];
+    if(tot != null || perf != null) {
+      function corTot(t){
+        if(t == null) return 'var(--text-light)';
+        const n = parseInt(t,10);
+        if(n === 0)         return '#27AE60';          // verde — sem investimento
+        if(n <= 26)         return '#27AE60';          // verde — baixo
+        if(n <= 52)         return '#E67E22';          // laranja — moderado
+        return '#C0392B';                              // vermelho — elevado
+      }
+      const partes = [];
+      if(tot  != null) partes.push('<span style="color:' + corTot(tot) + ';font-weight:700">' + parseInt(tot,10) + '/78</span>');
+      if(perf)         partes.push('<span style="color:var(--text-light)">' + String(perf) + '</span>');
+      if(top1)         partes.push('<span style="color:var(--blue);font-weight:600">' + String(top1) + '</span>');
+      // Alerta agregado (qualquer eixo crítico ≥ 4 → bolinha vermelha)
+      const alerta = (parseInt(as_||0,10) >= 4) || (parseInt(ap_||0,10) >= 4) || (parseInt(in_||0,10) >= 4);
+      if(alerta) partes.push('<span style="color:#C0392B;font-weight:700">⚠</span>');
+      return '<span style="font-size:0.78rem">ISAS · ' + partes.join(' · ') + '</span>';
+    }
+    return '<span style="font-size:0.78rem;color:var(--text-light)">ISAS</span>';
+  }
+
 
   return null;
 }
@@ -3801,7 +4018,18 @@ function renderAssignments(patientId) {
                 // CARS2-QPC — parent/cuidador-completed (pai+mãe podem submeter em separado) ──
                 'CARS2_QPC':             ['NomeInformante','Relacao'],
                 // CARS2-ST — cotação clínica por psicólogo (clinician-rated) ──
-                'CARS2_ST':              ['Psicologo']
+                'CARS2_ST':              ['Psicologo'],
+                // ── MCP · Mapeamento de Configuração Parental (Ricardina Correia, 2026) ──
+                // Múltiplos respondentes (pai + mãe + outros adultos coabitantes podem submeter em separado)
+                // — dedupe por NomeInformante; Relacao serve como fallback
+                'MCP_Breve':             ['NomeInformante','Relacao','Relação'],
+                'MCP_Completo':          ['NomeInformante','Relacao','Relação'],
+                // ── UCLA-PTSD Adaptado · Rastreio PSPT Pediátrica (Ricardina Correia, 2026) ──
+                // Clinician-rated — cotação pelo psicólogo (NomeInformante = avaliador)
+                'UCLA_PTSD_Adaptado':    ['NomeInformante','Avaliador'],
+                // ── ISAS · Inventário de Afirmações sobre Autolesão (Klonsky & Glenn, 2009) ──
+                // Auto-resposta — adolescente/jovem adulto preenche o próprio (NomeInformante = paciente; Informante = "Auto-resposta")
+                'ISAS':                  ['NomeInformante','Informante']
               };
               const RC = {
                 'SWAN':['Relação'],'BRIEF_Pais':['Relação'],'SCARED_R_PAIS':['Relação'],
@@ -4122,7 +4350,11 @@ async function syncAndMark(patientId, idx) {
           // CARS2-QPC — parent/cuidador-completed (pai+mãe podem submeter em separado) ──
           'CARS2_QPC':       ['NomeInformante','Relacao'],
           // CARS2-ST — cotação clínica por psicólogo (clinician-rated) ──
-          'CARS2_ST':        ['Psicologo']
+          'CARS2_ST':        ['Psicologo'],
+          // ── UCLA-PTSD Adaptado · clinician-rated (NomeInformante = avaliador) ──
+          'UCLA_PTSD_Adaptado': ['NomeInformante','Avaliador'],
+          // ── ISAS · auto-resposta (adolescente/adulto preenche o próprio) ──
+          'ISAS':            ['NomeInformante','Informante']
         };
         const RC2 = {
           'SWAN':['Relação'],'BRIEF_Pais':['Relação'],'SCARED_R_PAIS':['Relação'],
