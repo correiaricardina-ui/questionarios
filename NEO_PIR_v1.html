@@ -351,8 +351,6 @@ select.login-input{background:white;cursor:pointer}
     <button class="btn btn-secondary" style="padding:6px 14px;font-size:.82rem" onclick="exportarCSV()">⬇ Exportar CSV</button>
     <button class="btn btn-secondary" style="padding:6px 14px;font-size:.82rem" onclick="exportarPDF()">📄 Exportar PDF</button>
     <button class="btn btn-secondary" style="padding:6px 14px;font-size:.82rem" onclick="window.print()">🖨 Imprimir</button>
-    <button class="btn btn-secondary" style="padding:6px 14px;font-size:.82rem" onclick="exportarRespostasPDF(sessaoActual)">📋 Respostas PDF</button>
-    <button class="btn btn-secondary" style="padding:6px 14px;font-size:.82rem" onclick="exportarInterpretacaoPDF(sessaoActual)">📊 Interpretação PDF</button>
     <input type="file" id="import-file-input" accept=".csv" style="display:none" onchange="processarFicheiroImportado(this)">
   </div>
   <div id="import-feedback" style="margin-bottom:12px;display:none"></div>
@@ -387,7 +385,11 @@ select.login-input{background:white;cursor:pointer}
       </h2>
       <div id="modal-ident" style="font-size:.84rem;color:var(--text-light);margin-top:4px"></div>
     </div>
-    <button onclick="fecharModal()" style="background:none;border:none;font-size:1.4rem;cursor:pointer;color:var(--text-light)">✕</button>
+    <div style="display:flex;gap:8px;align-items:flex-start;flex-wrap:wrap" class="no-print">
+      <button class="btn btn-secondary btn-xs" onclick="exportarRespostasPDF(sessaoActual)">📋 Respostas PDF</button>
+      <button class="btn btn-primary btn-xs" onclick="exportarInterpretacaoPDF(sessaoActual)">📊 Relatório Completo PDF</button>
+      <button onclick="fecharModal()" style="background:none;border:none;font-size:1.4rem;cursor:pointer;color:var(--text-light);line-height:1">✕</button>
+    </div>
   </div>
   <div id="modal-body"></div>
 </div>
@@ -404,6 +406,250 @@ const ABA_SHEET = 'NEOPIR';
 const INVERTIDOS = new Set([2, 3, 5, 6, 9, 12, 13, 15, 16, 19, 22, 23, 25, 26, 29, 31, 32, 33, 34, 37, 38, 40, 41, 44, 47, 48, 50, 51, 54, 56, 57, 58, 60, 62, 63, 65, 66, 69, 72, 73, 75, 76, 79, 82, 83, 85, 86, 89, 91, 94, 97, 98, 100, 101, 104, 107, 108, 110, 111, 114, 117, 118, 120, 122, 123, 125, 126, 129, 131, 132, 133, 135, 136, 139, 142, 143, 145, 146, 149, 151, 152, 154, 157, 158, 160, 161, 164, 165, 167, 168, 170, 171, 172, 174, 177, 178, 179, 180, 182, 184, 185, 186, 188, 189, 191, 192, 193, 194, 195, 196, 197, 200, 201, 202, 203, 204, 209, 210, 211, 212, 214, 215, 216, 217, 218, 221, 223, 224, 225, 226, 227, 230, 232, 233, 235, 237, 239, 240]);
 const FACETAS = [{"id":"N1","nome":"N1: Ansiedade","dom":"N","itens":[1,31,61,91,121,151,181,211]},{"id":"N2","nome":"N2: Hostilidade","dom":"N","itens":[6,36,66,96,126,156,186,216]},{"id":"N3","nome":"N3: Depress\u00e3o","dom":"N","itens":[11,41,71,101,131,161,191,221]},{"id":"N4","nome":"N4: Auto-consci\u00eancia","dom":"N","itens":[16,46,76,106,136,166,196,226]},{"id":"N5","nome":"N5: Impulsividade","dom":"N","itens":[21,51,81,111,141,171,201,231]},{"id":"N6","nome":"N6: Vulnerabilidade","dom":"N","itens":[26,56,86,116,146,176,206,236]},{"id":"E1","nome":"E1: Acolhimento Caloroso","dom":"E","itens":[2,32,62,92,122,152,182,212]},{"id":"E2","nome":"E2: Gregariedade","dom":"E","itens":[7,37,67,97,127,157,187,217]},{"id":"E3","nome":"E3: Assertividade","dom":"E","itens":[12,42,72,102,132,162,192,222]},{"id":"E4","nome":"E4: Actividade","dom":"E","itens":[17,47,77,107,137,167,197,227]},{"id":"E5","nome":"E5: Procura de Excita\u00e7\u00e3o","dom":"E","itens":[22,52,82,112,142,172,202,232]},{"id":"E6","nome":"E6: Emo\u00e7\u00f5es Positivas","dom":"E","itens":[27,57,87,117,147,177,207,237]},{"id":"O1","nome":"O1: Fantasia","dom":"O","itens":[3,33,63,93,123,153,183,213]},{"id":"O2","nome":"O2: Est\u00e9tica","dom":"O","itens":[8,38,68,98,128,158,188,218]},{"id":"O3","nome":"O3: Sentimentos","dom":"O","itens":[13,43,73,103,133,163,193,223]},{"id":"O4","nome":"O4: Ac\u00e7\u00f5es","dom":"O","itens":[18,48,78,108,138,168,198,228]},{"id":"O5","nome":"O5: Ideias","dom":"O","itens":[23,53,83,113,143,173,203,233]},{"id":"O6","nome":"O6: Valores","dom":"O","itens":[28,58,88,118,148,178,208,238]},{"id":"A1","nome":"A1: Confian\u00e7a","dom":"A","itens":[4,34,64,94,124,154,184,214]},{"id":"A2","nome":"A2: Rectid\u00e3o","dom":"A","itens":[9,39,69,99,129,159,189,219]},{"id":"A3","nome":"A3: Altru\u00edsmo","dom":"A","itens":[14,44,74,104,134,164,194,224]},{"id":"A4","nome":"A4: Complac\u00eancia","dom":"A","itens":[19,49,79,109,139,169,199,229]},{"id":"A5","nome":"A5: Mod\u00e9stia","dom":"A","itens":[24,54,84,114,144,174,204,234]},{"id":"A6","nome":"A6: Sensibilidade","dom":"A","itens":[29,59,89,119,149,179,209,239]},{"id":"C1","nome":"C1: Compet\u00eancia","dom":"C","itens":[5,35,65,95,125,155,185,215]},{"id":"C2","nome":"C2: Ordem","dom":"C","itens":[10,40,70,100,130,160,190,220]},{"id":"C3","nome":"C3: Obedi\u00eancia ao Dever","dom":"C","itens":[15,45,75,105,135,165,195,225]},{"id":"C4","nome":"C4: Esfor\u00e7o de Realiza\u00e7\u00e3o","dom":"C","itens":[20,50,80,110,140,170,200,230]},{"id":"C5","nome":"C5: Auto-Disciplina","dom":"C","itens":[25,55,85,115,145,175,205,235]},{"id":"C6","nome":"C6: Delibera\u00e7\u00e3o","dom":"C","itens":[30,60,90,120,150,180,210,240]}];
 const DOMINIOS = [{"id":"N","nome":"Neuroticismo","cor":"#C62828","corLt":"#FFEBEE","facetas":["N1","N2","N3","N4","N5","N6"]},{"id":"E","nome":"Extrovers\u00e3o","cor":"#1565C0","corLt":"#E3F2FD","facetas":["E1","E2","E3","E4","E5","E6"]},{"id":"O","nome":"Abertura \u00e0 Experi\u00eancia","cor":"#6A1B9A","corLt":"#F3E5F5","facetas":["O1","O2","O3","O4","O5","O6"]},{"id":"A","nome":"Amabilidade","cor":"#2E7D32","corLt":"#E8F5E9","facetas":["A1","A2","A3","A4","A5","A6"]},{"id":"C","nome":"Conscienciosidade","cor":"#E65100","corLt":"#FFF3E0","facetas":["C1","C2","C3","C4","C5","C6"]}];
+
+// Textos das afirmações (caderno NEO PI-R · adaptação Lima & Simões) — índice 0 = item 1
+const ITEMS = [
+  "Não sou uma pessoa preocupada",
+  "Gosto mesmo da maioria das pessoas que encontro",
+  "Tenho uma imaginação muito activa",
+  "Tendo a ser descrente ou a duvidar das boas intenções dos outros",
+  "Sou conhecido(a) pela minha prudência e bom senso",
+  "Muitas vezes, aborrece-me a maneira como as pessoas me tratam",
+  "Não gosto de multidões, por isso, as evito",
+  "Não dou grande importância às coisas da arte e da beleza",
+  "Não sou matreiro(a), nem espertalhão (espertalhona)",
+  "Antes quero deixar as coisas em aberto que planear tudo, com antecedência",
+  "Raramente me sinto só ou abatido(a)",
+  "Sou dominador(a), cheio(a) de força e combativo(a)",
+  "Sem emoções fortes, a vida não teria interesse para mim",
+  "Algumas pessoas pensam que sou invejoso(a) e egoísta",
+  "Tento realizar, conscienciosamente, todas as minhas obrigações",
+  "Ao lidar com as outras pessoas, tenho sempre receio de ser mal sucedido(a)",
+  "No trabalho e nos tempos livres, gosto de fazer as coisas com calma",
+  "Sou bastante agarrado(a) às minhas próprias maneiras de proceder",
+  "Preferia colaborar com as outras pessoas do que competir com elas",
+  "Sou distraído(a) e pouco determinado(a)",
+  "Raramente me deixo levar pelos meus impulsos (caprichos)",
+  "Sinto, muitas vezes, uma necessidade louca de me divertir",
+  "Muitas vezes, dá-me prazer brincar com teorias e ideias abstractas",
+  "Não me custa nada gabar-me das minhas capacidades e dos meus sucessos",
+  "Sou bastante capaz de organizar o meu tempo, de maneira a fazer as coisas dentro do prazo",
+  "Sinto-me, muitas vezes, desamparado(a), desejando que alguém resolva os meus problemas por mim",
+  "Para dizer a verdade, nunca pulei de alegria",
+  "Acredito que deixar os alunos ouvir pessoas, com ideias discutíveis, só os pode confundir e desorientar",
+  "Os governantes deviam preocupar-se mais com os aspectos humanos",
+  "Ao longo dos anos, fiz algumas coisas bem estúpidas",
+  "Assusto-me, facilmente",
+  "Não me dá muito prazer estar à conversa com as pessoas",
+  "Tento sempre organizar os meus pensamentos, em termos realistas, não dando asas à imaginação",
+  "Acredito que a maioria das pessoas são, no fundo, bem intencionadas",
+  "Não encaro os deveres cívicos, tais como votar, muito seriamente",
+  "Não me zango facilmente",
+  "Gosto de ter muita gente, à minha volta",
+  "Às vezes, deixo-me absorver, totalmente, pela música que ouço",
+  "Se for necessário, não hesito em manipular as pessoas para conseguir aquilo que quero",
+  "Mantenho as minhas coisas limpas e em ordem",
+  "Às vezes, sinto-me completamente inútil",
+  "Às vezes, não consigo afirmar-me, tanto como devia",
+  "Raramente, sinto emoções fortes",
+  "Tento ser delicado com todas as pessoas, que encontro",
+  "Às vezes, não sou tão seguro(a) ou digno(a) de confiança como deveria ser",
+  "Poucas vezes, sinto-me inseguro(a), quando estou com outras pessoas",
+  "Quando faço alguma coisa, faço-a com todo o entusiasmo",
+  "Penso que é interessante aprender e cultivar novos hobbies (passatempos)",
+  "Sei ser sarcástico(a) e cínico(a), quando necessário",
+  "Tenho objectivos claros, e faço por atingi-los, de uma forma ordenada",
+  "Custa-me resistir aos meus desejos",
+  "Não gostaria de passar férias no Algarve",
+  "Acho as discussões filosóficas aborrecidas",
+  "Prefiro não falar de mim próprio(a) e das minhas realizações",
+  "Perco muito tempo, antes de me concentrar no trabalho",
+  "Sinto que sou capaz de resolver a maioria dos meus problemas",
+  "Já experimentei, algumas vezes, sensações de grande alegria ou de êxtase (arrebatamento)",
+  "Acredito que as leis e as políticas sociais deveriam mudar, de forma a reflectir as necessidades de um mundo em mudança",
+  "Sou inflexível e duro(a) nas minhas atitudes",
+  "Penso, maduramente, nas coisas, antes de tomar uma decisão",
+  "Raramente me sinto amedrontado(a) ou ansioso(a)",
+  "Sou conhecido(a) como uma pessoa amigável e simpática",
+  "Tenho uma grande capacidade de fantasiar",
+  "Penso que a maior parte das pessoas abusa de nós, se as deixarmos",
+  "Mantenho-me informado(a) e, geralmente, tomo decisões inteligentes",
+  "Sou conhecido(a) como uma pessoa de mau génio e irritável",
+  "Normalmente, prefiro fazer as coisas sozinho(a)",
+  "Aborrece-me ver bailado ou dança moderna",
+  "Mesmo que quisesse, não conseguiria enganar ninguém",
+  "Não sou uma pessoa muito metódica (ordenada)",
+  "Raramente estou triste ou deprimido(a)",
+  "Já fui, muitas vezes, líder de grupos a que pertenci",
+  "É importante para mim a maneira como eu vejo as coisas",
+  "Algumas pessoas consideram-me frio(a) e calculista",
+  "Pago as minhas dívidas, a tempo e a horas",
+  "Já houve alturas, em que fiquei tão envergonhado(a), que desejava meter-me num buraco",
+  "Trabalho devagar, mas persistentemente (de forma contínua)",
+  "Quando encontro uma maneira correcta de fazer qualquer coisa, não mudo mais",
+  "Hesito em expressar a minha raiva, mesmo quando justificada",
+  "Quando inicio um programa de modificação pessoal, deixo de o cumprir, após alguns dias",
+  "Não me é difícil resistir a tentações",
+  "Já fiz algumas coisas, só pelo gozo ou gana de as fazer",
+  "Gosto de resolver problemas e puzzles",
+  "Sou melhor do que a maioria das pessoas, e tenho consciência disso",
+  "Sou uma pessoa aplicada, conseguindo sempre realizar o meu trabalho",
+  "Quando estou, numa grande tensão, sinto-me às vezes, como se me estivessem a fazer em pedaços",
+  "Não sou um(a) grande optimista",
+  "Acredito que devemos ter em conta a autoridade religiosa, quando se trata de tomar decisões respeitantes à moral",
+  "Nunca fazemos demasiado pelos pobres e pelos velhos",
+  "Às vezes actuo, primeiro, e penso, depois",
+  "Muitas vezes, sinto-me tenso(a) e enervado(a)",
+  "Muitas pessoas vêem-me como uma pessoa um pouco fria e distante",
+  "Não gosto de perder tempo a sonhar acordado(a)",
+  "Penso que a maioria das pessoas com quem lido são honestas e dignas de confiança",
+  "Sou, frequentemente, confrontado(a) com situações para as quais não estou totalmente preparado(a)",
+  "Não sou considerado(a) uma pessoa melindrosa ou irritável",
+  "Sinto mesmo necessidade de estar com outras pessoas, quando estou sózinho(a), durante muito tempo",
+  "Fico admirado(a) com os modelos que encontro na arte e na natureza",
+  "Ser completamente honesto(a) é uma via inadequada para fazer negócios",
+  "Gosto de ter as coisas no seu lugar, pois, assim sei onde as posso encontrar",
+  "Já senti, algumas vezes, uma sensação profunda de culpabilidade ou de ter pecado",
+  "Normalmente, nas reuniões, deixo os outros falar",
+  "Raramente, presto atenção àquilo que sinto no momento",
+  "Geralmente, procuro ser atencioso(a) e delicado(a)",
+  "Nos jogos de paciência, às vezes, faço batota",
+  "Não fico muito atrapalhado(a), quando as pessoas se riem e fazem pouco de mim",
+  "Muitas vezes, sinto-me a rebentar de energia",
+  "Frequentemente, experimento comidas novas e desconhecidas",
+  "Quando não gosto das pessoas, faço-lho saber",
+  "Trabalho muito, para conseguir o que quero",
+  "Quando me apresentam o meu prato preferido, tenho tendência a comer demasiado",
+  "Procuro evitar filmes demasiado chocantes ou assustadores",
+  "Às vezes, perco o interesse, quando as pessoas começam a falar sobre assuntos demasiado teóricos e abstractos",
+  "Tento ser humilde",
+  "Tenho dificuldades em me decidir a fazer o que devo",
+  "Em casos de perigo, conservo a cabeça fria",
+  "Às vezes, sinto-me a rebentar com tanta felicidade",
+  "Penso que as ideias diferentes das nossas, sobre o que é bem ou o que é mal, das pessoas de outras sociedades, devem ter valor para elas",
+  "Não gosto de pedintes",
+  "Antes de agir, penso nas consequências",
+  "Raramente, me preocupo com o futuro",
+  "Gosto muito de falar com as outras pessoas",
+  "Dá-me gozo concentrar-me numa fantasia e explorar todas as suas possibilidades, deixando-a crescer e desenvolver-se",
+  "Fico desconfiado(a), sempre que alguém me faz qualquer coisa agradável",
+  "Tenho orgulho do meu bom senso",
+  "Fico, frequentemente, aborrecido(a) com as pessoas com quem tenho de lidar",
+  "Prefiro trabalhos, que eu possa fazer sózinho(a), sem ser incomodado(a) por outras pessoas",
+  "A poesia pouco ou nada me diz",
+  "Detestaria ser considerado(a) um(a) hipócrita",
+  "Parece que nunca consigo ser organizado(a)",
+  "Tenho tendência a culpabilizar-me, se alguma coisa corre mal",
+  "Muitas vezes, as outras pessoas pedem-me para as ajudar a tomar decisões",
+  "As minhas emoções e sentimentos são muitas e variadas",
+  "Não sou muito conhecido(a), pela minha generosidade",
+  "Quando assumo um compromisso, podem sempre contar que eu o cumpra",
+  "Sinto-me, muitas vezes, inferior às outras pessoas",
+  "Não sou tão rápido(a) e vivo(a) como outras pessoas",
+  "Prefiro passar o tempo em ambientes que me são familiares",
+  "Quando sou insultado(a), tento apenas perdoar e esquecer",
+  "Não sou ambicioso(a)",
+  "Raramente, cedo aos meus impulsos",
+  "Gosto de estar onde está a acção",
+  "Gosto de resolver puzzles difíceis",
+  "Tenho uma opinião muito favorável acerca de mim próprio(a)",
+  "Quando começo um projecto, quase sempre o termino",
+  "Sinto quase sempre dificuldade em tomar decisões",
+  "Não me considero uma pessoa alegre",
+  "Julgo que é mais importante ser fiel aos próprios ideais e princípios do que ter abertura de espírito",
+  "As necessidades humanas devem ter sempre prioridade sobre considerações económicas",
+  "Sou, frequentemente, levado(a) pelo impulso do momento",
+  "Preocupo-me, muitas vezes, ao pensar que as coisas podem correr mal",
+  "É fácil para mim sorrir e conviver com pessoas desconhecidas",
+  "Quando vejo que estou a ser levado(a) pela imaginação, procuro concentrar-me ocupando-me com qualquer trabalho ou actividade",
+  "A minha primeira reacção é confiar nas pessoas",
+  "Não me parece que tenha sido bem sucedido(a), seja no que for",
+  "É preciso muito para me arreliarem",
+  "Prefiro passar férias, numa praia concorrida, do que numa cabana isolada nos bosques",
+  "Certas formas de música têm um encanto infinito para mim",
+  "Por vezes, levo as pessoas a fazerem o que eu desejo",
+  "Sou uma pessoa um tanto rigorosa: aprecio a ordem, em todas as coisas",
+  "Tenho uma fraca opinião acerca de mim próprio(a)",
+  "Prefiro tratar da minha vida a ser chefe das outras pessoas",
+  "Poucas vezes, me dou conta da influência, que diferentes ambientes produzem nas pessoas",
+  "A maioria das pessoas, que conheço, gostam de mim",
+  "Observo, rigorosamente, os princípios éticos, que defendo",
+  "Sinto-me à vontade, na presença do meu patrão ou outras autoridades",
+  "Normalmente, dou a impressão de estar sempre com pressa",
+  "Por vezes, mudo coisas em minha casa, só para experimentar a diferença",
+  "Se alguém começa uma briga, estou sempre pronto(a) para lhe dar luta",
+  "Esforço-me por conseguir tudo aquilo que eu puder",
+  "Às vezes, como até me sentir mal",
+  "Adoro as emoções da montanha russa",
+  "Gosto pouco de me pronunciar sobre a natureza do universo e da condição humana",
+  "Julgo que não sou melhor do que os outros, seja qual for a sua condição",
+  "Quando um projecto se torna demasiado difícil, sinto-me inclinado(a) a começar um novo",
+  "Consigo controlar-me bastante bem, em situações de crise",
+  "Sou uma pessoa alegre e bem disposta",
+  "Considero-me uma pessoa aberta e tolerante, no que respeita ao modo de vida das outras pessoas",
+  "Penso que todos os seres humanos são dignos de respeito",
+  "Raramente, tomo decisões precipitadas",
+  "Tenho menos receios que a maioria das pessoas",
+  "Prendem-me aos meus amigos fortes laços afectivos",
+  "Em criança, raramente, achava piada aos jogos do faz-de-conta",
+  "Tendo a pensar o melhor acerca das pessoas",
+  "Sou uma pessoa muito competente",
+  "Houve alturas, em que experimentei ressentimento e amargura",
+  "Os encontros sociais são, geralmente, aborrecidos para mim",
+  "Às vezes, ao ler poesia e ao olhar para uma obra de arte, sinto um arrepio ou uma onda de emoção",
+  "Por vezes, meto medo ou lisonjeio as pessoas, para as levar a fazer o que quero que elas façam",
+  "Não tenho a obsessão da limpeza",
+  "Às vezes, as coisas parecem-me bastante negras e desesperadas",
+  "Nas conversas, tendo a falar mais do que os outros",
+  "Acho fácil sentir empatia - quer dizer, sentir o que os outros sentem",
+  "Considero-me uma pessoa caridosa",
+  "Tento fazer as tarefas, com todo o cuidado, para não ter necessidade de as fazer outra vez",
+  "Se disser ou fizer algum mal a alguém, custa-me imenso conseguir encarar essa pessoa, outra vez",
+  "A minha vida decorre, a um ritmo rápido",
+  "Quando estou em férias, prefiro voltar a um local genuíno e já conhecido",
+  "Sou cabeçudo(a) e teimoso(a)",
+  "Esforço-me por ser excelente, em tudo o que faço",
+  "Às vezes, faço as coisas, de modo tão impulsivo que, mais tarde, me arrependo",
+  "Atraem-me as cores alegres e os estilos exuberantes",
+  "Tenho muita curiosidade intelectual",
+  "Prefiro elogiar os outros a ser elogiado(a)",
+  "Existem tantas pequenas coisas a fazer que, por vezes, simplesmente as ignoro",
+  "Mesmo quando tudo parece correr mal, eu ainda consigo tomar boas decisões",
+  "É raro utilizar palavras, como fantástico ou sensacional, para descrever as minhas experiências",
+  "Algo corre mal, se aos 25 anos, as pessoas não sabem em que é que acreditam",
+  "Tenho simpatia por pessoas com menos sorte do que eu",
+  "Planeio, de antemão e com cuidado, as minhas viagens",
+  "Às vezes, vêm-me à cabeça pensamentos aterradores",
+  "Interesso-me, pessoalmente, pelas pessoas com quem trabalho",
+  "Teria muita dificuldade em deixar a minha imaginação vaguear, sem controlo nem orientação",
+  "Tenho bastante fé na natureza humana",
+  "Sou eficiente e eficaz no meu trabalho",
+  "Mesmo os pequenos contratempos podem ser frustrantes para mim",
+  "Gosto de festas com muita gente",
+  "Agrada-me mais ler poesia, que dá ênfase aos sentimentos e às imagens, do que uma história com princípio, meio e fim",
+  "Orgulho-me da minha perspicácia em lidar com as pessoas",
+  "Gasto muito tempo à procura de coisas, que coloquei fora do lugar",
+  "Muitas vezes, quando as coisas não me correm bem, perco a coragem e tenho vontade de desistir",
+  "Não considero fácil controlar as situações",
+  "Coisas estranhas, como certos sabores ou o nome de locais distantes, podem evocar em mim fortes emoções",
+  "Quando posso, deixo o que estou a fazer, para ajudar os outros",
+  "Só se estivesse mesmo doente é que eu faltava a um dia de trabalho",
+  "Fico embaraçado(a), quando as pessoas, que eu conheço fazem asneiras",
+  "Sou uma pessoa muito activa",
+  "Sigo sempre o mesmo caminho, quando vou a qualquer sítio",
+  "Frequentemente, arranjo discussões com a minha família e colegas de trabalho",
+  "Tenho o vício do trabalho",
+  "Consigo sempre manter os meus sentimentos sob controlo",
+  "Nos acontecimentos desportivos, gosto de fazer parte da multidão",
+  "Tenho uma grande variedade de interesses intelectuais",
+  "Sou uma pessoa superior",
+  "Tenho muita auto-disciplina",
+  "Sou bastante estável, do ponto de vista emocional",
+  "Rio, facilmente",
+  "Penso que a nova moralidade, que consiste em tudo permitir, não é moralidade nenhuma",
+  "Gostaria mais que me considerassem \u201ccompreensivo(a)\u201d (inclinado(a) a perdoar) do que \u201cjusto(a)\u201d (inclinado(a) ao rigor)",
+  "Penso duas vezes, antes de responder a uma pergunta"
+];
 // LOOKUP_FAC[grupo_idx][faceta_idx][score 0-32] = pc
 // grupos: 0=AdMasc 1=AdFem 2=AdComb 3=JvMasc 4=JvFem 5=JvComb
 const LOOKUP_FAC = [[[1,1,1,1,1,1,1,1,5,10,20,25,30,40,40,50,60,70,70,75,80,90,90,95,95,96,97,98,98,99,99,99,99],[1,1,1,1,1,4,5,10,20,20,25,30,40,50,60,70,75,80,90,90,95,96,97,98,99,99,99,99,99,99,99,99,99],[1,1,1,1,1,2,2,5,10,20,25,25,30,40,40,50,60,60,70,80,80,90,90,95,96,97,98,99,99,99,99,99,99],[1,1,1,1,1,1,1,3,4,10,20,25,25,40,50,60,60,70,75,80,80,90,95,96,97,98,99,99,99,99,99,99,99],[1,1,1,1,1,1,1,3,5,10,10,20,25,25,30,60,50,70,75,80,80,90,95,96,97,98,99,99,99,99,99,99,99],[1,1,1,4,4,5,10,20,25,30,40,50,60,60,70,75,80,80,90,90,96,98,98,99,99,99,99,99,99,99,99,99,99],[1,1,1,1,1,1,1,1,4,1,1,1,1,10,10,20,25,25,30,40,40,1,50,60,70,80,90,90,95,97,98,99,99],[1,1,1,1,1,1,2,4,5,10,10,20,25,20,30,40,50,50,60,70,75,80,80,90,90,95,96,98,99,99,99,99,99],[1,1,1,1,1,1,1,3,4,10,20,25,25,30,40,50,60,70,75,80,90,90,95,97,98,99,99,99,99,99,99,99,99],[1,1,1,1,1,1,1,1,1,2,5,1,10,20,25,25,40,50,60,70,80,90,1,1,98,99,99,99,99,99,99,99,99],[1,1,1,1,1,1,1,1,1,2,3,5,10,10,20,20,30,30,40,50,60,60,70,80,80,90,95,97,98,99,99,99,99],[1,1,1,1,1,1,1,1,3,5,1,10,20,20,25,30,1,40,50,50,60,60,80,80,90,90,95,98,99,99,99,99,99],[1,1,1,1,1,2,2,3,4,5,10,10,20,20,30,40,40,50,60,75,1,80,80,80,90,90,1,1,1,99,99,99,99],[1,1,1,1,1,1,1,4,2,1,1,1,10,10,20,30,25,40,40,50,50,60,75,1,80,80,90,90,96,97,1,99,99],[1,1,1,1,1,1,1,1,2,3,4,5,1,10,20,30,40,25,1,50,60,70,1,80,80,90,1,96,1,99,99,99,99],[1,1,1,1,1,1,1,3,10,10,20,25,30,30,40,50,1,60,70,75,80,90,90,96,98,99,99,99,99,99,99,99,99],[1,1,1,1,1,1,1,2,1,5,10,10,1,1,20,25,30,40,50,50,60,1,70,1,80,80,90,90,1,97,98,99,99],[1,1,1,1,1,1,1,1,2,2,3,1,5,10,20,20,40,50,60,70,75,80,90,90,95,1,99,99,99,99,99,99,99],[1,1,1,1,1,1,1,1,2,3,4,4,10,10,20,20,30,40,50,50,60,70,70,80,80,90,1,96,97,99,99,99,99],[1,1,1,1,1,1,2,2,3,5,10,20,25,25,30,40,40,50,60,60,70,75,80,90,90,95,96,98,99,99,99,99,99],[1,1,1,1,1,1,1,1,1,2,2,3,10,10,20,20,25,30,30,40,40,50,60,70,75,80,90,95,97,98,99,99,99],[1,1,1,1,1,1,1,1,1,1,1,1,2,10,10,20,1,40,40,50,60,70,80,90,90,1,1,95,99,99,99,99,99],[1,1,1,1,1,1,1,1,1,2,2,3,5,10,20,25,25,30,40,50,60,60,70,90,90,1,96,1,98,99,99,99,99],[1,1,1,1,1,1,1,1,1,1,1,1,1,10,10,20,25,25,40,40,50,50,60,70,80,90,90,1,99,99,99,99,99],[1,1,1,1,1,1,1,1,1,1,1,10,10,10,20,20,30,40,60,60,60,60,70,75,80,90,95,97,98,99,99,99,99],[1,1,1,1,1,1,1,1,2,1,4,1,1,10,20,25,40,50,1,1,60,70,75,80,90,90,95,96,99,99,99,99,99],[1,1,1,1,1,1,1,1,1,1,1,1,2,2,4,10,20,20,30,40,40,60,70,80,80,90,1,95,1,96,98,99,99],[1,1,1,1,1,1,1,1,1,1,1,2,2,5,10,10,20,20,30,40,50,60,70,75,80,90,90,95,98,99,99,99,99],[1,1,1,1,1,1,1,1,1,10,20,25,30,40,50,50,50,60,70,75,80,80,90,95,95,96,96,97,98,99,99,99,99],[1,1,1,1,1,1,1,10,10,20,25,25,25,30,30,40,50,60,70,70,75,80,90,90,95,95,96,97,98,99,99,99,99]],[[1,1,1,1,1,1,1,1,1,1,1,10,20,25,30,30,40,40,50,60,70,75,75,80,90,90,1,95,96,98,99,99,99],[1,1,1,1,1,2,4,10,20,25,25,30,40,50,60,70,75,80,90,90,95,95,96,97,97,98,99,99,99,99,99,99,99],[1,1,1,1,1,1,2,2,3,5,10,1,20,20,30,40,40,50,60,70,80,90,90,95,95,96,97,98,99,99,99,99,99],[1,1,1,1,1,1,2,1,1,4,5,10,20,20,30,40,40,60,60,70,75,80,90,90,95,97,98,99,99,99,99,99,99],[1,1,1,1,1,1,1,2,2,4,1,25,20,20,30,40,50,60,70,75,80,90,95,96,97,98,99,99,99,99,99,99,99],[1,1,1,1,1,2,10,10,10,20,25,30,40,40,50,60,70,80,80,90,90,95,96,97,98,99,99,99,99,99,99,99,99],[1,1,1,1,1,1,1,1,1,1,1,1,1,2,2,4,5,10,20,20,25,40,50,60,70,80,80,90,95,97,99,99,99],[1,1,1,1,1,3,3,4,5,10,10,10,20,20,30,40,50,50,60,70,75,80,90,90,1,95,96,98,99,99,99,99,99],[1,1,1,1,1,1,10,4,5,20,20,25,40,50,60,70,75,80,90,95,96,98,99,99,99,99,99,99,99,99,99,99,99],[1,1,1,1,1,1,1,1,1,1,1,3,5,10,20,25,60,50,1,70,80,90,95,97,99,99,99,99,99,99,99,99,99],[1,1,1,1,1,1,1,5,1,1,10,10,20,20,25,40,40,50,1,60,1,80,90,90,95,96,97,99,99,99,99,99,99],[1,1,1,1,1,1,3,5,1,1,1,1,10,10,25,25,50,50,50,60,70,75,80,80,90,95,97,98,99,99,99,99,99],[1,1,1,1,1,1,2,2,1,3,10,10,20,20,25,40,40,50,60,70,1,80,80,90,90,95,97,98,99,99,99,99,99],[1,1,1,1,1,1,1,1,1,1,1,3,2,10,10,20,20,25,30,40,50,50,60,70,75,80,90,90,95,96,98,99,99],[1,1,1,1,1,1,1,1,1,1,1,1,2,10,10,20,20,25,40,50,60,70,1,80,80,90,95,97,99,99,99,99,99],[1,1,1,1,1,1,1,1,1,1,1,10,20,20,25,40,50,60,70,1,80,90,90,96,98,99,99,99,99,99,99,99,99],[1,1,1,1,1,1,2,3,10,10,20,20,20,1,1,40,50,50,60,70,1,80,90,90,95,96,97,98,99,99,99,99,99],[1,1,1,1,1,1,1,1,1,1,10,10,1,20,30,30,60,50,1,70,75,80,90,90,95,97,98,99,99,99,99,99,99],[1,1,1,1,1,1,1,1,2,3,4,5,10,10,20,20,30,40,50,50,60,70,80,80,90,95,97,98,99,99,99,99,99],[1,1,1,1,1,1,2,2,1,1,3,1,10,10,20,20,25,40,50,50,1,60,70,80,80,90,90,95,97,99,99,99,99],[1,1,1,1,1,1,1,1,1,1,1,1,2,2,3,10,10,20,20,25,30,40,50,60,70,80,80,90,90,1,98,99,99],[1,1,1,1,1,1,1,1,1,1,2,4,1,10,20,20,40,40,40,50,50,60,70,1,80,90,95,96,98,99,99,99,99],[1,1,1,1,1,1,1,1,1,1,1,1,2,2,20,20,20,10,40,40,50,60,70,80,80,90,96,97,98,99,99,99,99],[1,1,1,1,1,1,1,1,1,1,1,1,2,2,4,3,20,20,20,20,25,60,60,70,80,80,90,95,97,99,99,99,99],[1,1,1,1,1,1,1,1,1,1,2,2,2,10,10,20,25,30,50,50,60,70,75,90,90,95,96,97,99,99,99,99,99],[1,1,1,1,1,1,1,1,1,1,4,4,1,10,20,25,40,40,50,60,60,70,75,80,90,90,1,1,1,99,99,99,99],[1,1,1,1,1,1,1,1,1,1,1,1,1,4,4,1,10,10,10,10,20,40,40,50,60,70,80,90,90,95,97,98,99],[1,1,1,1,1,1,1,1,1,1,1,2,2,3,10,10,20,20,30,40,50,60,70,1,80,90,95,96,98,99,99,99,99],[1,1,1,1,1,1,1,1,1,1,1,1,1,4,10,25,30,40,50,60,70,80,90,90,95,96,96,97,98,99,99,99,99],[1,1,1,1,1,1,1,1,1,1,1,1,3,5,1,10,25,25,40,50,60,70,75,80,90,90,95,1,99,99,99,99,99]],[[1,1,1,1,1,1,1,1,4,5,5,10,20,20,1,30,30,50,50,60,70,70,75,90,90,95,95,96,97,98,99,99,99],[1,1,1,1,2,3,5,10,20,25,30,30,40,50,60,70,75,80,90,95,95,96,97,98,98,99,99,99,99,99,99,99,99],[1,1,1,1,2,3,3,5,20,20,20,25,30,30,40,50,60,60,70,75,80,90,90,90,1,97,1,99,99,99,99,99,99],[1,1,1,1,1,1,2,4,5,10,10,20,25,30,40,50,50,60,70,90,80,80,95,1,1,97,1,99,99,99,99,99,99],[1,1,1,1,2,2,1,3,20,20,20,25,30,30,40,60,70,70,75,80,90,95,1,1,99,99,99,99,99,99,99,99,99],[1,2,3,4,4,5,20,25,25,30,40,50,60,60,70,1,80,90,90,90,95,98,98,99,99,99,99,99,99,99,99,99,99],[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,3,10,20,25,25,30,40,50,60,70,75,80,90,95,96,99,99,99],[1,1,1,1,1,3,3,4,5,10,10,20,20,25,25,30,50,50,60,1,75,80,80,90,90,95,97,98,98,99,99,99,99],[1,1,1,1,1,2,3,4,10,20,20,25,30,30,40,50,60,70,75,80,90,96,97,98,98,99,99,99,99,99,99,99,99],[1,1,1,1,1,1,1,1,1,2,5,1,10,20,25,40,40,50,60,70,80,90,1,1,98,99,99,99,99,99,99,99,99],[1,1,1,1,1,1,1,2,3,5,10,10,20,20,25,25,30,40,50,60,70,75,80,80,90,95,96,98,98,99,99,99,99],[1,1,1,1,1,1,1,1,1,2,10,10,1,20,25,30,30,40,50,60,70,1,80,80,90,90,95,1,99,99,99,99,99],[1,1,1,1,1,2,2,3,4,5,10,10,20,20,30,40,40,50,60,70,1,80,90,90,90,90,1,1,1,99,99,99,99],[1,1,1,1,1,1,1,1,1,1,1,1,1,10,10,20,20,25,40,40,50,60,70,1,80,80,90,90,1,1,1,99,99],[1,1,1,1,1,1,1,1,1,2,1,10,10,1,20,30,40,1,1,50,60,70,1,80,80,90,1,1,99,99,99,99,99],[1,1,1,1,1,1,1,1,2,10,10,20,25,25,40,40,50,50,60,70,80,90,90,1,1,99,99,99,99,99,99,99,99],[1,1,1,1,1,1,1,2,3,5,10,10,20,20,25,40,40,50,60,60,70,80,90,90,90,97,97,97,98,99,99,99,99],[1,1,1,1,1,1,1,1,2,1,1,10,10,20,30,30,40,50,60,70,1,80,90,90,1,1,99,99,99,99,99,99,99],[1,1,1,1,1,1,1,1,1,1,2,3,4,10,10,20,20,20,50,50,1,60,70,80,90,90,90,90,95,96,99,99,99],[1,1,1,1,1,1,1,1,1,1,1,2,4,10,20,20,25,40,40,50,50,60,70,80,90,90,1,1,1,99,99,99,99],[1,1,1,1,1,1,1,1,1,1,1,1,1,2,10,10,20,30,30,1,40,50,50,60,70,1,80,80,90,1,1,99,99],[1,1,1,1,1,1,1,1,1,1,1,2,4,10,10,20,20,25,40,50,60,60,70,1,80,90,90,97,97,97,99,99,99],[1,1,1,1,1,1,1,1,1,1,1,2,3,10,20,20,25,25,40,50,50,60,70,1,80,90,90,96,1,99,99,99,99],[1,1,1,1,1,1,1,1,1,1,1,10,10,10,2,1,20,20,25,40,50,60,70,1,90,90,1,1,1,99,99,99,99],[1,1,1,1,1,1,1,1,1,1,1,1,2,10,10,20,20,20,50,50,1,60,70,75,90,90,95,95,97,99,99,99,99],[1,1,1,1,1,1,1,1,1,1,2,10,10,10,30,30,1,40,40,50,50,50,60,70,80,80,90,90,97,98,99,99,99],[1,1,1,1,1,1,1,1,1,1,2,10,10,10,10,20,25,25,30,30,1,40,50,50,1,60,70,75,80,90,96,97,99],[1,1,1,1,1,1,1,1,1,1,1,1,2,10,20,20,30,40,40,50,50,60,70,80,90,90,1,1,96,98,99,99,99],[1,1,1,1,1,1,1,1,1,1,2,10,10,20,20,30,30,40,50,50,1,60,70,80,90,95,95,95,97,98,99,99,99],[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,40,50,50,1,1,60,70,80,90,95,95,96,97,98,99,99,99]],[[1,1,1,1,1,1,1,1,4,5,10,20,25,30,30,40,50,60,60,70,75,80,80,90,90,95,96,97,98,99,99,99,99],[1,1,1,1,1,2,3,4,5,10,20,25,30,40,50,60,70,75,80,80,90,90,95,96,97,98,99,99,99,99,99,99,99],[1,1,1,1,1,2,2,4,5,10,20,25,30,30,40,50,60,60,70,75,80,90,90,1,1,96,96,97,99,99,99,99,99],[1,1,1,1,1,1,1,2,1,4,10,10,20,25,30,40,40,60,60,75,80,80,90,95,96,97,98,99,99,99,99,99,99],[1,1,1,1,1,1,1,1,1,3,3,1,5,10,25,25,30,50,60,70,75,80,90,95,96,97,99,99,99,99,99,99,99],[1,1,1,4,4,5,10,20,25,30,40,50,60,60,70,75,1,80,90,90,90,1,96,99,99,99,99,99,99,99,99,99,99],[1,1,1,1,1,1,1,1,1,1,1,1,1,3,4,5,10,20,20,25,30,40,50,60,70,80,90,90,95,98,98,99,99],[1,1,1,1,1,3,3,4,5,10,10,20,20,25,30,40,1,70,1,60,75,80,80,1,90,95,95,96,96,99,99,99,99],[1,1,1,1,1,1,1,3,4,4,20,20,25,40,50,60,60,70,80,80,90,95,1,98,99,99,99,99,99,99,99,99,99],[1,1,1,1,1,1,1,1,1,1,1,4,10,20,20,25,40,50,60,75,80,90,95,1,98,99,99,99,99,99,99,99,99],[1,1,1,1,1,1,1,1,1,1,2,1,10,10,20,20,25,1,1,30,40,50,60,70,75,80,90,95,97,98,99,99,99],[1,1,1,1,1,1,1,1,1,1,2,4,10,10,20,30,30,40,50,60,70,1,80,80,90,90,95,97,98,99,99,99,99],[1,1,1,1,1,1,1,2,3,5,10,10,20,20,25,30,40,50,50,60,70,80,80,80,90,95,96,97,97,98,99,99,99],[1,1,1,1,1,1,1,1,2,3,4,1,10,10,20,20,25,40,40,60,60,60,75,1,80,80,90,90,96,97,1,99,99],[1,1,1,1,1,1,1,1,1,1,2,2,1,10,10,1,20,40,40,40,50,60,70,1,80,90,1,96,1,99,99,99,99],[1,1,1,1,1,2,2,3,4,1,10,10,20,20,25,40,50,60,70,70,80,90,96,1,98,99,99,99,99,99,99,99,99],[1,1,1,1,1,1,1,1,3,2,1,10,10,10,20,30,40,50,50,60,60,70,1,80,80,90,95,95,97,98,99,99,99],[1,1,1,1,1,1,1,1,1,1,2,2,5,10,20,20,40,50,60,70,75,80,90,90,95,96,98,99,99,99,99,99,99],[1,1,1,1,1,1,1,1,1,2,2,4,10,10,20,20,30,40,50,50,60,70,70,80,80,90,1,97,97,99,99,99,99],[1,1,1,1,1,1,1,1,2,1,10,20,25,25,30,40,40,60,60,60,70,75,80,90,90,99,99,99,99,99,99,99,99],[1,1,1,1,1,1,1,1,1,1,1,1,10,10,20,20,25,30,30,30,40,50,60,70,75,80,90,90,97,98,99,99,99],[1,1,1,1,1,1,1,2,4,4,1,10,10,20,20,1,30,40,50,60,60,70,80,90,90,1,1,97,99,99,99,99,99],[1,1,1,1,1,1,1,1,2,3,10,20,25,25,30,40,40,50,1,1,60,70,70,80,80,90,97,97,98,99,99,99,99],[1,1,1,1,1,1,1,1,1,1,1,1,1,3,10,10,10,20,25,40,50,60,70,80,80,90,90,1,99,99,99,99,99],[1,1,1,1,1,1,1,1,1,1,1,1,10,10,10,20,25,30,40,60,70,70,75,80,80,90,95,1,1,99,99,99,99],[1,1,1,1,1,1,1,1,2,3,4,10,10,10,20,20,30,40,50,50,60,70,75,80,90,1,96,97,99,99,99,99,99],[1,1,1,1,1,1,1,1,1,1,1,1,2,2,5,10,20,25,30,40,50,60,70,75,70,80,80,90,96,97,99,99,99],[1,1,1,1,1,1,1,1,1,1,2,2,1,5,10,10,20,20,40,50,50,60,70,75,80,90,1,96,99,99,99,99,99],[1,1,1,1,1,1,10,25,25,30,40,40,50,50,50,60,60,70,75,80,90,96,96,97,97,98,99,99,99,99,99,99,99],[1,1,1,3,5,5,5,10,10,20,25,25,30,30,40,50,50,60,70,75,80,90,90,95,96,97,98,98,99,99,99,99,99]],[[1,1,1,1,1,1,1,1,1,1,2,3,4,10,10,1,20,20,30,40,50,50,60,70,80,80,90,96,96,97,99,99,99],[1,1,1,1,1,2,2,3,5,10,20,25,30,40,50,60,70,75,80,80,80,90,95,97,98,99,99,99,99,99,99,99,99],[1,1,1,1,1,1,2,3,10,10,10,1,20,20,30,40,40,50,60,70,75,80,80,90,90,95,97,97,98,99,99,99,99],[1,1,1,1,1,1,1,4,10,10,10,20,20,20,30,40,40,50,50,60,70,75,90,90,90,95,98,99,99,99,99,99,99],[1,1,1,1,1,1,1,1,1,1,2,2,4,10,30,30,30,40,50,60,70,75,80,1,90,95,1,98,99,99,99,99,99],[1,1,1,1,1,2,2,4,1,20,20,25,40,40,50,60,70,75,80,90,90,90,96,97,98,99,99,99,99,99,99,99,99],[1,1,1,1,1,1,1,1,1,1,1,1,1,10,10,4,5,1,20,20,30,40,50,50,60,70,90,90,95,97,98,99,99],[1,1,1,1,1,1,1,2,2,4,5,10,10,1,1,20,30,40,40,50,60,60,75,80,80,90,90,95,1,99,99,99,99],[1,1,1,1,1,1,2,4,10,20,20,25,40,40,50,60,70,75,80,90,90,95,97,98,99,99,99,99,99,99,99,99,99],[1,1,1,1,1,1,1,1,4,2,2,3,10,10,20,25,40,50,60,70,80,80,90,95,96,98,99,99,99,99,99,99,99],[1,1,1,1,1,1,1,1,1,1,1,1,2,3,4,20,20,20,25,40,40,50,60,70,80,90,90,95,96,98,99,99,99],[1,1,1,1,1,1,1,1,1,1,1,1,2,1,1,20,20,20,30,40,50,50,60,70,80,80,90,95,97,98,99,99,99],[1,1,1,1,1,1,1,1,1,2,2,1,4,10,10,20,20,30,40,50,60,60,70,75,80,80,90,90,95,97,98,99,99],[1,1,1,1,1,1,1,2,2,1,1,10,10,10,1,1,1,25,1,30,40,50,50,60,60,70,80,80,90,95,96,98,99],[1,1,1,1,1,1,1,1,1,1,1,1,2,2,4,10,10,25,40,40,40,50,60,70,75,80,80,90,95,97,99,99,99],[1,1,1,1,1,1,1,1,1,1,2,3,10,10,20,25,40,60,60,70,80,80,90,90,90,1,96,99,99,99,99,99,99],[1,1,1,1,1,1,1,1,1,2,2,2,10,10,10,20,20,40,50,50,60,60,70,80,80,80,90,95,96,96,96,99,99],[1,1,1,1,1,1,1,1,1,1,1,1,2,20,20,20,20,40,50,60,70,70,80,90,90,90,1,1,99,99,99,99,99],[1,1,1,1,1,1,1,1,1,1,2,4,10,10,20,20,30,40,50,60,70,80,80,90,95,96,97,99,99,99,99,99,99],[1,1,1,1,1,1,1,2,2,1,3,10,10,10,20,20,25,40,50,60,70,80,1,90,90,1,95,96,99,99,99,99,99],[1,1,1,1,1,1,1,1,1,1,1,1,2,2,3,10,10,1,20,25,25,40,50,60,60,70,80,90,95,1,98,99,99],[1,1,1,1,1,1,1,1,1,2,4,1,1,3,20,20,20,30,40,50,60,70,80,90,90,1,95,99,99,99,99,99,99],[1,1,1,1,1,1,1,1,1,1,1,1,2,4,20,20,20,20,40,50,60,70,70,80,80,90,95,97,97,99,99,99,99],[1,1,1,1,1,1,1,1,1,1,1,1,1,1,2,3,10,20,20,20,40,50,60,70,80,90,1,96,98,99,99,99,99],[1,1,1,1,1,1,1,1,1,1,2,10,10,10,20,20,20,30,40,50,60,70,80,80,90,95,95,97,97,99,99,99,99],[1,1,1,1,1,1,1,1,2,2,3,10,10,10,1,20,20,25,40,50,60,70,75,80,90,90,1,1,1,98,99,99,99],[1,1,1,1,1,1,1,1,1,1,1,1,1,2,5,3,10,20,20,25,40,50,60,70,80,90,90,95,96,97,99,99,99],[1,1,1,1,1,1,1,1,1,1,2,2,1,5,10,20,20,20,30,40,50,60,70,80,80,90,95,96,97,98,99,99,99],[1,1,1,1,1,1,1,1,2,10,10,1,20,20,25,40,40,50,50,60,70,80,90,90,95,96,97,98,99,99,99,99,99],[1,1,1,1,3,3,3,10,20,20,20,25,40,40,50,50,50,60,70,80,90,95,95,96,97,98,99,99,99,99,99,99,99]],[[1,1,1,1,1,1,1,1,1,3,3,4,5,10,20,30,30,40,40,50,50,50,70,80,80,90,90,96,97,98,99,99,99],[1,1,1,1,1,1,2,5,4,10,20,25,30,40,50,60,70,75,80,90,90,90,95,96,98,99,99,99,99,99,99,99,99],[1,1,1,1,1,2,2,4,10,10,10,20,20,30,30,40,40,50,60,70,75,80,80,90,90,1,96,97,98,99,99,99,99],[1,1,1,1,1,1,1,4,10,10,10,20,20,30,30,40,40,60,60,70,75,80,80,90,90,95,97,99,99,99,99,99,99],[1,1,1,1,1,1,1,1,1,1,1,3,5,10,20,30,30,40,50,60,70,80,80,90,95,1,98,99,99,99,99,99,99],[1,1,1,1,1,2,3,4,10,20,20,25,40,40,60,70,75,80,80,80,90,90,95,97,98,99,99,99,99,99,99,99,99],[1,1,1,1,1,1,1,1,1,1,1,1,1,10,10,10,10,1,20,20,30,40,50,60,70,75,90,90,95,98,99,99,99],[1,1,1,1,1,1,1,2,2,4,5,10,20,20,20,30,30,40,50,50,60,60,75,80,80,90,95,96,96,99,99,99,99],[1,1,1,1,1,1,2,4,10,20,20,25,1,40,50,60,60,75,80,90,90,95,97,98,99,99,99,99,99,99,99,99,99],[1,1,1,1,1,1,1,1,1,2,1,4,10,20,20,25,40,50,60,75,80,90,90,95,97,99,99,99,99,99,99,99,99],[1,1,1,1,1,1,1,1,1,1,1,1,2,3,4,20,20,20,25,40,40,50,60,70,80,90,90,95,1,98,99,99,99],[1,1,1,1,1,1,1,1,1,1,1,1,1,2,1,20,20,20,30,40,50,50,60,70,80,80,90,95,98,99,99,99,99],[1,1,1,1,1,1,1,1,1,2,2,2,4,10,10,30,30,40,50,50,60,70,75,80,80,80,90,90,95,97,98,99,99],[1,1,1,1,1,1,1,2,2,2,1,10,10,10,1,1,1,25,25,40,50,50,50,60,60,70,80,90,90,95,98,99,99],[1,1,1,1,1,1,1,1,1,1,1,1,2,2,4,10,10,25,40,40,50,50,60,70,75,80,80,90,95,97,99,99,99],[1,1,1,1,1,1,1,1,1,1,2,3,10,10,20,25,40,60,60,70,80,80,90,90,90,1,99,99,99,99,99,99,99],[1,1,1,1,1,1,1,2,2,3,3,1,10,10,1,20,20,40,50,50,60,60,70,80,80,80,90,95,97,97,99,99,99],[1,1,1,1,1,1,1,1,1,1,1,1,2,20,20,20,20,40,50,60,70,70,80,90,90,90,1,99,99,99,99,99,99],[1,1,1,1,1,1,1,1,1,1,2,4,10,10,20,30,40,50,50,60,70,80,90,90,95,96,99,99,99,99,99,99,99],[1,1,1,1,1,1,1,1,2,2,3,10,20,20,20,25,40,50,50,60,70,80,1,90,90,1,1,99,99,99,99,99,99],[1,1,1,1,1,1,1,1,1,1,1,1,2,2,3,10,10,1,20,25,40,50,50,60,60,70,80,90,1,1,99,99,99],[1,1,1,1,1,1,1,1,1,2,4,1,1,3,20,20,25,40,50,60,60,70,80,90,90,1,1,1,99,99,99,99,99],[1,1,1,1,1,1,1,1,1,1,1,1,10,10,20,20,20,20,40,50,60,60,70,80,80,90,1,97,97,99,99,99,99],[1,1,1,1,1,1,1,1,1,1,1,1,1,1,10,10,10,20,20,40,50,50,60,70,80,90,1,96,99,99,99,99,99],[1,1,1,1,1,1,1,1,1,1,2,10,10,10,20,20,20,30,40,50,60,70,80,90,90,95,96,97,97,99,99,99,99],[1,1,1,1,1,1,1,1,2,2,3,10,10,10,20,20,25,40,50,50,60,70,75,80,90,90,1,1,1,98,99,99,99],[1,1,1,1,1,1,1,1,1,1,1,1,1,2,5,3,10,20,20,25,40,50,60,70,80,90,90,90,95,96,99,99,99],[1,1,1,1,1,1,1,1,1,1,2,2,1,5,10,20,20,20,40,50,50,60,70,80,80,90,90,95,98,99,99,99,99],[1,1,1,1,1,1,1,1,2,10,10,10,20,20,25,40,40,50,60,70,80,90,90,95,96,97,98,99,99,99,99,99,99],[1,1,1,1,3,3,3,10,20,20,20,25,40,40,50,50,50,60,70,80,90,95,95,1,96,97,98,99,99,99,99,99,99]]];
@@ -508,7 +754,7 @@ function renderBloco(idx) {
     var itemNum = i+1;
     html += '<div class="q-item">';
     html += '<div class="q-num">Item '+itemNum+'</div>';
-    html += '<div class="q-text">Afirmação n.º '+itemNum+'</div>';
+    html += '<div class="q-text">'+(ITEMS[i] || 'Afirmação n.º '+itemNum)+'</div>';
     html += '<div class="q-opts">';
     for (var o = 0; o < 5; o++) {
       var checked = respostasActuais[i] === o ? 'checked' : '';
@@ -745,6 +991,57 @@ function renderTabela() {
   tbody.innerHTML = html;
 }
 
+// Interpretação qualitativa por domínio (partilhada pelo modal e pelo relatório PDF)
+const DOM_INTERPS = {
+  N: [
+    [5,  'Marcada estabilidade emocional. Raramente experiencia emoções negativas; muito calmo/a e resiliente.'],
+    [34, 'Boa estabilidade emocional. Lida bem com o stress; emoções negativas pouco frequentes.'],
+    [65, 'Equilíbrio emocional adequado. Vivencia ocasionalmente emoções negativas, com regulação suficiente.'],
+    [95, 'Tendência para reactividade emocional. Maior sensibilidade ao stress e a emoções negativas.'],
+    [Infinity, 'Marcada instabilidade emocional. Perturbações emocionais frequentes; dificuldade em gerir stress.'],
+  ],
+  E: [
+    [5,  'Perfil muito introvertido. Prefere claramente actividades solitárias; baixa necessidade de estimulação social.'],
+    [34, 'Perfil introvertido. Reservado/a e mais confortável em contextos tranquilos.'],
+    [65, 'Equilíbrio introversão/extroversão. Adaptável a contextos sociais e solitários.'],
+    [95, 'Perfil extrovertido. Sociável, enérgico/a e orientado/a para a interacção.'],
+    [Infinity, 'Perfil muito extrovertido. Necessidade intensa de companhia, entusiasmo e actividade.'],
+  ],
+  O: [
+    [5,  'Muito convencional e pragmático/a. Forte preferência pelo familiar e pelo concreto.'],
+    [34, 'Perfil convencional. Menor interesse por experiências novas ou abstractas.'],
+    [65, 'Abertura moderada. Curioso/a em algumas áreas mantendo preferências estabelecidas.'],
+    [95, 'Elevada abertura. Criativo/a, curioso/a e receptivo/a a novas ideias e experiências.'],
+    [Infinity, 'Abertura muito elevada. Imaginação vívida, forte atracção pela arte, ideias e diversidade.'],
+  ],
+  A: [
+    [5,  'Muito assertivo/a e orientado/a para si. Pode ser percebido como céptico ou pouco cooperante.'],
+    [34, 'Perfil assertivo e directo. Equilibra autonomia e cooperação com tendência para a primeira.'],
+    [65, 'Boa capacidade relacional. Equilibra assertividade e empatia de forma adequada.'],
+    [95, 'Perfil amável e cooperante. Orientado/a para os outros e para o bem-estar colectivo.'],
+    [Infinity, 'Muito altruísta e confiante. Pode ter dificuldade em defender os próprios interesses.'],
+  ],
+  C: [
+    [5,  'Muito espontâneo/a e flexível. Dificuldade em manter organização e cumprir prazos.'],
+    [34, 'Perfil menos organizado. Prefere flexibilidade; pode ter alguma dificuldade em auto-regulação.'],
+    [65, 'Organização adequada. Cumpre obrigações com regularidade e com boa auto-regulação.'],
+    [95, 'Elevada conscienciosidade. Organizado/a, persistente e orientado/a para os objectivos.'],
+    [Infinity, 'Muito meticuloso/a e auto-disciplinado/a. Elevado sentido de dever; pode tender ao perfeccionismo.'],
+  ],
+};
+
+function interpretarDominios(r) {
+  return DOMINIOS.map(function(dom) {
+    var pc = (r.dominios && r.dominios[dom.id]) ? r.dominios[dom.id].pc : 0;
+    var regras = DOM_INTERPS[dom.id] || [];
+    var txt = '';
+    for (var i = 0; i < regras.length; i++) {
+      if (pc <= regras[i][0]) { txt = regras[i][1]; break; }
+    }
+    return { id: dom.id, nome: dom.nome, pc: pc, txt: txt };
+  });
+}
+
 function verDetalhe(idx) {
   var sorted = sessoes.slice().sort(function(a,b){ return new Date(b.date)-new Date(a.date); });
   sessaoActual = sorted[idx];
@@ -802,57 +1099,9 @@ function verDetalhe(idx) {
   // ── Interpretação automática ────────────────────────────────────────────────
   var interpHtml = '<h3 style="color:var(--blue);font-size:.95rem;margin-bottom:10px">Interpretação Automática</h3>';
   interpHtml += '<div style="background:var(--blue-xpale);border-radius:8px;padding:14px 18px;font-size:.88rem;line-height:1.7;margin-bottom:20px">';
-
-  var domInterps = {
-    N: [
-      ['pc','<=',5,  'Marcada estabilidade emocional. Raramente experiencia emoções negativas; muito calmo/a e resiliente.'],
-      ['pc','<=',34, 'Boa estabilidade emocional. Lida bem com o stress; emoções negativas pouco frequentes.'],
-      ['pc','<=',65, 'Equilíbrio emocional adequado. Vivencia ocasionalmente emoções negativas, com regulação suficiente.'],
-      ['pc','<=',95, 'Tendência para reactividade emocional. Maior sensibilidade ao stress e a emoções negativas.'],
-      ['pc','>',95,  'Marcada instabilidade emocional. Perturbações emocionais frequentes; dificuldade em gerir stress.'],
-    ],
-    E: [
-      ['pc','<=',5,  'Perfil muito introvertido. Prefere claramente actividades solitárias; baixa necessidade de estimulação social.'],
-      ['pc','<=',34, 'Perfil introvertido. Reservado/a e mais confortável em contextos tranquilos.'],
-      ['pc','<=',65, 'Equilíbrio introversão/extroversão. Adaptável a contextos sociais e solitários.'],
-      ['pc','<=',95, 'Perfil extrovertido. Sociável, enérgico/a e orientado/a para a interacção.'],
-      ['pc','>',95,  'Perfil muito extrovertido. Necessidade intensa de companhia, entusiasmo e actividade.'],
-    ],
-    O: [
-      ['pc','<=',5,  'Muito convencional e pragmático/a. Forte preferência pelo familiar e pelo concreto.'],
-      ['pc','<=',34, 'Perfil convencional. Menor interesse por experiências novas ou abstractas.'],
-      ['pc','<=',65, 'Abertura moderada. Curioso/a em algumas áreas mantendo preferências estabelecidas.'],
-      ['pc','<=',95, 'Elevada abertura. Criativo/a, curioso/a e receptivo/a a novas ideias e experiências.'],
-      ['pc','>',95,  'Abertura muito elevada. Imaginação vívida, forte atracção pela arte, ideias e diversidade.'],
-    ],
-    A: [
-      ['pc','<=',5,  'Muito assertivo/a e orientado/a para si. Pode ser percebido como céptico ou pouco cooperante.'],
-      ['pc','<=',34, 'Perfil assertivo e directo. Equilibra autonomia e cooperação com tendência para a primeira.'],
-      ['pc','<=',65, 'Boa capacidade relacional. Equilibra assertividade e empatia de forma adequada.'],
-      ['pc','<=',95, 'Perfil amável e cooperante. Orientado/a para os outros e para o bem-estar colectivo.'],
-      ['pc','>',95,  'Muito altruísta e confiante. Pode ter dificuldade em defender os próprios interesses.'],
-    ],
-    C: [
-      ['pc','<=',5,  'Muito espontâneo/a e flexível. Dificuldade em manter organização e cumprir prazos.'],
-      ['pc','<=',34, 'Perfil menos organizado. Prefere flexibilidade; pode ter alguma dificuldade em auto-regulação.'],
-      ['pc','<=',65, 'Organização adequada. Cumpre obrigações com regularidade e com boa auto-regulação.'],
-      ['pc','<=',95, 'Elevada conscienciosidade. Organizado/a, persistente e orientado/a para os objectivos.'],
-      ['pc','>',95,  'Muito meticuloso/a e auto-disciplinado/a. Elevado sentido de dever; pode tender ao perfeccionismo.'],
-    ],
-  };
-
-  var partes = [];
-  DOMINIOS.forEach(function(dom) {
-    var pc = r.dominios[dom.id] ? r.dominios[dom.id].pc : 0;
-    var txt = '';
-    var regras = domInterps[dom.id] || [];
-    for (var ri=0; ri<regras.length; ri++) {
-      var reg = regras[ri];
-      if ((reg[1]==='<=' && pc <= reg[2]) || (reg[1]=='>' && pc > reg[2])) { txt = reg[3]; break; }
-    }
-    partes.push('<strong>'+dom.nome+' (PC='+pc+')</strong> — '+txt);
-  });
-  interpHtml += partes.join('<br><br>');
+  interpHtml += interpretarDominios(r).map(function(p){
+    return '<strong>'+p.nome+' (PC='+p.pc+')</strong> — '+p.txt;
+  }).join('<br><br>');
   interpHtml += '<br><br><em style="color:var(--text-light);font-size:.82rem">A interpretação automática é um auxílio clínico. Integrar sempre no contexto da avaliação completa. · Ricardina Correia · Cédula 8233</em>';
   interpHtml += '</div>';
 
@@ -936,11 +1185,15 @@ function processarFicheiroImportado(input) {
 
 function exportarRespostasPDF(sessao) {
   if (!sessao || !sessao.answers) { alert('Sem respostas para exportar.'); return; }
+  var LBL = ['DF — Discordo fortemente','D — Discordo','N — Neutro','C — Concordo','CF — Concordo fortemente'];
   var respostas = typeof sessao.answers === 'string' ? sessao.answers.split('|') : sessao.answers;
   var linhas = respostas.map(function(r,i){
+    var v = parseInt(r,10);
+    var lbl = (v>=0 && v<=4) ? LBL[v] : '—';
     return '<tr><td style="padding:4px 8px;border-bottom:1px solid #eee;color:#6B7A8D">'+(i+1)+
-           '</td><td style="padding:4px 8px;border-bottom:1px solid #eee">Item '+(i+1)+
-           '</td><td style="padding:4px 8px;border-bottom:1px solid #eee;text-align:center;font-weight:600">'+r+'</td></tr>';
+           '</td><td style="padding:4px 8px;border-bottom:1px solid #eee">'+(ITEMS[i] || 'Item '+(i+1))+
+           '</td><td style="padding:4px 8px;border-bottom:1px solid #eee;text-align:center;font-weight:600">'+r+
+           '</td><td style="padding:4px 8px;border-bottom:1px solid #eee;font-size:11px;color:#6B7A8D">'+lbl+'</td></tr>';
   }).join('');
   var html = '<!DOCTYPE html><html><head><meta charset="UTF-8">' +
     '<title>Respostas — '+sessao.patientCode+'</title>' +
@@ -952,7 +1205,7 @@ function exportarRespostasPDF(sessao) {
     '<h2>NEO PI-R — Respostas por Item</h2>' +
     '<p>Paciente: <strong>'+sessao.patientCode+'</strong> · '+
     'Data: '+new Date(sessao.date).toLocaleDateString("pt-PT")+' · Ricardina Correia · Cédula 8233</p>' +
-    '<table><thead><tr><th>#</th><th>Item</th><th>Resposta</th></tr></thead>' +
+    '<table><thead><tr><th>#</th><th>Afirmação</th><th style="text-align:center">Cód.</th><th>Resposta</th></tr></thead>' +
     '<tbody>'+linhas+'</tbody></table></body></html>';
   var w = window.open('','_blank');
   if(!w){ alert('Pop-up bloqueado.'); return; }
@@ -996,16 +1249,43 @@ function exportarInterpretacaoPDF(sessao) {
     });
   });
 
+  // Interpretação qualitativa
+  var interpRows = interpretarDominios(r).map(function(p){
+    return '<p style="margin:0 0 8px;font-size:11.5px;color:#2C3E50">' +
+           '<strong>'+p.nome+' (PC='+p.pc+')</strong> — '+p.txt+'</p>';
+  }).join('');
+
+  // Respostas item-a-item
+  var respHtml = '';
+  if (s.answers) {
+    var LBL = ['DF','D','N','C','CF'];
+    var respostas = typeof s.answers === 'string' ? s.answers.split('|') : s.answers;
+    var respRows = respostas.map(function(rv,i){
+      var v = parseInt(rv,10);
+      var cod = (v>=0 && v<=4) ? LBL[v] : '—';
+      return '<tr><td style="padding:3px 8px;border-bottom:1px solid #eee;color:#6B7A8D;font-size:10.5px">'+(i+1)+
+             '</td><td style="padding:3px 8px;border-bottom:1px solid #eee;font-size:10.5px">'+(ITEMS[i] || 'Item '+(i+1))+
+             '</td><td style="padding:3px 8px;border-bottom:1px solid #eee;text-align:center;font-weight:700;font-size:10.5px">'+rv+
+             '</td><td style="padding:3px 8px;border-bottom:1px solid #eee;text-align:center;font-size:10.5px;color:#6B7A8D">'+cod+'</td></tr>';
+    }).join('');
+    respHtml = '<h2>Respostas por Item</h2>' +
+      '<p style="font-size:10px;color:#999;margin-bottom:6px">Escala: 0 = DF (Discordo fortemente) · 1 = D · 2 = N · 3 = C · 4 = CF (Concordo fortemente)</p>' +
+      '<table><thead><tr><th style="text-align:center">#</th><th>Afirmação</th>' +
+      '<th style="text-align:center">Resp.</th><th style="text-align:center">Cód.</th></tr></thead>' +
+      '<tbody>'+respRows+'</tbody></table>';
+  }
+
   var html = '<!DOCTYPE html><html><head><meta charset="UTF-8">' +
-    '<title>Relatório NEO PI-R — '+s.patientCode+'</title>' +
+    '<title>Relatório Completo NEO PI-R — '+s.patientCode+'</title>' +
     '<style>body{font-family:Arial,sans-serif;font-size:12px;color:#2C3E50;padding:24px;max-width:900px;margin:0 auto}' +
     'h1{color:#3B5A7A;font-size:16px;margin-bottom:4px} h2{color:#3B5A7A;font-size:13px;margin:16px 0 8px;' +
     'border-bottom:2px solid #D6E4F0;padding-bottom:4px} p{color:#6B7A8D;margin-bottom:12px;font-size:11px}' +
     'table{width:100%;border-collapse:collapse;margin-bottom:16px}' +
     'th{background:#D6E4F0;padding:6px 8px;text-align:left;color:#3B5A7A;font-size:11px}' +
+    'h2{page-break-after:avoid} tr{page-break-inside:avoid}' +
     '.no-print{margin-bottom:16px} @media print{.no-print{display:none}}</style></head><body>' +
-    '<div class="no-print"><button onclick="window.print()">🖨 Imprimir / Guardar PDF</button></div>' +
-    '<h1>NEO PI-R — Relatório de Avaliação</h1>' +
+    '<div class="no-print"><button onclick="window.print()" style="padding:8px 16px;font-size:13px;cursor:pointer">🖨 Imprimir / Guardar PDF</button></div>' +
+    '<h1>NEO PI-R — Relatório Completo de Avaliação</h1>' +
     '<p>Código: <strong>'+s.patientCode+'</strong> · Respondente: <strong>'+s.nomeInformante+'</strong> · ' +
     s.sexo+' / '+s.grupo+' · Data: '+dt+' · Ricardina Correia · Cédula 8233</p>' +
     '<h2>Domínios</h2><table><thead><tr>' +
@@ -1014,6 +1294,8 @@ function exportarInterpretacaoPDF(sessao) {
     '<h2>Facetas</h2><table><thead><tr>' +
     '<th>Faceta</th><th style="text-align:center">SB</th><th style="text-align:center">PC</th>' +
     '<th>Perfil</th><th></th></tr></thead><tbody>'+facRows+'</tbody></table>' +
+    '<h2>Interpretação Automática</h2><div style="background:#EBF2F8;border-radius:8px;padding:12px 16px;margin-bottom:16px">'+interpRows+'</div>' +
+    respHtml +
     '<p style="margin-top:20px;font-style:italic;color:#999">Interpretação automática — integrar sempre no contexto clínico completo da avaliação. Costa &amp; McCrae (1992) · Lima &amp; Simões (1997)</p>' +
     '</body></html>';
 

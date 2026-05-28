@@ -717,7 +717,15 @@ const QID_TO_ABA = {
   // ── UCLA-PTSD Adaptado · Rastreio PSPT Pediátrica (Ricardina Correia, 2026) ──
   'q_ucla_ptsd_adaptado':  'UCLA_PTSD_Adaptado',
   // ── ISAS · Inventário de Afirmações sobre Autolesão (Klonsky & Glenn, 2009) ──
-  'q_isas':                'ISAS'
+  'q_isas':                'ISAS',
+  // ── FAMÍLIA FASA · Acomodação Familiar a Sintomas de Ansiedade (Lebowitz et al.) ──
+  'q_fasa_parental':         'FASA_Parental',
+  'q_fasa_cr_infancia':      'FASA_CR_Infancia',
+  'q_fasa_cr_adolescencia':  'FASA_CR_Adolescencia',
+  // ── FAMÍLIA FAS · Acomodação Familiar em TOC pediátrico (Calvocoressi/Flessner) ──
+  'q_fas_parental':          'FAS_Parental',
+  'q_fas_cr_infancia':       'FAS_CR_Infancia',
+  'q_fas_cr_adolescencia':   'FAS_CR_Adolescencia'
 };
 
 
@@ -1077,7 +1085,47 @@ const SYNC_KEY_TO_ABA = {
   // ── ISAS · Inventário de Afirmações sobre Autolesão (Klonsky & Glenn, 2009) ──
   // Auto-resposta · 12–25 anos · 13 funções (6 intrapessoais + 7 interpessoais) + Total/78
   'isas':                  'ISAS',
-  'ISAS':                  'ISAS'
+  'ISAS':                  'ISAS',
+
+  // ── FAMÍLIA FASA · Acomodação Familiar a Sintomas de Ansiedade (Lebowitz et al.) ──
+  // FASA Parental — 13 itens
+  'fasa_parental':         'FASA_Parental',
+  'FASA_Parental':         'FASA_Parental',
+  'FASA-Parental':         'FASA_Parental',
+  'FASA_PR':               'FASA_Parental',
+  'FASA-PT-EU':            'FASA_Parental',
+  // FASA CR Infância (7-10) — 16 itens (com Bloco D crenças)
+  'fasa_cr_infancia':      'FASA_CR_Infancia',
+  'FASA_CR_Infancia':      'FASA_CR_Infancia',
+  'FASA-CR-Infancia':      'FASA_CR_Infancia',
+  'FASA_CR_I':             'FASA_CR_Infancia',
+  'FASA-CR-PT-EU/I':       'FASA_CR_Infancia',
+  // FASA CR Adolescência (11-17) — 16 itens (com Bloco D crenças)
+  'fasa_cr_adolescencia':  'FASA_CR_Adolescencia',
+  'FASA_CR_Adolescencia':  'FASA_CR_Adolescencia',
+  'FASA-CR-Adolescencia':  'FASA_CR_Adolescencia',
+  'FASA_CR_A':             'FASA_CR_Adolescencia',
+  'FASA-CR-PT-EU/A':       'FASA_CR_Adolescencia',
+
+  // ── FAMÍLIA FAS · Acomodação Familiar em TOC pediátrico (Calvocoressi/Flessner) ──
+  // FAS Parental — checklist (16 cat.) + 13 itens
+  'fas_parental':          'FAS_Parental',
+  'FAS_Parental':          'FAS_Parental',
+  'FAS-Parental':          'FAS_Parental',
+  'FAS_PR':                'FAS_Parental',
+  'FAS-PR-PT-EU':          'FAS_Parental',
+  // FAS CR Infância (7-10) — checklist + 16 itens (com Bloco D crenças)
+  'fas_cr_infancia':       'FAS_CR_Infancia',
+  'FAS_CR_Infancia':       'FAS_CR_Infancia',
+  'FAS-CR-Infancia':       'FAS_CR_Infancia',
+  'FAS_CR_I':              'FAS_CR_Infancia',
+  'FAS-CR-PT-EU/I':        'FAS_CR_Infancia',
+  // FAS CR Adolescência (11-17) — checklist + 16 itens (com Bloco D crenças)
+  'fas_cr_adolescencia':   'FAS_CR_Adolescencia',
+  'FAS_CR_Adolescencia':   'FAS_CR_Adolescencia',
+  'FAS-CR-Adolescencia':   'FAS_CR_Adolescencia',
+  'FAS_CR_A':              'FAS_CR_Adolescencia',
+  'FAS-CR-PT-EU/A':        'FAS_CR_Adolescencia'
 };
 
 // Cache em memória das respostas do Sheet (evita fetch repetidos na mesma sessão)
@@ -1848,7 +1896,72 @@ function initCatalog() {
       ageRange:'12–25 anos',
       objective:'Auto-resposta · Klonsky & Glenn (2009). Caracterização de comportamentos de autolesão não suicida (Secção I — 12 comportamentos + 7 questões contextuais) e identificação funcional das 13 funções subjacentes (Secção II — 39 itens Likert 0-2 organizados em 6 funções intrapessoais e 7 interpessoais). Score por função 0-6 (Baixa 0-2 / Média 3-4 / Alta 5-6). Domínios: Intrapessoal 0-36 (Reg. afecto, Anti-dissociação, Anti-suicídio, Marcar sofrimento, Auto-punição, Endurecimento) e Interpessoal 0-42 (Autonomia, Limites interpessoais, Influência, Vinculação a pares, Vingança, Auto-cuidado, Procura de sensações). TOTAL 0-78 com bandas: Sem investimento 0 / Baixo 1-26 / Moderado 27-52 / Elevado 53-78. Perfis funcionais: Baixo investimento funcional, Intrapessoal predominante, Interpessoal predominante, Misto. Alertas críticos: Anti-suicídio ≥4 (articular com EADRS-A e pedopsiquiatria), Auto-punição ≥4 (trabalho sobre auto-conceito e auto-crítica), Influência interpessoal ≥4 (dinâmica familiar e sinalização).',
       domains:['Caracterização (Sec. I)','13 funções (Sec. II)','Intrapessoal (0-36)','Interpessoal (0-42)','TOTAL (0-78)','Perfil funcional','Top 3 funções','Alertas críticos (AS/AP/IN)'],
-      ageMin:144, ageMax:300 }
+      ageMin:144, ageMax:300 },
+    // ── FAMÍLIA FASA · Acomodação Familiar a Sintomas de Ansiedade (Lebowitz et al.) ──
+    // Adaptação inspirada (Via B) PT-EU · 3 versões (Parental + 2 autorrelato)
+    // PAR (Participação) + MOD (Modificação) + SOF + CON; CR adicionam UP/DC/AENA + IRC
+    { id:'q_fasa_parental',
+      name:'FASA — Versão Parental',
+      dest:['Mãe','Pai','Enc. Educação'],
+      link:'https://correiaricardina-ui.github.io/questionarios/FASA_Parental.html',
+      syncKey:'fasa_parental',
+      area:'Funcionamento familiar / Ansiedade pediátrica',
+      ageRange:'2–18 anos',
+      objective:'Versão Parental · Lebowitz et al. (adaptação Via B PT-EU). Avalia o envolvimento dos pais/cuidadores na acomodação familiar aos sintomas ansiosos da criança/adolescente, ao longo do último mês. 13 itens em 4 subescalas: PAR (Participação directa, itens 1-4, 0-16); MOD (Modificação de rotinas, itens 5-9, 0-20); SOF (Sofrimento parental, item 10, 0-4); CON (Consequências da não-acomodação, itens 11-13, 0-4). Acomodação Total 0-36 com bandas: Mínima (0-8), Ligeira/Moderada (9-17), Acentuada (18-26), Severa (27-36). Indicadores complementares: RC (Reatividade, média 11-13) e CMO (Consequência Máxima Observada). Alerta CMO ≥ 3 sinaliza risco de escalada perante não-acomodação. Orienta para intervenção SPACE ou equivalente.',
+      domains:['PAR (0-16)','MOD (0-20)','Acomodação Total (0-36)','SOF (item 10)','RC (média 11-13)','CMO (máx 11-13)'],
+      ageMin:24, ageMax:215 },
+    { id:'q_fasa_cr_infancia',
+      name:'FASA — Autorrelato Infância',
+      dest:['Paciente'],
+      link:'https://correiaricardina-ui.github.io/questionarios/FASA_CR_Infancia.html',
+      syncKey:'fasa_cr_infancia',
+      area:'Funcionamento familiar / Ansiedade pediátrica',
+      ageRange:'7–10 anos',
+      objective:'Autorrelato Infância (7-10 anos) · Lebowitz et al. (adaptação Via B PT-EU). Linguagem infantil — a criança avalia o envolvimento dos pais nas suas preocupações ansiosas. 16 itens: PAR (1-4, 0-16), MOD (5-9, 0-20), SOF (item 10), CON (11-13), Bloco D — Crenças: UP (Utilidade Percebida, item 14), DC (Desejo de Continuidade, item 15), AENA (Autoeficácia para Não-Acomodação, item 16, direção inversa). Acomodação Total 0-36 (mesmas bandas que Parental). IRC = UP + DC + (4 − AENA), 0-12: Baixa (0-4) / Moderada (5-8) / Elevada (9-12 ⚠). Alertas: CMO ≥ 3, IRC ≥ 9 (dependência cognitiva da acomodação).',
+      domains:['PAR (0-16)','MOD (0-20)','Acomodação Total (0-36)','SOF, RC, CMO','UP / DC / AENA','IRC (0-12)'],
+      ageMin:84, ageMax:131 },
+    { id:'q_fasa_cr_adolescencia',
+      name:'FASA — Autorrelato Adolescência',
+      dest:['Paciente'],
+      link:'https://correiaricardina-ui.github.io/questionarios/FASA_CR_Adolescencia.html',
+      syncKey:'fasa_cr_adolescencia',
+      area:'Funcionamento familiar / Ansiedade',
+      ageRange:'11–17 anos',
+      objective:'Autorrelato Adolescência (11-17 anos) · Lebowitz et al. (adaptação Via B PT-EU). Linguagem adolescente formal — o(a) jovem avalia o envolvimento dos pais nas suas preocupações ansiosas. 16 itens idênticos em estrutura à versão Infância (PAR, MOD, SOF, CON, Bloco D — UP/DC/AENA). Acomodação Total 0-36. IRC 0-12. Alertas CMO ≥ 3 e IRC ≥ 9. Útil para articular percepções da díade pais-adolescente (comparar com versão Parental quando disponível).',
+      domains:['PAR (0-16)','MOD (0-20)','Acomodação Total (0-36)','SOF, RC, CMO','UP / DC / AENA','IRC (0-12)'],
+      ageMin:132, ageMax:215 },
+    // ── FAMÍLIA FAS · Acomodação Familiar em TOC pediátrico (Calvocoressi/Flessner) ──
+    // Adaptação inspirada (Via B) PT-EU · Bloco A (checklist 16 cat. TOC) + Acomodação
+    { id:'q_fas_parental',
+      name:'FAS — Versão Parental (TOC)',
+      dest:['Mãe','Pai','Enc. Educação'],
+      link:'https://correiaricardina-ui.github.io/questionarios/FAS_Parental.html',
+      syncKey:'fas_parental',
+      area:'Funcionamento familiar / TOC pediátrico',
+      ageRange:'7–18 anos',
+      objective:'Versão Parental · Calvocoressi/Flessner (adaptação Via B PT-EU). Avalia a acomodação familiar aos sintomas obsessivo-compulsivos do(a) filho(a). Bloco A — Checklist sintomático (16 categorias dicotómicas: 8 Obsessões + 8 Compulsões); Bloco B — Acomodação (PAR 5 itens 0-20 + MOD 4 itens 0-16); Bloco C — Sofrimento/Consequências. Indicadores derivados: Obs/Comp (0-8 cada), DS (Diversidade Sintomática 0-16: Focal/Moderada/Alargada/Difusa), DOC (Diferencial Obs−Comp −8 a +8: Pred. Compulsivo/Equilibrado/Pred. Obsessivo), Acomodação Total 0-36, RAS (Razão Acomodação/Sintoma = Total ÷ DS: Dispersa <2.5 / Distribuída ≤5 / Concentrada ≤8 / Hiperconcentrada >8 ⚠). Alertas: CMO ≥ 3, RAS > 8 (perfil "muita acomodação para pouco sintoma", típico de TOC focal). Orienta diagnóstico diferencial e plano terapêutico (ERP com envolvimento parental).',
+      domains:['Obs / Comp (0-8 cada)','DS (0-16) / DOC (-8 a +8)','PAR (0-20) / MOD (0-16)','Acomodação Total (0-36)','SOF, RC, CMO','RAS (Total/DS)','Categorias presentes'],
+      ageMin:84, ageMax:215 },
+    { id:'q_fas_cr_infancia',
+      name:'FAS — Autorrelato Infância TOC',
+      dest:['Paciente'],
+      link:'https://correiaricardina-ui.github.io/questionarios/FAS_CR_Infancia.html',
+      syncKey:'fas_cr_infancia',
+      area:'Funcionamento familiar / TOC pediátrico',
+      ageRange:'7–10 anos',
+      objective:'Autorrelato Infância (7-10 anos) · Calvocoressi/Flessner (adaptação Via B PT-EU). Linguagem infantil — a criança avalia as suas preocupações/rituais e a acomodação dos pais. Bloco A — Checklist (16 cat. TOC com linguagem infantil); Bloco B+C (PAR 5 + MOD 4 + SOF + CON); Bloco D — Crenças: UP (item 14), DC (item 15), AENA (item 16). Todos os indicadores TOC: Obs/Comp, DS, DOC, RAS. Adicionalmente IRC (0-12). Alertas: CMO ≥ 3, RAS > 8, IRC ≥ 9 (a criança dá utilidade percebida alta + quer continuidade + baixa autoeficácia para lidar sozinha — dependência cognitiva relativamente à acomodação).',
+      domains:['Obs / Comp / DS / DOC','PAR (0-20) / MOD (0-16)','Acomodação Total (0-36)','SOF, RC, CMO, RAS','UP / DC / AENA','IRC (0-12)'],
+      ageMin:84, ageMax:131 },
+    { id:'q_fas_cr_adolescencia',
+      name:'FAS — Autorrelato Adolescência TOC',
+      dest:['Paciente'],
+      link:'https://correiaricardina-ui.github.io/questionarios/FAS_CR_Adolescencia.html',
+      syncKey:'fas_cr_adolescencia',
+      area:'Funcionamento familiar / TOC pediátrico',
+      ageRange:'11–17 anos',
+      objective:'Autorrelato Adolescência (11-17 anos) · Calvocoressi/Flessner (adaptação Via B PT-EU). Linguagem adolescente formal — o(a) jovem avalia os seus sintomas TOC e a acomodação dos pais. Estrutura completa: Bloco A (16 cat.), Bloco B+C (PAR 5 + MOD 4 + SOF + CON), Bloco D (UP/DC/AENA). Todos os indicadores: Obs/Comp, DS, DOC, PAR, MOD, Total, RAS, IRC. Mesmos alertas (CMO ≥ 3, RAS > 8, IRC ≥ 9). Excepcionalmente útil para articulação com a versão Parental: divergências sistemáticas pais-adolescente sinalizam discordâncias sobre a natureza dos rituais ou sobre o nível de acomodação efectivamente prestada.',
+      domains:['Obs / Comp / DS / DOC','PAR (0-20) / MOD (0-16)','Acomodação Total (0-36)','SOF, RC, CMO, RAS','UP / DC / AENA','IRC (0-12)'],
+      ageMin:132, ageMax:215 }
   ];
   // Garantir que TODOS os defaults estão no catálogo, sempre
   // (funciona em RC novos e em RC existentes — nunca perde questionários)
@@ -2030,6 +2143,14 @@ function initCatalog() {
       'q_ucla_ptsd_adaptado': { link:'https://correiaricardina-ui.github.io/questionarios/UCLA_PTSD_Adaptado.html', syncKey:'ucla_ptsd_adaptado' },
       // ── ISAS v1.0 · Inventário de Afirmações sobre Autolesão (Klonsky & Glenn, 2009) ──
       'q_isas': { link:'https://correiaricardina-ui.github.io/questionarios/ISAS_v1.html', syncKey:'isas' },
+      // ── FAMÍLIA FASA · Acomodação Familiar a Sintomas de Ansiedade (Lebowitz et al.) ──
+      'q_fasa_parental':        { link:'https://correiaricardina-ui.github.io/questionarios/FASA_Parental.html',        syncKey:'fasa_parental' },
+      'q_fasa_cr_infancia':     { link:'https://correiaricardina-ui.github.io/questionarios/FASA_CR_Infancia.html',     syncKey:'fasa_cr_infancia' },
+      'q_fasa_cr_adolescencia': { link:'https://correiaricardina-ui.github.io/questionarios/FASA_CR_Adolescencia.html', syncKey:'fasa_cr_adolescencia' },
+      // ── FAMÍLIA FAS · Acomodação Familiar em TOC pediátrico (Calvocoressi/Flessner) ──
+      'q_fas_parental':         { link:'https://correiaricardina-ui.github.io/questionarios/FAS_Parental.html',         syncKey:'fas_parental' },
+      'q_fas_cr_infancia':      { link:'https://correiaricardina-ui.github.io/questionarios/FAS_CR_Infancia.html',      syncKey:'fas_cr_infancia' },
+      'q_fas_cr_adolescencia':  { link:'https://correiaricardina-ui.github.io/questionarios/FAS_CR_Adolescencia.html',  syncKey:'fas_cr_adolescencia' },
     };
     // ── Re-store com chave correcta ('q_' + id) — corrige instalações anteriores ──
     // Garante que Conners, FAD e MAP ficam acessíveis pelo META.forEach e getCatalog
@@ -2445,6 +2566,32 @@ function initCatalog() {
     if(!catalog.includes('q_isas')) {
       const d = defaults.find(x => x.id === 'q_isas');
       if(d) { store.set('q_' + d.id, d); catalog.push('q_isas'); store.set('catalog', catalog); }
+    }
+    // ── FAMÍLIA FASA · Acomodação Familiar a Sintomas de Ansiedade (Lebowitz et al.) ──
+    if(!catalog.includes('q_fasa_parental')) {
+      const d = defaults.find(x => x.id === 'q_fasa_parental');
+      if(d) { store.set('q_' + d.id, d); catalog.push('q_fasa_parental'); store.set('catalog', catalog); }
+    }
+    if(!catalog.includes('q_fasa_cr_infancia')) {
+      const d = defaults.find(x => x.id === 'q_fasa_cr_infancia');
+      if(d) { store.set('q_' + d.id, d); catalog.push('q_fasa_cr_infancia'); store.set('catalog', catalog); }
+    }
+    if(!catalog.includes('q_fasa_cr_adolescencia')) {
+      const d = defaults.find(x => x.id === 'q_fasa_cr_adolescencia');
+      if(d) { store.set('q_' + d.id, d); catalog.push('q_fasa_cr_adolescencia'); store.set('catalog', catalog); }
+    }
+    // ── FAMÍLIA FAS · Acomodação Familiar em TOC pediátrico (Calvocoressi/Flessner) ──
+    if(!catalog.includes('q_fas_parental')) {
+      const d = defaults.find(x => x.id === 'q_fas_parental');
+      if(d) { store.set('q_' + d.id, d); catalog.push('q_fas_parental'); store.set('catalog', catalog); }
+    }
+    if(!catalog.includes('q_fas_cr_infancia')) {
+      const d = defaults.find(x => x.id === 'q_fas_cr_infancia');
+      if(d) { store.set('q_' + d.id, d); catalog.push('q_fas_cr_infancia'); store.set('catalog', catalog); }
+    }
+    if(!catalog.includes('q_fas_cr_adolescencia')) {
+      const d = defaults.find(x => x.id === 'q_fas_cr_adolescencia');
+      if(d) { store.set('q_' + d.id, d); catalog.push('q_fas_cr_adolescencia'); store.set('catalog', catalog); }
     }
     }
   }
@@ -4029,7 +4176,21 @@ function renderAssignments(patientId) {
                 'UCLA_PTSD_Adaptado':    ['NomeInformante','Avaliador'],
                 // ── ISAS · Inventário de Afirmações sobre Autolesão (Klonsky & Glenn, 2009) ──
                 // Auto-resposta — adolescente/jovem adulto preenche o próprio (NomeInformante = paciente; Informante = "Auto-resposta")
-                'ISAS':                  ['NomeInformante','Informante']
+                'ISAS':                  ['NomeInformante','Informante'],
+                // ── FAMÍLIA FASA (Ansiedade · Lebowitz) ──
+                // FASA Parental — preenchido por pais (Relação distingue Mãe/Pai/etc.)
+                'FASA_Parental':         ['NomeInformante','Relação','Relacao'],
+                // FASA CR Infância — autorrelato (Acompanhamento distingue: sozinho/com ajuda Mãe/Pai/etc.)
+                'FASA_CR_Infancia':      ['NomeInformante','Acompanhamento'],
+                // FASA CR Adolescência — autorrelato (Contexto: sozinho/em consulta/com adulto)
+                'FASA_CR_Adolescencia':  ['NomeInformante','Contexto'],
+                // ── FAMÍLIA FAS (TOC pediátrico · Calvocoressi/Flessner) ──
+                // FAS Parental — preenchido por pais (Relação distingue Mãe/Pai/etc.)
+                'FAS_Parental':          ['NomeInformante','Relação','Relacao'],
+                // FAS CR Infância — autorrelato TOC (Acompanhamento)
+                'FAS_CR_Infancia':       ['NomeInformante','Acompanhamento'],
+                // FAS CR Adolescência — autorrelato TOC (Contexto)
+                'FAS_CR_Adolescencia':   ['NomeInformante','Contexto']
               };
               const RC = {
                 'SWAN':['Relação'],'BRIEF_Pais':['Relação'],'SCARED_R_PAIS':['Relação'],
@@ -4354,7 +4515,15 @@ async function syncAndMark(patientId, idx) {
           // ── UCLA-PTSD Adaptado · clinician-rated (NomeInformante = avaliador) ──
           'UCLA_PTSD_Adaptado': ['NomeInformante','Avaliador'],
           // ── ISAS · auto-resposta (adolescente/adulto preenche o próprio) ──
-          'ISAS':            ['NomeInformante','Informante']
+          'ISAS':            ['NomeInformante','Informante'],
+          // ── FAMÍLIA FASA (Ansiedade · Lebowitz) ──
+          'FASA_Parental':         ['NomeInformante','Relação','Relacao'],
+          'FASA_CR_Infancia':      ['NomeInformante','Acompanhamento'],
+          'FASA_CR_Adolescencia':  ['NomeInformante','Contexto'],
+          // ── FAMÍLIA FAS (TOC pediátrico · Calvocoressi/Flessner) ──
+          'FAS_Parental':          ['NomeInformante','Relação','Relacao'],
+          'FAS_CR_Infancia':       ['NomeInformante','Acompanhamento'],
+          'FAS_CR_Adolescencia':   ['NomeInformante','Contexto']
         };
         const RC2 = {
           'SWAN':['Relação'],'BRIEF_Pais':['Relação'],'SCARED_R_PAIS':['Relação'],
