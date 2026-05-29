@@ -725,7 +725,9 @@ const QID_TO_ABA = {
   // ── FAMÍLIA FAS · Acomodação Familiar em TOC pediátrico (Calvocoressi/Flessner) ──
   'q_fas_parental':          'FAS_Parental',
   'q_fas_cr_infancia':       'FAS_CR_Infancia',
-  'q_fas_cr_adolescencia':   'FAS_CR_Adolescencia'
+  'q_fas_cr_adolescencia':   'FAS_CR_Adolescencia',
+  // ── RSES · Auto-Estima de Rosenberg (autorrelato adolescentes) — v28 ──
+  'q_rses':                  'RSES'
 };
 
 
@@ -1125,7 +1127,10 @@ const SYNC_KEY_TO_ABA = {
   'FAS_CR_Adolescencia':   'FAS_CR_Adolescencia',
   'FAS-CR-Adolescencia':   'FAS_CR_Adolescencia',
   'FAS_CR_A':              'FAS_CR_Adolescencia',
-  'FAS-CR-PT-EU/A':        'FAS_CR_Adolescencia'
+  'FAS-CR-PT-EU/A':        'FAS_CR_Adolescencia',
+  // ── RSES · Escala de Auto-Estima de Rosenberg (autorrelato adolescentes) — v28 ──
+  'rses':                  'RSES',
+  'RSES':                  'RSES'
 };
 
 // Cache em memória das respostas do Sheet (evita fetch repetidos na mesma sessão)
@@ -1961,7 +1966,15 @@ function initCatalog() {
       ageRange:'11–17 anos',
       objective:'Autorrelato Adolescência (11-17 anos) · Calvocoressi/Flessner (adaptação Via B PT-EU). Linguagem adolescente formal — o(a) jovem avalia os seus sintomas TOC e a acomodação dos pais. Estrutura completa: Bloco A (16 cat.), Bloco B+C (PAR 5 + MOD 4 + SOF + CON), Bloco D (UP/DC/AENA). Todos os indicadores: Obs/Comp, DS, DOC, PAR, MOD, Total, RAS, IRC. Mesmos alertas (CMO ≥ 3, RAS > 8, IRC ≥ 9). Excepcionalmente útil para articulação com a versão Parental: divergências sistemáticas pais-adolescente sinalizam discordâncias sobre a natureza dos rituais ou sobre o nível de acomodação efectivamente prestada.',
       domains:['Obs / Comp / DS / DOC','PAR (0-20) / MOD (0-16)','Acomodação Total (0-36)','SOF, RC, CMO, RAS','UP / DC / AENA','IRC (0-12)'],
-      ageMin:132, ageMax:215 }
+      ageMin:132, ageMax:215 },
+    // ── RSES — Escala de Auto-Estima de Rosenberg (autorrelato adolescentes) v28 ──
+    { id:'q_rses', name:'RSES — Auto-Estima de Rosenberg',
+      dest:['Paciente'],
+      link:'https://correiaricardina-ui.github.io/questionarios/RSES_v1.html',
+      syncKey:'rses', area:'Ansiedade, Depressão & Internalização', ageRange:'12–20 anos',
+      objective:'Avalia a auto-estima global em adolescentes — autorrelato (10 itens, escala 0-3). Versão PT validada para contexto escolar e forense (Pechorro, Marôco, Poiares & Vieira, 2011). Interpretação normativo-referenciada por z-score face ao grupo (Contexto × Sexo) — não existem pontos de corte clínicos portugueses.',
+      domains:['Auto-estima global'],
+      ageMin:144, ageMax:240 }
   ];
   // Garantir que TODOS os defaults estão no catálogo, sempre
   // (funciona em RC novos e em RC existentes — nunca perde questionários)
@@ -2151,6 +2164,8 @@ function initCatalog() {
       'q_fas_parental':         { link:'https://correiaricardina-ui.github.io/questionarios/FAS_Parental.html',         syncKey:'fas_parental' },
       'q_fas_cr_infancia':      { link:'https://correiaricardina-ui.github.io/questionarios/FAS_CR_Infancia.html',      syncKey:'fas_cr_infancia' },
       'q_fas_cr_adolescencia':  { link:'https://correiaricardina-ui.github.io/questionarios/FAS_CR_Adolescencia.html',  syncKey:'fas_cr_adolescencia' },
+      // ── RSES · Auto-Estima de Rosenberg (autorrelato adolescentes) v28 ──
+      'q_rses':                 { link:'https://correiaricardina-ui.github.io/questionarios/RSES_v1.html',               syncKey:'rses' },
     };
     // ── Re-store com chave correcta ('q_' + id) — corrige instalações anteriores ──
     // Garante que Conners, FAD e MAP ficam acessíveis pelo META.forEach e getCatalog
@@ -2774,6 +2789,18 @@ function formatScoreSummary(scores, syncKey) {
     if(total != null) {
       const cls = total >= 61 ? 'color:#C0392B;font-weight:700;' : total >= 52 ? 'color:#E67E22;font-weight:600;' : 'color:var(--green);font-weight:600;';
       return `<span style="font-size:0.78rem;${cls}">Total = ${total}${f1!=null?' · F1='+f1:''}${f2!=null?' F2='+f2:''}${f3!=null?' F3='+f3:''}</span>`;
+    }
+  }
+  if(syncKey === 'rses') {
+    const total = scores['Total'] ?? scores['total'];
+    const classif = scores['Classificacao'] ?? scores['classificacao'] ?? scores['classif'] ?? '';
+    const z = scores['Zscore'] ?? scores['zscore'] ?? scores['z'];
+    if(total != null) {
+      // Auto-estima: baixa = preocupante (vermelho); muito elevada = cautela/desejabilidade (laranja)
+      const cls = classif === 'Muito baixa' ? 'color:#C0392B;font-weight:700;'
+                : (classif === 'Baixa' || classif === 'Muito elevada') ? 'color:#E67E22;font-weight:600;'
+                : 'color:var(--green);font-weight:600;';
+      return `<span style="font-size:0.78rem;${cls}">Auto-estima = ${total}/30${classif?' · '+classif:''}${z!=null?' (z='+z+')':''}</span>`;
     }
   }
   if(syncKey === 'cbcl15') {
@@ -4190,7 +4217,9 @@ function renderAssignments(patientId) {
                 // FAS CR Infância — autorrelato TOC (Acompanhamento)
                 'FAS_CR_Infancia':       ['NomeInformante','Acompanhamento'],
                 // FAS CR Adolescência — autorrelato TOC (Contexto)
-                'FAS_CR_Adolescencia':   ['NomeInformante','Contexto']
+                'FAS_CR_Adolescencia':   ['NomeInformante','Contexto'],
+                // RSES — Auto-Estima de Rosenberg (autorrelato adolescentes) v28
+                'RSES':                  ['NomeRespondente']
               };
               const RC = {
                 'SWAN':['Relação'],'BRIEF_Pais':['Relação'],'SCARED_R_PAIS':['Relação'],
@@ -4523,7 +4552,9 @@ async function syncAndMark(patientId, idx) {
           // ── FAMÍLIA FAS (TOC pediátrico · Calvocoressi/Flessner) ──
           'FAS_Parental':          ['NomeInformante','Relação','Relacao'],
           'FAS_CR_Infancia':       ['NomeInformante','Acompanhamento'],
-          'FAS_CR_Adolescencia':   ['NomeInformante','Contexto']
+          'FAS_CR_Adolescencia':   ['NomeInformante','Contexto'],
+          // RSES — Auto-Estima de Rosenberg (autorrelato adolescentes) v28
+          'RSES':                  ['NomeRespondente']
         };
         const RC2 = {
           'SWAN':['Relação'],'BRIEF_Pais':['Relação'],'SCARED_R_PAIS':['Relação'],
