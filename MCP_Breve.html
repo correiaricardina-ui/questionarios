@@ -378,6 +378,8 @@ tr:last-child td{border-bottom:none}
 <script>
 const PASSWORD='CNS2024';
 const STORAGE_KEY='rc_mcp_breve_sessoes';
+const SHEET_NAME='MCP_Breve';
+const SCRIPT_URL='https://script.google.com/macros/s/AKfycbxX2_Ry7VRH6jr7eGBMmtmyZFXZc69blwdO5bqJK0j69HRSexpXXPuEfDC5OHQRMLLL/exec';
 
 const COABITANTE_OPCOES=[
   {value:'avo_mat',label:'Avó materna'},{value:'avoh_mat',label:'Avô materno'},
@@ -607,7 +609,23 @@ function submeterFormulario(){
   var s=recolherFormulario();
   sessoes.push(s);
   saveSessoes();
+  enviarParaSheet(s);
   showPage('page-obrigado');
+}
+
+// Envio para o Sheet central (additivo — localStorage continua a servir de backup offline).
+// Formato aninhado nativo (id, s1..s4) aceite directamente pelo buildRow do Apps Script.
+// NB: sem chave 'data' no topo do payload — a Data é gerada no servidor (Skill §31).
+function enviarParaSheet(s){
+  try{
+    var payload=Object.assign({instrumento:SHEET_NAME},s);
+    fetch(SCRIPT_URL,{
+      method:'POST',
+      mode:'no-cors',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(payload)
+    }).catch(function(){});
+  }catch(e){}
 }
 
 function tentarLogin(){
