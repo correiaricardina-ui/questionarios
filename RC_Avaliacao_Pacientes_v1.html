@@ -727,7 +727,9 @@ const QID_TO_ABA = {
   'q_fas_cr_infancia':       'FAS_CR_Infancia',
   'q_fas_cr_adolescencia':   'FAS_CR_Adolescencia',
   // ── RSES · Auto-Estima de Rosenberg (autorrelato adolescentes) — v28 ──
-  'q_rses':                  'RSES'
+  'q_rses':                  'RSES',
+  // ── RBS-R · Comportamentos Repetitivos (heteroavaliação) — v29 ──
+  'q_rbsr':                  'RBS_R'
 };
 
 
@@ -1130,7 +1132,11 @@ const SYNC_KEY_TO_ABA = {
   'FAS-CR-PT-EU/A':        'FAS_CR_Adolescencia',
   // ── RSES · Escala de Auto-Estima de Rosenberg (autorrelato adolescentes) — v28 ──
   'rses':                  'RSES',
-  'RSES':                  'RSES'
+  'RSES':                  'RSES',
+  // ── RBS-R · Escala de Comportamentos Repetitivos, Revista (heteroavaliação) — v29 ──
+  'rbsr':                  'RBS_R',
+  'RBS_R':                 'RBS_R',
+  'RBS-R':                 'RBS_R'
 };
 
 // Cache em memória das respostas do Sheet (evita fetch repetidos na mesma sessão)
@@ -1974,7 +1980,15 @@ function initCatalog() {
       syncKey:'rses', area:'Ansiedade, Depressão & Internalização', ageRange:'12–20 anos',
       objective:'Avalia a auto-estima global em adolescentes — autorrelato (10 itens, escala 0-3). Versão PT validada para contexto escolar e forense (Pechorro, Marôco, Poiares & Vieira, 2011). Interpretação normativo-referenciada por z-score face ao grupo (Contexto × Sexo) — não existem pontos de corte clínicos portugueses.',
       domains:['Auto-estima global'],
-      ageMin:144, ageMax:240 }
+      ageMin:144, ageMax:240 },
+
+    { id:'q_rbsr', name:'RBS-R — Comportamentos Repetitivos, Revista',
+      dest:['Mãe','Pai','Enc. Educação','Cuidador','Professor(a)','Clínico'],
+      link:'https://correiaricardina-ui.github.io/questionarios/RBS_R.html',
+      syncKey:'rbsr', area:'Neurodesenvolvimento', ageRange:'3–70 anos (heteroavaliação)',
+      objective:'Avalia a variedade e severidade de comportamentos repetitivos e rígidos por heteroinformação (43 itens, escala 0-3) em 6 subescalas: Estereotipias Motoras, Autoagressivos, Compulsivos, Ritualísticos, Rigidez Cognitiva/Sameness e Interesses Restritos. Tradução PT-PT de trabalho (não validada); interpretação por percentis relativa a normas clínicas espanholas (Martínez-González & Piqueras, 2019) por grupo de referência (TEA/DI/TEA-DI), seleccionável no detalhe. Sem pontos de corte universais.',
+      domains:['Estereotipias Motoras','Comportamentos Autoagressivos','Comportamentos Compulsivos','Comportamentos Ritualísticos','Rigidez Cognitiva / Sameness','Interesses Restritos','Total'],
+      ageMin:36, ageMax:840 }
   ];
   // Garantir que TODOS os defaults estão no catálogo, sempre
   // (funciona em RC novos e em RC existentes — nunca perde questionários)
@@ -2166,6 +2180,8 @@ function initCatalog() {
       'q_fas_cr_adolescencia':  { link:'https://correiaricardina-ui.github.io/questionarios/FAS_CR_Adolescencia.html',  syncKey:'fas_cr_adolescencia' },
       // ── RSES · Auto-Estima de Rosenberg (autorrelato adolescentes) v28 ──
       'q_rses':                 { link:'https://correiaricardina-ui.github.io/questionarios/RSES_v1.html',               syncKey:'rses' },
+      // ── RBS-R · Comportamentos Repetitivos (heteroavaliação) v29 ──
+      'q_rbsr':                 { link:'https://correiaricardina-ui.github.io/questionarios/RBS_R.html',                 syncKey:'rbsr' },
     };
     // ── Re-store com chave correcta ('q_' + id) — corrige instalações anteriores ──
     // Garante que Conners, FAD e MAP ficam acessíveis pelo META.forEach e getCatalog
@@ -2607,6 +2623,10 @@ function initCatalog() {
     if(!catalog.includes('q_fas_cr_adolescencia')) {
       const d = defaults.find(x => x.id === 'q_fas_cr_adolescencia');
       if(d) { store.set('q_' + d.id, d); catalog.push('q_fas_cr_adolescencia'); store.set('catalog', catalog); }
+    }
+    if(!catalog.includes('q_rbsr')) {
+      const d = defaults.find(x => x.id === 'q_rbsr');
+      if(d) { store.set('q_' + d.id, d); catalog.push('q_rbsr'); store.set('catalog', catalog); }
     }
     }
   }
@@ -3910,6 +3930,17 @@ function formatScoreSummary(scores, syncKey) {
     return '<span style="font-size:0.78rem;color:var(--text-light)">ISAS</span>';
   }
 
+  if(syncKey === 'rbsr') {
+    const tot = scores['TOT_P'] ?? scores['totP'] ?? scores['Total'] ?? scores['total'];
+    if(tot != null && tot !== '') {
+      // RBS-R não tem cut-off universal; a banda depende do grupo de referência (decisão clínica no detalhe).
+      // Mostra-se apenas o total + a heurística complementar não validada (>20).
+      const cls = Number(tot) > 20 ? 'color:#E67E22;font-weight:600;' : 'color:var(--text-light);font-weight:600;';
+      const flag = Number(tot) > 20 ? ' · heurística >20' : '';
+      return `<span style="font-size:0.78rem;${cls}">Total = ${tot}/129${flag}</span>`;
+    }
+  }
+
 
   return null;
 }
@@ -4219,7 +4250,9 @@ function renderAssignments(patientId) {
                 // FAS CR Adolescência — autorrelato TOC (Contexto)
                 'FAS_CR_Adolescencia':   ['NomeInformante','Contexto'],
                 // RSES — Auto-Estima de Rosenberg (autorrelato adolescentes) v28
-                'RSES':                  ['NomeRespondente']
+                'RSES':                  ['NomeRespondente'],
+                // RBS-R — Comportamentos Repetitivos (vários respondentes: Informante distingue Mãe/Pai/Professor/Clínico) v29
+                'RBS_R':                 ['NomeInformante','Informante']
               };
               const RC = {
                 'SWAN':['Relação'],'BRIEF_Pais':['Relação'],'SCARED_R_PAIS':['Relação'],
@@ -4554,7 +4587,9 @@ async function syncAndMark(patientId, idx) {
           'FAS_CR_Infancia':       ['NomeInformante','Acompanhamento'],
           'FAS_CR_Adolescencia':   ['NomeInformante','Contexto'],
           // RSES — Auto-Estima de Rosenberg (autorrelato adolescentes) v28
-          'RSES':                  ['NomeRespondente']
+          'RSES':                  ['NomeRespondente'],
+          // RBS-R — Comportamentos Repetitivos (vários respondentes: Informante distingue Mãe/Pai/Professor/Clínico) v29
+          'RBS_R':                 ['NomeInformante','Informante']
         };
         const RC2 = {
           'SWAN':['Relação'],'BRIEF_Pais':['Relação'],'SCARED_R_PAIS':['Relação'],
