@@ -729,7 +729,11 @@ const QID_TO_ABA = {
   // ── RSES · Auto-Estima de Rosenberg (autorrelato adolescentes) — v28 ──
   'q_rses':                  'RSES',
   // ── RBS-R · Comportamentos Repetitivos (heteroavaliação) — v29 ──
-  'q_rbsr':                  'RBS_R'
+  'q_rbsr':                  'RBS_R',
+  // ── PSI-4 adap · Stress Parental (adaptação inspirada, Abidin) — v30 ──
+  'q_psi4adap':              'PSI4_adap',
+  // ── FACES-IV adap · Coesão e Flexibilidade Familiar (adaptação inspirada, Olson) — v31 ──
+  'q_facesivadap':           'FACES_IV_adap'
 };
 
 
@@ -1136,7 +1140,19 @@ const SYNC_KEY_TO_ABA = {
   // ── RBS-R · Escala de Comportamentos Repetitivos, Revista (heteroavaliação) — v29 ──
   'rbsr':                  'RBS_R',
   'RBS_R':                 'RBS_R',
-  'RBS-R':                 'RBS_R'
+  'RBS-R':                 'RBS_R',
+  // ── PSI-4 adap · Escala de Avaliação do Stress Parental (adaptação inspirada) — v30 ──
+  'psi4adap':              'PSI4_adap',
+  'PSI4_adap':             'PSI4_adap',
+  'psi4_adap':             'PSI4_adap',
+  'PSI-4_adap':            'PSI4_adap',
+  // ── FACES-IV adap · Coesão e Flexibilidade Familiar (adaptação inspirada) — v31 ──
+  'faces_iv_adap':         'FACES_IV_adap',
+  'FACES_IV_adap':         'FACES_IV_adap',
+  'FACES-IV_adap':         'FACES_IV_adap',
+  'facesivadap':           'FACES_IV_adap',
+  'FACESIV_adap':          'FACES_IV_adap',
+  'FACES4_adap':           'FACES_IV_adap'
 };
 
 // Cache em memória das respostas do Sheet (evita fetch repetidos na mesma sessão)
@@ -1988,7 +2004,24 @@ function initCatalog() {
       syncKey:'rbsr', area:'Neurodesenvolvimento', ageRange:'3–70 anos (heteroavaliação)',
       objective:'Avalia a variedade e severidade de comportamentos repetitivos e rígidos por heteroinformação (43 itens, escala 0-3) em 6 subescalas: Estereotipias Motoras, Autoagressivos, Compulsivos, Ritualísticos, Rigidez Cognitiva/Sameness e Interesses Restritos. Tradução PT-PT de trabalho (não validada); interpretação por percentis relativa a normas clínicas espanholas (Martínez-González & Piqueras, 2019) por grupo de referência (TEA/DI/TEA-DI), seleccionável no detalhe. Sem pontos de corte universais.',
       domains:['Estereotipias Motoras','Comportamentos Autoagressivos','Comportamentos Compulsivos','Comportamentos Ritualísticos','Rigidez Cognitiva / Sameness','Interesses Restritos','Total'],
-      ageMin:36, ageMax:840 }
+      ageMin:36, ageMax:840 },
+
+    { id:'q_psi4adap', name:'PSI-4 adap — Escala de Avaliação do Stress Parental',
+      dest:['Mãe','Pai','Enc. Educação','Cuidador'],
+      link:'https://correiaricardina-ui.github.io/questionarios/PSI4_adap.html',
+      syncKey:'psi4adap', area:'Parentalidade & Stress Parental', ageRange:'Pais/cuidadores de crianças 0–~12 anos',
+      objective:'Despiste exploratório do stress parental por autorrelato do cuidador (36 itens, escala 1-5) em 3 domínios: Mal-estar Parental, Interação Disfuncional Pais-Criança e Criança Difícil. Adaptação inspirada (Via B) no modelo de Abidin (1990/1995/2012) — NÃO reproduz o PSI-4-SF (PAR, 2012) nem as suas normas/cut-offs. Sem normas portuguesas: resultados descritivos por POMP % e bandas (referenciadas à amplitude teórica), com Índice RD de validade e itens sentinela. A interpretação clínica é da responsabilidade do psicólogo.',
+      domains:['Mal-estar Parental (MP)','Interação Disfuncional Pais-Criança (ID)','Criança Difícil (CD)','Stress Total'],
+      ageMin:0, ageMax:156 },
+
+    // ── FACES-IV adap — Coesão e Flexibilidade Familiar (adaptação inspirada, Modelo Circumplexo de Olson) v31 ──
+    { id:'q_facesivadap', name:'FACES-IV adap — Coesão e Flexibilidade Familiar',
+      dest:['Mãe','Pai','Filho(a)','Cuidador(a)','Outro familiar'],
+      link:'https://correiaricardina-ui.github.io/questionarios/FACES_IV_adap.html',
+      syncKey:'faces_iv_adap', area:'Funcionamento familiar / sistémico', ageRange:'≥12 anos',
+      objective:'Avaliação exploratória do funcionamento familiar por autorrelato (42 itens, escala 1-5) em 6 escalas: 2 equilibradas (Coesão Equilibrada, Flexibilidade Equilibrada) e 4 desequilibradas (Desagregada, Emaranhada, Rígida, Caótica). Adaptação inspirada (Via B) no Modelo Circumplexo de Olson (FACES-IV) — NÃO reproduz o instrumento original nem as suas normas. Sem normas portuguesas: resultados descritivos por POMP %, rácios de equilíbrio (Coesão, Flexibilidade e Circumplexo Total) e posicionamento no modelo. A interpretação clínica é da responsabilidade do psicólogo.',
+      domains:['Coesão Equilibrada (CE)','Flexibilidade Equilibrada (FE)','Desagregada (DES)','Emaranhada (EMA)','Rígida (RIG)','Caótica (CAO)','Rácio Circumplexo Total'],
+      ageMin:12, ageMax:99 }
   ];
   // Garantir que TODOS os defaults estão no catálogo, sempre
   // (funciona em RC novos e em RC existentes — nunca perde questionários)
@@ -2182,6 +2215,10 @@ function initCatalog() {
       'q_rses':                 { link:'https://correiaricardina-ui.github.io/questionarios/RSES_v1.html',               syncKey:'rses' },
       // ── RBS-R · Comportamentos Repetitivos (heteroavaliação) v29 ──
       'q_rbsr':                 { link:'https://correiaricardina-ui.github.io/questionarios/RBS_R.html',                 syncKey:'rbsr' },
+      // ── PSI-4 adap · Stress Parental (adaptação inspirada) v30 ──
+      'q_psi4adap':             { link:'https://correiaricardina-ui.github.io/questionarios/PSI4_adap.html',             syncKey:'psi4adap' },
+      // ── FACES-IV adap · Coesão e Flexibilidade Familiar (adaptação inspirada) v31 ──
+      'q_facesivadap':          { link:'https://correiaricardina-ui.github.io/questionarios/FACES_IV_adap.html',        syncKey:'faces_iv_adap' },
     };
     // ── Re-store com chave correcta ('q_' + id) — corrige instalações anteriores ──
     // Garante que Conners, FAD e MAP ficam acessíveis pelo META.forEach e getCatalog
@@ -2235,6 +2272,11 @@ function initCatalog() {
     if(!catalog.includes('q_scared_r_pais')) {
       const d2 = defaults.find(d => d.id === 'q_scared_r_pais');
       if(d2) { store.set('q_' + d2.id, d2); catalog.push(d2.id); store.set('catalog', catalog); }
+    }
+    // FACES-IV adap — garantir presença no catálogo (RC novos e existentes)
+    if(!catalog.includes('q_facesivadap')) {
+      const dFaces = defaults.find(d => d.id === 'q_facesivadap');
+      if(dFaces) { store.set('q_' + dFaces.id, dFaces); catalog.push(dFaces.id); store.set('catalog', catalog); }
     }
     // QC Coparentalidade — forçar re-escrita com chave correcta sempre
     // (garante compatibilidade mesmo que versão anterior tenha guardado com chave errada)
@@ -3941,6 +3983,30 @@ function formatScoreSummary(scores, syncKey) {
     }
   }
 
+  if(syncKey === 'psi4adap') {
+    const pt  = scores['POMP_TOTAL'] ?? scores['pTOTAL'] ?? scores['pomp_total'];
+    const tot = scores['TOTAL']      ?? scores['Total']  ?? scores['total'];
+    if(tot != null && tot !== '') {
+      const p = (pt != null && pt !== '') ? Number(pt) : null;
+      function bandaPSI(x){ if(x==null) return ''; if(x<40) return 'Baixo'; if(x<=60) return 'Moderado'; if(x<=80) return 'Elevado'; return 'Muito elevado'; }
+      function corPSI(x){ if(x==null) return 'var(--text-light)'; if(x<40) return '#27AE60'; if(x<=60) return '#5B7FA6'; if(x<=80) return '#E67E22'; return '#C0392B'; }
+      const b = bandaPSI(p);
+      const sent = scores['Sentinela'] ?? scores['sentinela'] ?? '';
+      const flag = (sent && String(sent).trim() !== '') ? ' · ⚠ sentinela' : '';
+      return `<span style="font-size:0.78rem;color:${corPSI(p)};font-weight:600">Total = ${tot}/180${b ? ' · ' + b + (p!=null ? ' (' + p + '%)' : '') : ''}${flag}</span>`;
+    }
+  }
+
+  if(syncKey === 'faces_iv_adap') {
+    const rt = scores['Racio_Total'] ?? scores['racio_total'] ?? scores['RT'] ?? scores['rt'];
+    const classif = scores['Classificacao'] ?? scores['classificacao'] ?? '';
+    if(rt != null && rt !== '') {
+      const r = Number(rt);
+      const cor = (r >= 1.5) ? '#27AE60' : (r >= 1) ? '#E67E22' : '#C0392B';
+      return `<span style="font-size:0.78rem;color:${cor};font-weight:600">Rácio Circumplexo Total = ${r.toFixed(2)}${classif ? ' · ' + classif : ''}</span>`;
+    }
+  }
+
 
   return null;
 }
@@ -4110,6 +4176,8 @@ function renderAssignments(patientId) {
                 'DERS':['NomeInformante','NomeCriança','NomeCrianca'],
                 // ── BAS-3 — auto-avaliação (respondente é o próprio paciente) ─
                 'BAS3':['NomeCriança','NomeRespondente','NomeInformante'],
+                // ── FACES-IV adap — autorrelato familiar (dedupe por respondente + relação) ─
+                'FACES_IV_adap':['NomeRespondente','Relação'],
                 'PS2_Cuidador':['NomeInformante','Relacao'],'PS2_Professor':['NomeInformante'],
                 'MAP_Parental':['NomeProgenitor','Relação'],'MAP_PI':['NomeProgenitor','Relação'],
                 'MAP_Parental_PI':['NomeProgenitor','Relação'],
@@ -4252,7 +4320,9 @@ function renderAssignments(patientId) {
                 // RSES — Auto-Estima de Rosenberg (autorrelato adolescentes) v28
                 'RSES':                  ['NomeRespondente'],
                 // RBS-R — Comportamentos Repetitivos (vários respondentes: Informante distingue Mãe/Pai/Professor/Clínico) v29
-                'RBS_R':                 ['NomeInformante','Informante']
+                'RBS_R':                 ['NomeInformante','Informante'],
+                // PSI-4 adap — Stress Parental (vários respondentes: Informante distingue Mãe/Pai/Cuidador) v30
+                'PSI4_adap':             ['NomeInformante','Informante']
               };
               const RC = {
                 'SWAN':['Relação'],'BRIEF_Pais':['Relação'],'SCARED_R_PAIS':['Relação'],
@@ -4527,6 +4597,8 @@ async function syncAndMark(patientId, idx) {
           'SPAS_Pais':['NomeInformante'],'SPAS_Prof':['NomeInformante'],
           'ABAS3_PAIS':['NomeCrianca','NomeInformante'],'ABAS3_PROF':['NomeCrianca','NomeInformante'],'ABAS3_ADULT':['NomeCrianca','NomeInformante'],'ABAS3_05':['Informante'],'ABAS3_05P':['Informante'],'QEDP':['Informante','NomeInformante'],
           'QC_Coparentalidade':['NomeRespondente','Respondente'],
+          // ── FACES-IV adap — autorrelato familiar (dedupe por respondente + relação) ──
+          'FACES_IV_adap':['NomeRespondente','Relação'],
           'IPP_R':['NomeRespondente'],
           'SDS_Holland':['NomeCriança'],
           'NEOPIR':['NomeInformante'],
@@ -4589,7 +4661,9 @@ async function syncAndMark(patientId, idx) {
           // RSES — Auto-Estima de Rosenberg (autorrelato adolescentes) v28
           'RSES':                  ['NomeRespondente'],
           // RBS-R — Comportamentos Repetitivos (vários respondentes: Informante distingue Mãe/Pai/Professor/Clínico) v29
-          'RBS_R':                 ['NomeInformante','Informante']
+          'RBS_R':                 ['NomeInformante','Informante'],
+          // PSI-4 adap — Stress Parental (vários respondentes: Informante distingue Mãe/Pai/Cuidador) v30
+          'PSI4_adap':             ['NomeInformante','Informante']
         };
         const RC2 = {
           'SWAN':['Relação'],'BRIEF_Pais':['Relação'],'SCARED_R_PAIS':['Relação'],
