@@ -741,7 +741,13 @@ const QID_TO_ABA = {
   'q_sppa':                  'SPPA',
   // ── SPPC · Como é que eu sou + Importância (crianças) e Escala do Professor — v34 ──
   'q_sppc':                  'SPPC',
-  'q_sppc_professor':        'SPPC_Professor'
+  'q_sppc_professor':        'SPPC_Professor',
+  // ── SPPLD · Como Eu Sou + Importância (DAE, Renick & Harter) — v35 ──
+  'q_sppld':                 'SPPLD',
+  // ── SPPCS · Perfil de Autoperceção para Estudantes Universitários (Neemann & Harter) — v36 ──
+  'q_sppcs':                 'SPPCS',
+  // ── EPCAS-PE · Escala Pictórica de Competência Percebida e Aceitação Social (Harter & Pike) — v37 ──
+  'q_epcas_pe':              'EPCAS_PE'
 };
 
 
@@ -1173,7 +1179,15 @@ const SYNC_KEY_TO_ABA = {
   'sppc':                  'SPPC',
   'SPPC':                  'SPPC',
   'sppc_professor':        'SPPC_Professor',
-  'SPPC_Professor':        'SPPC_Professor'
+  'SPPC_Professor':        'SPPC_Professor',
+  // ── SPPLD (DAE) — v35 ──
+  'sppld':                 'SPPLD',
+  'SPPLD':                 'SPPLD',
+  'sppcs':                 'SPPCS',
+  'SPPCS':                 'SPPCS',
+  // ── EPCAS-PE (Harter & Pike) — v37 ──
+  'epcas_pe':              'EPCAS_PE',
+  'EPCAS_PE':              'EPCAS_PE'
 };
 
 // Cache em memória das respostas do Sheet (evita fetch repetidos na mesma sessão)
@@ -2086,7 +2100,31 @@ function initCatalog() {
       syncKey:'sppc_professor', area:'Autoconceito / Autoestima', ageRange:'3.º–8.º ano',
       objective:'Escala de Avaliação do Professor paralela ao Self-Perception Profile for Children (Harter, 2012): 15 itens sobre a competência REAL da criança segundo o juízo independente do(a) professor(a), em 5 domínios de 3 itens (médias 1–4 com pró-rateamento ≥2/3) — Competência Escolar, Social, Desportiva, Aparência Física e Comportamento. A Autoestima Global não é avaliada por observadores externos. Sem normas: leitura exclusivamente descritiva. Inclui comparação criança–professor por domínio quando existe registo SPPC do mesmo código (|C−P|: <0,5 convergência · 0,5–1,0 discrepância ligeira · ≥1,0 marcada) — índice de convergência de perspetivas, não medida de validade nem indicador de distorção por parte da criança. Tradução técnica PT-PT sem validação.',
       domains:['Competência Escolar','Competência Social','Competência Desportiva','Aparência Física','Comportamento','Comparação criança–professor'],
-      ageMin:8, ageMax:14 }
+      ageMin:8, ageMax:14 },
+
+    // ── SPPLD — Como Eu Sou + Importância (Renick & Harter, 1988/2012; bateria única DAE) v35 ──
+    { id:'q_sppld', name:'SPP-LD — Como Eu Sou + Importância (DAE)',
+      dest:['Filho(a)'],
+      link:'https://correiaricardina-ui.github.io/questionarios/SPPLD_Bateria.html',
+      syncKey:'sppld', area:'Autoconceito / Autoestima', ageRange:'3.º–8.º ano (8–15 anos)',
+      objective:'Perfil de Autoperceção para Alunos com Dificuldades de Aprendizagem Específicas (Self-Perception Profile for Learning Disabled Students, Renick & Harter, 1988/2012) em bateria única: «Como Eu Sou» (46 itens, 10 subescalas — 5 escolares: Capacidade Intelectual Geral, Leitura, Escrita, Ortografia, Matemática; + Atlética, Social, Aparência Física, Conduta + Autoestima Global como dimensão própria; médias 1–4 com máximo de 1 omisso por subescala), «Com Quem Me Comparei» (9 áreas; grupo de comparação social — sala de apoio vs aulas regulares — variável crítica de interpretação nesta população) e Escala de Importância (18 itens, 9 domínios). Sem normas: bandas descritivas do manual (<2,00 baixa · 2,00–3,75 média · >3,75 elevada) e referências americanas meramente comparativas (DAE pública/privada/desenvolvimento típico). Discrepâncias competência−importância (James) só nos domínios com importância ≥3,0, com soma, média e sinalização de vulnerabilidade. Aplicável também a alunos com desenvolvimento típico. Tradução técnica PT-PT (Via A) sem validação nem normas portuguesas — leitura clínica do psicólogo.',
+      domains:['Capacidade Intelectual Geral','Competência em Leitura','Competência em Escrita','Competência em Ortografia','Competência em Matemática','Competência Atlética','Competência Social','Aparência Física','Conduta Comportamental','Autoestima Global','Importância por domínio','Discrepâncias C−I','Grupo de comparação social'],
+      ageMin:8, ageMax:15 },
+    { id:'q_sppcs', name:'SPPCS — Perfil de Autoperceção para Estudantes Universitários',
+      dest:['Paciente'],
+      link:'https://correiaricardina-ui.github.io/questionarios/SPPCS_v1.html',
+      syncKey:'sppcs', area:'Autoconceito / Autoestima', ageRange:'Ensino superior (17–23 anos)',
+      objective:'Perfil de Autoperceção para Estudantes Universitários (Self-Perception Profile for College Students, Neemann & Harter, 2012) em bateria única de 98 itens: «Como Eu Sou» (54 itens, 13 subescalas — Competência no Trabalho, Competência Escolar, Aceitação Social, Aparência Física, Relação com os Pais, Amizades Íntimas, Capacidade Intelectual, Moralidade, Relações Amorosas, Humor, Criatividade, Competência Atlética + Autoestima Global como dimensão própria de 6 itens; médias 1–4), «Classificações de Importância» (24 itens, 12 domínios) e «As Pessoas na Minha Vida» (20 itens, 5 fontes de apoio social — Amigo Íntimo, Mãe, Pai, Professores, Organizações Académicas). Classificações descritivas por valores z face às normas norte-americanas por sexo (N=300; sem normas portuguesas). Discrepância competência−importância (modelo de James/Harter) calculada apenas nos domínios com importância = 4. Tradução técnica PT-PT para uso clínico exploratório e investigação — leitura clínica do psicólogo.',
+      domains:['Competência no Trabalho','Competência Escolar','Aceitação Social','Aparência Física','Relação com os Pais','Amizades Íntimas','Capacidade Intelectual','Moralidade','Relações Amorosas','Humor','Criatividade','Competência Atlética','Autoestima Global','Importância por domínio','Discrepância C−I','Apoio Social Percebido'],
+      ageMin:17, ageMax:30 },
+    // ── EPCAS-PE — Escala Pictórica de Competência Percebida e Aceitação Social (Harter & Pike, 1983/1984) v37 ──
+    { id:'q_epcas_pe', name:'EPCAS-PE — Escala Pictórica de Competência Percebida e Aceitação Social',
+      dest:['Psicóloga'],
+      link:'https://correiaricardina-ui.github.io/questionarios/EPCAS_PE_v1.html',
+      syncKey:'epcas_pe', area:'Autoconceito / Autoestima', ageRange:'4–7 anos (pré-escolar e 1.º/2.º ano)',
+      objective:'Tradução PT-PT da Pictorial Scale of Perceived Competence and Social Acceptance for Young Children, Forma Pré-Escolar/Jardim de Infância (Harter & Pike, 1983/1984), com administração individual pelo examinador: para cada item pictórico a criança escolhe qual das duas crianças ilustradas é mais parecida consigo e indica se é «muito» (círculo grande) ou «um pouco» (círculo pequeno) parecida — cotação 1–4 por item. 30 itens: 24 originais (4 subescalas × 6 itens — Competência Cognitiva, Competência Física, Aceitação pelos Pares, Aceitação Parental) + extensão Aparência Física (6 itens, ilustrações K. Eklund 2021–2022). Médias 1–4 por subescala (admite itens omissos: média sobre itens validamente administrados) e fatores ao nível do item: Competência Geral (Cognitiva+Física) e Aceitação Social (Pares+Parental). Inclui 2 itens de treino não cotados. Bandas exclusivamente descritivas (<2,00 Baixa · 2,00–2,99 Média · ≥3,00 Elevada; sem normas portuguesas) — leitura clínica do psicólogo.',
+      domains:['Competência Cognitiva','Competência Física','Aceitação pelos Pares','Aceitação Parental','Aparência Física','Competência Geral','Aceitação Social'],
+      ageMin:4, ageMax:7 }
   ];
   // Garantir que TODOS os defaults estão no catálogo, sempre
   // (funciona em RC novos e em RC existentes — nunca perde questionários)
@@ -2292,6 +2330,11 @@ function initCatalog() {
       // ── SPPC (crianças) e Escala do Professor — v34 ──
       'q_sppc':                 { link:'https://correiaricardina-ui.github.io/questionarios/SPPC_Bateria.html',         syncKey:'sppc' },
       'q_sppc_professor':       { link:'https://correiaricardina-ui.github.io/questionarios/SPPC_Professor.html',       syncKey:'sppc_professor' },
+      // ── SPPLD (DAE) — v35 ──
+      'q_sppld':                { link:'https://correiaricardina-ui.github.io/questionarios/SPPLD_Bateria.html',         syncKey:'sppld' },
+      'q_sppcs':                { link:'https://correiaricardina-ui.github.io/questionarios/SPPCS_v1.html',            syncKey:'sppcs' },
+      // ── EPCAS-PE — v37 ──
+      'q_epcas_pe':             { link:'https://correiaricardina-ui.github.io/questionarios/EPCAS_PE_v1.html',         syncKey:'epcas_pe' },
     };
     // ── Re-store com chave correcta ('q_' + id) — corrige instalações anteriores ──
     // Garante que Conners, FAD e MAP ficam acessíveis pelo META.forEach e getCatalog
@@ -2373,6 +2416,20 @@ function initCatalog() {
     if(!catalog.includes('q_sppc_professor')) {
       const dSppcP = defaults.find(d => d.id === 'q_sppc_professor');
       if(dSppcP) { store.set('q_' + dSppcP.id, dSppcP); catalog.push(dSppcP.id); store.set('catalog', catalog); }
+    }
+    // SPPLD — garantir presença no catálogo (RC novos e existentes)
+    if(!catalog.includes('q_sppld')) {
+      const dSppld = defaults.find(d => d.id === 'q_sppld');
+      if(dSppld) { store.set('q_' + dSppld.id, dSppld); catalog.push(dSppld.id); store.set('catalog', catalog); }
+    }
+    if(!catalog.includes('q_sppcs')) {
+      const dSppcs = defaults.find(d => d.id === 'q_sppcs');
+      if(dSppcs) { store.set('q_' + dSppcs.id, dSppcs); catalog.push(dSppcs.id); store.set('catalog', catalog); }
+    }
+    // EPCAS-PE — garantir presença no catálogo (RC novos e existentes)
+    if(!catalog.includes('q_epcas_pe')) {
+      const dEpcasPe = defaults.find(d => d.id === 'q_epcas_pe');
+      if(dEpcasPe) { store.set('q_' + dEpcasPe.id, dEpcasPe); catalog.push(dEpcasPe.id); store.set('catalog', catalog); }
     }
     // QC Coparentalidade — forçar re-escrita com chave correcta sempre
     // (garante compatibilidade mesmo que versão anterior tenha guardado com chave errada)
@@ -4152,6 +4209,49 @@ function formatScoreSummary(scores, syncKey) {
     }
   }
 
+  if(syncKey === 'sppld') {
+    const ag = scores['M_AutoestimaGlobal'] ?? scores['M_AG'] ?? scores['m_ag'];
+    if(ag != null && ag !== '') {
+      const m = Number(String(ag).replace(',', '.'));
+      const vuln = String(scores['DominiosVulneraveis'] ?? scores['DOMINIOS_VULNERAVEIS'] ?? '').trim();
+      const nVuln = vuln ? vuln.split(';').filter(x => x.trim() !== '').length : 0;
+      const cor = nVuln > 0 ? '#C0392B' : (m < 2.0 ? '#E67E22' : '#27AE60');
+      const flag = nVuln > 0 ? ` · ⚠ ${nVuln} vulnerab. C−I` : '';
+      return `<span style="font-size:0.78rem;color:${cor};font-weight:600">Autoestima Global = ${m.toFixed(2).replace('.', ',')}/4${flag}</span>`;
+    }
+  }
+
+
+  if(syncKey === 'sppcs') {
+    const ag = scores['AP_AEG'] ?? scores['ap_aeg'];
+    if(ag != null && ag !== '') {
+      const m = Number(String(ag).replace(',', '.'));
+      const dg = scores['DiscrepGlobal'] ?? scores['discrepGlobal'];
+      const hasDg = dg != null && dg !== '';
+      const d = hasDg ? Number(String(dg).replace(',', '.')) : null;
+      const cor = m < 2.5 ? '#C0392B' : (m < 3.0 ? '#E67E22' : '#27AE60');
+      const flag = hasDg && d <= -0.75 ? ` · ⚠ discrep. C−I ${d.toFixed(2).replace('.', ',')}` : '';
+      return `<span style="font-size:0.78rem;color:${cor};font-weight:600">Autoestima Global = ${m.toFixed(2).replace('.', ',')}/4${flag}</span>`;
+    }
+  }
+
+
+  if(syncKey === 'epcas_pe') {
+    const cgRaw = scores['CG_Med'] ?? scores['cg_med'];
+    const asRaw = scores['AS_Med'] ?? scores['as_med'];
+    const hasCg = cgRaw != null && cgRaw !== '';
+    const hasAs = asRaw != null && asRaw !== '';
+    if(hasCg || hasAs) {
+      const cg = hasCg ? Number(String(cgRaw).replace(',', '.')) : null;
+      const as = hasAs ? Number(String(asRaw).replace(',', '.')) : null;
+      const minVal = Math.min(hasCg ? cg : 4, hasAs ? as : 4);
+      const cor = minVal < 2.0 ? '#C0392B' : (minVal < 3.0 ? '#3B5A7A' : '#27AE60');
+      const cgTxt = hasCg ? cg.toFixed(2).replace('.', ',') : '—';
+      const asTxt = hasAs ? as.toFixed(2).replace('.', ',') : '—';
+      return `<span style="font-size:0.78rem;color:${cor};font-weight:600">CG = ${cgTxt}/4 · AS = ${asTxt}/4</span>`;
+    }
+  }
+
 
   return null;
 }
@@ -4331,6 +4431,12 @@ function renderAssignments(patientId) {
                 // ── SPPC (autorrelato da criança) e Escala do Professor ──
                 'SPPC':['NomeInformante','NomeCriança'],
                 'SPPC_Professor':['NomeInformante','Informante'],
+                // ── SPPLD (autorrelato do aluno) ──
+                'SPPLD':['NomeInformante','NomeAluno'],
+                // ── SPPCS (autorrelato do estudante universitario) ──
+                'SPPCS':['NomeInformante','NomeEstudante'],
+                // ── EPCAS-PE (administração pelo examinador) ──
+                'EPCAS_PE':['NomeInformante','Informante'],
                 'PS2_Cuidador':['NomeInformante','Relacao'],'PS2_Professor':['NomeInformante'],
                 'MAP_Parental':['NomeProgenitor','Relação'],'MAP_PI':['NomeProgenitor','Relação'],
                 'MAP_Parental_PI':['NomeProgenitor','Relação'],
@@ -4760,6 +4866,12 @@ async function syncAndMark(patientId, idx) {
           // ── SPPC (autorrelato da criança) e Escala do Professor ──
           'SPPC':['NomeInformante','NomeCriança'],
           'SPPC_Professor':['NomeInformante','Informante'],
+          // ── SPPLD (autorrelato do aluno) ──
+          'SPPLD':['NomeInformante','NomeAluno'],
+          // ── SPPCS (autorrelato do estudante universitario) ──
+          'SPPCS':['NomeInformante','NomeEstudante'],
+          // ── EPCAS-PE (administração pelo examinador) ──
+          'EPCAS_PE':['NomeInformante','Informante'],
           'IPP_R':['NomeRespondente'],
           'SDS_Holland':['NomeCriança'],
           'NEOPIR':['NomeInformante'],
