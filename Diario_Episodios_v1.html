@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Diário de Episódios · Inter-sessões</title>
+<style>
+  :root {
+    --primary: #2C4A6B;
+    --primary-deep: #1E3550;
+    --primary-soft: #6E89AB;
+    --accent: #C77D3F;
+    --accent-soft: #E0AB7C;
+    --accent-warm: #F2D5B6;
+    --bg: #F4F2EC;
+    --bg-deep: #EAE6DC;
+    --card: #FDFBF6;
+    --text: #2A3A4F;
+    --text-soft: #5A6577;
+    --muted: #8A8278;
+    --border: #D9D2C5;
+    --border-soft: #E8E2D4;
+    --highlight: #FFF5E6;
+    --green: #6E8E5E;
+    --red: #B05945;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.55;
+    font-size: 15px;
+    padding-bottom: 40px;
+  }
+  h1, h2, h3 { font-family: 'Lora', Georgia, serif; font-weight: 600; margin: 0; color: var(--primary-deep); }
+
+  header {
+    background: var(--card);
+    border-bottom: 1px solid var(--border);
+    padding: 22px 22px 18px 22px;
+    position: sticky; top: 0; z-index: 50;
+    box-shadow: 0 1px 8px rgba(44, 74, 107, 0.04);
+  }
+  .h-eyebrow {
+    font-size: 10.5px; color: var(--muted);
+    letter-spacing: 0.14em; text-transform: uppercase; font-weight: 600;
+    margin-bottom: 4px;
+  }
+  .h-title {
+    font-family: 'Lora', serif;
+    font-size: 22px; font-weight: 600;
+    color: var(--primary); margin-bottom: 2px;
+  }
+  .h-sub { font-size: 13px; color: var(--text-soft); font-style: italic; }
+  .h-sub .accent { color: var(--accent); }
+
+  /* PATIENT FIELD */
+  .patient-field {
+    margin-top: 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .patient-field label {
+    font-size: 10.5px;
+    color: var(--muted);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    font-weight: 600;
+  }
+  .patient-field input {
+    flex: 1;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 7px 11px;
+    font-size: 13.5px;
+    font-family: inherit;
+    color: var(--text);
+    max-width: 280px;
+  }
+  .patient-field input:focus {
+    outline: none; border-color: var(--accent); background: white;
+  }
+
+  .container { max-width: 720px; margin: 0 auto; padding: 22px 18px 0 18px; }
+
+  .intro {
+    background: var(--card);
+    border: 1px solid var(--border-soft);
+    border-left: 4px solid var(--accent);
+    border-radius: 8px;
+    padding: 18px 20px;
+    margin-bottom: 22px;
+    font-size: 14px; color: var(--text);
+  }
+  .intro strong { color: var(--primary); }
+  .intro p { margin: 0 0 10px 0; }
+  .intro p:last-child { margin-bottom: 0; }
+
+  .toolbar { display: flex; gap: 10px; margin-bottom: 18px; flex-wrap: wrap; }
+  .btn {
+    background: var(--card);
+    border: 1px solid var(--border);
+    color: var(--primary);
+    padding: 10px 16px;
+    border-radius: 6px;
+    font-size: 13px; cursor: pointer;
+    font-family: inherit; font-weight: 500;
+    transition: all 180ms ease;
+  }
+  .btn:hover { background: var(--highlight); border-color: var(--accent-soft); }
+  .btn:active { transform: scale(0.98); }
+  .btn.primary {
+    background: var(--primary); color: white; border-color: var(--primary);
+  }
+  .btn.primary:hover { background: var(--primary-deep); }
+  .btn-icon { margin-right: 6px; opacity: 0.8; font-weight: 700; }
+  .count {
+    font-size: 12px; color: var(--muted);
+    margin-left: auto; align-self: center; letter-spacing: 0.04em;
+  }
+
+  .form-card {
+    background: var(--card);
+    border: 1px solid var(--border-soft);
+    border-radius: 10px;
+    padding: 22px 22px 18px 22px;
+    margin-bottom: 22px;
+    box-shadow: 0 2px 12px rgba(44, 74, 107, 0.05);
+    display: none;
+  }
+  .form-card.open { display: block; }
+  .form-title {
+    font-family: 'Lora', serif;
+    font-size: 18px; color: var(--primary);
+    margin-bottom: 14px; font-weight: 600;
+  }
+  .field { margin-bottom: 16px; }
+  .field-label {
+    display: block;
+    font-size: 11.5px; color: var(--muted);
+    letter-spacing: 0.1em; text-transform: uppercase; font-weight: 700;
+    margin-bottom: 8px;
+  }
+  .field input[type="date"], .field input[type="time"] {
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: 6px; padding: 10px 12px;
+    font-size: 14px; font-family: inherit; color: var(--text);
+  }
+  .field-datetime { display: flex; gap: 10px; }
+  .field textarea {
+    width: 100%;
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: 6px; padding: 12px 14px;
+    font-size: 14px; font-family: inherit; color: var(--text);
+    resize: vertical; min-height: 70px; line-height: 1.5;
+    transition: all 180ms ease;
+  }
+  .field textarea:focus { outline: none; border-color: var(--accent); background: white; }
+  .field-hint { font-size: 12px; color: var(--muted); font-style: italic; margin-top: 4px; }
+
+  /* INTENSITY */
+  .intensity {
+    display: flex;
+    gap: 6px;
+  }
+  .int-dot {
+    flex: 1;
+    padding: 8px 4px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    text-align: center;
+    cursor: pointer;
+    font-size: 12px;
+    color: var(--text-soft);
+    transition: all 200ms ease;
+    user-select: none;
+  }
+  .int-dot:hover { border-color: var(--accent-soft); }
+  .int-dot.selected {
+    background: var(--accent-warm);
+    border-color: var(--accent);
+    color: var(--accent);
+    font-weight: 600;
+  }
+
+  .chips { display: flex; gap: 6px; flex-wrap: wrap; }
+  .chip {
+    background: var(--bg); border: 1px solid var(--border);
+    color: var(--text-soft);
+    padding: 6px 12px; border-radius: 14px;
+    font-size: 12.5px; cursor: pointer;
+    transition: all 200ms ease; user-select: none;
+  }
+  .chip:hover { border-color: var(--accent-soft); }
+  .chip.selected {
+    background: var(--accent-warm);
+    border-color: var(--accent);
+    color: var(--accent); font-weight: 500;
+  }
+
+  .form-actions {
+    display: flex; gap: 10px;
+    margin-top: 14px; padding-top: 14px;
+    border-top: 1px solid var(--border-soft);
+  }
+  .cancel-btn { color: var(--muted); }
+
+  .episodes-list { display: flex; flex-direction: column; gap: 12px; }
+  .episode {
+    background: var(--card);
+    border: 1px solid var(--border-soft);
+    border-left: 4px solid var(--primary-soft);
+    border-radius: 8px;
+    padding: 16px 18px;
+    transition: all 200ms ease;
+  }
+  .episode:hover { box-shadow: 0 2px 10px rgba(44, 74, 107, 0.06); }
+  .episode-head {
+    display: flex; justify-content: space-between; align-items: baseline;
+    margin-bottom: 8px; gap: 10px; flex-wrap: wrap;
+  }
+  .episode-date { font-size: 13px; color: var(--primary); font-weight: 600; }
+  .episode-time { font-size: 12px; color: var(--muted); margin-left: 6px; }
+  .episode-intensity {
+    display: inline-block;
+    margin-left: 8px;
+    padding: 1px 8px;
+    background: var(--bg-deep);
+    border-radius: 10px;
+    font-size: 11px;
+    color: var(--text-soft);
+  }
+  .episode-actions { display: flex; gap: 6px; }
+  .icon-btn {
+    background: transparent; border: none; color: var(--muted);
+    cursor: pointer; padding: 4px 8px; border-radius: 4px;
+    font-size: 12px; font-family: inherit;
+    transition: all 180ms ease;
+  }
+  .icon-btn:hover { background: var(--bg-deep); color: var(--primary); }
+  .icon-btn.danger:hover { color: var(--red); background: #F5E6E2; }
+  .episode-tags { display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 10px; }
+  .episode-tag {
+    background: var(--accent-warm); color: var(--accent);
+    font-size: 11px; padding: 2px 8px; border-radius: 10px; font-weight: 500;
+  }
+  .episode-block { margin-bottom: 8px; }
+  .episode-block:last-child { margin-bottom: 0; }
+  .episode-label {
+    font-size: 10.5px; color: var(--muted);
+    letter-spacing: 0.1em; text-transform: uppercase; font-weight: 700;
+    margin-bottom: 2px; display: block;
+  }
+  .episode-text {
+    font-size: 13.5px; color: var(--text); line-height: 1.5;
+    white-space: pre-wrap; word-wrap: break-word;
+  }
+  .episode-text.empty { color: var(--muted); font-style: italic; }
+
+  .empty-state { text-align: center; padding: 50px 20px 40px 20px; color: var(--muted); }
+  .empty-state-icon {
+    font-size: 32px; color: var(--accent-soft);
+    margin-bottom: 12px; font-family: 'Lora', serif;
+  }
+  .empty-state-title {
+    font-family: 'Lora', serif;
+    font-size: 17px; color: var(--primary); font-weight: 500;
+    margin-bottom: 6px;
+  }
+  .empty-state-text {
+    font-size: 13.5px; font-style: italic;
+    max-width: 360px; margin: 0 auto;
+  }
+
+  .save-indicator {
+    position: fixed; bottom: 20px; right: 20px;
+    background: var(--green); color: white;
+    padding: 8px 14px; border-radius: 6px;
+    font-size: 11.5px; letter-spacing: 0.1em;
+    text-transform: uppercase;
+    opacity: 0; transition: opacity 300ms ease;
+    z-index: 100; font-weight: 600;
+  }
+  .save-indicator.show { opacity: 1; }
+
+  footer {
+    text-align: center; margin-top: 36px; padding: 18px;
+    font-size: 11px; color: var(--muted); letter-spacing: 0.08em;
+  }
+
+  @media print {
+    body { background: white; font-size: 11pt; padding-bottom: 0; }
+    header { position: static; box-shadow: none; }
+    .toolbar, .form-card, .save-indicator, .icon-btn, .episode-actions, .patient-field input { display: none !important; }
+    .patient-field { display: block; }
+    .patient-field::after { content: attr(data-name); font-weight: 600; }
+    .intro { background: white; border: 1px solid #ccc; }
+    .episode { break-inside: avoid; box-shadow: none; }
+    .container { max-width: 100%; padding: 0 12mm; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="h-eyebrow">CNS · Diário de Episódios</div>
+  <div class="h-title">Registo de Episódios em Casa</div>
+  <div class="h-sub">Inter-sessões · <span class="accent">para preencher quando acontecer</span></div>
+  <div class="patient-field">
+    <label for="patient-name">Paciente:</label>
+    <input type="text" id="patient-name" placeholder="Nome do paciente">
+  </div>
+</header>
+
+<div class="container">
+
+  <div class="intro">
+    <p><strong>Como usar este diário.</strong></p>
+    <p>Não é para preencher todos os dias — é para preencher quando acontecer algo que vos pareça importante registar. Episódios difíceis, mas também momentos onde algo correu inesperadamente bem.</p>
+    <p>Quanto mais próximo do acontecimento melhor — mas se passarem 2 ou 3 dias, registem na mesma. <strong>O importante é não perder.</strong></p>
+    <p>Tudo o que escreverem fica guardado neste browser. No fim do período, fazem download ou imprimem para enviar.</p>
+  </div>
+
+  <div class="toolbar">
+    <button class="btn primary" id="add-btn">
+      <span class="btn-icon">+</span>Novo episódio
+    </button>
+    <button class="btn" id="export-btn">Imprimir / PDF</button>
+    <button class="btn" id="download-btn">Descarregar (.json)</button>
+    <span class="count" id="count">0 episódios</span>
+  </div>
+
+  <div class="form-card" id="form-card">
+    <div class="form-title">Novo episódio</div>
+
+    <div class="field">
+      <label class="field-label">Quando aconteceu</label>
+      <div class="field-datetime">
+        <input type="date" id="f-date">
+        <input type="time" id="f-time">
+      </div>
+    </div>
+
+    <div class="field">
+      <label class="field-label">Intensidade do episódio</label>
+      <div class="intensity" id="f-intensity">
+        <div class="int-dot" data-val="1">leve</div>
+        <div class="int-dot" data-val="2">moderado</div>
+        <div class="int-dot" data-val="3">intenso</div>
+        <div class="int-dot" data-val="4">muito intenso</div>
+      </div>
+    </div>
+
+    <div class="field">
+      <label class="field-label">Tipo de episódio (podem escolher mais do que um)</label>
+      <div class="chips" id="f-categories">
+        <div class="chip" data-cat="ansiedade">ansiedade / preocupação</div>
+        <div class="chip" data-cat="medo">medo / fobia</div>
+        <div class="chip" data-cat="sensorial">sobrecarga sensorial</div>
+        <div class="chip" data-cat="autorregulatorio">comportamento autorregulatório</div>
+        <div class="chip" data-cat="desregulacao">desregulação / explosão</div>
+        <div class="chip" data-cat="recusa">recusa / evitamento</div>
+        <div class="chip" data-cat="somatico">sintoma somático</div>
+        <div class="chip" data-cat="sono">pesadelo / sono</div>
+        <div class="chip" data-cat="alimentar">alimentar</div>
+        <div class="chip" data-cat="social">relacional / social</div>
+        <div class="chip" data-cat="progresso">momento de progresso</div>
+        <div class="chip" data-cat="outro">outro</div>
+      </div>
+    </div>
+
+    <div class="field">
+      <label class="field-label">O que aconteceu · contexto</label>
+      <textarea id="f-what" placeholder="O que estava a acontecer? Onde? Com quem?"></textarea>
+    </div>
+
+    <div class="field">
+      <label class="field-label">Como ele/ela respondeu</label>
+      <textarea id="f-child" placeholder="O que disse, fez, mostrou..."></textarea>
+    </div>
+
+    <div class="field">
+      <label class="field-label">Como nós respondemos</label>
+      <textarea id="f-us" placeholder="O que tentaram, o que disseram, o que funcionou ou não funcionou..."></textarea>
+      <div class="field-hint">Sejam descritivos · não há resposta certa nem errada · todas as respostas são úteis para a leitura clínica.</div>
+    </div>
+
+    <div class="form-actions">
+      <button class="btn primary" id="save-btn">Guardar episódio</button>
+      <button class="btn cancel-btn" id="cancel-btn">Cancelar</button>
+    </div>
+  </div>
+
+  <div class="episodes-list" id="episodes-list"></div>
+
+  <div class="empty-state" id="empty-state">
+    <div class="empty-state-icon">·</div>
+    <div class="empty-state-title">Ainda sem episódios</div>
+    <div class="empty-state-text">Quando acontecer algo que vos pareça relevante registar, toquem em "Novo episódio".</div>
+  </div>
+
+</div>
+
+<div class="save-indicator" id="save-ind">guardado</div>
+
+<footer>
+  CNS Campus Neurológico · Ricardina Correia · OPP 8233
+</footer>
+
+<script>
+(function() {
+  // ----- patient name e storage key -----
+  const params = new URLSearchParams(window.location.search);
+  const initialPatient = params.get('p') || params.get('paciente') || '';
+  const patientInput = document.getElementById('patient-name');
+  patientInput.value = initialPatient;
+
+  function slug(s) {
+    return (s || 'sem-nome').toLowerCase()
+      .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '') || 'sem-nome';
+  }
+  function storageKey() { return 'diario_episodios__' + slug(patientInput.value); }
+
+  let episodes = [];
+  let editingId = null;
+  let selectedCats = new Set();
+  let selectedIntensity = null;
+
+  function load() {
+    try {
+      const raw = localStorage.getItem(storageKey());
+      episodes = raw ? JSON.parse(raw) : [];
+    } catch(e) { episodes = []; }
+  }
+  function save() {
+    try {
+      localStorage.setItem(storageKey(), JSON.stringify(episodes));
+      showSaved();
+    } catch(e) {}
+  }
+  const ind = document.getElementById('save-ind');
+  let indTimer;
+  function showSaved() {
+    ind.classList.add('show');
+    clearTimeout(indTimer);
+    indTimer = setTimeout(() => ind.classList.remove('show'), 1400);
+  }
+
+  patientInput.addEventListener('change', () => { load(); render(); });
+  patientInput.addEventListener('blur', () => { load(); render(); });
+
+  const CAT_LABELS = {
+    "ansiedade": "ansiedade / preocupação",
+    "medo": "medo / fobia",
+    "sensorial": "sobrecarga sensorial",
+    "autorregulatorio": "comportamento autorregulatório",
+    "desregulacao": "desregulação",
+    "recusa": "recusa / evitamento",
+    "somatico": "sintoma somático",
+    "sono": "pesadelo / sono",
+    "alimentar": "alimentar",
+    "social": "relacional / social",
+    "progresso": "momento de progresso",
+    "outro": "outro"
+  };
+  const INT_LABELS = {1:"leve", 2:"moderado", 3:"intenso", 4:"muito intenso"};
+
+  function fmtDate(d) {
+    if (!d) return "";
+    const [y, m, day] = d.split('-');
+    return `${day}/${m}/${y}`;
+  }
+  function escapeHtml(s) {
+    if (!s) return '';
+    return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+
+  const listEl = document.getElementById('episodes-list');
+  const emptyEl = document.getElementById('empty-state');
+  const countEl = document.getElementById('count');
+
+  function render() {
+    countEl.textContent = `${episodes.length} ${episodes.length === 1 ? 'episódio' : 'episódios'}`;
+    if (episodes.length === 0) {
+      listEl.innerHTML = '';
+      emptyEl.style.display = 'block';
+      return;
+    }
+    emptyEl.style.display = 'none';
+
+    const sorted = [...episodes].sort((a, b) => {
+      const aKey = (a.date || '') + ' ' + (a.time || '');
+      const bKey = (b.date || '') + ' ' + (b.time || '');
+      return bKey.localeCompare(aKey);
+    });
+
+    listEl.innerHTML = sorted.map(ep => {
+      const tagsHtml = (ep.categories || []).map(c =>
+        `<span class="episode-tag">${escapeHtml(CAT_LABELS[c] || c)}</span>`
+      ).join('');
+      const intHtml = ep.intensity
+        ? `<span class="episode-intensity">${INT_LABELS[ep.intensity]}</span>` : '';
+
+      const blockHtml = (label, value) => {
+        const v = value && value.trim() ? escapeHtml(value) : '<span class="empty">(em branco)</span>';
+        const cls = value && value.trim() ? 'episode-text' : 'episode-text empty';
+        return `<div class="episode-block">
+          <span class="episode-label">${label}</span>
+          <div class="${cls}">${v}</div>
+        </div>`;
+      };
+
+      return `<div class="episode" data-id="${ep.id}">
+        <div class="episode-head">
+          <div>
+            <span class="episode-date">${fmtDate(ep.date)}</span>
+            <span class="episode-time">${ep.time || ''}</span>
+            ${intHtml}
+          </div>
+          <div class="episode-actions">
+            <button class="icon-btn" data-action="edit" data-id="${ep.id}">editar</button>
+            <button class="icon-btn danger" data-action="delete" data-id="${ep.id}">apagar</button>
+          </div>
+        </div>
+        ${tagsHtml ? `<div class="episode-tags">${tagsHtml}</div>` : ''}
+        ${blockHtml('O que aconteceu', ep.what)}
+        ${blockHtml('Como ele/ela respondeu', ep.child)}
+        ${blockHtml('Como respondemos', ep.us)}
+      </div>`;
+    }).join('');
+
+    listEl.querySelectorAll('[data-action="edit"]').forEach(b => {
+      b.addEventListener('click', () => startEdit(b.dataset.id));
+    });
+    listEl.querySelectorAll('[data-action="delete"]').forEach(b => {
+      b.addEventListener('click', () => deleteEpisode(b.dataset.id));
+    });
+  }
+
+  const formCard = document.getElementById('form-card');
+  const fDate = document.getElementById('f-date');
+  const fTime = document.getElementById('f-time');
+  const fWhat = document.getElementById('f-what');
+  const fChild = document.getElementById('f-child');
+  const fUs = document.getElementById('f-us');
+  const chipsEl = document.getElementById('f-categories');
+  const intensityEl = document.getElementById('f-intensity');
+
+  function openForm() {
+    formCard.classList.add('open');
+    formCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+  function closeForm() {
+    formCard.classList.remove('open');
+    resetForm();
+    editingId = null;
+  }
+  function resetForm() {
+    const now = new Date();
+    const yyyy = now.getFullYear();
+    const mm = String(now.getMonth() + 1).padStart(2, '0');
+    const dd = String(now.getDate()).padStart(2, '0');
+    const hh = String(now.getHours()).padStart(2, '0');
+    const mi = String(now.getMinutes()).padStart(2, '0');
+    fDate.value = `${yyyy}-${mm}-${dd}`;
+    fTime.value = `${hh}:${mi}`;
+    fWhat.value = '';
+    fChild.value = '';
+    fUs.value = '';
+    selectedCats.clear();
+    selectedIntensity = null;
+    updateChips();
+    updateIntensity();
+  }
+  function updateChips() {
+    chipsEl.querySelectorAll('.chip').forEach(c => {
+      c.classList.toggle('selected', selectedCats.has(c.dataset.cat));
+    });
+  }
+  function updateIntensity() {
+    intensityEl.querySelectorAll('.int-dot').forEach(d => {
+      d.classList.toggle('selected', selectedIntensity === parseInt(d.dataset.val));
+    });
+  }
+  chipsEl.querySelectorAll('.chip').forEach(c => {
+    c.addEventListener('click', () => {
+      const cat = c.dataset.cat;
+      if (selectedCats.has(cat)) selectedCats.delete(cat);
+      else selectedCats.add(cat);
+      updateChips();
+    });
+  });
+  intensityEl.querySelectorAll('.int-dot').forEach(d => {
+    d.addEventListener('click', () => {
+      const val = parseInt(d.dataset.val);
+      selectedIntensity = (selectedIntensity === val) ? null : val;
+      updateIntensity();
+    });
+  });
+
+  function startEdit(id) {
+    const ep = episodes.find(e => e.id === id);
+    if (!ep) return;
+    editingId = id;
+    fDate.value = ep.date || '';
+    fTime.value = ep.time || '';
+    fWhat.value = ep.what || '';
+    fChild.value = ep.child || '';
+    fUs.value = ep.us || '';
+    selectedCats = new Set(ep.categories || []);
+    selectedIntensity = ep.intensity || null;
+    updateChips();
+    updateIntensity();
+    openForm();
+  }
+
+  function saveEpisode() {
+    const ep = {
+      id: editingId || ('ep_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7)),
+      patient: patientInput.value.trim(),
+      date: fDate.value,
+      time: fTime.value,
+      intensity: selectedIntensity,
+      categories: Array.from(selectedCats),
+      what: fWhat.value.trim(),
+      child: fChild.value.trim(),
+      us: fUs.value.trim(),
+    };
+    if (editingId) {
+      const idx = episodes.findIndex(e => e.id === editingId);
+      if (idx >= 0) episodes[idx] = ep;
+    } else {
+      episodes.push(ep);
+    }
+    save();
+    render();
+    closeForm();
+  }
+
+  function deleteEpisode(id) {
+    if (!confirm('Apagar este episódio?')) return;
+    episodes = episodes.filter(e => e.id !== id);
+    save();
+    render();
+  }
+
+  document.getElementById('add-btn').addEventListener('click', () => {
+    editingId = null;
+    resetForm();
+    openForm();
+  });
+  document.getElementById('save-btn').addEventListener('click', saveEpisode);
+  document.getElementById('cancel-btn').addEventListener('click', closeForm);
+  document.getElementById('export-btn').addEventListener('click', () => {
+    if (formCard.classList.contains('open')) closeForm();
+    window.print();
+  });
+  document.getElementById('download-btn').addEventListener('click', () => {
+    const payload = {
+      paciente: patientInput.value.trim(),
+      exportado_em: new Date().toISOString(),
+      total: episodes.length,
+      episodios: episodes,
+    };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'diario_episodios_' + slug(patientInput.value) + '.json';
+    a.click();
+    URL.revokeObjectURL(url);
+  });
+
+  load();
+  render();
+})();
+</script>
+
+</body>
+</html>

@@ -747,7 +747,9 @@ const QID_TO_ABA = {
   // ── SPPCS · Perfil de Autoperceção para Estudantes Universitários (Neemann & Harter) — v36 ──
   'q_sppcs':                 'SPPCS',
   // ── EPCAS-PE · Escala Pictórica de Competência Percebida e Aceitação Social (Harter & Pike) — v37 ──
-  'q_epcas_pe':              'EPCAS_PE'
+  'q_epcas_pe':              'EPCAS_PE',
+  // ── Diário de Episódios · Monitorização inter-sessões (Ricardina Correia, 2026) ──
+  'q_diario_episodios':      'DIARIO_EPISODIOS'
 };
 
 
@@ -1414,7 +1416,7 @@ function initCatalog() {
       link:'https://correiaricardina-ui.github.io/questionarios/EAFE_v2.html',
       syncKey:'eafe', area:'Escola, Motivação & Aprendizagem', ageRange:'8–18 anos',
       objective:'Entrevista de Análise Funcional do Estudo — avalia dificuldades de regulação emocional no estudo',
-      domains:['DE','DR','EE','DRE'] , ageMin:96, ageMax:215},
+      domains:['DE','DR','EE','DRE','ALP'] , ageMin:96, ageMax:215},
     { id:'q_pals_parent',       name:'PALS — Parent',                                 dest:['Mãe','Pai','Enc. Educação'], link:'https://correiaricardina-ui.github.io/questionarios/PALS_Parent_v1.html', syncKey:'palsparent', area:'Escola, Motivação & Aprendizagem', ageRange:'6–18 anos', objective:'Mapear orientações motivacionais parentais, pressão academica e clima familiar de eficácia/afeto face à escola (Midgley et al., 2000)', domains:['Mastery parental','Performance parental','Eficácia parental','Afeto face à escola','POP','PCEP','IFP','IPCA','IRPA','ICEFM','ICEFP','IRPF','IIP','IPI','IDC'], ageMin:72, ageMax:215},
     { id:'q_pals_teacher',      name:'PALS — Teacher',                                dest:['Professor(a)'],              link:'https://correiaricardina-ui.github.io/questionarios/PALS_Teacher_v1.html', syncKey:'palsteacher', area:'Escola, Motivação & Aprendizagem', ageRange:'6–18 anos', objective:'Mapear estruturas de meta da sala, abordagens à instrução e eficácia/afeto docente (Midgley et al., 2000)', domains:['Estruturas de meta','Abordagens instrução','Eficácia docente','Afeto profissional','PCS','PCI','IFD','ICA','ICP','IRP','IRBD'], ageMin:72, ageMax:215},
     { id:'q_pals_student_sec',  name:'PALS — Aluno (Secundário)',                     dest:['Paciente'],                  link:'https://correiaricardina-ui.github.io/questionarios/PALS_Student_Secundario_v1.html', syncKey:'palsstudentsec', area:'Escola, Motivação & Aprendizagem', ageRange:'14–18 anos', objective:'Avaliar padrões adaptativos/maladaptativos de motivação académica, eficácia, estratégias e clima familiar — inclui foco vocacional (Midgley et al., 2000)', domains:['Orientações pessoais','Clima sala','Eficácia + estratégias','Família','Vocacional','Eixos motivacionais 2×2','IFAA','IRM','IEA','IDPCm','IDPCp'], ageMin:168, ageMax:215},
@@ -2124,7 +2126,15 @@ function initCatalog() {
       syncKey:'epcas_pe', area:'Autoconceito / Autoestima', ageRange:'4–7 anos (pré-escolar e 1.º/2.º ano)',
       objective:'Tradução PT-PT da Pictorial Scale of Perceived Competence and Social Acceptance for Young Children, Forma Pré-Escolar/Jardim de Infância (Harter & Pike, 1983/1984), com administração individual pelo examinador: para cada item pictórico a criança escolhe qual das duas crianças ilustradas é mais parecida consigo e indica se é «muito» (círculo grande) ou «um pouco» (círculo pequeno) parecida — cotação 1–4 por item. 30 itens: 24 originais (4 subescalas × 6 itens — Competência Cognitiva, Competência Física, Aceitação pelos Pares, Aceitação Parental) + extensão Aparência Física (6 itens, ilustrações K. Eklund 2021–2022). Médias 1–4 por subescala (admite itens omissos: média sobre itens validamente administrados) e fatores ao nível do item: Competência Geral (Cognitiva+Física) e Aceitação Social (Pares+Parental). Inclui 2 itens de treino não cotados. Bandas exclusivamente descritivas (<2,00 Baixa · 2,00–2,99 Média · ≥3,00 Elevada; sem normas portuguesas) — leitura clínica do psicólogo.',
       domains:['Competência Cognitiva','Competência Física','Aceitação pelos Pares','Aceitação Parental','Aparência Física','Competência Geral','Aceitação Social'],
-      ageMin:4, ageMax:7 }
+      ageMin:4, ageMax:7 },
+    // ── Diário de Episódios · Monitorização inter-sessões (Ricardina Correia, 2026) ──
+    { id:'q_diario_episodios', name:'Diário de Episódios',
+      dest:['Mãe','Pai','Enc. Educação'],
+      link:'https://correiaricardina-ui.github.io/questionarios/Diario_Episodios_v1.html',
+      syncKey:'diario_episodios', area:'Monitorização', ageRange:'Todas as idades',
+      objective:'Registo inter-sessões de episódios em casa (ansiedade, desregulação, sono, somático, progresso, etc.). Os pais/cuidadores registam, à medida que acontecem, contexto, resposta da criança e resposta dos próprios. Instrumento qualitativo de monitorização — sem cotação normativa; produz apenas síntese descritiva (nº de episódios, frequência por tipo e distribuição de intensidade) e o detalhe integral de cada episódio.',
+      domains:['Nº de episódios','Frequência por tipo','Distribuição de intensidade'],
+      ageMin:0, ageMax:null }
   ];
   // Garantir que TODOS os defaults estão no catálogo, sempre
   // (funciona em RC novos e em RC existentes — nunca perde questionários)
@@ -4406,6 +4416,8 @@ function renderAssignments(patientId) {
             // ── Verificação nome-primeiro, relação como fallback ──
             function matchRespondent(row, aba, recip) {
               const NC = {
+                // ── Diário de Episódios · Monitorização (nome primeiro, tipo como fallback) ──
+                'DIARIO_EPISODIOS':['NomeInformante','Informante'],
                 'SWAN':['Informante'],'SRS2_IE_Pais':['Respondente'],'SRS2_IE_Prof':['Respondente'],
                 'TRF_618':['NomePreenche','PreenchidoPor'],'CBCL_618':['NomePreenche','PreenchidoPor'],'CBCL_15':['NomeInformante','Informante'],
                 'CTRF_15':['Informante'],'BRIEF_Pais':['NomeRespondente'],'BRIEF_Professores':['Professor'],
@@ -4849,6 +4861,8 @@ async function syncAndMark(patientId, idx) {
       const patUpper = String(patient.code).trim().toUpperCase();
       function matchResp2(row, aba2, recip) {
         const NC2 = {
+          // ── Diário de Episódios · Monitorização (nome primeiro, tipo como fallback) ──
+          'DIARIO_EPISODIOS':['NomeInformante','Informante'],
           'SWAN':['Informante'],'SRS2_IE_Pais':['Respondente'],'SRS2_IE_Prof':['Respondente'],
           'TRF_618':['NomePreenche','PreenchidoPor'],'CBCL_618':['NomePreenche','PreenchidoPor'],'CBCL_15':['NomeInformante','Informante'],
           'CTRF_15':['Informante'],'BRIEF_Pais':['NomeRespondente'],'BRIEF_Professores':['Professor'],
