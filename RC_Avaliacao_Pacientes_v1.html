@@ -608,6 +608,7 @@ const QID_TO_ABA = {
   'q_aseba_trf':  'TRF_618',
   'q_aseba_ysr':  'YSR_1118',
   'q_cbcl_15':    'CBCL_15',
+  'q_snapiv':     'SNAP_IV',
   'q_swan':       'SWAN',
   'q_lds':        'LDS',
   'q_ctrf_15':    'CTRF_15',
@@ -760,6 +761,7 @@ const QID_TO_ABA = {
 const SYNC_KEY_TO_ABA = {
   'cbcl15':   'CBCL_15',
   'ctrf15':   'CTRF_15',
+  'snapiv':   'SNAP_IV',
   'lds':      'LDS',
   'srs2_pais':'SRS2_IE_Pais',
   'srs2_prof':'SRS2_IE_Prof',
@@ -2162,7 +2164,15 @@ function initCatalog() {
       syncKey:'mabc2_checklist', area:'Neurodesenvolvimento', ageRange:'5–12 anos',
       objective:'Rastreio heteroavaliado das dificuldades de coordenação motora no quotidiano (Movement ABC-2 Checklist, Henderson, Sugden & Barnett). Preenchido por adulto que observa a criança: Secção A (movimento em ambiente estático/previsível) e Secção B (movimento em ambiente dinâmico/imprevisível), cada uma 0–3/NO; Secção C regista fatores não motores (Sim/Não). Cotação com imputação por «Não Observado» e semáforo normativo por idade (apenas no painel clínico).',
       domains:['Secção A — Estático/Previsível','Secção B — Dinâmico/Imprevisível','Total Motor (A+B)','Secção C — Fatores não motores'],
-      ageMin:60, ageMax:155 }
+      ageMin:60, ageMax:155 },
+    // ── SNAP-IV · Escala de Sintomas de PHDA (Versão Reduzida, DSM-IV) · Swanson et al. (2000, 2012) · PT: Octávio Moura ──
+    { id:'q_snapiv', name:'SNAP-IV — Escala de Sintomas de PHDA (Versão Reduzida, DSM-IV)',
+      dest:['Mãe','Pai','Enc. Educação','Professor(a)'],
+      link:'https://correiaricardina-ui.github.io/questionarios/SNAP_IV_v1.html',
+      syncKey:'snapiv', area:'Atenção, PHDA & Funções Executivas', ageRange:'5–11 anos',
+      objective:'Rastreio dimensional dos sintomas de PHDA por heteroavaliação (pais ou professores), 18 itens em escala 0–3. Métrica = média por item nas dimensões Desatenção (1–9), Hiperatividade-Impulsividade (10–18) e Combinada/PHDA (1–18). O tipo de informante (Pais / Professores) determina os pontos de corte de rastreio (Swanson; bandas Bussing et al., 2008). Resultado exploratório, sem normas portuguesas — não constitui diagnóstico.',
+      domains:['Desatenção','Hiperatividade-Impulsividade','Combinada (PHDA)'],
+      ageMin:60, ageMax:131 }
   ];
   // Garantir que TODOS os defaults estão no catálogo, sempre
   // (funciona em RC novos e em RC existentes — nunca perde questionários)
@@ -2376,6 +2386,8 @@ function initCatalog() {
       'q_anamnese_parental_complementar': { link:'https://correiaricardina-ui.github.io/questionarios/ANAMNESE_PARENTAL_COMPLEMENTAR_v1.html', syncKey:'anamnese_parental_complementar' },
       // ── MABC-2 Lista de Verificação — v80 ──
       'q_mabc2_checklist': { link:'https://correiaricardina-ui.github.io/questionarios/MABC2_Checklist_v1.html', syncKey:'mabc2_checklist' },
+      // ── SNAP-IV — v81 ──
+      'q_snapiv': { link:'https://correiaricardina-ui.github.io/questionarios/SNAP_IV_v1.html', syncKey:'snapiv' },
     };
     // ── Re-store com chave correcta ('q_' + id) — corrige instalações anteriores ──
     // Garante que Conners, FAD e MAP ficam acessíveis pelo META.forEach e getCatalog
@@ -2871,6 +2883,11 @@ function initCatalog() {
     if(!catalog.includes('q_rbsr')) {
       const d = defaults.find(x => x.id === 'q_rbsr');
       if(d) { store.set('q_' + d.id, d); catalog.push('q_rbsr'); store.set('catalog', catalog); }
+    }
+    // SNAP-IV — garantir presença no catálogo (RC novos e existentes)
+    if(!catalog.includes('q_snapiv')) {
+      const dSnap = defaults.find(x => x.id === 'q_snapiv');
+      if(dSnap) { store.set('q_' + dSnap.id, dSnap); catalog.push('q_snapiv'); store.set('catalog', catalog); }
     }
     }
   }
@@ -4318,6 +4335,25 @@ function formatScoreSummary(scores, syncKey) {
     }
   }
 
+  if(syncKey === 'snapiv') {
+    // Média por item da dimensão Combinada (PHDA); cor por corte de Swanson conforme informante
+    const comb = scores['COMB_MEDIA'] ?? scores['comb_media'] ?? scores['combMedia'] ?? scores['COMB'];
+    const desat = scores['DESAT_MEDIA'] ?? scores['desat_media'] ?? scores['desatMedia'];
+    const hi = scores['HI_MEDIA'] ?? scores['hi_media'] ?? scores['hiMedia'];
+    const inf = scores['Informante'] ?? scores['informante'] ?? '';
+    const cortes = { Pais:{DESAT:1.78,HI:1.44,COMB:1.67}, Professores:{DESAT:2.56,HI:1.78,COMB:2.00} };
+    if(comb != null && comb !== '') {
+      const corteC = (cortes[inf]||{}).COMB;
+      const c = parseFloat(String(comb).replace(',','.'));
+      const cls = (corteC != null && c >= corteC) ? 'color:#C0392B;font-weight:700;'
+                : (corteC != null) ? 'color:var(--green);font-weight:600;'
+                : 'color:#E67E22;font-weight:600;';
+      const dTxt = (desat!=null&&desat!=='') ? ' · Desat='+String(desat).replace('.',',') : '';
+      const hTxt = (hi!=null&&hi!=='') ? ' HI='+String(hi).replace('.',',') : '';
+      return `<span style="font-size:0.78rem;${cls}">PHDA (média) = ${String(comb).replace('.',',')}${dTxt}${hTxt}</span>`;
+    }
+  }
+
   return null;
 }
 
@@ -4475,6 +4511,8 @@ function renderAssignments(patientId) {
                 'DIARIO_EPISODIOS':['NomeInformante','Informante'],
                 // ── Anamnese Parental Complementar · Anamnese (nome primeiro, tipo como fallback) ──
                 'ANAMNESE_PARENTAL_COMPLEMENTAR':['NomeInformante','Informante'],
+                // ── SNAP-IV · vários respondentes possíveis (Informante distingue Pais/Professores) ──
+                'SNAP_IV':['NomeInformante','Informante'],
                 'SWAN':['Informante'],'SRS2_IE_Pais':['Respondente'],'SRS2_IE_Prof':['Respondente'],
                 'TRF_618':['NomePreenche','PreenchidoPor'],'CBCL_618':['NomePreenche','PreenchidoPor'],'CBCL_15':['NomeInformante','Informante'],
                 'CTRF_15':['Informante'],'BRIEF_Pais':['NomeRespondente'],'BRIEF_Professores':['Professor'],
@@ -5013,7 +5051,9 @@ async function syncAndMark(patientId, idx) {
           // RBS-R — Comportamentos Repetitivos (vários respondentes: Informante distingue Mãe/Pai/Professor/Clínico) v29
           'RBS_R':                 ['NomeInformante','Informante'],
           // PSI-4 adap — Stress Parental (vários respondentes: Informante distingue Mãe/Pai/Cuidador) v30
-          'PSI4_adap':             ['NomeInformante','Informante']
+          'PSI4_adap':             ['NomeInformante','Informante'],
+          // SNAP-IV — vários respondentes possíveis (Informante distingue Pais/Professores) v81
+          'SNAP_IV':               ['NomeInformante','Informante']
         };
         const RC2 = {
           'SWAN':['Relação'],'BRIEF_Pais':['Relação'],'SCARED_R_PAIS':['Relação'],
