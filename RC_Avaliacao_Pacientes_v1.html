@@ -749,7 +749,11 @@ const QID_TO_ABA = {
   // ── EPCAS-PE · Escala Pictórica de Competência Percebida e Aceitação Social (Harter & Pike) — v37 ──
   'q_epcas_pe':              'EPCAS_PE',
   // ── Diário de Episódios · Monitorização inter-sessões (Ricardina Correia, 2026) ──
-  'q_diario_episodios':      'DIARIO_EPISODIOS'
+  'q_diario_episodios':      'DIARIO_EPISODIOS',
+  // ── Anamnese Parental Complementar · Anamnese (Ricardina Correia, 2026) ──
+  'q_anamnese_parental_complementar': 'ANAMNESE_PARENTAL_COMPLEMENTAR',
+  // ── MABC-2 Lista de Verificação · Movement ABC-2 Checklist — v80 ──
+  'q_mabc2_checklist': 'MABC2_Checklist'
 };
 
 
@@ -1189,7 +1193,15 @@ const SYNC_KEY_TO_ABA = {
   'SPPCS':                 'SPPCS',
   // ── EPCAS-PE (Harter & Pike) — v37 ──
   'epcas_pe':              'EPCAS_PE',
-  'EPCAS_PE':              'EPCAS_PE'
+  'EPCAS_PE':              'EPCAS_PE',
+  // ── Anamnese Parental Complementar (Ricardina Correia, 2026) ──
+  'anamnese_parental_complementar': 'ANAMNESE_PARENTAL_COMPLEMENTAR',
+  'ANAMNESE_PARENTAL_COMPLEMENTAR': 'ANAMNESE_PARENTAL_COMPLEMENTAR',
+  // ── MABC-2 Lista de Verificação · Movement ABC-2 Checklist — v80 ──
+  'mabc2_checklist':       'MABC2_Checklist',
+  'MABC2_Checklist':       'MABC2_Checklist',
+  'MABC2':                 'MABC2_Checklist',
+  'MABC-2':                'MABC2_Checklist'
 };
 
 // Cache em memória das respostas do Sheet (evita fetch repetidos na mesma sessão)
@@ -2134,7 +2146,23 @@ function initCatalog() {
       syncKey:'diario_episodios', area:'Monitorização', ageRange:'Todas as idades',
       objective:'Registo inter-sessões de episódios em casa (ansiedade, desregulação, sono, somático, progresso, etc.). Os pais/cuidadores registam, à medida que acontecem, contexto, resposta da criança e resposta dos próprios. Instrumento qualitativo de monitorização — sem cotação normativa; produz apenas síntese descritiva (nº de episódios, frequência por tipo e distribuição de intensidade) e o detalhe integral de cada episódio.',
       domains:['Nº de episódios','Frequência por tipo','Distribuição de intensidade'],
-      ageMin:0, ageMax:null }
+      ageMin:0, ageMax:null },
+    // ── Anamnese Parental Complementar · Recolha da perspetiva do progenitor (Ricardina Correia, 2026) ──
+    { id:'q_anamnese_parental_complementar', name:'Anamnese Parental Complementar',
+      dest:['Mãe','Pai','Enc. Educação'],
+      link:'https://correiaricardina-ui.github.io/questionarios/ANAMNESE_PARENTAL_COMPLEMENTAR_v1.html',
+      syncKey:'anamnese_parental_complementar', area:'Anamnese & História Clínica', ageRange:'Todas as idades',
+      objective:'Recolha estruturada da perspetiva do progenitor ou cuidador que não esteve presente na consulta de anamnese inicial e deseja integrar o processo de avaliação/intervenção da criança. Instrumento qualitativo de anamnese — sem cotação normativa: regista a motivação para participar, a preocupação principal e as áreas assinaladas, a criança no contexto do respondente (rotinas, o que corre bem, o que é mais difícil), a evolução percebida, informação adicional relevante e as expectativas/disponibilidade para participar.',
+      domains:['Preocupações principais','Áreas assinaladas','Contexto do respondente','Evolução percebida','Expectativas e disponibilidade'],
+      ageMin:0, ageMax:null },
+    // ── MABC-2 Lista de Verificação · Movement ABC-2 Checklist (Henderson, Sugden & Barnett) — v80 ──
+    { id:'q_mabc2_checklist', name:'MABC-2 — Lista de Verificação',
+      dest:['Professor(a)','Educador(a)','Mãe','Pai','Enc. Educação'],
+      link:'https://correiaricardina-ui.github.io/questionarios/MABC2_Checklist_v1.html',
+      syncKey:'mabc2_checklist', area:'Neurodesenvolvimento', ageRange:'5–12 anos',
+      objective:'Rastreio heteroavaliado das dificuldades de coordenação motora no quotidiano (Movement ABC-2 Checklist, Henderson, Sugden & Barnett). Preenchido por adulto que observa a criança: Secção A (movimento em ambiente estático/previsível) e Secção B (movimento em ambiente dinâmico/imprevisível), cada uma 0–3/NO; Secção C regista fatores não motores (Sim/Não). Cotação com imputação por «Não Observado» e semáforo normativo por idade (apenas no painel clínico).',
+      domains:['Secção A — Estático/Previsível','Secção B — Dinâmico/Imprevisível','Total Motor (A+B)','Secção C — Fatores não motores'],
+      ageMin:60, ageMax:155 }
   ];
   // Garantir que TODOS os defaults estão no catálogo, sempre
   // (funciona em RC novos e em RC existentes — nunca perde questionários)
@@ -2345,6 +2373,9 @@ function initCatalog() {
       'q_sppcs':                { link:'https://correiaricardina-ui.github.io/questionarios/SPPCS_v1.html',            syncKey:'sppcs' },
       // ── EPCAS-PE — v37 ──
       'q_epcas_pe':             { link:'https://correiaricardina-ui.github.io/questionarios/EPCAS_PE_v1.html',         syncKey:'epcas_pe' },
+      'q_anamnese_parental_complementar': { link:'https://correiaricardina-ui.github.io/questionarios/ANAMNESE_PARENTAL_COMPLEMENTAR_v1.html', syncKey:'anamnese_parental_complementar' },
+      // ── MABC-2 Lista de Verificação — v80 ──
+      'q_mabc2_checklist': { link:'https://correiaricardina-ui.github.io/questionarios/MABC2_Checklist_v1.html', syncKey:'mabc2_checklist' },
     };
     // ── Re-store com chave correcta ('q_' + id) — corrige instalações anteriores ──
     // Garante que Conners, FAD e MAP ficam acessíveis pelo META.forEach e getCatalog
@@ -2440,6 +2471,14 @@ function initCatalog() {
     if(!catalog.includes('q_epcas_pe')) {
       const dEpcasPe = defaults.find(d => d.id === 'q_epcas_pe');
       if(dEpcasPe) { store.set('q_' + dEpcasPe.id, dEpcasPe); catalog.push(dEpcasPe.id); store.set('catalog', catalog); }
+    }
+    if(!catalog.includes('q_anamnese_parental_complementar')) {
+      const dApc = defaults.find(d => d.id === 'q_anamnese_parental_complementar');
+      if(dApc) { store.set('q_' + dApc.id, dApc); catalog.push(dApc.id); store.set('catalog', catalog); }
+    }
+    if(!catalog.includes('q_mabc2_checklist')) {
+      const dMabc2 = defaults.find(d => d.id === 'q_mabc2_checklist');
+      if(dMabc2) { store.set('q_' + dMabc2.id, dMabc2); catalog.push(dMabc2.id); store.set('catalog', catalog); }
     }
     // QC Coparentalidade — forçar re-escrita com chave correcta sempre
     // (garante compatibilidade mesmo que versão anterior tenha guardado com chave errada)
@@ -4262,6 +4301,22 @@ function formatScoreSummary(scores, syncKey) {
     }
   }
 
+  // ── MABC-2 Lista de Verificação — Total Motor (A+B) + Secção C ──
+  if(syncKey === 'mabc2_checklist') {
+    const subA = scores['SubtotalA'] ?? scores['subA'] ?? scores['subtotalA'];
+    const subB = scores['SubtotalB'] ?? scores['subB'] ?? scores['subtotalB'];
+    const totM = scores['TotalMotor'] ?? scores['totalMotor'] ?? scores['total_motor'];
+    const simC = scores['SimC'] ?? scores['simC'] ?? scores['sim_c'];
+    if(totM != null && totM !== '') {
+      // Mais alto = pior desempenho motor. Sem idade aqui → cor neutra; o semáforo por idade fica no detalhe.
+      const cor = '#3B5A7A';
+      const cTxt = (simC != null && simC !== '') ? ` · Secção C: ${simC} «Sim»` : '';
+      return `<span style="font-size:0.78rem;color:${cor};font-weight:600">Total Motor = ${totM}${(subA!=null&&subB!=null)?` (A=${subA} B=${subB})`:''}${cTxt}</span>`;
+    }
+    if(simC != null && simC !== '') {
+      return `<span style="font-size:0.78rem;color:#3B5A7A;font-weight:600">Secção C: ${simC} «Sim»</span>`;
+    }
+  }
 
   return null;
 }
@@ -4418,6 +4473,8 @@ function renderAssignments(patientId) {
               const NC = {
                 // ── Diário de Episódios · Monitorização (nome primeiro, tipo como fallback) ──
                 'DIARIO_EPISODIOS':['NomeInformante','Informante'],
+                // ── Anamnese Parental Complementar · Anamnese (nome primeiro, tipo como fallback) ──
+                'ANAMNESE_PARENTAL_COMPLEMENTAR':['NomeInformante','Informante'],
                 'SWAN':['Informante'],'SRS2_IE_Pais':['Respondente'],'SRS2_IE_Prof':['Respondente'],
                 'TRF_618':['NomePreenche','PreenchidoPor'],'CBCL_618':['NomePreenche','PreenchidoPor'],'CBCL_15':['NomeInformante','Informante'],
                 'CTRF_15':['Informante'],'BRIEF_Pais':['NomeRespondente'],'BRIEF_Professores':['Professor'],
@@ -4449,6 +4506,8 @@ function renderAssignments(patientId) {
                 'SPPCS':['NomeInformante','NomeEstudante'],
                 // ── EPCAS-PE (administração pelo examinador) ──
                 'EPCAS_PE':['NomeInformante','Informante'],
+                // ── MABC-2 Lista de Verificação (heteroavaliação: professor/educador/pais) ──
+                'MABC2_Checklist':['NomeInformante','Relação','Informante'],
                 'PS2_Cuidador':['NomeInformante','Relacao'],'PS2_Professor':['NomeInformante'],
                 'MAP_Parental':['NomeProgenitor','Relação'],'MAP_PI':['NomeProgenitor','Relação'],
                 'MAP_Parental_PI':['NomeProgenitor','Relação'],
@@ -4863,6 +4922,8 @@ async function syncAndMark(patientId, idx) {
         const NC2 = {
           // ── Diário de Episódios · Monitorização (nome primeiro, tipo como fallback) ──
           'DIARIO_EPISODIOS':['NomeInformante','Informante'],
+          // ── Anamnese Parental Complementar · Anamnese (nome primeiro, tipo como fallback) ──
+          'ANAMNESE_PARENTAL_COMPLEMENTAR':['NomeInformante','Informante'],
           'SWAN':['Informante'],'SRS2_IE_Pais':['Respondente'],'SRS2_IE_Prof':['Respondente'],
           'TRF_618':['NomePreenche','PreenchidoPor'],'CBCL_618':['NomePreenche','PreenchidoPor'],'CBCL_15':['NomeInformante','Informante'],
           'CTRF_15':['Informante'],'BRIEF_Pais':['NomeRespondente'],'BRIEF_Professores':['Professor'],
@@ -4886,6 +4947,8 @@ async function syncAndMark(patientId, idx) {
           'SPPCS':['NomeInformante','NomeEstudante'],
           // ── EPCAS-PE (administração pelo examinador) ──
           'EPCAS_PE':['NomeInformante','Informante'],
+          // ── MABC-2 Lista de Verificação (heteroavaliação: professor/educador/pais) ──
+          'MABC2_Checklist':['NomeInformante','Relação','Informante'],
           'IPP_R':['NomeRespondente'],
           'SDS_Holland':['NomeCriança'],
           'NEOPIR':['NomeInformante'],
