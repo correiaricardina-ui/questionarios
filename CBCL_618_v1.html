@@ -936,36 +936,43 @@ function startQuestionnaire() {
 // ═══════════════════════════════════════════════════════
 // SCORING
 // ═══════════════════════════════════════════════════════
-function calcScores() {
-  const { sex, ageGroup } = sessionData;
+// Normalizar sexo ('Feminino'/'F'/'f' -> 'F'; resto -> 'M') e grupo etário
+function normSex(sex) {
+  return (sex || '').toString().trim().toUpperCase().charAt(0) === 'F' ? 'F' : 'M';
+}
+function normAgeGroup(ageGroup, ageYears) {
+  const g = (ageGroup || '').toString().trim();
+  if (g === '6-11' || g === '12-18') return g;
+  if (ageYears != null && ageYears !== '') return Number(ageYears) < 12 ? '6-11' : '12-18';
+  return '12-18';
+}
+
+// Cotação pura — recebe respostas + sexo + grupo etário (reutilizável no painel)
+function computeScores(ans, sex, ageGroup) {
+  ans = ans || {};
+  sex = normSex(sex);
   const scaleRaws = {};
 
-  // Calculate raw scores per syndrome scale
+  // Raw por escala de síndrome (chaves podem ser numéricas ou string, ex.: '56a')
   for (const [key, scale] of Object.entries(SCALES)) {
     let raw = 0;
     for (const item of scale.items) {
-      raw += (answers[item] !== undefined ? Number(answers[item]) : 0);
+      const v = (ans[item] !== undefined) ? ans[item] : ans[String(item)];
+      if (v != null) raw += Number(v); // != null preserva o zero
     }
     scaleRaws[key] = raw;
   }
 
-  // Internalizing (I+II+III)
-  const intRaw = scaleRaws.I + scaleRaws.II + scaleRaws.III;
-  // Externalizing (VII+VIII)
-  const extRaw = scaleRaws.VII + scaleRaws.VIII;
-  // Total (all behavioral items)
+  const intRaw = scaleRaws.I + scaleRaws.II + scaleRaws.III; // Internalização
+  const extRaw = scaleRaws.VII + scaleRaws.VIII;             // Externalização
+
+  // Total de Problemas — soma de todos os itens respondidos
   let totRaw = 0;
-  const behavItems = new Set();
-  for (const scale of Object.values(SCALES)) {
-    for (const it of scale.items) behavItems.add(it);
-  }
-  // Add items not in any scale
   for (const item of ITEMS) {
-    const v = answers[item.n];
-    if (v !== undefined) totRaw += Number(v);
+    const v = (ans[item.n] !== undefined) ? ans[item.n] : ans[String(item.n)];
+    if (v != null) totRaw += Number(v);
   }
 
-  // T-scores
   const tScores = {};
   for (const key of Object.keys(SCALES)) {
     tScores[key] = getT(scaleRaws[key], key, sex, ageGroup);
@@ -975,6 +982,37 @@ function calcScores() {
   tScores.TOT = getT(totRaw, 'TOT', sex, ageGroup);
 
   return { scaleRaws, intRaw, extRaw, totRaw, tScores };
+}
+
+function calcScores() {
+  return computeScores(answers, sessionData.sex, sessionData.ageGroup);
+}
+
+// Resolve a cotação de uma sessão do painel: se houver respostas item-a-item,
+// RECALCULA tudo (raws + compostos + T) a partir delas — assim o painel mostra
+// sempre valores completos e corretos, quer a sessão seja local quer venha do
+// Google Sheet. Só usa os valores guardados como recurso quando não há respostas.
+function resolveScores(s) {
+  const ans = (s && s.answers) || {};
+  if (Object.keys(ans).length > 0) {
+    const sex = normSex(s.sex);
+    const ageGroup = normAgeGroup(s.ageGroup, s.ageYears);
+    return computeScores(ans, sex, ageGroup);
+  }
+  const st = (s && s.scores) || {};
+  const ts = st.tScores || {};
+  return {
+    scaleRaws: st.scaleRaws || {},
+    intRaw: st.intRaw,
+    extRaw: st.extRaw,
+    totRaw: st.totRaw,
+    tScores: {
+      INT: ts.INT || ts['T-INT'] || (s && s['T_INT']) || null,
+      EXT: ts.EXT || ts['T-EXT'] || (s && s['T_EXT']) || null,
+      TOT: ts.TOT || ts['T-Total'] || ts['T-TOT'] || (s && s['T_TOT']) || null,
+      I: ts.I, II: ts.II, III: ts.III, IV: ts.IV, V: ts.V, VI: ts.VI, VII: ts.VII, VIII: ts.VIII
+    }
+  };
 }
 
 // ═══════════════════════════════════════════════════════
@@ -1323,6 +1361,16 @@ async function syncFromSheets() {
     const all = load(STORE_KEY) || [];
     let changed = false;
 
+    // Normaliza qualquer data (ISO, AAAA-MM-DD ou DD/MM/AAAA) para DD/MM/AAAA,
+    // para que a sessão local e a versão vinda do Sheet coincidam na deduplicação
+    const ptDate = (x) => {
+      if (!x) return '';
+      const str = x.toString().trim();
+      if (/^\d{2}\/\d{2}\/\d{4}$/.test(str)) return str;
+      const d = new Date(str);
+      return isNaN(d.getTime()) ? str : d.toLocaleDateString('pt-PT');
+    };
+
     for (const row of data2) {
       const code = (row['Código'] || row['codigo'] || row['Codigo'] || '').toString().trim();
       if (!code) continue;
@@ -1369,14 +1417,19 @@ async function syncFromSheets() {
 
       const idx = all.findIndex(s =>
         s.patientCode === code &&
-        (s.fillDate || s.submittedAt || '') === (sessaoSheet.fillDate || '') &&
+        ptDate(s.fillDate || s.submittedAt) === ptDate(sessaoSheet.fillDate) &&
         (s.filledBy || '') === (sessaoSheet.filledBy || '') &&
         (s.nome_preenche || '') === (sessaoSheet.nome_preenche || '')
       );
       if (idx >= 0) {
-        if (!Object.keys(answers).length && all[idx].answers) {
-          sessaoSheet.answers = all[idx].answers;
+        // Manter as respostas mais completas (a sessão local é a origem do registo)
+        const localAns = all[idx].answers || {};
+        if (Object.keys(localAns).length >= Object.keys(sessaoSheet.answers || {}).length) {
+          sessaoSheet.answers = localAns;
         }
+        // Preservar campos locais que não vêm do Sheet
+        if (all[idx].compAnswers) sessaoSheet.compAnswers = all[idx].compAnswers;
+        if (all[idx].dob && !sessaoSheet.dob) sessaoSheet.dob = all[idx].dob;
         if (all[idx].scores && all[idx].scores.scaleRaws) {
           sessaoSheet.scores.scaleRaws = all[idx].scores.scaleRaws;
           sessaoSheet.scores.intRaw    = all[idx].scores.intRaw;
@@ -1500,8 +1553,8 @@ function showSessionDetail(idx) {
   if (!s) return;
   sessaoActual = s;
 
-  // Suporte a sessões importadas do Sheet (sem scores completos) e a sessões locais completas
-  const scores = s.scores || {};
+  // Recalcula a partir das respostas quando disponíveis (local ou vindo do Sheet)
+  const scores = resolveScores(s);
   const tScores = scores.tScores || {};
   const scaleRaws = scores.scaleRaws || {};
   const intRaw = scores.intRaw;
@@ -1509,10 +1562,9 @@ function showSessionDetail(idx) {
   const totRaw = scores.totRaw;
   const barW = (t) => Math.min(100, Math.max(0, ((t-35)/(100-35))*100));
 
-  // Suporte a sessões com apenas T-scores compostos (importadas do Sheet)
-  const tINT = tScores.INT || tScores['T-INT'] || s['T_INT'] || null;
-  const tEXT = tScores.EXT || tScores['T-EXT'] || s['T_EXT'] || null;
-  const tTOT = tScores.TOT || tScores['T-Total'] || s['T_TOT'] || null;
+  const tINT = tScores.INT || null;
+  const tEXT = tScores.EXT || null;
+  const tTOT = tScores.TOT || null;
 
   const compositeRows = [
     { name:'Internalização',     raw:intRaw,  t:tINT, type:'composite' },
@@ -1647,17 +1699,16 @@ function printModal() {
   const s = sessions[idx];
   if (!s) return;
 
-  const scores = s.scores || {};
+  const scores = resolveScores(s);
   const tScores = scores.tScores || {};
   const scaleRaws = scores.scaleRaws || {};
   const intRaw = scores.intRaw;
   const extRaw = scores.extRaw;
   const totRaw = scores.totRaw;
 
-  // Suporte a sessões importadas do Sheet (apenas T-scores compostos)
-  const tINT = tScores.INT || tScores['T-INT'] || null;
-  const tEXT = tScores.EXT || tScores['T-EXT'] || null;
-  const tTOT = tScores.TOT || tScores['T-Total'] || null;
+  const tINT = tScores.INT || null;
+  const tEXT = tScores.EXT || null;
+  const tTOT = tScores.TOT || null;
 
   // Helper: bar percentage from T-score (range 35–100)
   const bw = t => Math.min(98, Math.max(2, ((t - 35) / 65) * 100)).toFixed(1);
@@ -1920,17 +1971,17 @@ function exportarInterpretacaoPDF(sessaoParam) {
     alert('Seleccione primeiro uma sess\u00e3o (clique em "Ver detalhes").');
     return;
   }
-  if (!s.scores && !s['T_INT']) { alert('Esta sessão n\u00e3o tem scores calculados.'); return; }
+  if (!s.scores && !s['T_INT'] && !(s.answers && Object.keys(s.answers).length)) { alert('Esta sessão n\u00e3o tem scores calculados.'); return; }
 
-  const scores = s.scores || {};
+  const scores = resolveScores(s);
   const tScores = scores.tScores || {};
   const scaleRaws = scores.scaleRaws || {};
   const intRaw = scores.intRaw;
   const extRaw = scores.extRaw;
   const totRaw = scores.totRaw;
-  const tINT = tScores.INT || tScores['T-INT'] || null;
-  const tEXT = tScores.EXT || tScores['T-EXT'] || null;
-  const tTOT = tScores.TOT || tScores['T-Total'] || null;
+  const tINT = tScores.INT || null;
+  const tEXT = tScores.EXT || null;
+  const tTOT = tScores.TOT || null;
   const dt = s.submittedAt ? new Date(s.submittedAt).toLocaleDateString('pt-PT') : (s.fillDate||'\u2014');
 
   function row(label, raw, t, bold) {

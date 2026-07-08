@@ -603,6 +603,10 @@ const RC_SHEET_URL = 'https://script.google.com/macros/s/AKfycbxX2_Ry7VRH6jr7eGB
 
 // Mapeamento: id do questionário → aba no Sheet central
 const QID_TO_ABA = {
+  'q_gai':        'GAI',
+  'q_cshq_pt_pais':'CSHQ_PT_Pais',
+  'q_ssr_pt':     'SSR_PT',
+  'q_tsoc_ygtss': 'TSOC_YGTSS',
   'q_tas20':      'TAS20',
   'q_aseba_cbcl': 'CBCL_618',
   'q_aseba_trf':  'TRF_618',
@@ -759,6 +763,10 @@ const QID_TO_ABA = {
 
 
 const SYNC_KEY_TO_ABA = {
+  'gai':      'GAI',
+  'cshq_pt_pais':'CSHQ_PT_Pais',
+  'ssr_pt':   'SSR_PT',
+  'tsoc_ygtss':'TSOC_YGTSS',
   'cbcl15':   'CBCL_15',
   'ctrf15':   'CTRF_15',
   'snapiv':   'SNAP_IV',
@@ -1267,6 +1275,7 @@ async function checkSheetForResponse(qid, patientCode) {
 function initCatalog() {
   const existing = store.get('catalog') || [];
   const defaults = [
+    { id:'q_gai', name:'GAI — Grelha de Automonitorização Interocetiva', dest:['Paciente'], link:'https://correiaricardina-ui.github.io/questionarios/GAI_Automonitorizacao_Interocetiva_v1.html', syncKey:'gai', area:'Risco & Sintomatologia Psicopatológica Geral', ageRange:'8–17 anos', objective:'Automonitorização interocetiva semanal — eixos somático-regulatório e apetitivo-corporal', domains:['Eixo Somático-Regulatório','Eixo Apetitivo-Corporal','Dimensões em alerta','Marcadores nutricionais'] , ageMin:96, ageMax:215},
     { id:'q_ctrf_15', name:'CTRF-15', dest:['Professor(a)','Educador(a)'], link:'https://correiaricardina-ui.github.io/questionarios/CTRF_15_v2.html', syncKey:'ctrf15', area:'Externalização & Comportamento', ageRange:'1½–5 anos', objective:'Avalia comportamento em contexto pré-escolar — versão educador', domains:['Score Total'] , ageMin:18, ageMax:71},
     { id:'q_brief_prof', name:'BRIEF — Professores', dest:['Professor(a)'], link:'https://correiaricardina-ui.github.io/questionarios/BRIEF_Professores_v3.html', syncKey:'brief_professores', area:'Atenção, PHDA & Funções Executivas', ageRange:'5–18 anos', objective:'Avalia funções executivas em contexto escolar — versão professor', domains:['INHIB','SHIFT','ECON','WM','PO','ISCI','FI','EMI','GEF'] , ageMin:60, ageMax:215},
     { id:'q_brief_pais', name:'BRIEF — Pais', dest:['Mãe','Pai','Enc. Educação'], link:'https://correiaricardina-ui.github.io/questionarios/BRIEF_Pais_v5.html', syncKey:'brief_pais', area:'Atenção, PHDA & Funções Executivas', ageRange:'5–18 anos', objective:'Avalia funções executivas em casa — versão pais/cuidadores', domains:['INHIB','SHIFT','ECON','WM','PO','ISCI','FI','EMI','GEF'] , ageMin:60, ageMax:215},
@@ -2172,7 +2181,31 @@ function initCatalog() {
       syncKey:'snapiv', area:'Atenção, PHDA & Funções Executivas', ageRange:'5–11 anos',
       objective:'Rastreio dimensional dos sintomas de PHDA por heteroavaliação (pais ou professores), 18 itens em escala 0–3. Métrica = média por item nas dimensões Desatenção (1–9), Hiperatividade-Impulsividade (10–18) e Combinada/PHDA (1–18). O tipo de informante (Pais / Professores) determina os pontos de corte de rastreio (Swanson; bandas Bussing et al., 2008). Resultado exploratório, sem normas portuguesas — não constitui diagnóstico.',
       domains:['Desatenção','Hiperatividade-Impulsividade','Combinada (PHDA)'],
-      ageMin:60, ageMax:131 }
+      ageMin:60, ageMax:131 },
+    // ── CSHQ-PT (Pais) — Children's Sleep Habits Questionnaire · Silva et al. (2013) ──
+    { id:'q_cshq_pt_pais', name:'CSHQ-PT — Hábitos de Sono da Criança (Pais)',
+      dest:['Mãe','Pai','Enc. Educação'],
+      link:'https://correiaricardina-ui.github.io/questionarios/CSHQ_PT_Pais_v1.html',
+      syncKey:'cshq_pt_pais', area:'Sono', ageRange:'2–10 anos',
+      objective:'Rastreio dos hábitos e problemas de sono por heteroavaliação parental (33 itens, escala de frequência). Cotação em 8 subescalas + Índice de Perturbação do Sono (IPS). Ponto de corte da validação portuguesa: IPS ≥ 48 = rastreio positivo (Silva et al., 2013). Rastreio, não diagnóstico.',
+      domains:['Resistência em ir para a cama','Início do sono','Duração do sono','Ansiedade associada ao sono','Despertares noturnos','Parassónias','Perturbação respiratória do sono','Sonolência diurna','Índice de Perturbação do Sono (IPS)'],
+      ageMin:24, ageMax:131 },
+    // ── SSR-PT — Sleep Self-Report (auto-relato) · Owens et al. (2000) ──
+    { id:'q_ssr_pt', name:'SSR-PT — Auto-Relato sobre o Sono',
+      dest:['Paciente'],
+      link:'https://correiaricardina-ui.github.io/questionarios/SSR_PT_v1.html',
+      syncKey:'ssr_pt', area:'Sono', ageRange:'7–12 anos',
+      objective:'Auto-relato dos hábitos e problemas de sono (itens cotados 4–26, escala de frequência). Cotação em 7 subescalas + Total SSR. Cut-off Total > 41 = perturbação global do sono (Owens et al., 2000). Rastreio, não diagnóstico; integrar com relato parental (ex. CSHQ-PT).',
+      domains:['Resistência ao Deitar','Início do Sono','Duração do Sono','Ansiedade do Sono','Despertares Noturnos','Parassónias','Sonolência Diurna','Total SSR'],
+      ageMin:84, ageMax:155 },
+    // ── TS-OC Parte I — YGTSS (Yale Global Tic Severity Scale; Leckman et al., 1989) ──
+    { id:'q_tsoc_ygtss', name:'TS-OC · Parte I — Gravidade de Tiques (YGTSS)',
+      dest:['Mãe','Pai','Enc. Educação','Paciente'],
+      link:'https://correiaricardina-ui.github.io/questionarios/TSOC_YGTSS_v1.html',
+      syncKey:'tsoc_ygtss', area:'Neurodesenvolvimento', ageRange:'6–18 anos',
+      objective:'Lista de sintomas de tiques + escala de gravidade (Yale Global Tic Severity Scale). Cotação descritiva das dimensões motora e fónica em duas janelas — Atual (últimos 7 dias) e Pior fase — com Total de Tiques (0–50), Comprometimento (0–50) e Pontuação Global (0–100). Aplicação com apoio familiar; a cotação final é sempre confirmada pelo/a psicólogo/a em entrevista, integrando a observação direta. Rastreio/monitorização, não diagnóstico.',
+      domains:['Subtotal Motor','Subtotal Fónico','Total de Tiques','Comprometimento','Pontuação Global YGTSS'],
+      ageMin:72, ageMax:215 }
   ];
   // Garantir que TODOS os defaults estão no catálogo, sempre
   // (funciona em RC novos e em RC existentes — nunca perde questionários)
@@ -2202,6 +2235,7 @@ function initCatalog() {
   } else {
     // Forçar links e syncKeys actualizados
     const META = {
+      'q_gai':        { link:'https://correiaricardina-ui.github.io/questionarios/GAI_Automonitorizacao_Interocetiva_v1.html', syncKey:'gai' },
       'q_tas20':      { link:'https://correiaricardina-ui.github.io/questionarios/TAS20_v7.html', syncKey:'tas20' },
       'q_ippr':       { link:'https://correiaricardina-ui.github.io/questionarios/IPP-R_v1.html', syncKey:'ippr' },
     // IMC-C — v22.0
@@ -2388,6 +2422,11 @@ function initCatalog() {
       'q_mabc2_checklist': { link:'https://correiaricardina-ui.github.io/questionarios/MABC2_Checklist_v1.html', syncKey:'mabc2_checklist' },
       // ── SNAP-IV — v81 ──
       'q_snapiv': { link:'https://correiaricardina-ui.github.io/questionarios/SNAP_IV_v1.html', syncKey:'snapiv' },
+      // ── CSHQ-PT (Pais) e SSR-PT (auto-relato) — v82 ──
+      'q_cshq_pt_pais': { link:'https://correiaricardina-ui.github.io/questionarios/CSHQ_PT_Pais_v1.html', syncKey:'cshq_pt_pais' },
+      'q_ssr_pt':       { link:'https://correiaricardina-ui.github.io/questionarios/SSR_PT_v1.html', syncKey:'ssr_pt' },
+      // ── TS-OC Parte I — YGTSS — v84 ──
+      'q_tsoc_ygtss':   { link:'https://correiaricardina-ui.github.io/questionarios/TSOC_YGTSS_v1.html', syncKey:'tsoc_ygtss' },
     };
     // ── Re-store com chave correcta ('q_' + id) — corrige instalações anteriores ──
     // Garante que Conners, FAD e MAP ficam acessíveis pelo META.forEach e getCatalog
@@ -2415,6 +2454,14 @@ function initCatalog() {
     });
     // Adicionar q_cbcl_15 ao catálogo se ainda não existir
     const catalog = store.get('catalog') || [];
+    if(!catalog.includes('q_gai')) {
+      const gaiDefault = defaults.find(d => d.id === 'q_gai');
+      if(gaiDefault) {
+        store.set('q_' + gaiDefault.id, gaiDefault);
+        catalog.push('q_gai');
+        store.set('catalog', catalog);
+      }
+    }
     if(!catalog.includes('q_cbcl_15')) {
       const cbcl15Default = defaults.find(d => d.id === 'q_cbcl_15');
       if(cbcl15Default) {
@@ -2889,6 +2936,21 @@ function initCatalog() {
       const dSnap = defaults.find(x => x.id === 'q_snapiv');
       if(dSnap) { store.set('q_' + dSnap.id, dSnap); catalog.push('q_snapiv'); store.set('catalog', catalog); }
     }
+    // CSHQ-PT (Pais) — garantir presença no catálogo (RC novos e existentes)
+    if(!catalog.includes('q_cshq_pt_pais')) {
+      const dCshq = defaults.find(x => x.id === 'q_cshq_pt_pais');
+      if(dCshq) { store.set('q_' + dCshq.id, dCshq); catalog.push('q_cshq_pt_pais'); store.set('catalog', catalog); }
+    }
+    // SSR-PT (auto-relato) — garantir presença no catálogo (RC novos e existentes)
+    if(!catalog.includes('q_ssr_pt')) {
+      const dSsr = defaults.find(x => x.id === 'q_ssr_pt');
+      if(dSsr) { store.set('q_' + dSsr.id, dSsr); catalog.push('q_ssr_pt'); store.set('catalog', catalog); }
+    }
+    // TS-OC Parte I (YGTSS) — garantir presença no catálogo (RC novos e existentes)
+    if(!catalog.includes('q_tsoc_ygtss')) {
+      const dTsoc = defaults.find(x => x.id === 'q_tsoc_ygtss');
+      if(dTsoc) { store.set('q_' + dTsoc.id, dTsoc); catalog.push('q_tsoc_ygtss'); store.set('catalog', catalog); }
+    }
     }
   }
 }
@@ -3055,6 +3117,14 @@ function getResultSummary(qid, patientCode) {
 
 function formatScoreSummary(scores, syncKey) {
   if(!scores) return null;
+  if(syncKey === 'gai') {
+    const som = scores['EIXO_SOMATICO'] ?? scores['eixo_som'] ?? scores['Eixo Somático-Regulatório'];
+    const ape = scores['EIXO_APETITIVO'] ?? scores['eixo_ape'] ?? scores['Eixo Apetitivo-Corporal'];
+    if(som != null || ape != null) {
+      const cls = (ape != null && ape >= 6) ? 'color:#C0392B;font-weight:700;' : (ape != null && ape >= 3) ? 'color:#E67E22;font-weight:600;' : 'color:var(--green);font-weight:600;';
+      return `<span style="font-size:0.78rem;${cls}">Somático=${som ?? '–'}/12 · Apetitivo-Corporal=${ape ?? '–'}</span>`;
+    }
+  }
   if(['cbcl','trf','ysr'].includes(syncKey)) {
     const tot = scores['T-TOT'] ?? scores['tTotal'];
     const intsc = scores['T-INT'] ?? scores['tInt'];
