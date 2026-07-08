@@ -661,6 +661,17 @@ function getT(raw, sc, sex, ag) {
   const arr = tbl[sc]; if(!arr) return 50;
   return arr[Math.min(raw, arr.length-1)];
 }
+// Grupo normativo derivado SEMPRE da idade (fonte fiável). O valor guardado em
+// GrupoIdade pode vir coagido pelo Sheet ou corrompido em cache, por isso só é
+// usado como recurso quando não há idade disponível.
+function normAgeGroup(ageGroup, age) {
+  const a = parseInt(age, 10);
+  if (!isNaN(a) && a > 0) return a <= 11 ? '6-11' : '12-18';
+  const g = (ageGroup == null ? '' : String(ageGroup)).trim();
+  if (g === '6-11' || g === '12-18') return g;
+  if (g.includes('T')) return g.includes('2026-12') ? '12-18' : '6-11';
+  return g || '6-11';
+}
 function classify(T, composite) {
   if(composite) return T>=65?'clin':T>=60?'bl':'norm';
   return T>=70?'clin':T>=65?'bl':'norm';
@@ -1080,7 +1091,7 @@ function loadPanel() {
     return `<div class="session-item" onclick="viewSession('${code}')">
       <div>
         <div class="si-name">${s.childName||'—'} <span style="font-size:0.78rem;font-weight:400;color:var(--text-light);">· ${code}</span></div>
-        <div class="si-meta">${s.sex==='F'?'Feminino':'Masculino'} · ${s.age} anos · ${s.ageGroup} · ${s.filledBy||'—'} · ${s.fillDate||''}</div>
+        <div class="si-meta">${s.sex==='F'?'Feminino':'Masculino'} · ${s.age} anos · ${normAgeGroup(s.ageGroup, s.age)} · ${s.filledBy||'—'} · ${s.fillDate||''}</div>
       </div>
       <div class="si-right">
         <span class="badge badge-${cls}">T${tot} ${badgeTxt}</span>
@@ -1168,7 +1179,7 @@ function buildResultsHTML(s) {
   return `
   <div style="margin-bottom:16px;padding-bottom:12px;border-bottom:2px solid var(--blue-pale);">
     <div style="font-family:'DM Serif Display',serif;font-size:1.4rem;color:var(--blue);">${s.childName} <span style="font-size:0.85rem;color:var(--text-light);font-family:'DM Sans';">· ${s.code}</span></div>
-    <div style="font-size:0.82rem;color:var(--text-light);margin-top:3px;">${sexLbl} · ${s.age} anos · ${s.ageGroup} · Preenchido por: ${s.filledBy||'—'} · ${s.fillDate||''}</div>
+    <div style="font-size:0.82rem;color:var(--text-light);margin-top:3px;">${sexLbl} · ${s.age} anos · ${normAgeGroup(s.ageGroup, s.age)} · Preenchido por: ${s.filledBy||'—'} · ${s.fillDate||''}</div>
   </div>
 
   <div style="background:var(--blue-xpale);border-left:3px solid var(--blue-mid);border-radius:0 8px 8px 0;padding:8px 12px;font-size:0.78rem;color:var(--text-light);margin-bottom:14px;">
@@ -1237,7 +1248,7 @@ function buildResultsHTML(s) {
     <div style="margin-top:8px;font-size:0.78rem;">
       ${(function(){
         var sex = s.sex;
-        var ag = s.ageGroup;
+        var ag = normAgeGroup(s.ageGroup, s.age);
         var hi = s.scores.hiRaw || 0;
         var de = s.scores.desatRaw || 0;
         var lim = {
@@ -1403,7 +1414,7 @@ table{border-collapse:collapse;width:100%;}
   <div class="sub" style="text-align:right;">Ricardina Correia · Cédula 8233<br>Ordem dos Psicólogos Portugueses</div>
 </div>
 <div class="pname">${s.childName} <span style="font-family:'DM Sans';font-size:11px;color:#8a99a8;font-weight:400;">· ${s.code}</span></div>
-<div class="pmeta">${sexLbl} · ${s.age} anos · Grupo normativo: ${s.ageGroup} · Preenchido por: ${s.filledBy||'—'} · ${s.fillDate||''} · Professor(a): ${s.teacherName||'—'}</div>
+<div class="pmeta">${sexLbl} · ${s.age} anos · Grupo normativo: ${normAgeGroup(s.ageGroup, s.age)} · Preenchido por: ${s.filledBy||'—'} · ${s.fillDate||''} · Professor(a): ${s.teacherName||'—'}</div>
 
 <div class="sbox">
   <div class="slabel">Índices Compostos</div>
