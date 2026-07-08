@@ -1259,7 +1259,7 @@ function showResults(session, scores) {
   document.getElementById('results-content').innerHTML = `
     <div class="results-header">
       <div class="results-name">${session.childName}</div>
-      <div class="results-meta">${sexLabel} · ${session.ageYears} anos · Grupo normativo: ${session.ageGroup} · Preenchido por: ${session.filledBy} · ${session.fillDate}</div>
+      <div class="results-meta">${sexLabel} · ${session.ageYears} anos · Grupo normativo: ${normAgeGroup(session.ageGroup, session.ageYears)} · Preenchido por: ${session.filledBy} · ${session.fillDate}</div>
       <div class="results-meta" style="margin-top:4px;font-family:monospace;color:var(--blue);">${session.patientCode}</div>
     </div>
 
@@ -1579,7 +1579,7 @@ function showSessionDetail(idx) {
   doc.innerHTML = `
     <div style="margin-bottom:20px;">
       <div class="cbcl-print-name" style="font-family:'DM Serif Display';font-size:1.4rem;color:var(--blue);">${s.childName} <span style="font-size:0.85rem;color:var(--text-light);font-family:'DM Sans';">· ${s.patientCode}</span></div>
-      <div style="font-size:0.84rem;color:var(--text-light);margin-top:4px;">${s.sex==='F'?'Feminino':'Masculino'} · ${s.ageYears||'—'} anos · Grupo: ${s.ageGroup||'—'} · Preenchido por: ${s.filledBy||s.preenchidoPor||'—'} · ${s.fillDate||s.submittedAt?.split('T')[0]||''}</div>
+      <div style="font-size:0.84rem;color:var(--text-light);margin-top:4px;">${s.sex==='F'?'Feminino':'Masculino'} · ${s.ageYears||'—'} anos · Grupo: ${(s.ageGroup||s.ageYears)?normAgeGroup(s.ageGroup, s.ageYears):'—'} · Preenchido por: ${s.filledBy||s.preenchidoPor||'—'} · ${s.fillDate||s.submittedAt?.split('T')[0]||''}</div>
     </div>
 
     <!-- Composite with bars -->
@@ -1841,7 +1841,7 @@ function printModal() {
   </div>
 
   <div class="patient-name">${s.childName} <span style="font-family:'DM Sans';font-size:12px;color:#8a99a8;font-weight:400;">· ${s.patientCode}</span></div>
-  <div class="patient-meta">${sexLabel} · ${s.ageYears||'—'} anos · Grupo normativo: ${s.ageGroup || '—'} · Preenchido por: ${s.filledBy || s.preenchidoPor || '—'} · ${s.fillDate || s.submittedAt?.split('T')[0] || ''}</div>
+  <div class="patient-meta">${sexLabel} · ${s.ageYears||'—'} anos · Grupo normativo: ${(s.ageGroup||s.ageYears)?normAgeGroup(s.ageGroup, s.ageYears):'—'} · Preenchido por: ${s.filledBy || s.preenchidoPor || '—'} · ${s.fillDate || s.submittedAt?.split('T')[0] || ''}</div>
 
   <!-- COMPOSITES WITH BARS -->
   <div class="section-box">

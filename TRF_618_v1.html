@@ -989,8 +989,13 @@ async function carregarDoSheet() {
           return d;
         })();
         const _ageGroup = (() => {
+          // Fonte fiável: a idade (a coluna Idade não é coagida a data pelo Sheet).
+          // Deriva o grupo normativo diretamente da idade; só recorre ao valor
+          // guardado em GrupoIdade como último recurso.
+          const ageNum = parseInt(row['Idade'] || row.idade || '', 10);
+          if(!isNaN(ageNum) && ageNum > 0) return ageNum <= 11 ? '6-11' : '12-18';
           const g = String(row['GrupoIdade'] || row.grupoIdade || '');
-          if(g.includes('T')) return g.includes('2026-12')||g.includes('2026-06') ? '12-18' : '6-11';
+          if(g.includes('T')) return g.includes('2026-12') ? '12-18' : '6-11';
           return g;
         })();
         sessions[code] = {
