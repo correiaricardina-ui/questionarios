@@ -522,13 +522,13 @@ var SUBTIPOS_FE={
 };
 
 // Limiares baseados em Muris et al. 1999 (versão portuguesa, ficheiro de cotação oficial).
-// low  = Média - 1DP (limite inferior do intervalo normativo) → score < low marca borderline-baixo
-// high = Média + 1DP (limite superior do intervalo normativo) → score >= high marca zona clínica
-// Convenção do widget: 3 zonas (Normativo / Borderline / Clínico).
-//   score < low      → Normativo (abaixo da média populacional)
-//   low <= score < high → Normativo / Borderline (perto do limiar)
-//   score >= high    → Clínico (acima de 1DP da média)
-// Para a zona borderline visual usamos: score >= low e < high.
+// high = Média + 1DP (limite superior do intervalo normativo) → linha de corte clínica.
+// low  = Média - 1DP (mantido apenas como referência; NÃO usado para classificar).
+// Regra de bandas (decisão clínica do caso, 5 jul 2026 — mais restrita que o default do gerador):
+//   Clínico    → score >= high            (acima de +1DP da média)
+//   Borderline → high-1 <= score < high   (em cima ou a ~1 ponto da linha de corte clínica)
+//   Normativo  → score < high-1           (inclui scores em torno da média)
+// Nota: a regra anterior (borderline >= Média-1DP) sinalizava ~84% da população — descartada.
 var CUTOFFS={
   'Perturbação de Pânico':{low:1.22, high:9.92},
   'Ansiedade Generalizada':{low:4.38, high:11.54},
@@ -814,7 +814,7 @@ function verDetalhe(idx){
 
   function zonaInfo(sc,co){
     if(sc>=co.high) return {cls:'badge-clinical',label:'Clínico',color:'#C0392B'};
-    if(sc>=co.low)  return {cls:'badge-borderline',label:'Borderline',color:'#E67E22'};
+    if(sc>=co.high-1)  return {cls:'badge-borderline',label:'Borderline',color:'#E67E22'};
     return                  {cls:'badge-normative',label:'Normativo',color:'#27AE60'};
   }
 
@@ -825,7 +825,7 @@ function verDetalhe(idx){
     var sc=scores[sub]; var co=CUTOFFS[sub]||{low:2,high:8}; var zi=zonaInfo(sc,co);
     var maxSc=SUBSCALAS[sub].length*2;
     var pct=maxSc>0?Math.round(sc/maxSc*100):0;
-    var lowPct=maxSc>0?Math.round(co.low/maxSc*100):0;
+    var lowPct=maxSc>0?Math.max(0,Math.round((co.high-1)/maxSc*100)):0;
     var highPct=maxSc>0?Math.round(co.high/maxSc*100):0;
     profileRows+=
       '<tr style="border-bottom:1px solid var(--gray-bdr);">'+
@@ -866,7 +866,7 @@ function verDetalhe(idx){
   var chartMaxArr=subsOrdem.map(function(s){return SUBSCALAS[s]?SUBSCALAS[s].length*2:20;});
   var chartColors=subsOrdem.map(function(s){
     var sc=scores[s]; var co=CUTOFFS[s]||{low:2,high:8};
-    return sc>=co.high?'rgba(192,57,43,.8)':sc>=co.low?'rgba(230,126,34,.8)':'rgba(39,174,96,.75)';
+    return sc>=co.high?'rgba(192,57,43,.8)':sc>=co.high-1?'rgba(230,126,34,.8)':'rgba(39,174,96,.75)';
   });
   var chartCutoffs=subsOrdem.map(function(s){return CUTOFFS[s]?CUTOFFS[s].high:8;});
 
@@ -879,7 +879,7 @@ function verDetalhe(idx){
   subsOrdem.forEach(function(sub){
     var sc=scores[sub]; var co=CUTOFFS[sub]||{low:2,high:8};
     if(sc>=co.high) emClinico.push('<strong>'+sub+'</strong> ('+sc+')');
-    else if(sc>=co.low) emBorderline.push('<strong>'+sub+'</strong> ('+sc+')');
+    else if(sc>=co.high-1) emBorderline.push('<strong>'+sub+'</strong> ('+sc+')');
   });
   var partes=[];
   partes.push('O score total é de <strong>'+total+' pontos</strong> (máx. 138), '+
@@ -1001,7 +1001,7 @@ function verDetalhe(idx){
                 if(ctx.dataset.label==='Limiar clínico') return 'Limiar clínico: '+ctx.raw;
                 var sub=subsOrdem[ctx.dataIndex];
                 var co=CUTOFFS[sub]||{low:2,high:8};
-                var z=ctx.raw>=co.high?'Clínico':ctx.raw>=co.low?'Borderline':'Normativo';
+                var z=ctx.raw>=co.high?'Clínico':ctx.raw>=co.high-1?'Borderline':'Normativo';
                 return 'Score: '+ctx.raw+' — '+z+' (max '+(SUBSCALAS[sub]?SUBSCALAS[sub].length*2:'?')+')';
               }
             }
@@ -1072,7 +1072,7 @@ function exportarRelatorioCompletoPDF(idx){
     var co=CUTOFFS[sub]||{low:2,high:8};
     var maxSc=SUBSCALAS[sub].length*2;
     var y=padTop+i*rowH+rowH/2;
-    var barColor=sc>=co.high?'#C0392B':sc>=co.low?'#E67E22':'#27AE60';
+    var barColor=sc>=co.high?'#C0392B':sc>=co.high-1?'#E67E22':'#27AE60';
     var barW=(sc/maxScale)*plotW;
     var maxBarW=(maxSc/maxScale)*plotW;
     // Label da subescala (truncado se necessário)
@@ -1083,9 +1083,9 @@ function exportarRelatorioCompletoPDF(idx){
     // Barra do score
     bars+='<rect x="'+padLeft+'" y="'+(y-9)+'" width="'+Math.max(2,barW)+'" height="18" fill="'+barColor+'" rx="3" opacity="0.85"/>';
     // Marcas dos cutoffs (low e high)
-    var lowX=padLeft+(co.low/maxScale)*plotW;
+    var lowX=padLeft+(Math.max(0,co.high-1)/maxScale)*plotW;
     var highX=padLeft+(co.high/maxScale)*plotW;
-    if(co.low<=maxSc) bars+='<line x1="'+lowX+'" y1="'+(y-12)+'" x2="'+lowX+'" y2="'+(y+12)+'" stroke="#E67E22" stroke-width="1.5" stroke-dasharray="3,2"/>';
+    if((co.high-1)<=maxSc) bars+='<line x1="'+lowX+'" y1="'+(y-12)+'" x2="'+lowX+'" y2="'+(y+12)+'" stroke="#E67E22" stroke-width="1.5" stroke-dasharray="3,2"/>';
     if(co.high<=maxSc) bars+='<line x1="'+highX+'" y1="'+(y-12)+'" x2="'+highX+'" y2="'+(y+12)+'" stroke="#C0392B" stroke-width="1.5" stroke-dasharray="3,2"/>';
     // Valor do score à direita da barra
     bars+='<text x="'+(padLeft+barW+6)+'" y="'+(y+4)+'" font-size="11" font-weight="700" fill="'+barColor+'" font-family="sans-serif">'+sc+'/'+maxSc+'</text>';
@@ -1112,11 +1112,11 @@ function exportarRelatorioCompletoPDF(idx){
   var tableRows='';
   subsOrdem.forEach(function(sub){
     var sc=scores[sub]; var co=CUTOFFS[sub]||{low:6,high:8};
-    var zone=sc>=co.high?'Clínico':sc>=co.low?'Borderline':'Normativo';
+    var zone=sc>=co.high?'Clínico':sc>=co.high-1?'Borderline':'Normativo';
     var maxSc=SUBSCALAS[sub].length*2;
     var pct=maxSc>0?Math.round(sc/maxSc*100):0;
-    var barColor=sc>=co.high?'#C0392B':sc>=co.low?'#E67E22':'#27AE60';
-    var rowStyle=sc>=co.high?'color:#C0392B;font-weight:600;':sc>=co.low?'color:#E67E22;font-weight:600;':'';
+    var barColor=sc>=co.high?'#C0392B':sc>=co.high-1?'#E67E22':'#27AE60';
+    var rowStyle=sc>=co.high?'color:#C0392B;font-weight:600;':sc>=co.high-1?'color:#E67E22;font-weight:600;':'';
     var barHtml='<div style="background:#eee;border-radius:4px;height:10px;width:120px;display:inline-block;vertical-align:middle;">'+
       '<div style="background:'+barColor+';border-radius:4px;height:10px;width:'+pct+'%;"></div></div>';
     tableRows+='<tr><td style="padding:5px 8px;border-bottom:1px solid #eee;'+rowStyle+'">'+sub+'</td>'+
@@ -1138,7 +1138,7 @@ function exportarRelatorioCompletoPDF(idx){
   subsOrdem.forEach(function(sub){
     var sc=scores[sub]; var co=CUTOFFS[sub]||{low:6,high:8};
     if(sc>=co.high) emClinico.push('<strong>'+sub+'</strong> ('+sc+')');
-    else if(sc>=co.low) emBorderline.push('<strong>'+sub+'</strong> ('+sc+')');
+    else if(sc>=co.high-1) emBorderline.push('<strong>'+sub+'</strong> ('+sc+')');
   });
   var partes=[];
   partes.push('O score total é de <strong>'+total+' pontos</strong> (máx. 138), '+
