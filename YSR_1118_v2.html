@@ -1038,14 +1038,20 @@ function startQuestionnaire(){
     moment:'T1'
   };
   // Check if there's a managed session for this code
+  // ── Reavaliação permitida: bloquear apenas duplicado exacto (mesmo código + mesma data de preenchimento). ?rep=1 força nova resposta mesmo no mesmo dia. ──
+  const REPETIR = new URLSearchParams(location.search).has('rep');
   if(document.getElementById('session-code').value.trim()){
     const sessions=load(SK)||{};
     const code=rawCode;
     if(sessions[code]){
       const s=sessions[code];
-      if(s.completed){document.getElementById('landing-err').textContent='Este questionário já foi preenchido.';document.getElementById('landing-err').style.display='block';return;}
-      sessionMeta={...s};
-      // Pre-fill name if from managed session
+      if(s.completed && s.date===sessionMeta.date && !REPETIR){
+        document.getElementById('landing-err').textContent='Este questionário já foi preenchido nesta data. Para uma reavaliação, usa uma data de preenchimento diferente.';
+        document.getElementById('landing-err').style.display='block';
+        return;
+      }
+      // Pré-preencher metadados apenas de sessão gerida ainda pendente (não de uma já concluída)
+      if(!s.completed){ sessionMeta={...s}; }
     }
   }
   answers={};

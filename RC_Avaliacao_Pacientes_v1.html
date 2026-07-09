@@ -603,6 +603,8 @@ const RC_SHEET_URL = 'https://script.google.com/macros/s/AKfycbxX2_Ry7VRH6jr7eGB
 
 // Mapeamento: id do questionário → aba no Sheet central
 const QID_TO_ABA = {
+  'q_aceq_adol':  'ACE_Q_ADOLESCENTE',
+  'q_aceq_cuid':  'ACE_Q_CUIDADOR',
   'q_gai':        'GAI',
   'q_cshq_pt_pais':'CSHQ_PT_Pais',
   'q_ssr_pt':     'SSR_PT',
@@ -758,11 +760,17 @@ const QID_TO_ABA = {
   // ── Anamnese Parental Complementar · Anamnese (Ricardina Correia, 2026) ──
   'q_anamnese_parental_complementar': 'ANAMNESE_PARENTAL_COMPLEMENTAR',
   // ── MABC-2 Lista de Verificação · Movement ABC-2 Checklist — v80 ──
-  'q_mabc2_checklist': 'MABC2_Checklist'
+  'q_mabc2_checklist': 'MABC2_Checklist',
+  // ── A-DES · Experiências Dissociativas em Adolescentes (Putnam et al., 1997) ──
+  'q_ades':            'A_DES',
+  // ── Entrevista adaptada CAARMS (Ricardina Correia, 2026) ──
+  'q_caarms_adap':     'CAARMS_ADAP'
 };
 
 
 const SYNC_KEY_TO_ABA = {
+  'aceq_adol':'ACE_Q_ADOLESCENTE',
+  'aceq_cuid':'ACE_Q_CUIDADOR',
   'gai':      'GAI',
   'cshq_pt_pais':'CSHQ_PT_Pais',
   'ssr_pt':   'SSR_PT',
@@ -1211,7 +1219,13 @@ const SYNC_KEY_TO_ABA = {
   'mabc2_checklist':       'MABC2_Checklist',
   'MABC2_Checklist':       'MABC2_Checklist',
   'MABC2':                 'MABC2_Checklist',
-  'MABC-2':                'MABC2_Checklist'
+  'MABC-2':                'MABC2_Checklist',
+  // ── A-DES · Experiências Dissociativas em Adolescentes ──
+  'ades':                  'A_DES',
+  'A_DES':                 'A_DES',
+  // ── Entrevista adaptada CAARMS ──
+  'caarms_adap':           'CAARMS_ADAP',
+  'CAARMS_ADAP':           'CAARMS_ADAP'
 };
 
 // Cache em memória das respostas do Sheet (evita fetch repetidos na mesma sessão)
@@ -1275,6 +1289,8 @@ async function checkSheetForResponse(qid, patientCode) {
 function initCatalog() {
   const existing = store.get('catalog') || [];
   const defaults = [
+    { id:'q_aceq_adol', name:'ACE-Q — Autorrelato (Adolescente)', dest:['Paciente'], link:'https://correiaricardina-ui.github.io/questionarios/ACE-Q_Adolescente.html', syncKey:'aceq_adol', area:'Trauma & Stress', ageRange:'12–18 anos', objective:'Rastreio de experiências adversas na infância — autorrelato do adolescente (18 itens, 0–2)', domains:['Relações familiares e ambiente emocional','Instabilidade familiar','Experiências de perda','Experiências de insegurança ou ameaça','Experiências sociais difíceis','Experiência emocional interna','Total'] , ageMin:144, ageMax:215},
+    { id:'q_aceq_cuid', name:'ACE-Q — Cuidador', dest:['Mãe','Pai','Enc. Educação'], link:'https://correiaricardina-ui.github.io/questionarios/ACE-Q_Cuidador.html', syncKey:'aceq_cuid', area:'Trauma & Stress', ageRange:'0–18 anos', objective:'Rastreio de experiências adversas na infância — relato do cuidador (15 itens, 0–2)', domains:['Ambiente emocional familiar','Instabilidade familiar','Experiências de perda','Segurança e proteção','Experiências sociais difíceis','Eventos stressantes significativos','Total'] , ageMin:0, ageMax:215},
     { id:'q_gai', name:'GAI — Grelha de Automonitorização Interocetiva', dest:['Paciente'], link:'https://correiaricardina-ui.github.io/questionarios/GAI_Automonitorizacao_Interocetiva_v1.html', syncKey:'gai', area:'Risco & Sintomatologia Psicopatológica Geral', ageRange:'8–17 anos', objective:'Automonitorização interocetiva semanal — eixos somático-regulatório e apetitivo-corporal', domains:['Eixo Somático-Regulatório','Eixo Apetitivo-Corporal','Dimensões em alerta','Marcadores nutricionais'] , ageMin:96, ageMax:215},
     { id:'q_ctrf_15', name:'CTRF-15', dest:['Professor(a)','Educador(a)'], link:'https://correiaricardina-ui.github.io/questionarios/CTRF_15_v2.html', syncKey:'ctrf15', area:'Externalização & Comportamento', ageRange:'1½–5 anos', objective:'Avalia comportamento em contexto pré-escolar — versão educador', domains:['Score Total'] , ageMin:18, ageMax:71},
     { id:'q_brief_prof', name:'BRIEF — Professores', dest:['Professor(a)'], link:'https://correiaricardina-ui.github.io/questionarios/BRIEF_Professores_v3.html', syncKey:'brief_professores', area:'Atenção, PHDA & Funções Executivas', ageRange:'5–18 anos', objective:'Avalia funções executivas em contexto escolar — versão professor', domains:['INHIB','SHIFT','ECON','WM','PO','ISCI','FI','EMI','GEF'] , ageMin:60, ageMax:215},
@@ -2205,7 +2221,23 @@ function initCatalog() {
       syncKey:'tsoc_ygtss', area:'Neurodesenvolvimento', ageRange:'6–18 anos',
       objective:'Lista de sintomas de tiques + escala de gravidade (Yale Global Tic Severity Scale). Cotação descritiva das dimensões motora e fónica em duas janelas — Atual (últimos 7 dias) e Pior fase — com Total de Tiques (0–50), Comprometimento (0–50) e Pontuação Global (0–100). Aplicação com apoio familiar; a cotação final é sempre confirmada pelo/a psicólogo/a em entrevista, integrando a observação direta. Rastreio/monitorização, não diagnóstico.',
       domains:['Subtotal Motor','Subtotal Fónico','Total de Tiques','Comprometimento','Pontuação Global YGTSS'],
-      ageMin:72, ageMax:215 }
+      ageMin:72, ageMax:215 },
+    // ── A-DES · Escala de Experiências Dissociativas em Adolescentes (Putnam et al., 1997) — auto-relato, 30 itens (0–10) ──
+    { id:'q_ades', name:'A-DES — Escala de Experiências Dissociativas em Adolescentes',
+      dest:['Paciente'],
+      link:'https://correiaricardina-ui.github.io/questionarios/A_DES_v1.html',
+      syncKey:'ades', area:'Trauma & Stress', ageRange:'11–18 anos',
+      objective:'Rastreio dimensional de experiências dissociativas por auto-relato do adolescente (30 itens, escala 0–10). Métrica = média global + 5 domínios (Amnésia; Despersonalização/Desrealização; Absorção; Alteração de Identidade; Transversal). Ponto de corte orientador: média ≥ 4,0 = dissociação clinicamente significativa; 3,0–3,9 = moderada. Instrumento de rastreio/orientação, não diagnóstico — integrar sempre com entrevista clínica, observação e história de vida.',
+      domains:['Amnésia','Despersonalização/Desrealização','Absorção','Alteração de Identidade','Transversal','Média Global A-DES'],
+      ageMin:132, ageMax:215 },
+    // ── Entrevista adaptada CAARMS · Experiências Psicóticas Atenuadas, Dissociação e Funcionamento Subjetivo (Ricardina Correia, 2026) ──
+    { id:'q_caarms_adap', name:'Entrevista adaptada CAARMS — Experiências Psicóticas Atenuadas, Dissociação e Funcionamento',
+      dest:['Psicóloga'],
+      link:'https://correiaricardina-ui.github.io/questionarios/Entrevista_CAARMS_adap.html',
+      syncKey:'caarms_adap', area:'Risco & Sintomatologia Psicopatológica Geral', ageRange:'Adolescentes / jovens',
+      objective:'Entrevista semiestruturada aplicada pela psicóloga (Avaliação Fenomenológica de Experiências Psicóticas Atenuadas, Dissociação e Funcionamento Subjetivo). Adaptação inspirada (Via B) nos domínios do CAARMS (Yung, McGorry et al., 2005), com formulação original em português europeu — NÃO constitui reprodução do CAARMS. Orientadora e descritiva, não diagnóstica: não classifica risco (UHR/APS/BLIPS). 10 domínios com cotação estruturada 0/1/2 (típico–preservado / intermédio / marcado–ausente); campos vazios cotam 0. A aplicação regista as respostas fluidas ditas pelo próprio, a cotação de cada item e observações qualitativas; o painel apresenta o perfil por domínio, o Índice Global de Alteração Dimensional (IGAD = média dos 10 índices; IGAD bruto = soma/54×100) e um painel de sinalização (11 marcadores Alto/Médio). Bandas orientadoras do IGAD: <34 Mínima / 34–66 Moderada / ≥67 Elevada. Instrumento orientativo, a integrar sempre com entrevista clínica, observação e história de vida.',
+      domains:['Experiências percetivas atípicas','Pensamento, fluência e organização cognitiva','Ideias de referência, desconfiança e hipervigilância','Self, corpo e experiências dissociativas','Experiência emocional e afetividade','Funcionamento global e esforço subjetivo','Narrativa subjetiva e organização do discurso','Qualidade de contacto e presença relacional','Insight, significado e medos implícitos','Coerência interna e continuidade do self','IGAD (Índice Global)'],
+      ageMin:null, ageMax:null }
   ];
   // Garantir que TODOS os defaults estão no catálogo, sempre
   // (funciona em RC novos e em RC existentes — nunca perde questionários)
@@ -2235,6 +2267,8 @@ function initCatalog() {
   } else {
     // Forçar links e syncKeys actualizados
     const META = {
+      'q_aceq_adol':  { link:'https://correiaricardina-ui.github.io/questionarios/ACE-Q_Adolescente.html', syncKey:'aceq_adol' },
+      'q_aceq_cuid':  { link:'https://correiaricardina-ui.github.io/questionarios/ACE-Q_Cuidador.html', syncKey:'aceq_cuid' },
       'q_gai':        { link:'https://correiaricardina-ui.github.io/questionarios/GAI_Automonitorizacao_Interocetiva_v1.html', syncKey:'gai' },
       'q_tas20':      { link:'https://correiaricardina-ui.github.io/questionarios/TAS20_v7.html', syncKey:'tas20' },
       'q_ippr':       { link:'https://correiaricardina-ui.github.io/questionarios/IPP-R_v1.html', syncKey:'ippr' },
@@ -2427,6 +2461,8 @@ function initCatalog() {
       'q_ssr_pt':       { link:'https://correiaricardina-ui.github.io/questionarios/SSR_PT_v1.html', syncKey:'ssr_pt' },
       // ── TS-OC Parte I — YGTSS — v84 ──
       'q_tsoc_ygtss':   { link:'https://correiaricardina-ui.github.io/questionarios/TSOC_YGTSS_v1.html', syncKey:'tsoc_ygtss' },
+      'q_ades':         { link:'https://correiaricardina-ui.github.io/questionarios/A_DES_v1.html', syncKey:'ades' },
+      'q_caarms_adap':  { link:'https://correiaricardina-ui.github.io/questionarios/Entrevista_CAARMS_adap.html', syncKey:'caarms_adap' },
     };
     // ── Re-store com chave correcta ('q_' + id) — corrige instalações anteriores ──
     // Garante que Conners, FAD e MAP ficam acessíveis pelo META.forEach e getCatalog
@@ -2454,6 +2490,22 @@ function initCatalog() {
     });
     // Adicionar q_cbcl_15 ao catálogo se ainda não existir
     const catalog = store.get('catalog') || [];
+    if(!catalog.includes('q_aceq_adol')) {
+      const aceqAdolDefault = defaults.find(d => d.id === 'q_aceq_adol');
+      if(aceqAdolDefault) {
+        store.set('q_' + aceqAdolDefault.id, aceqAdolDefault);
+        catalog.push('q_aceq_adol');
+        store.set('catalog', catalog);
+      }
+    }
+    if(!catalog.includes('q_aceq_cuid')) {
+      const aceqCuidDefault = defaults.find(d => d.id === 'q_aceq_cuid');
+      if(aceqCuidDefault) {
+        store.set('q_' + aceqCuidDefault.id, aceqCuidDefault);
+        catalog.push('q_aceq_cuid');
+        store.set('catalog', catalog);
+      }
+    }
     if(!catalog.includes('q_gai')) {
       const gaiDefault = defaults.find(d => d.id === 'q_gai');
       if(gaiDefault) {
@@ -3117,6 +3169,17 @@ function getResultSummary(qid, patientCode) {
 
 function formatScoreSummary(scores, syncKey) {
   if(!scores) return null;
+  if(syncKey === 'aceq_adol' || syncKey === 'aceq_cuid') {
+    const total = scores['Total'] ?? scores['total'] ?? scores['Pontuação Total'];
+    const classif = scores['Classificação'] ?? scores['classificacao'] ?? scores['Classificacao'] ?? '';
+    if(total != null) {
+      const maxT = syncKey === 'aceq_adol' ? 36 : 30;
+      const midMax = syncKey === 'aceq_adol' ? 8 : 6;   // até aqui: baixa
+      const modMax = syncKey === 'aceq_adol' ? 18 : 14; // até aqui: moderada; acima: elevada/significativa
+      const cls = total > modMax ? 'color:#C0392B;font-weight:700;' : total > midMax ? 'color:#E67E22;font-weight:600;' : 'color:var(--green);font-weight:600;';
+      return `<span style="font-size:0.78rem;${cls}">Adversidade = ${total}/${maxT}${classif?' · '+classif:''}</span>`;
+    }
+  }
   if(syncKey === 'gai') {
     const som = scores['EIXO_SOMATICO'] ?? scores['eixo_som'] ?? scores['Eixo Somático-Regulatório'];
     const ape = scores['EIXO_APETITIVO'] ?? scores['eixo_ape'] ?? scores['Eixo Apetitivo-Corporal'];
@@ -4424,6 +4487,27 @@ function formatScoreSummary(scores, syncKey) {
     }
   }
 
+  if(syncKey === 'ades') {
+    // A-DES: média global 0–10; cut-off orientador ≥4 (clínico) · 3–3,9 (moderado)
+    const g = scores['MediaGlobal'] ?? scores['mediaGlobal'] ?? scores['media_global'] ?? scores['Media Global'];
+    if(g != null && g !== '') {
+      const v = parseFloat(String(g).replace(',','.'));
+      const cls = v >= 4 ? 'color:#C0392B;font-weight:700;' : v >= 3 ? 'color:#E67E22;font-weight:600;' : 'color:var(--green);font-weight:600;';
+      return `<span style="font-size:0.78rem;${cls}">Média A-DES = ${String(g).replace('.',',')}/10</span>`;
+    }
+  }
+
+  if(syncKey === 'caarms_adap') {
+    // Entrevista adaptada CAARMS: IGAD 0–100 + banda orientadora (<34 Mínima · 34–66 Moderada · ≥67 Elevada)
+    const ig = scores['IGAD'] ?? scores['igad'] ?? scores['Igad'];
+    if(ig != null && ig !== '') {
+      const v = parseFloat(String(ig).replace(',','.'));
+      const banda = scores['Banda_IGAD'] || scores['banda'] || (v >= 67 ? 'Elevada' : v >= 34 ? 'Moderada' : 'Mínima');
+      const cls = v >= 67 ? 'color:#C0392B;font-weight:700;' : v >= 34 ? 'color:#E67E22;font-weight:600;' : 'color:var(--green);font-weight:600;';
+      return `<span style="font-size:0.78rem;${cls}">IGAD = ${String(ig).replace('.',',')} · ${banda}</span>`;
+    }
+  }
+
   return null;
 }
 
@@ -4577,6 +4661,9 @@ function renderAssignments(patientId) {
             // ── Verificação nome-primeiro, relação como fallback ──
             function matchRespondent(row, aba, recip) {
               const NC = {
+                // ── ACE-Q · Experiências Adversas (nome primeiro; tipo/relação como fallback) ──
+                'ACE_Q_ADOLESCENTE':['NomeInformante','Informante'],
+                'ACE_Q_CUIDADOR':['NomeInformante','Relação','Informante'],
                 // ── Diário de Episódios · Monitorização (nome primeiro, tipo como fallback) ──
                 'DIARIO_EPISODIOS':['NomeInformante','Informante'],
                 // ── Anamnese Parental Complementar · Anamnese (nome primeiro, tipo como fallback) ──
@@ -4760,7 +4847,9 @@ function renderAssignments(patientId) {
                 // RBS-R — Comportamentos Repetitivos (vários respondentes: Informante distingue Mãe/Pai/Professor/Clínico) v29
                 'RBS_R':                 ['NomeInformante','Informante'],
                 // PSI-4 adap — Stress Parental (vários respondentes: Informante distingue Mãe/Pai/Cuidador) v30
-                'PSI4_adap':             ['NomeInformante','Informante']
+                'PSI4_adap':             ['NomeInformante','Informante'],
+                // Entrevista adaptada CAARMS — aplicada pela psicóloga (NomeInformante = avaliador(a))
+                'CAARMS_ADAP':           ['NomeInformante','Informante']
               };
               const RC = {
                 'SWAN':['Relação'],'BRIEF_Pais':['Relação'],'SCARED_R_PAIS':['Relação'],
@@ -5123,7 +5212,9 @@ async function syncAndMark(patientId, idx) {
           // PSI-4 adap — Stress Parental (vários respondentes: Informante distingue Mãe/Pai/Cuidador) v30
           'PSI4_adap':             ['NomeInformante','Informante'],
           // SNAP-IV — vários respondentes possíveis (Informante distingue Pais/Professores) v81
-          'SNAP_IV':               ['NomeInformante','Informante']
+          'SNAP_IV':               ['NomeInformante','Informante'],
+          // Entrevista adaptada CAARMS — aplicada pela psicóloga (NomeInformante = avaliador(a))
+          'CAARMS_ADAP':           ['NomeInformante','Informante']
         };
         const RC2 = {
           'SWAN':['Relação'],'BRIEF_Pais':['Relação'],'SCARED_R_PAIS':['Relação'],
