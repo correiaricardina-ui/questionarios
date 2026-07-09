@@ -826,7 +826,7 @@ function verDetalhe(idx){
 
   function zonaInfo(sc,co){
     if(sc>=co.high) return {cls:'badge-clinical',label:'Clínico',color:'#C0392B'};
-    if(sc>=co.low)  return {cls:'badge-borderline',label:'Borderline',color:'#E67E22'};
+    if((sc>0&&sc>=co.low))  return {cls:'badge-borderline',label:'Borderline',color:'#E67E22'};
     return                  {cls:'badge-normative',label:'Normativo',color:'#27AE60'};
   }
 
@@ -878,7 +878,7 @@ function verDetalhe(idx){
   var chartMaxArr=subsOrdem.map(function(s){return SUBSCALAS[s]?SUBSCALAS[s].length*2:20;});
   var chartColors=subsOrdem.map(function(s){
     var sc=scores[s]; var co=CUTOFFS[s]||{low:2,high:8};
-    return sc>=co.high?'rgba(192,57,43,.8)':sc>=co.low?'rgba(230,126,34,.8)':'rgba(39,174,96,.75)';
+    return sc>=co.high?'rgba(192,57,43,.8)':(sc>0&&sc>=co.low)?'rgba(230,126,34,.8)':'rgba(39,174,96,.75)';
   });
   var chartCutoffs=subsOrdem.map(function(s){return CUTOFFS[s]?CUTOFFS[s].high:8;});
 
@@ -891,7 +891,7 @@ function verDetalhe(idx){
   subsOrdem.forEach(function(sub){
     var sc=scores[sub]; var co=CUTOFFS[sub]||{low:2,high:8};
     if(sc>=co.high) emClinico.push('<strong>'+sub+'</strong> ('+sc+')');
-    else if(sc>=co.low) emBorderline.push('<strong>'+sub+'</strong> ('+sc+')');
+    else if((sc>0&&sc>=co.low)) emBorderline.push('<strong>'+sub+'</strong> ('+sc+')');
   });
   var partes=[];
   partes.push('O score total é de <strong>'+total+' pontos</strong> (máx. 138), '+
@@ -1014,7 +1014,7 @@ function verDetalhe(idx){
                 if(ctx.dataset.label==='Limiar clínico') return 'Limiar clínico: '+ctx.raw;
                 var sub=subsOrdem[ctx.dataIndex];
                 var co=CUTOFFS[sub]||{low:2,high:8};
-                var z=ctx.raw>=co.high?'Clínico':ctx.raw>=co.low?'Borderline':'Normativo';
+                var z=ctx.raw>=co.high?'Clínico':(ctx.raw>0&&ctx.raw>=co.low)?'Borderline':'Normativo';
                 return 'Score: '+ctx.raw+' — '+z+' (max '+(SUBSCALAS[sub]?SUBSCALAS[sub].length*2:'?')+')';
               }
             }
@@ -1082,7 +1082,7 @@ function exportarRelatorioCompletoPDF(idx){
     var co=CUTOFFS[sub]||{low:2,high:8};
     var maxSc=SUBSCALAS[sub].length*2;
     var y=padTop+i*rowH+rowH/2;
-    var barColor=sc>=co.high?'#C0392B':sc>=co.low?'#E67E22':'#27AE60';
+    var barColor=sc>=co.high?'#C0392B':(sc>0&&sc>=co.low)?'#E67E22':'#27AE60';
     var barW=(sc/maxScale)*plotW;
     var maxBarW=(maxSc/maxScale)*plotW;
     var label=sub.length>26?sub.slice(0,24)+'…':sub;
@@ -1117,11 +1117,11 @@ function exportarRelatorioCompletoPDF(idx){
   var tableRows='';
   subsOrdem.forEach(function(sub){
     var sc=scores[sub]; var co=CUTOFFS[sub]||{low:6,high:8};
-    var zone=sc>=co.high?'Clínico':sc>=co.low?'Borderline':'Normativo';
+    var zone=sc>=co.high?'Clínico':(sc>0&&sc>=co.low)?'Borderline':'Normativo';
     var maxSc=SUBSCALAS[sub].length*2;
     var pct=maxSc>0?Math.round(sc/maxSc*100):0;
-    var barColor=sc>=co.high?'#C0392B':sc>=co.low?'#E67E22':'#27AE60';
-    var rowStyle=sc>=co.high?'color:#C0392B;font-weight:600;':sc>=co.low?'color:#E67E22;font-weight:600;':'';
+    var barColor=sc>=co.high?'#C0392B':(sc>0&&sc>=co.low)?'#E67E22':'#27AE60';
+    var rowStyle=sc>=co.high?'color:#C0392B;font-weight:600;':(sc>0&&sc>=co.low)?'color:#E67E22;font-weight:600;':'';
     var barHtml='<div style="background:#eee;border-radius:4px;height:10px;width:120px;display:inline-block;vertical-align:middle;">'+
       '<div style="background:'+barColor+';border-radius:4px;height:10px;width:'+pct+'%;"></div></div>';
     tableRows+='<tr><td style="padding:5px 8px;border-bottom:1px solid #eee;'+rowStyle+'">'+sub+'</td>'+
@@ -1144,7 +1144,7 @@ function exportarRelatorioCompletoPDF(idx){
   subsOrdem.forEach(function(sub){
     var sc=scores[sub]; var co=CUTOFFS[sub]||{low:6,high:8};
     if(sc>=co.high) emClinico.push('<strong>'+sub+'</strong> ('+sc+')');
-    else if(sc>=co.low) emBorderline.push('<strong>'+sub+'</strong> ('+sc+')');
+    else if((sc>0&&sc>=co.low)) emBorderline.push('<strong>'+sub+'</strong> ('+sc+')');
   });
   var partes=[];
   partes.push('O score total é de <strong>'+total+' pontos</strong> (máx. 138), '+
