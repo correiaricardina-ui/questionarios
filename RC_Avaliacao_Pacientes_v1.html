@@ -764,7 +764,9 @@ const QID_TO_ABA = {
   // ── A-DES · Experiências Dissociativas em Adolescentes (Putnam et al., 1997) ──
   'q_ades':            'A_DES',
   // ── Entrevista adaptada CAARMS (Ricardina Correia, 2026) ──
-  'q_caarms_adap':     'CAARMS_ADAP'
+  'q_caarms_adap':     'CAARMS_ADAP',
+  // ── Prova «O Cuidar e a Integridade do Corpo» (Ricardina Correia, 2026) ──
+  'q_cuidar_corpo':    'CUIDAR_CORPO'
 };
 
 
@@ -1225,7 +1227,10 @@ const SYNC_KEY_TO_ABA = {
   'A_DES':                 'A_DES',
   // ── Entrevista adaptada CAARMS ──
   'caarms_adap':           'CAARMS_ADAP',
-  'CAARMS_ADAP':           'CAARMS_ADAP'
+  'CAARMS_ADAP':           'CAARMS_ADAP',
+  // ── Prova «O Cuidar e a Integridade do Corpo» ──
+  'cuidar_corpo':          'CUIDAR_CORPO',
+  'CUIDAR_CORPO':          'CUIDAR_CORPO'
 };
 
 // Cache em memória das respostas do Sheet (evita fetch repetidos na mesma sessão)
@@ -2237,7 +2242,15 @@ function initCatalog() {
       syncKey:'caarms_adap', area:'Risco & Sintomatologia Psicopatológica Geral', ageRange:'Adolescentes / jovens',
       objective:'Entrevista semiestruturada aplicada pela psicóloga (Avaliação Fenomenológica de Experiências Psicóticas Atenuadas, Dissociação e Funcionamento Subjetivo). Adaptação inspirada (Via B) nos domínios do CAARMS (Yung, McGorry et al., 2005), com formulação original em português europeu — NÃO constitui reprodução do CAARMS. Orientadora e descritiva, não diagnóstica: não classifica risco (UHR/APS/BLIPS). 10 domínios com cotação estruturada 0/1/2 (típico–preservado / intermédio / marcado–ausente); campos vazios cotam 0. A aplicação regista as respostas fluidas ditas pelo próprio, a cotação de cada item e observações qualitativas; o painel apresenta o perfil por domínio, o Índice Global de Alteração Dimensional (IGAD = média dos 10 índices; IGAD bruto = soma/54×100) e um painel de sinalização (11 marcadores Alto/Médio). Bandas orientadoras do IGAD: <34 Mínima / 34–66 Moderada / ≥67 Elevada. Instrumento orientativo, a integrar sempre com entrevista clínica, observação e história de vida.',
       domains:['Experiências percetivas atípicas','Pensamento, fluência e organização cognitiva','Ideias de referência, desconfiança e hipervigilância','Self, corpo e experiências dissociativas','Experiência emocional e afetividade','Funcionamento global e esforço subjetivo','Narrativa subjetiva e organização do discurso','Qualidade de contacto e presença relacional','Insight, significado e medos implícitos','Coerência interna e continuidade do self','IGAD (Índice Global)'],
-      ageMin:null, ageMax:null }
+      ageMin:null, ageMax:null },
+    // ── Prova «O Cuidar e a Integridade do Corpo» · story-stems abertos (Ricardina Correia, 2026) ──
+    { id:'q_cuidar_corpo', name:'Prova «O Cuidar e a Integridade do Corpo»',
+      dest:['Psicóloga'],
+      link:'https://correiaricardina-ui.github.io/questionarios/Prova_Cuidar_Integridade_Corpo_v1.html',
+      syncKey:'cuidar_corpo', area:'Trauma & Stress', ageRange:'Idade escolar (≈ 6–11 anos)',
+      objective:'Prova projetiva integrada de story-stems abertos (instrumento original de Ricardina Correia, 2026), de aplicação exclusiva pela psicóloga, para avaliação idiográfica e qualitativa do cuidar, da integridade corporal, do coping e das figuras cuidadoras em idade escolar (≈6–11 anos). Administração não-diretiva: não nomear «medo/dor/doença/hospital» antes da criança; sondas condicionais só se o tema emergir; registo do verbatim, hesitações, evitamentos e pedidos de tranquilização; desenho opcional. Leitura descritiva (não-normativa, não-cotação): posicionamento 1 (adaptativo) → 5 (vulnerabilidade) em 4 eixos — Integridade corporal; Cuidado e dependência; Coping/resolução (padrão predominante + secundário); Figuras cuidadoras — mais reparação relacional no desfecho. Instrumento orientativo, a integrar sempre com entrevista clínica, observação e história de vida.',
+      domains:['Integridade corporal','Cuidado e dependência','Coping / resolução','Figuras cuidadoras (+ reparação relacional)'],
+      ageMin:72, ageMax:143 }
   ];
   // Garantir que TODOS os defaults estão no catálogo, sempre
   // (funciona em RC novos e em RC existentes — nunca perde questionários)
@@ -2463,6 +2476,7 @@ function initCatalog() {
       'q_tsoc_ygtss':   { link:'https://correiaricardina-ui.github.io/questionarios/TSOC_YGTSS_v1.html', syncKey:'tsoc_ygtss' },
       'q_ades':         { link:'https://correiaricardina-ui.github.io/questionarios/A_DES_v1.html', syncKey:'ades' },
       'q_caarms_adap':  { link:'https://correiaricardina-ui.github.io/questionarios/Entrevista_CAARMS_adap.html', syncKey:'caarms_adap' },
+      'q_cuidar_corpo': { link:'https://correiaricardina-ui.github.io/questionarios/Prova_Cuidar_Integridade_Corpo_v1.html', syncKey:'cuidar_corpo' },
     };
     // ── Re-store com chave correcta ('q_' + id) — corrige instalações anteriores ──
     // Garante que Conners, FAD e MAP ficam acessíveis pelo META.forEach e getCatalog
@@ -4508,6 +4522,14 @@ function formatScoreSummary(scores, syncKey) {
     }
   }
 
+  if(syncKey === 'cuidar_corpo') {
+    // Prova «O Cuidar e a Integridade do Corpo»: sem cotação numérica — mostra o perfil-resumo descritivo dos eixos
+    const p = scores['PerfilResumo'] ?? scores['perfilResumo'] ?? scores['perfil'];
+    if(p != null && p !== '') {
+      return `<span style="font-size:0.78rem;color:var(--blue);font-weight:600;">${String(p)}</span>`;
+    }
+  }
+
   return null;
 }
 
@@ -4849,7 +4871,9 @@ function renderAssignments(patientId) {
                 // PSI-4 adap — Stress Parental (vários respondentes: Informante distingue Mãe/Pai/Cuidador) v30
                 'PSI4_adap':             ['NomeInformante','Informante'],
                 // Entrevista adaptada CAARMS — aplicada pela psicóloga (NomeInformante = avaliador(a))
-                'CAARMS_ADAP':           ['NomeInformante','Informante']
+                'CAARMS_ADAP':           ['NomeInformante','Informante'],
+                // Prova «O Cuidar e a Integridade do Corpo» — aplicada pela psicóloga (NomeInformante = avaliador(a))
+                'CUIDAR_CORPO':          ['NomeInformante','Informante']
               };
               const RC = {
                 'SWAN':['Relação'],'BRIEF_Pais':['Relação'],'SCARED_R_PAIS':['Relação'],
@@ -5214,7 +5238,9 @@ async function syncAndMark(patientId, idx) {
           // SNAP-IV — vários respondentes possíveis (Informante distingue Pais/Professores) v81
           'SNAP_IV':               ['NomeInformante','Informante'],
           // Entrevista adaptada CAARMS — aplicada pela psicóloga (NomeInformante = avaliador(a))
-          'CAARMS_ADAP':           ['NomeInformante','Informante']
+          'CAARMS_ADAP':           ['NomeInformante','Informante'],
+          // Prova «O Cuidar e a Integridade do Corpo» — aplicada pela psicóloga (NomeInformante = avaliador(a))
+          'CUIDAR_CORPO':          ['NomeInformante','Informante']
         };
         const RC2 = {
           'SWAN':['Relação'],'BRIEF_Pais':['Relação'],'SCARED_R_PAIS':['Relação'],
