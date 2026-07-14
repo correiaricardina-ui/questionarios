@@ -766,7 +766,10 @@ const QID_TO_ABA = {
   // ── Entrevista adaptada CAARMS (Ricardina Correia, 2026) ──
   'q_caarms_adap':     'CAARMS_ADAP',
   // ── Prova «O Cuidar e a Integridade do Corpo» (Ricardina Correia, 2026) ──
-  'q_cuidar_corpo':    'CUIDAR_CORPO'
+  'q_cuidar_corpo':    'CUIDAR_CORPO',
+  // ── CSAS / CSAS-P · Ansiedade de Separação (Méndez et al., 2014/2022) ──
+  'q_csas':            'CSAS',
+  'q_csas_p':          'CSAS_P'
 };
 
 
@@ -1230,7 +1233,10 @@ const SYNC_KEY_TO_ABA = {
   'CAARMS_ADAP':           'CAARMS_ADAP',
   // ── Prova «O Cuidar e a Integridade do Corpo» ──
   'cuidar_corpo':          'CUIDAR_CORPO',
-  'CUIDAR_CORPO':          'CUIDAR_CORPO'
+  'CUIDAR_CORPO':          'CUIDAR_CORPO',
+  // ── CSAS / CSAS-P · Ansiedade de Separação (Méndez et al., 2014/2022) ──
+  'csas':                  'CSAS',
+  'csas_p':                'CSAS_P'
 };
 
 // Cache em memória das respostas do Sheet (evita fetch repetidos na mesma sessão)
@@ -2250,7 +2256,9 @@ function initCatalog() {
       syncKey:'cuidar_corpo', area:'Trauma & Stress', ageRange:'Idade escolar (≈ 6–11 anos)',
       objective:'Prova projetiva integrada de story-stems abertos (instrumento original de Ricardina Correia, 2026), de aplicação exclusiva pela psicóloga, para avaliação idiográfica e qualitativa do cuidar, da integridade corporal, do coping e das figuras cuidadoras em idade escolar (≈6–11 anos). Administração não-diretiva: não nomear «medo/dor/doença/hospital» antes da criança; sondas condicionais só se o tema emergir; registo do verbatim, hesitações, evitamentos e pedidos de tranquilização; desenho opcional. Leitura descritiva (não-normativa, não-cotação): posicionamento 1 (adaptativo) → 5 (vulnerabilidade) em 4 eixos — Integridade corporal; Cuidado e dependência; Coping/resolução (padrão predominante + secundário); Figuras cuidadoras — mais reparação relacional no desfecho. Instrumento orientativo, a integrar sempre com entrevista clínica, observação e história de vida.',
       domains:['Integridade corporal','Cuidado e dependência','Coping / resolução','Figuras cuidadoras (+ reparação relacional)'],
-      ageMin:72, ageMax:143 }
+      ageMin:72, ageMax:143 },
+    { id:'q_csas', name:'CSAS — Ansiedade de Separação (Criança)', dest:['Paciente'], link:'https://correiaricardina-ui.github.io/questionarios/CSAS_v1.html', syncKey:'csas', area:'Ansiedade, Depressão & Internalização', ageRange:'8–11 anos', objective:'Autorrelato de sintomas de ansiedade de separação (20 itens, 4 fatores; Méndez et al., 2014)', domains:['Preocupação com a separação','Mal-estar da separação','Oposição à separação','Calma na separação (invertida)','Total'] , ageMin:96, ageMax:143},
+    { id:'q_csas_p', name:'CSAS-P — Ansiedade de Separação (Pais)', dest:['Mãe','Pai','Enc. Educação'], link:'https://correiaricardina-ui.github.io/questionarios/CSAS_P_v1.html', syncKey:'csas_p', area:'Ansiedade, Depressão & Internalização', ageRange:'8–11 anos', objective:'Heterorrelato parental de ansiedade de separação (20 itens, 4 fatores; Méndez et al., 2022)', domains:['Preocupação','Oposição','Calma (positivo/protetor)','Mal-estar','Total (orientativo)'] , ageMin:96, ageMax:143}
   ];
   // Garantir que TODOS os defaults estão no catálogo, sempre
   // (funciona em RC novos e em RC existentes — nunca perde questionários)
@@ -2477,6 +2485,8 @@ function initCatalog() {
       'q_ades':         { link:'https://correiaricardina-ui.github.io/questionarios/A_DES_v1.html', syncKey:'ades' },
       'q_caarms_adap':  { link:'https://correiaricardina-ui.github.io/questionarios/Entrevista_CAARMS_adap.html', syncKey:'caarms_adap' },
       'q_cuidar_corpo': { link:'https://correiaricardina-ui.github.io/questionarios/Prova_Cuidar_Integridade_Corpo_v1.html', syncKey:'cuidar_corpo' },
+      'q_csas':         { link:'https://correiaricardina-ui.github.io/questionarios/CSAS_v1.html', syncKey:'csas' },
+      'q_csas_p':       { link:'https://correiaricardina-ui.github.io/questionarios/CSAS_P_v1.html', syncKey:'csas_p' },
     };
     // ── Re-store com chave correcta ('q_' + id) — corrige instalações anteriores ──
     // Garante que Conners, FAD e MAP ficam acessíveis pelo META.forEach e getCatalog
@@ -3016,6 +3026,16 @@ function initCatalog() {
     if(!catalog.includes('q_tsoc_ygtss')) {
       const dTsoc = defaults.find(x => x.id === 'q_tsoc_ygtss');
       if(dTsoc) { store.set('q_' + dTsoc.id, dTsoc); catalog.push('q_tsoc_ygtss'); store.set('catalog', catalog); }
+    }
+    // CSAS · Ansiedade de Separação (Criança)
+    if(!catalog.includes('q_csas')) {
+      const d = defaults.find(x => x.id === 'q_csas');
+      if(d) { store.set('q_' + d.id, d); catalog.push('q_csas'); store.set('catalog', catalog); }
+    }
+    // CSAS-P · Ansiedade de Separação (Pais)
+    if(!catalog.includes('q_csas_p')) {
+      const d = defaults.find(x => x.id === 'q_csas_p');
+      if(d) { store.set('q_' + d.id, d); catalog.push('q_csas_p'); store.set('catalog', catalog); }
     }
     }
   }
@@ -4530,6 +4550,25 @@ function formatScoreSummary(scores, syncKey) {
     }
   }
 
+  if(syncKey === 'csas') {
+    // CSAS (criança): total 20–100; corte orientativo ≥68 (norma ESP)
+    const tot = scores['Total'] ?? scores['total'];
+    if(tot != null && tot !== '') {
+      const t = Number(tot);
+      const cls = t >= 68 ? 'color:#C0392B;font-weight:700;' : 'color:var(--green);font-weight:600;';
+      const marca = t >= 68 ? ' ≥ corte (68)' : ' &lt; corte';
+      return `<span style="font-size:0.78rem;${cls}">CSAS Total = ${t}/100 ·${marca}</span>`;
+    }
+  }
+
+  if(syncKey === 'csas_p') {
+    // CSAS-P (pais): sem ponto de corte — total orientativo; leitura principal por fator
+    const tot = scores['Total'] ?? scores['total'];
+    if(tot != null && tot !== '') {
+      return `<span style="font-size:0.78rem;color:var(--blue);font-weight:600;">CSAS-P Total = ${Number(tot)}/100 <span style="font-weight:400;color:var(--text-light)">(orientativo)</span></span>`;
+    }
+  }
+
   return null;
 }
 
@@ -4873,11 +4912,15 @@ function renderAssignments(patientId) {
                 // Entrevista adaptada CAARMS — aplicada pela psicóloga (NomeInformante = avaliador(a))
                 'CAARMS_ADAP':           ['NomeInformante','Informante'],
                 // Prova «O Cuidar e a Integridade do Corpo» — aplicada pela psicóloga (NomeInformante = avaliador(a))
-                'CUIDAR_CORPO':          ['NomeInformante','Informante']
+                'CUIDAR_CORPO':          ['NomeInformante','Informante'],
+                // CSAS / CSAS-P · Ansiedade de Separação (nome primeiro; tipo/relação como fallback)
+                'CSAS':                  ['NomeInformante','Informante'],
+                'CSAS_P':                ['NomeInformante','Relação','Informante']
               };
               const RC = {
                 'SWAN':['Relação'],'BRIEF_Pais':['Relação'],'SCARED_R_PAIS':['Relação'],
-                'SPAS_Pais':['Relação'],'SPAS_Prof':['Relação'],'QC_Coparentalidade':['Respondente']
+                'SPAS_Pais':['Relação'],'SPAS_Prof':['Relação'],'QC_Coparentalidade':['Respondente'],
+                'CSAS_P':['Relação']
               };
               function sm(a,b){if(!a||!b)return false;
                 return a.includes(b)||b.includes(a)||
@@ -5240,11 +5283,15 @@ async function syncAndMark(patientId, idx) {
           // Entrevista adaptada CAARMS — aplicada pela psicóloga (NomeInformante = avaliador(a))
           'CAARMS_ADAP':           ['NomeInformante','Informante'],
           // Prova «O Cuidar e a Integridade do Corpo» — aplicada pela psicóloga (NomeInformante = avaliador(a))
-          'CUIDAR_CORPO':          ['NomeInformante','Informante']
+          'CUIDAR_CORPO':          ['NomeInformante','Informante'],
+          // CSAS / CSAS-P · Ansiedade de Separação (nome primeiro; tipo/relação como fallback)
+          'CSAS':                  ['NomeInformante','Informante'],
+          'CSAS_P':                ['NomeInformante','Relação','Informante']
         };
         const RC2 = {
           'SWAN':['Relação'],'BRIEF_Pais':['Relação'],'SCARED_R_PAIS':['Relação'],
-          'SPAS_Pais':['Relação'],'SPAS_Prof':['Relação'],'QC_Coparentalidade':['Respondente']
+          'SPAS_Pais':['Relação'],'SPAS_Prof':['Relação'],'QC_Coparentalidade':['Respondente'],
+          'CSAS_P':['Relação']
         };
         function sm(a,b){if(!a||!b)return false;return a.includes(b)||b.includes(a)||
           a.split(/[\s\/\(\)]+/).some(w=>w.length>3&&b.includes(w))||

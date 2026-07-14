@@ -293,6 +293,122 @@
     font-size: 11px; color: var(--muted); letter-spacing: 0.08em;
   }
 
+  /* ===== IDENTIDADE (código / informante) ===== */
+  .id-grid {
+    margin-top: 14px;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px 14px;
+    max-width: 560px;
+  }
+  .id-field { display: flex; flex-direction: column; gap: 4px; }
+  .id-field label {
+    font-size: 10px; color: var(--muted);
+    letter-spacing: 0.1em; text-transform: uppercase; font-weight: 700;
+  }
+  .id-field label .opt { text-transform: none; letter-spacing: 0; font-weight: 500; color: var(--muted); opacity: .8; }
+  .id-field input, .id-field select {
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: 6px; padding: 8px 11px;
+    font-size: 13.5px; font-family: inherit; color: var(--text);
+    width: 100%;
+  }
+  .id-field input:focus, .id-field select:focus { outline: none; border-color: var(--accent); background: white; }
+  #patient-code { text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; }
+  .id-error {
+    display: none; margin-top: 8px; max-width: 560px;
+    background: #F5E6E2; border: 1px solid #E4C3B8; color: var(--red);
+    border-radius: 6px; padding: 8px 12px; font-size: 12.5px;
+  }
+  .id-error.show { display: block; }
+
+  /* ===== ESTADO DE SINCRONIZAÇÃO POR EPISÓDIO ===== */
+  .ep-sync {
+    display: inline-block; margin-left: 8px;
+    font-size: 10.5px; font-weight: 600; letter-spacing: 0.04em;
+    padding: 1px 8px; border-radius: 10px; vertical-align: middle;
+  }
+  .ep-sync.ok { background: #E5EFE0; color: var(--green); }
+  .ep-sync.pending { background: #FBEEDD; color: var(--accent); }
+
+  /* ===== PAINEL CLÍNICO ===== */
+  .clin-overlay {
+    display: none; position: fixed; inset: 0; z-index: 200;
+    background: var(--bg); overflow-y: auto;
+  }
+  .clin-overlay.open { display: block; }
+  .clin-header {
+    background: var(--primary); color: white;
+    padding: 18px 22px; position: sticky; top: 0; z-index: 10;
+    display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  }
+  .clin-header .clin-title { font-family: 'Lora', serif; font-size: 19px; font-weight: 600; color: white; }
+  .clin-header .clin-sub { font-size: 12px; opacity: .85; font-style: italic; }
+  .clin-header .clin-close {
+    margin-left: auto; background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.3);
+    color: white; padding: 7px 14px; border-radius: 6px; cursor: pointer;
+    font-size: 12.5px; font-family: inherit; font-weight: 500;
+  }
+  .clin-header .clin-close:hover { background: rgba(255,255,255,.25); }
+  .clin-body { max-width: 1080px; margin: 0 auto; padding: 22px 18px 60px 18px; }
+  .clin-toolbar { display: flex; gap: 10px; align-items: center; margin-bottom: 16px; flex-wrap: wrap; }
+  .clin-toolbar input {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 6px; padding: 8px 12px; font-size: 13px; font-family: inherit;
+    color: var(--text); width: 200px; text-transform: uppercase; letter-spacing: .04em;
+  }
+  .clin-toolbar input:focus { outline: none; border-color: var(--accent); }
+  .clin-count { font-size: 12.5px; color: var(--text-soft); margin-left: auto; }
+  .clin-status { font-size: 12px; color: var(--muted); font-style: italic; margin-bottom: 12px; }
+
+  .clin-table-wrap { overflow-x: auto; border: 1px solid var(--border-soft); border-radius: 10px; background: var(--card); }
+  table.clin-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  table.clin-table th {
+    text-align: left; background: var(--bg-deep); color: var(--primary-deep);
+    font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; font-weight: 700;
+    padding: 10px 12px; border-bottom: 1px solid var(--border); white-space: nowrap;
+  }
+  table.clin-table td { padding: 10px 12px; border-bottom: 1px solid var(--border-soft); vertical-align: top; }
+  table.clin-table tr:last-child td { border-bottom: none; }
+  table.clin-table tr.ep-row:hover { background: var(--highlight); }
+  .clin-date { font-weight: 600; color: var(--primary); white-space: nowrap; }
+  .clin-time { color: var(--muted); font-size: 11.5px; }
+  .clin-code { font-family: monospace; font-size: 12px; color: var(--text-soft); }
+  .clin-resp { font-size: 12px; color: var(--text-soft); }
+  .clin-int { display: inline-block; padding: 1px 8px; background: var(--bg-deep); border-radius: 10px; font-size: 11px; color: var(--text-soft); white-space: nowrap; }
+  .clin-int.i3 { background: #F6E4D6; color: var(--accent); }
+  .clin-int.i4 { background: #F3D9CF; color: var(--red); }
+  .clin-cats { display: flex; gap: 4px; flex-wrap: wrap; max-width: 220px; }
+  .clin-cat { background: var(--accent-warm); color: var(--accent); font-size: 10.5px; padding: 1px 7px; border-radius: 9px; }
+  .clin-see { background: transparent; border: 1px solid var(--border); color: var(--primary); cursor: pointer; padding: 4px 10px; border-radius: 5px; font-size: 11.5px; font-family: inherit; }
+  .clin-see:hover { background: var(--highlight); border-color: var(--accent-soft); }
+  tr.clin-detail td { background: var(--bg); padding: 0 12px; }
+  tr.clin-detail .detail-inner { padding: 4px 0 14px 0; display: grid; gap: 10px; }
+  .detail-block .detail-label { font-size: 10px; color: var(--muted); letter-spacing: .1em; text-transform: uppercase; font-weight: 700; margin-bottom: 3px; }
+  .detail-block .detail-text { font-size: 13px; color: var(--text); white-space: pre-wrap; }
+  .detail-block .detail-text.empty { color: var(--muted); font-style: italic; }
+  .clin-empty { text-align: center; padding: 46px 20px; color: var(--muted); font-style: italic; }
+
+  /* ===== LOGIN CLÍNICO ===== */
+  .clin-login-overlay { display: none; position: fixed; inset: 0; z-index: 210; background: rgba(30,53,80,.45); align-items: center; justify-content: center; padding: 20px; }
+  .clin-login-overlay.open { display: flex; }
+  .clin-login-card { background: var(--card); border-radius: 12px; padding: 30px 26px; max-width: 340px; width: 100%; box-shadow: 0 12px 40px rgba(30,53,80,.3); text-align: center; }
+  .clin-login-card .login-icon { font-size: 26px; margin-bottom: 8px; }
+  .clin-login-card .login-title { font-family: 'Lora', serif; font-size: 18px; color: var(--primary); font-weight: 600; }
+  .clin-login-card .login-sub { font-size: 12px; color: var(--muted); font-style: italic; margin-bottom: 16px; }
+  .clin-login-card input { width: 100%; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 10px 12px; font-size: 15px; font-family: inherit; text-align: center; letter-spacing: .2em; }
+  .clin-login-card input:focus { outline: none; border-color: var(--accent); }
+  .clin-login-card .login-err { display: none; color: var(--red); font-size: 12px; margin-top: 8px; }
+  .clin-login-card .login-err.show { display: block; }
+  .clin-login-card .btn { width: 100%; margin-top: 12px; }
+  .clin-login-card .login-back { margin-top: 12px; font-size: 12px; color: var(--muted); cursor: pointer; }
+
+  .clin-link { color: var(--muted); cursor: pointer; text-decoration: underline; text-underline-offset: 2px; }
+
+  @media (max-width: 560px) {
+    .id-grid { grid-template-columns: 1fr; max-width: none; }
+  }
+
   @media print {
     body { background: white; font-size: 11pt; padding-bottom: 0; }
     header { position: static; box-shadow: none; }
@@ -308,13 +424,35 @@
 <body>
 
 <header>
-  <div class="h-eyebrow">CNS · Diário de Episódios</div>
+  <div class="h-eyebrow">Ricardina Correia · Diário de Episódios</div>
   <div class="h-title">Registo de Episódios em Casa</div>
   <div class="h-sub">Inter-sessões · <span class="accent">para preencher quando acontecer</span></div>
-  <div class="patient-field">
-    <label for="patient-name">Paciente:</label>
-    <input type="text" id="patient-name" placeholder="Nome do paciente">
+
+  <div class="id-grid">
+    <div class="id-field">
+      <label for="patient-code">Código do paciente</label>
+      <input type="text" id="patient-code" placeholder="Ex: AB01012020" autocomplete="off" spellcheck="false">
+    </div>
+    <div class="id-field">
+      <label for="child-name">Nome da criança <span class="opt">(opcional)</span></label>
+      <input type="text" id="child-name" placeholder="Nome" autocomplete="off">
+    </div>
+    <div class="id-field">
+      <label for="informante-tipo">Quem regista</label>
+      <select id="informante-tipo">
+        <option value="">—</option>
+        <option value="Mãe">Mãe</option>
+        <option value="Pai">Pai</option>
+        <option value="Enc. Educação">Enc. de Educação</option>
+        <option value="Outro">Outro</option>
+      </select>
+    </div>
+    <div class="id-field">
+      <label for="informante-nome">Nome de quem regista</label>
+      <input type="text" id="informante-nome" placeholder="Nome" autocomplete="off">
+    </div>
   </div>
+  <div class="id-error" id="id-error"></div>
 </header>
 
 <div class="container">
@@ -323,13 +461,14 @@
     <p><strong>Como usar este diário.</strong></p>
     <p>Não é para preencher todos os dias — é para preencher quando acontecer algo que vos pareça importante registar. Episódios difíceis, mas também momentos onde algo correu inesperadamente bem.</p>
     <p>Quanto mais próximo do acontecimento melhor — mas se passarem 2 ou 3 dias, registem na mesma. <strong>O importante é não perder.</strong></p>
-    <p>Tudo o que escreverem fica guardado neste browser. No fim do período, fazem download ou imprimem para enviar.</p>
+    <p>Cada episódio que guardarem é enviado automaticamente para a Dra. Ricardina Correia e fica também guardado neste dispositivo. Preencham o <strong>código do paciente</strong> e indiquem <strong>quem está a registar</strong> antes de começar.</p>
   </div>
 
   <div class="toolbar">
     <button class="btn primary" id="add-btn">
       <span class="btn-icon">+</span>Novo episódio
     </button>
+    <button class="btn" id="resend-btn" style="display:none">↻ Reenviar pendentes (<span id="pending-n">0</span>)</button>
     <button class="btn" id="export-btn">Imprimir / PDF</button>
     <button class="btn" id="download-btn">Descarregar (.json)</button>
     <span class="count" id="count">0 episódios</span>
@@ -409,23 +548,84 @@
 <div class="save-indicator" id="save-ind">guardado</div>
 
 <footer>
-  CNS Campus Neurológico · Ricardina Correia · OPP 8233
+  Ricardina Correia · Cédula 8233 · Psicologia Pediátrica
+  &nbsp;·&nbsp; <span class="clin-link" id="open-clin-link">Painel clínico</span>
 </footer>
+
+<!-- ===== PAINEL CLÍNICO ===== -->
+<div class="clin-overlay" id="clin-overlay">
+  <div class="clin-header">
+    <div>
+      <div class="clin-title">Painel Clínico · Diário de Episódios</div>
+      <div class="clin-sub">Acesso restrito · Ricardina Correia</div>
+    </div>
+    <button class="clin-close" id="clin-close-btn">✕ Fechar</button>
+  </div>
+  <div class="clin-body">
+    <div class="clin-toolbar">
+      <input type="text" id="clin-filter" placeholder="Filtrar por código…" autocomplete="off">
+      <button class="btn" id="clin-sync-btn">↺ Sincronizar</button>
+      <span class="clin-count" id="clin-count">—</span>
+    </div>
+    <div class="clin-status" id="clin-status"></div>
+    <div class="clin-table-wrap">
+      <table class="clin-table">
+        <thead>
+          <tr>
+            <th>Data / Hora</th>
+            <th>Código</th>
+            <th>Criança</th>
+            <th>Registado por</th>
+            <th>Intensidade</th>
+            <th>Tipos</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="clin-tbody"></tbody>
+      </table>
+    </div>
+    <div class="clin-empty" id="clin-empty" style="display:none">Sem episódios sincronizados.</div>
+  </div>
+</div>
+
+<!-- ===== LOGIN CLÍNICO ===== -->
+<div class="clin-login-overlay" id="clin-login-overlay">
+  <div class="clin-login-card">
+    <div class="login-icon">🔒</div>
+    <div class="login-title">Painel Clínico</div>
+    <div class="login-sub">Acesso restrito · Ricardina Correia</div>
+    <input type="password" id="clin-pw" placeholder="••••••••">
+    <div class="login-err" id="clin-login-err">Palavra-passe incorreta.</div>
+    <button class="btn primary" id="clin-login-btn">Entrar</button>
+    <div class="login-back" id="clin-login-back">← Voltar ao diário</div>
+  </div>
+</div>
 
 <script>
 (function() {
-  // ----- patient name e storage key -----
+  // ----- Config de sincronização (URL PERMANENTE — nunca substituir) -----
+  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxX2_Ry7VRH6jr7eGBMmtmyZFXZc69blwdO5bqJK0j69HRSexpXXPuEfDC5OHQRMLLL/exec';
+  const SYNC_KEY   = 'diario_episodios';   // → ABA['diario_episodios'] = 'DIARIO_EPISODIOS'
+  const PASSWORD   = 'CNS2024';
+  const CODE_RE    = /^[A-Z]{2,3}\d{8}$/;
+
+  // ----- identidade (código + informante) e storage key -----
   const params = new URLSearchParams(window.location.search);
-  const initialPatient = params.get('p') || params.get('paciente') || '';
-  const patientInput = document.getElementById('patient-name');
-  patientInput.value = initialPatient;
+  const initialCode = (params.get('p') || params.get('paciente') || params.get('codigo') || '').toUpperCase();
+  const codeInput = document.getElementById('patient-code');
+  const childInput = document.getElementById('child-name');
+  const informanteTipo = document.getElementById('informante-tipo');
+  const informanteNome = document.getElementById('informante-nome');
+  codeInput.value = initialCode;
 
   function slug(s) {
-    return (s || 'sem-nome').toLowerCase()
+    return (s || 'sem-codigo').toLowerCase()
       .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-      .replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '') || 'sem-nome';
+      .replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '') || 'sem-codigo';
   }
-  function storageKey() { return 'diario_episodios__' + slug(patientInput.value); }
+  function getCode()  { return (codeInput.value || '').trim().toUpperCase(); }
+  function storageKey() { return 'diario_episodios__' + slug(getCode()); }
+  function metaKey()    { return 'diario_meta__' + slug(getCode()); }
 
   let episodes = [];
   let editingId = null;
@@ -437,11 +637,33 @@
       const raw = localStorage.getItem(storageKey());
       episodes = raw ? JSON.parse(raw) : [];
     } catch(e) { episodes = []; }
+    loadMeta();
   }
   function save() {
     try {
       localStorage.setItem(storageKey(), JSON.stringify(episodes));
       showSaved();
+    } catch(e) {}
+  }
+  // meta (nome da criança + informante) guardada por código para não retipar
+  function loadMeta() {
+    try {
+      const raw = localStorage.getItem(metaKey());
+      if (raw) {
+        const m = JSON.parse(raw);
+        if (m.childName && !childInput.value) childInput.value = m.childName;
+        if (m.informanteTipo && !informanteTipo.value) informanteTipo.value = m.informanteTipo;
+        if (m.informanteNome && !informanteNome.value) informanteNome.value = m.informanteNome;
+      }
+    } catch(e) {}
+  }
+  function saveMeta() {
+    try {
+      localStorage.setItem(metaKey(), JSON.stringify({
+        childName: childInput.value.trim(),
+        informanteTipo: informanteTipo.value,
+        informanteNome: informanteNome.value.trim()
+      }));
     } catch(e) {}
   }
   const ind = document.getElementById('save-ind');
@@ -452,8 +674,75 @@
     indTimer = setTimeout(() => ind.classList.remove('show'), 1400);
   }
 
-  patientInput.addEventListener('change', () => { load(); render(); });
-  patientInput.addEventListener('blur', () => { load(); render(); });
+  const idError = document.getElementById('id-error');
+  function showIdError(msg) {
+    idError.textContent = msg;
+    idError.classList.add('show');
+  }
+  function clearIdError() { idError.classList.remove('show'); }
+
+  // Valida identidade antes de guardar/enviar um episódio
+  function validarIdentidade() {
+    const code = getCode();
+    if (!code) { showIdError('Indique o código do paciente antes de registar um episódio.'); return false; }
+    if (!CODE_RE.test(code)) { showIdError('Código inválido. Formato esperado: 2–3 letras seguidas de 8 dígitos (ex: AB01012020).'); return false; }
+    if (!informanteTipo.value) { showIdError('Indique quem está a registar (Mãe, Pai, Enc. de Educação…).'); return false; }
+    if (!informanteNome.value.trim()) { showIdError('Indique o nome de quem está a registar.'); return false; }
+    clearIdError();
+    return true;
+  }
+
+  // ----- SINCRONIZAÇÃO — envio de UM episódio por linha -----
+  function episodePayload(ep) {
+    return {
+      instrumento: SYNC_KEY,
+      data: ep.date || '',
+      hora: ep.time || '',
+      patientCode: getCode(),
+      nomeCrianca: childInput.value.trim(),
+      informante: informanteTipo.value,
+      nome_informante: informanteNome.value.trim(),
+      intensidade: (ep.intensity != null ? ep.intensity : ''),
+      intensidadeLabel: (ep.intensity ? INT_LABELS[ep.intensity] : ''),
+      categorias: ep.categories || [],
+      oque: ep.what || '',
+      respostaCrianca: ep.child || '',
+      respostaCuidadores: ep.us || '',
+      episodioId: ep.id,
+      timestamp: new Date().toISOString(),
+      Respostas: JSON.stringify(ep)
+    };
+  }
+  // no-cors: a resposta é opaca (não confirma). Marcamos enviado quando o fetch
+  // resolve (rede OK); só fica pendente se o fetch rejeitar (offline).
+  function syncEpisode(ep) {
+    return fetch(SCRIPT_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(episodePayload(ep))
+    }).then(() => {
+      ep.synced = true; save(); render();
+    }).catch(() => {
+      ep.synced = false; save(); render();
+    });
+  }
+  function reenviarPendentes() {
+    if (!validarIdentidade()) return;
+    episodes.filter(e => !e.synced).forEach(e => syncEpisode(e));
+  }
+
+  function onIdentityChange() {
+    clearIdError();
+    saveMeta();
+    load(); render();
+  }
+  codeInput.addEventListener('input', () => { codeInput.value = codeInput.value.toUpperCase(); });
+  codeInput.addEventListener('change', onIdentityChange);
+  codeInput.addEventListener('blur', onIdentityChange);
+  childInput.addEventListener('change', saveMeta);
+  informanteTipo.addEventListener('change', saveMeta);
+  informanteNome.addEventListener('change', saveMeta);
 
   const CAT_LABELS = {
     "ansiedade": "ansiedade / preocupação",
@@ -485,8 +774,18 @@
   const emptyEl = document.getElementById('empty-state');
   const countEl = document.getElementById('count');
 
+  const resendBtn = document.getElementById('resend-btn');
+  const pendingNEl = document.getElementById('pending-n');
+
   function render() {
     countEl.textContent = `${episodes.length} ${episodes.length === 1 ? 'episódio' : 'episódios'}`;
+    const pendentes = episodes.filter(e => !e.synced).length;
+    if (pendentes > 0) {
+      pendingNEl.textContent = pendentes;
+      resendBtn.style.display = '';
+    } else {
+      resendBtn.style.display = 'none';
+    }
     if (episodes.length === 0) {
       listEl.innerHTML = '';
       emptyEl.style.display = 'block';
@@ -506,6 +805,9 @@
       ).join('');
       const intHtml = ep.intensity
         ? `<span class="episode-intensity">${INT_LABELS[ep.intensity]}</span>` : '';
+      const syncHtml = ep.synced
+        ? `<span class="ep-sync ok">enviado ✓</span>`
+        : `<span class="ep-sync pending">por enviar ↻</span>`;
 
       const blockHtml = (label, value) => {
         const v = value && value.trim() ? escapeHtml(value) : '<span class="empty">(em branco)</span>';
@@ -522,6 +824,7 @@
             <span class="episode-date">${fmtDate(ep.date)}</span>
             <span class="episode-time">${ep.time || ''}</span>
             ${intHtml}
+            ${syncHtml}
           </div>
           <div class="episode-actions">
             <button class="icon-btn" data-action="edit" data-id="${ep.id}">editar</button>
@@ -621,9 +924,15 @@
   }
 
   function saveEpisode() {
+    if (!validarIdentidade()) {
+      // fechar o formulário não; levar a atenção ao topo para corrigir a identidade
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+    saveMeta();
     const ep = {
       id: editingId || ('ep_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7)),
-      patient: patientInput.value.trim(),
+      codigo: getCode(),
       date: fDate.value,
       time: fTime.value,
       intensity: selectedIntensity,
@@ -631,6 +940,7 @@
       what: fWhat.value.trim(),
       child: fChild.value.trim(),
       us: fUs.value.trim(),
+      synced: false,
     };
     if (editingId) {
       const idx = episodes.findIndex(e => e.id === editingId);
@@ -641,6 +951,7 @@
     save();
     render();
     closeForm();
+    syncEpisode(ep);   // envia este episódio (uma linha no Sheet); upsert por Código+EpisodioID
   }
 
   function deleteEpisode(id) {
@@ -663,7 +974,10 @@
   });
   document.getElementById('download-btn').addEventListener('click', () => {
     const payload = {
-      paciente: patientInput.value.trim(),
+      codigo: getCode(),
+      crianca: childInput.value.trim(),
+      informante: informanteTipo.value,
+      nome_informante: informanteNome.value.trim(),
       exportado_em: new Date().toISOString(),
       total: episodes.length,
       episodios: episodes,
@@ -672,10 +986,187 @@
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'diario_episodios_' + slug(patientInput.value) + '.json';
+    a.download = 'diario_episodios_' + slug(getCode()) + '.json';
     a.click();
     URL.revokeObjectURL(url);
   });
+  document.getElementById('resend-btn').addEventListener('click', reenviarPendentes);
+
+  // ═══════════════════════════════════════════════════════
+  // PAINEL CLÍNICO — leitura de todas as linhas do Sheet
+  // Acesso restrito (password CNS2024). O respondente nunca vê isto.
+  // ═══════════════════════════════════════════════════════
+  const clinOverlay   = document.getElementById('clin-overlay');
+  const clinLogin     = document.getElementById('clin-login-overlay');
+  const clinPw        = document.getElementById('clin-pw');
+  const clinLoginErr  = document.getElementById('clin-login-err');
+  const clinTbody     = document.getElementById('clin-tbody');
+  const clinEmpty     = document.getElementById('clin-empty');
+  const clinCount     = document.getElementById('clin-count');
+  const clinStatus    = document.getElementById('clin-status');
+  const clinFilter    = document.getElementById('clin-filter');
+
+  let clinSessoes = [];   // uma entrada por episódio (linha do Sheet)
+
+  function abrirLogin() {
+    clinLoginErr.classList.remove('show');
+    clinPw.value = '';
+    clinLogin.classList.add('open');
+    setTimeout(() => clinPw.focus(), 100);
+  }
+  function fecharLogin() { clinLogin.classList.remove('open'); }
+  function tentarLogin() {
+    if (clinPw.value === PASSWORD) {
+      fecharLogin();
+      abrirPainel();
+    } else {
+      clinLoginErr.classList.add('show');
+      clinPw.value = '';
+      clinPw.focus();
+    }
+  }
+  function abrirPainel() {
+    clinOverlay.classList.add('open');
+    if (initialCode) clinFilter.value = initialCode;
+    carregarDados();
+  }
+  function fecharPainel() { clinOverlay.classList.remove('open'); }
+
+  function normStr(v) { return (v === undefined || v === null) ? '' : String(v); }
+
+  function parseSessao(row) {
+    // tolerante a variações de cabeçalho
+    var cats = normStr(row['Categorias'] || row['categorias']);
+    var resp = row['Respostas'] || row['respostas'] || '';
+    var epObj = {};
+    if (typeof resp === 'string' && resp.trim().charAt(0) === '{') {
+      try { epObj = JSON.parse(resp); } catch(e) { epObj = {}; }
+    } else if (resp && typeof resp === 'object') { epObj = resp; }
+    return {
+      data:  normStr(row['Data'] || row['data']),
+      hora:  normStr(row['Hora'] || row['hora'] || (epObj.time || '')),
+      codigo: normStr(row['Código'] || row['Codigo'] || row['codigo'] || row['patientCode']).toUpperCase(),
+      crianca: normStr(row['NomeCriança'] || row['NomeCrianca'] || row['nomeCrianca']),
+      informante: normStr(row['Informante'] || row['informante']),
+      nomeInformante: normStr(row['NomeInformante'] || row['nomeInformante'] || row['nome_informante']),
+      intensidade: normStr(row['Intensidade'] || row['intensidade']),
+      categorias: cats,
+      oque: normStr(row['OQueAconteceu'] || row['oque'] || epObj.what),
+      respostaCrianca: normStr(row['RespostaCriança'] || row['RespostaCrianca'] || row['respostaCrianca'] || epObj.child),
+      respostaCuidadores: normStr(row['RespostaCuidadores'] || row['respostaCuidadores'] || epObj.us),
+      episodioId: normStr(row['EpisodioID'] || row['episodioId'] || epObj.id),
+      timestamp: normStr(row['Timestamp'] || row['timestamp'])
+    };
+  }
+
+  async function carregarDados() {
+    clinStatus.textContent = 'A sincronizar…';
+    try {
+      const res = await fetch(SCRIPT_URL + '?instrumento=' + encodeURIComponent(SYNC_KEY) + '&t=' + Date.now());
+      const data = await res.json();
+      const rows = Array.isArray(data) ? data : (data && data.rows ? data.rows : []);
+      // dedupe robusta por Código + EpisodioID (idempotente em re-syncs)
+      const vistos = {};
+      clinSessoes = [];
+      rows.map(parseSessao).forEach(function(s) {
+        const k = s.codigo + '||' + (s.episodioId || (s.data + ' ' + s.hora + ' ' + s.nomeInformante));
+        if (!vistos[k]) { vistos[k] = true; clinSessoes.push(s); }
+      });
+      clinStatus.textContent = 'Última sincronização: ' + new Date().toLocaleString('pt-PT');
+    } catch(e) {
+      clinStatus.textContent = 'Não foi possível sincronizar. Verifique a ligação e tente novamente.';
+    }
+    renderClinico();
+  }
+
+  function renderClinico() {
+    const filtro = (clinFilter.value || '').trim().toUpperCase();
+    let lista = clinSessoes.slice();
+    if (filtro) lista = lista.filter(s => s.codigo.indexOf(filtro) !== -1);
+    // mais recentes primeiro
+    lista.sort((a, b) => {
+      const ka = isoFromPt(a.data) + ' ' + (a.hora || '');
+      const kb = isoFromPt(b.data) + ' ' + (b.hora || '');
+      return kb.localeCompare(ka);
+    });
+
+    clinCount.textContent = lista.length + (lista.length === 1 ? ' episódio' : ' episódios')
+      + (filtro ? ' · filtro ' + filtro : '');
+
+    if (lista.length === 0) {
+      clinTbody.innerHTML = '';
+      clinEmpty.style.display = 'block';
+      clinEmpty.textContent = clinSessoes.length === 0
+        ? 'Sem episódios sincronizados.'
+        : 'Sem episódios para o código indicado.';
+      return;
+    }
+    clinEmpty.style.display = 'none';
+
+    clinTbody.innerHTML = lista.map((s, i) => {
+      const cats = (s.categorias || '').split(',').map(c => c.trim()).filter(Boolean)
+        .map(c => `<span class="clin-cat">${escapeHtml(CAT_LABELS[c] || c)}</span>`).join('');
+      const intClass = /muito/i.test(s.intensidade) ? 'i4' : (/intenso/i.test(s.intensidade) ? 'i3' : '');
+      const resp = (s.informante || '—') + (s.nomeInformante ? ' · ' + s.nomeInformante : '');
+      const dtxt = s.data ? escapeHtml(s.data) : '—';
+      return `<tr class="ep-row">
+        <td><span class="clin-date">${dtxt}</span>${s.hora ? ` <span class="clin-time">${escapeHtml(s.hora)}</span>` : ''}</td>
+        <td class="clin-code">${escapeHtml(s.codigo || '—')}</td>
+        <td>${escapeHtml(s.crianca || '—')}</td>
+        <td class="clin-resp">${escapeHtml(resp)}</td>
+        <td>${s.intensidade ? `<span class="clin-int ${intClass}">${escapeHtml(s.intensidade)}</span>` : '—'}</td>
+        <td><div class="clin-cats">${cats || '—'}</div></td>
+        <td><button class="clin-see" data-i="${i}">ver</button></td>
+      </tr>
+      <tr class="clin-detail" id="clin-detail-${i}" style="display:none"><td colspan="7">
+        <div class="detail-inner">
+          ${detailBlock('O que aconteceu · contexto', s.oque)}
+          ${detailBlock('Como a criança respondeu', s.respostaCrianca)}
+          ${detailBlock('Como os cuidadores responderam', s.respostaCuidadores)}
+        </div>
+      </td></tr>`;
+    }).join('');
+
+    clinTbody.querySelectorAll('.clin-see').forEach(b => {
+      b.addEventListener('click', () => {
+        const row = document.getElementById('clin-detail-' + b.dataset.i);
+        if (!row) return;
+        const open = row.style.display !== 'none';
+        row.style.display = open ? 'none' : '';
+        b.textContent = open ? 'ver' : 'fechar';
+      });
+    });
+  }
+
+  function detailBlock(label, value) {
+    const has = value && value.trim();
+    return `<div class="detail-block">
+      <div class="detail-label">${label}</div>
+      <div class="detail-text ${has ? '' : 'empty'}">${has ? escapeHtml(value) : '(em branco)'}</div>
+    </div>`;
+  }
+
+  // 'dd/mm/yyyy' → 'yyyy-mm-dd' para ordenação; devolve o próprio valor se já ISO
+  function isoFromPt(d) {
+    if (!d) return '';
+    const m = String(d).match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+    if (m) return m[3] + '-' + m[2] + '-' + m[1];
+    return String(d);
+  }
+
+  // wiring do painel clínico
+  document.getElementById('open-clin-link').addEventListener('click', abrirLogin);
+  document.getElementById('clin-login-btn').addEventListener('click', tentarLogin);
+  document.getElementById('clin-login-back').addEventListener('click', fecharLogin);
+  clinPw.addEventListener('keydown', (e) => { if (e.key === 'Enter') tentarLogin(); });
+  document.getElementById('clin-close-btn').addEventListener('click', fecharPainel);
+  document.getElementById('clin-sync-btn').addEventListener('click', carregarDados);
+  clinFilter.addEventListener('input', renderClinico);
+
+  // auto-login via ?clinico=CNS2024 (aberto a partir do RC_Avaliacao_Pacientes)
+  if (params.get('clinico') === PASSWORD) {
+    abrirPainel();
+  }
 
   load();
   render();
