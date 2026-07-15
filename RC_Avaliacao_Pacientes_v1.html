@@ -603,6 +603,9 @@ const RC_SHEET_URL = 'https://script.google.com/macros/s/AKfycbxX2_Ry7VRH6jr7eGB
 
 // Mapeamento: id do questionário → aba no Sheet central
 const QID_TO_ABA = {
+  'q_gad7':       'GAD7',
+  'q_ais8':       'AIS_8',
+  'q_sgrs':       'SGRS',
   'q_aceq_adol':  'ACE_Q_ADOLESCENTE',
   'q_aceq_cuid':  'ACE_Q_CUIDADOR',
   'q_gai':        'GAI',
@@ -774,6 +777,9 @@ const QID_TO_ABA = {
 
 
 const SYNC_KEY_TO_ABA = {
+  'gad7':     'GAD7',
+  'ais8':     'AIS_8',
+  'sgrs':     'SGRS',
   'aceq_adol':'ACE_Q_ADOLESCENTE',
   'aceq_cuid':'ACE_Q_CUIDADOR',
   'gai':      'GAI',
@@ -2258,7 +2264,31 @@ function initCatalog() {
       domains:['Integridade corporal','Cuidado e dependência','Coping / resolução','Figuras cuidadoras (+ reparação relacional)'],
       ageMin:72, ageMax:143 },
     { id:'q_csas', name:'CSAS — Ansiedade de Separação (Criança)', dest:['Paciente'], link:'https://correiaricardina-ui.github.io/questionarios/CSAS_v1.html', syncKey:'csas', area:'Ansiedade, Depressão & Internalização', ageRange:'8–11 anos', objective:'Autorrelato de sintomas de ansiedade de separação (20 itens, 4 fatores; Méndez et al., 2014)', domains:['Preocupação com a separação','Mal-estar da separação','Oposição à separação','Calma na separação (invertida)','Total'] , ageMin:96, ageMax:143},
-    { id:'q_csas_p', name:'CSAS-P — Ansiedade de Separação (Pais)', dest:['Mãe','Pai','Enc. Educação'], link:'https://correiaricardina-ui.github.io/questionarios/CSAS_P_v1.html', syncKey:'csas_p', area:'Ansiedade, Depressão & Internalização', ageRange:'8–11 anos', objective:'Heterorrelato parental de ansiedade de separação (20 itens, 4 fatores; Méndez et al., 2022)', domains:['Preocupação','Oposição','Calma (positivo/protetor)','Mal-estar','Total (orientativo)'] , ageMin:96, ageMax:143}
+    { id:'q_csas_p', name:'CSAS-P — Ansiedade de Separação (Pais)', dest:['Mãe','Pai','Enc. Educação'], link:'https://correiaricardina-ui.github.io/questionarios/CSAS_P_v1.html', syncKey:'csas_p', area:'Ansiedade, Depressão & Internalização', ageRange:'8–11 anos', objective:'Heterorrelato parental de ansiedade de separação (20 itens, 4 fatores; Méndez et al., 2022)', domains:['Preocupação','Oposição','Calma (positivo/protetor)','Mal-estar','Total (orientativo)'] , ageMin:96, ageMax:143},
+    // ── SGRS · Sohn Grayson Rating Scale (Sohn & Grayson, 2005) ──
+    { id:'q_sgrs', name:'SGRS — Sohn Grayson Rating Scale',
+      dest:['Mãe','Pai','Enc. Educação','Professor(a)','Educador(a)','Psicóloga'],
+      link:'https://correiaricardina-ui.github.io/questionarios/SGRS_v1.html',
+      syncKey:'sgrs', area:'Neurodesenvolvimento', ageRange:'3–18 anos',
+      objective:'Rastreio e sistematização da observação de comportamentos associados a PEA de alto funcionamento (58 itens, 6 domínios, Likert 1–4, sem itens invertidos; amplitude 58–232). Admite pais, professor e clínico em paralelo — o painel do instrumento calcula a concordância inter-informantes. NÃO existem normas portuguesas: as bandas globais são as dos autores originais (58–89 Muito baixa · 90–118 Baixa · 119–149 Média a moderada · 150–177 Moderada a alta · 178–207 Alta a muito alta · 208–232 Muito alta), sem derivação empírica publicada nem estudos independentes de fidelidade/validade. A classificação por domínio é convenção descritiva, sem base normativa. Instrumento de rastreio: não estabelece nem exclui diagnóstico de PEA e não substitui avaliação diagnóstica multimodal. A terminologia original («Síndrome de Asperger», «PDD de alto funcionamento») é anterior ao DSM-5-TR/CID-11 — reportar em nomenclatura atual. Atenção ao peso do domínio Discurso e Linguagem (22/58 itens) e à instabilidade do Comportamento Motor (2 itens).',
+      domains:['Comportamento Social (14 itens)','Comportamento (8 itens)','Discurso e Linguagem (22 itens)','Cognição (7 itens)','Perceção Sensorial (5 itens)','Comportamento Motor (2 itens)','Pontuação Global (58–232)'],
+      ageMin:36, ageMax:215},
+    // ── AIS-8 · Escala de Insónia de Atenas (Soldatos, Dikeos & Paparrigopoulos, 2000/2003) ──
+    { id:'q_ais8', name:'AIS-8 — Escala de Insónia de Atenas',
+      dest:['Paciente'],
+      link:'https://correiaricardina-ui.github.io/questionarios/AIS_8_v1.html',
+      syncKey:'ais8', area:'Sono', ageRange:'≥ 12 anos',
+      objective:'Rastreio de insónia clinicamente significativa e monitorização da evolução — autorrelato, 8 itens, escala 0–3, período de referência: último mês. Estrutura em dois blocos: itens 1–5 sono noturno (AIS-5, 0–15) e itens 6–8 consequências diurnas (0–9); total 0–24, todos os itens directos, sem inversões nem ponderações. Ponto de corte total ≥ 6 (Soldatos et al., 2003: sensibilidade 93%, especificidade 85%, 90% de classificação correta), derivado de amostra clínica adulta grega com critério CID-10 — NÃO validado em adolescentes. Bandas descritivas 0–5 ausência · 6–9 ligeira · 10–15 moderada · 16–24 grave (Okajima et al., 2020, critério ISI, amostra comunitária adulta japonesa) — estatuto descritivo/exploratório. NÃO existem normas portuguesas e a formulação PT-PT dos itens não corresponde a versão portuguesa validada. Instrumento de rastreio e monitorização: não estabelece diagnóstico isoladamente — um resultado abaixo do ponto de corte não exclui perturbação do sono, e um resultado acima não a confirma. Em adolescentes, integrar sempre com hábitos e rotinas de sono, ansiedade e ruminação pré-sono, impacto escolar e emocional, e discrepâncias pais ↔ autorrelato.',
+      domains:['Índice noturno — AIS-5 (itens 1–5, 0–15)','Índice diurno (itens 6–8, 0–9)','Total AIS-8 (0–24)','Banda descritiva de gravidade','Rastreio (ponto de corte ≥ 6)'],
+      ageMin:144, ageMax:null},
+    // ── GAD-7 · Escala de Ansiedade Generalizada (Spitzer, Kroenke, Williams & Löwe, 2006) ──
+    { id:'q_gad7', name:'GAD-7 — Escala de Ansiedade Generalizada',
+      dest:['Paciente'],
+      link:'https://correiaricardina-ui.github.io/questionarios/GAD7_v1.html',
+      syncKey:'gad7', area:'Ansiedade, Depressão & Internalização', ageRange:'≥ 12 anos',
+      objective:'Rastreio da gravidade sintomática de ansiedade generalizada e monitorização da evolução — autorrelato, 7 itens, escala 0–3, período de referência: últimos 14 dias. Instrumento UNIDIMENSIONAL: não tem subescalas, não tem itens invertidos e não admite cotação por dimensão (ACP em Sousa et al., 2015; AFE em Leite & Faro, 2022, 62,8% de variância explicada). Total 0–21. Ponto de corte operacional ≥ 10 (Spitzer et al., 2006: sensibilidade 89%, especificidade 82%). Bandas de gravidade DESCRITIVA 0–4 mínima · 5–9 leve · 10–14 moderada · 15–21 grave — pontos de corte da amostra original norte-americana, replicados na literatura: NÃO SÃO NORMAS PORTUGUESAS e não são limiares diagnósticos. A validação portuguesa de referência (Sousa et al., 2015) foi conduzida em amostra clínica psiquiátrica adulta (78,8% mulheres, idade média 52,2 anos) — a generalização a contexto pediátrico exige prudência; Gonçalves (2019, 6–16 anos) reporta prevalência com base num valor superior a 11, não coincidente com o corte adulto de 10. Instrumento de RASTREIO: não constitui, por si, instrumento de diagnóstico. Um total elevado é inespecífico e sobrepõe-se a sintomatologia depressiva (r = 0,450 com a subescala de depressão da HADS); um total baixo não exclui perturbação de ansiedade. Regra de dados em falta (decisão interna documentada): prorata até 1 item em falta, invalidação a partir de 2. A versão fornecida omite o item 8 canónico (dificuldade funcional), que não é cotado.',
+      domains:['Total GAD-7 (0–21)','Banda de gravidade descritiva (mínima · leve · moderada · grave)','Rastreio (ponto de corte ≥ 10)','Instrumento unidimensional — sem subescalas'],
+      ageMin:144, ageMax:null}
   ];
   // Garantir que TODOS os defaults estão no catálogo, sempre
   // (funciona em RC novos e em RC existentes — nunca perde questionários)
@@ -2288,6 +2318,8 @@ function initCatalog() {
   } else {
     // Forçar links e syncKeys actualizados
     const META = {
+      'q_gad7':       { link:'https://correiaricardina-ui.github.io/questionarios/GAD7_v1.html', syncKey:'gad7' },
+      'q_ais8':       { link:'https://correiaricardina-ui.github.io/questionarios/AIS_8_v1.html', syncKey:'ais8' },
       'q_aceq_adol':  { link:'https://correiaricardina-ui.github.io/questionarios/ACE-Q_Adolescente.html', syncKey:'aceq_adol' },
       'q_aceq_cuid':  { link:'https://correiaricardina-ui.github.io/questionarios/ACE-Q_Cuidador.html', syncKey:'aceq_cuid' },
       'q_gai':        { link:'https://correiaricardina-ui.github.io/questionarios/GAI_Automonitorizacao_Interocetiva_v1.html', syncKey:'gai' },
@@ -2487,6 +2519,7 @@ function initCatalog() {
       'q_cuidar_corpo': { link:'https://correiaricardina-ui.github.io/questionarios/Prova_Cuidar_Integridade_Corpo_v1.html', syncKey:'cuidar_corpo' },
       'q_csas':         { link:'https://correiaricardina-ui.github.io/questionarios/CSAS_v1.html', syncKey:'csas' },
       'q_csas_p':       { link:'https://correiaricardina-ui.github.io/questionarios/CSAS_P_v1.html', syncKey:'csas_p' },
+      'q_sgrs':         { link:'https://correiaricardina-ui.github.io/questionarios/SGRS_v1.html', syncKey:'sgrs' },
     };
     // ── Re-store com chave correcta ('q_' + id) — corrige instalações anteriores ──
     // Garante que Conners, FAD e MAP ficam acessíveis pelo META.forEach e getCatalog
@@ -3036,6 +3069,21 @@ function initCatalog() {
     if(!catalog.includes('q_csas_p')) {
       const d = defaults.find(x => x.id === 'q_csas_p');
       if(d) { store.set('q_' + d.id, d); catalog.push('q_csas_p'); store.set('catalog', catalog); }
+    }
+    // SGRS · Sohn Grayson Rating Scale
+    if(!catalog.includes('q_sgrs')) {
+      const dSgrs = defaults.find(x => x.id === 'q_sgrs');
+      if(dSgrs) { store.set('q_' + dSgrs.id, dSgrs); store.set(dSgrs.id, dSgrs); catalog.push('q_sgrs'); store.set('catalog', catalog); }
+    }
+    // AIS-8 · Escala de Insónia de Atenas
+    if(!catalog.includes('q_ais8')) {
+      const dAis8 = defaults.find(x => x.id === 'q_ais8');
+      if(dAis8) { store.set('q_' + dAis8.id, dAis8); store.set(dAis8.id, dAis8); catalog.push('q_ais8'); store.set('catalog', catalog); }
+    }
+    // GAD-7 · Escala de Ansiedade Generalizada
+    if(!catalog.includes('q_gad7')) {
+      const dGad7 = defaults.find(x => x.id === 'q_gad7');
+      if(dGad7) { store.set('q_' + dGad7.id, dGad7); store.set(dGad7.id, dGad7); catalog.push('q_gad7'); store.set('catalog', catalog); }
     }
     }
   }
@@ -3744,6 +3792,64 @@ function formatScoreSummary(scores, syncKey) {
       if(da != null) parts.push('DA=' + parseFloat(da).toFixed(2));
       if(pc != null) parts.push('PC=' + parseFloat(pc).toFixed(2));
       return `<span style="font-size:0.78rem;${cls}">${perfil} · ${parts.join(' ')}</span>`;
+    }
+  }
+  // ── SGRS — Sohn Grayson Rating Scale ─────────────────────────────
+  // Inserida ANTES do fallback genérico (que preempta qualquer branch colocada depois).
+  if(syncKey === 'sgrs') {
+    const pont = scores['Pontuacao_Utilizada'] ?? scores['Pontuação Utilizada'] ?? scores['pontuacao'];
+    const banda = scores['Banda'] ?? scores['banda'] ?? '';
+    const base  = String(scores['Base_Cotacao'] ?? scores['Base Cotação'] ?? '');
+    if(pont != null && pont !== '') {
+      const v = Number(pont);
+      // Cores pelas bandas dos autores: ≥150 vermelho · 119–149 laranja · <119 verde
+      const cls = v >= 150 ? 'color:#C0392B;font-weight:700;'
+                : v >= 119 ? 'color:#E67E22;font-weight:600;'
+                           : 'color:var(--green);font-weight:600;';
+      const prorr = base.indexOf('PRORRATEADA') > -1 ? ' · prorrateado' : '';
+      return '<span style="font-size:0.78rem;' + cls + '">SGRS = ' + v + '/232'
+           + (banda ? ' · ' + banda : '') + prorr + '</span>';
+    }
+  }
+  // ── GAD-7 — Escala de Ansiedade Generalizada ─────────────────────
+  // Inserida ANTES do fallback genérico (que preempta qualquer branch colocada depois).
+  if(syncKey === 'gad7') {
+    // Guardas `!= null` (nunca `||`) — o total 0 é um resultado válido (ansiedade mínima).
+    const tot   = scores['Total'] ?? scores['total'] ?? scores['Total GAD-7'];
+    const banda = scores['Banda'] ?? scores['banda'] ?? '';
+    const rast  = scores['Rastreio'] ?? scores['rastreio'] ?? '';
+    if(tot != null && tot !== '') {
+      const v = Number(tot);
+      // Cores pelo corte operacional de rastreio (≥ 10) e pela banda grave (≥ 15)
+      const cls = v >= 15 ? 'color:#8E2A20;font-weight:700;'
+                : v >= 10 ? 'color:#C0392B;font-weight:700;'
+                : v >= 5  ? 'color:#E67E22;font-weight:600;'
+                          : 'color:var(--green);font-weight:600;';
+      const positivo = String(rast).indexOf('POSITIVO') > -1 ? ' · rastreio +' : '';
+      return '<span style="font-size:0.78rem;' + cls + '">GAD-7 = ' + v + '/21'
+           + (banda ? ' · ' + banda : '') + positivo + '</span>';
+    }
+  }
+  // ── AIS-8 — Escala de Insónia de Atenas ──────────────────────────
+  // Inserida ANTES do fallback genérico (que preempta qualquer branch colocada depois).
+  if(syncKey === 'ais8') {
+    // Guardas `!= null` (nunca `||`) — o total 0 é um resultado válido (ausência de insónia).
+    const tot = scores['Total'] ?? scores['total'] ?? scores['Total AIS-8'];
+    const not = scores['Noturno'] ?? scores['noturno'];
+    const diu = scores['Diurno'] ?? scores['diurno'];
+    const banda = scores['Banda'] ?? scores['banda'] ?? '';
+    if(tot != null && tot !== '') {
+      const v = Number(tot);
+      // Cores pelas bandas descritivas: ≥10 moderada/grave · 6–9 ligeira · ≤5 ausência
+      const cls = v >= 10 ? 'color:#C0392B;font-weight:700;'
+                : v >= 6  ? 'color:#E67E22;font-weight:600;'
+                          : 'color:var(--green);font-weight:600;';
+      const partes = [];
+      if(not != null && not !== '') partes.push('Not.=' + not + '/15');
+      if(diu != null && diu !== '') partes.push('Diu.=' + diu + '/9');
+      const extra = partes.length ? ' · ' + partes.join(' ') : '';
+      return '<span style="font-size:0.78rem;' + cls + '">AIS-8 = ' + v + '/24'
+           + (banda ? ' · ' + banda : '') + extra + '</span>';
     }
   }
   // Genérico
@@ -4722,6 +4828,10 @@ function renderAssignments(patientId) {
             // ── Verificação nome-primeiro, relação como fallback ──
             function matchRespondent(row, aba, recip) {
               const NC = {
+                // ── GAD-7 · Escala de Ansiedade Generalizada (nome primeiro; tipo como fallback) ──
+                'GAD7':['NomeInformante','Informante'],
+                // ── AIS-8 · Escala de Insónia de Atenas (nome primeiro; tipo como fallback) ──
+                'AIS_8':['NomeInformante','Informante'],
                 // ── ACE-Q · Experiências Adversas (nome primeiro; tipo/relação como fallback) ──
                 'ACE_Q_ADOLESCENTE':['NomeInformante','Informante'],
                 'ACE_Q_CUIDADOR':['NomeInformante','Relação','Informante'],
@@ -4915,7 +5025,9 @@ function renderAssignments(patientId) {
                 'CUIDAR_CORPO':          ['NomeInformante','Informante'],
                 // CSAS / CSAS-P · Ansiedade de Separação (nome primeiro; tipo/relação como fallback)
                 'CSAS':                  ['NomeInformante','Informante'],
-                'CSAS_P':                ['NomeInformante','Relação','Informante']
+                'CSAS_P':                ['NomeInformante','Relação','Informante'],
+                // SGRS · Sohn Grayson (multi-informante: pais, professor, clínico; nome primeiro, Relação como fallback)
+                'SGRS':                  ['NomeInformante','Relação']
               };
               const RC = {
                 'SWAN':['Relação'],'BRIEF_Pais':['Relação'],'SCARED_R_PAIS':['Relação'],
