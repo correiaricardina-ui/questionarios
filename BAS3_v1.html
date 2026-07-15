@@ -347,8 +347,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--gray);color:var(--text);m
       <button class="btn btn-secondary" style="padding:6px 14px;font-size:.82rem;" onclick="exportarCSV()">⬇ Exportar CSV</button>
       <button class="btn btn-secondary" style="padding:6px 14px;font-size:.82rem;" onclick="exportarPDF()">📄 Exportar PDF</button>
       <button class="btn btn-secondary" style="padding:6px 14px;font-size:.82rem;" onclick="window.print()">🖨 Imprimir</button>
-      <button class="btn btn-secondary" style="padding:6px 14px;font-size:.82rem;" onclick="exportarRespostasPDF(sessaoActual)">📋 Respostas PDF</button>
-      <button class="btn btn-secondary" style="padding:6px 14px;font-size:.82rem;" onclick="exportarInterpretacaoPDF(sessaoActual)">📊 Exportar Interpretação PDF</button>
       <input type="file" id="import-file-input" accept=".csv" style="display:none" onchange="processarFicheiroImportado(this)">
     </div>
     <div id="import-feedback" style="margin-bottom:12px;display:none;"></div>
@@ -375,7 +373,11 @@ body{font-family:'DM Sans',sans-serif;background:var(--gray);color:var(--text);m
   <div class="modal-box">
     <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;gap:12px;">
       <h3 id="modal-titulo" style="font-family:'DM Serif Display',serif;color:var(--blue);font-size:1.3rem;">Detalhe</h3>
-      <button class="btn btn-secondary btn-xs" onclick="fecharModal()">Fechar ✕</button>
+      <div class="no-print" style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;">
+        <button class="btn btn-secondary btn-xs" onclick="exportarRespostasPDF(sessaoActual)">📋 Respostas PDF</button>
+        <button class="btn btn-secondary btn-xs" onclick="exportarInterpretacaoPDF(sessaoActual)">📊 Relatório Completo PDF</button>
+        <button class="btn btn-secondary btn-xs" onclick="fecharModal()">✕ Fechar</button>
+      </div>
     </div>
     <div id="modal-body"></div>
   </div>
@@ -893,6 +895,59 @@ function formatCell(pd, pc, tipo){
          (pc !== null && pc !== undefined ? '<br><span style="font-size:.72rem;color:' + cl.cor + '">PC ' + pc + '</span>' : '');
 }
 
+/* ─────────────────────── INTERPRETAÇÃO QUALITATIVA (partilhada modal + PDF) ─────────────────────── */
+function gerarInterpretacaoParts(s){
+  var esc = [
+    {key:'Co', label:'Consideração pelos outros', tipo:'fac'},
+    {key:'Ac', label:'Auto-controlo nas relações sociais', tipo:'fac'},
+    {key:'Li', label:'Liderança', tipo:'fac'},
+    {key:'Is', label:'Isolamento social', tipo:'inib'},
+    {key:'At', label:'Ansiedade social / Timidez', tipo:'inib'},
+    {key:'S',  label:'Sinceridade', tipo:'sinc'}
+  ];
+
+  var fac  = esc.filter(function(e){ return e.tipo === 'fac'  && s[e.key + '_PC'] !== null && s[e.key + '_PC'] !== undefined; });
+  var inib = esc.filter(function(e){ return e.tipo === 'inib' && s[e.key + '_PC'] !== null && s[e.key + '_PC'] !== undefined; });
+
+  var facBaixas = fac.filter(function(e){ return s[e.key + '_PC'] <= 15; });
+  var facBord   = fac.filter(function(e){ return s[e.key + '_PC'] > 15 && s[e.key + '_PC'] <= 30; });
+  var inibAltas = inib.filter(function(e){ return s[e.key + '_PC'] >= 85; });
+  var inibBord  = inib.filter(function(e){ return s[e.key + '_PC'] >= 70 && s[e.key + '_PC'] < 85; });
+
+  var parts = [];
+  if(facBaixas.length === 0 && inibAltas.length === 0 && facBord.length === 0 && inibBord.length === 0){
+    parts.push('O perfil de socialização situa-se, globalmente, dentro dos limites normativos, não se identificando dificuldades significativas nas dimensões avaliadas pela BAS-3.');
+  } else {
+    if(facBaixas.length > 0){
+      parts.push('Apresenta resultados <strong>baixos (zona clínica)</strong> nas escalas facilitadoras de socialização: <strong>' +
+        facBaixas.map(function(e){ return e.label + ' (PC=' + s[e.key + '_PC'] + ')'; }).join(', ') + '</strong>.');
+    }
+    if(facBord.length > 0){
+      parts.push('Em zona borderline nas escalas facilitadoras: <strong>' +
+        facBord.map(function(e){ return e.label + ' (PC=' + s[e.key + '_PC'] + ')'; }).join(', ') + '</strong>.');
+    }
+    if(inibAltas.length > 0){
+      parts.push('Apresenta resultados <strong>elevados (zona clínica)</strong> nas escalas inibidoras: <strong>' +
+        inibAltas.map(function(e){ return e.label + ' (PC=' + s[e.key + '_PC'] + ')'; }).join(', ') + '</strong>.');
+    }
+    if(inibBord.length > 0){
+      parts.push('Em zona borderline nas escalas inibidoras: <strong>' +
+        inibBord.map(function(e){ return e.label + ' (PC=' + s[e.key + '_PC'] + ')'; }).join(', ') + '</strong>.');
+    }
+  }
+
+  if(s.S_PC !== null && s.S_PC !== undefined){
+    if(s.S_PC >= 85){
+      parts.push('O resultado <strong>elevado na escala de Sinceridade (PC=' + s.S_PC + ')</strong> deverá ser interpretado como possível indicador de não conformidade com as regras sociais; recomenda-se ponderação do padrão global das respostas.');
+    } else if(s.S_PC >= 70){
+      parts.push('O resultado moderadamente elevado na escala de Sinceridade (PC=' + s.S_PC + ') merece atenção na integração dos restantes resultados.');
+    }
+  }
+
+  parts.push('<span style="font-size:.78rem;color:var(--text-light);font-style:italic;">Interpretação automática com base nas tabelas normativas portuguesas (CEGOC-TEA, 2005) por escolaridade e sexo. Deve ser integrada no contexto clínico completo da avaliação.</span>');
+  return parts;
+}
+
 /* ─────────────────────── MODAL DE DETALHE ─────────────────────── */
 function verDetalhe(idx){
   var s = sessoes[idx]; if(!s) return;
@@ -955,47 +1010,8 @@ function verDetalhe(idx){
   tbl += '</tbody></table></div>';
   body += tbl;
 
-  // Parágrafo sumário dinâmico
-  var fac = escalasInfo.filter(function(e){ return e.tipo === 'fac' && s[e.key + '_PC'] !== null && s[e.key + '_PC'] !== undefined; });
-  var inib = escalasInfo.filter(function(e){ return e.tipo === 'inib' && s[e.key + '_PC'] !== null && s[e.key + '_PC'] !== undefined; });
-
-  var facBaixas = fac.filter(function(e){ return s[e.key + '_PC'] <= 15; });
-  var facBord   = fac.filter(function(e){ return s[e.key + '_PC'] > 15 && s[e.key + '_PC'] <= 30; });
-  var inibAltas = inib.filter(function(e){ return s[e.key + '_PC'] >= 85; });
-  var inibBord  = inib.filter(function(e){ return s[e.key + '_PC'] >= 70 && s[e.key + '_PC'] < 85; });
-
-  var parts = [];
-  if(facBaixas.length === 0 && inibAltas.length === 0 && facBord.length === 0 && inibBord.length === 0){
-    parts.push('O perfil de socialização situa-se, globalmente, dentro dos limites normativos, não se identificando dificuldades significativas nas dimensões avaliadas pela BAS-3.');
-  } else {
-    if(facBaixas.length > 0){
-      parts.push('Apresenta resultados <strong>baixos (zona clínica)</strong> nas escalas facilitadoras de socialização: <strong>' +
-        facBaixas.map(function(e){ return e.label + ' (PC=' + s[e.key + '_PC'] + ')'; }).join(', ') + '</strong>.');
-    }
-    if(facBord.length > 0){
-      parts.push('Em zona borderline nas escalas facilitadoras: <strong>' +
-        facBord.map(function(e){ return e.label + ' (PC=' + s[e.key + '_PC'] + ')'; }).join(', ') + '</strong>.');
-    }
-    if(inibAltas.length > 0){
-      parts.push('Apresenta resultados <strong>elevados (zona clínica)</strong> nas escalas inibidoras: <strong>' +
-        inibAltas.map(function(e){ return e.label + ' (PC=' + s[e.key + '_PC'] + ')'; }).join(', ') + '</strong>.');
-    }
-    if(inibBord.length > 0){
-      parts.push('Em zona borderline nas escalas inibidoras: <strong>' +
-        inibBord.map(function(e){ return e.label + ' (PC=' + s[e.key + '_PC'] + ')'; }).join(', ') + '</strong>.');
-    }
-  }
-
-  // Nota sobre Sinceridade
-  if(s.S_PC !== null && s.S_PC !== undefined){
-    if(s.S_PC >= 85){
-      parts.push('O resultado <strong>elevado na escala de Sinceridade (PC=' + s.S_PC + ')</strong> deverá ser interpretado como possível indicador de não conformidade com as regras sociais; recomenda-se ponderação do padrão global das respostas.');
-    } else if(s.S_PC >= 70){
-      parts.push('O resultado moderadamente elevado na escala de Sinceridade (PC=' + s.S_PC + ') merece atenção na integração dos restantes resultados.');
-    }
-  }
-
-  parts.push('<span style="font-size:.78rem;color:var(--text-light);font-style:italic;">Interpretação automática com base nas tabelas normativas portuguesas (CEGOC-TEA, 2005) por escolaridade e sexo. Deve ser integrada no contexto clínico completo da avaliação.</span>');
+  // Parágrafo sumário dinâmico (função partilhada com o Relatório Completo PDF)
+  var parts = gerarInterpretacaoParts(s);
 
   body += '<div style="background:var(--blue-xpale);border-radius:8px;padding:12px 16px;font-size:.88rem;line-height:1.65;color:var(--text);margin-bottom:16px;">' +
           parts.join(' ') + '</div>';
@@ -1235,6 +1251,26 @@ function exportarInterpretacaoPDF(s){
     '<table><thead><tr>' +
     '<th>Escala</th><th style="text-align:center;">PD</th><th style="text-align:center;">Percentil</th>' +
     '<th>Perfil</th><th>Zona</th></tr></thead><tbody>' + linhasScore + '</tbody></table>';
+
+  // ── Interpretação clínica qualitativa (mesma lógica do modal) ──
+  var interp = '';
+  try {
+    interp = gerarInterpretacaoParts(s)
+      .join(' ')
+      .replace(/var\(--text-light\)/g, '#6B7A8D');
+  } catch(e) { interp = ''; }
+  if(interp){
+    html += '<h2>Interpretação Clínica</h2>' +
+      '<div style="background:#F2F7FB;border-radius:8px;padding:12px 16px;font-size:11.5px;line-height:1.65;color:#2C3E50;margin-bottom:16px;">' +
+      interp + '</div>';
+  }
+
+  html += '<h2>Limiares de Referência</h2>' +
+    '<div style="background:#F5F5F5;border-radius:8px;padding:10px 14px;font-size:11px;line-height:1.55;color:#6B7A8D;margin-bottom:16px;">' +
+    '<strong>Facilitadoras (Co, Ac, Li):</strong> PC&gt;30 normativo · PC 16–30 borderline · PC≤15 clínico.<br>' +
+    '<strong>Inibidoras (Is, At):</strong> PC&lt;70 normativo · PC 70–84 borderline · PC≥85 clínico.<br>' +
+    '<strong>Sinceridade (S):</strong> PC&lt;70 adequado · PC 70–84 atenção · PC≥85 alerta.' +
+    '</div>';
 
   if(respostasHtml){
     html += '<h2>Respostas por Item</h2>' +
