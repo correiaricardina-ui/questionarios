@@ -1902,8 +1902,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--gray);color:var(--text);m
       <button class="btn btn-secondary btn-xs" onclick="exportarCSV()">&#8681; Exportar CSV</button>
       <button class="btn btn-secondary btn-xs" onclick="exportarPDF()">&#128196; Exportar PDF</button>
       <button class="btn btn-secondary btn-xs" onclick="window.print()">&#128424; Imprimir</button>
-      <button class="btn btn-secondary btn-xs" onclick="exportarRespostasPDF(sessaoActual)">&#128203; Respostas PDF</button>
-      <button class="btn btn-secondary btn-xs" onclick="exportarInterpretacaoPDF(sessaoActual)">&#128202; Interpretação PDF</button>
     </div>
     <input type="file" id="import-file-input" accept=".csv,.xlsx,.xls" style="display:none"
            onchange="processarFicheiroImportado(this)">
@@ -3103,7 +3101,11 @@ function verDetalhe(idx) {
       'Género: ' + (row.genero || '—') + ' · Idade: ' + (row.age || '—') + ' anos · Grupo: ' + (row.ageGroup || '—') +
     '</div>' +
     '</div>' +
+    '<div class="no-print" style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;">' +
+    '<button class="btn btn-xs btn-secondary" onclick="exportarRespostasPDF((window._clinico_sessions||[])[' + idx + '])">&#128203; Respostas PDF</button>' +
+    '<button class="btn btn-xs btn-secondary" onclick="exportarInterpretacaoPDF((window._clinico_sessions||[])[' + idx + '])">&#128202; Relat&oacute;rio Completo PDF</button>' +
     '<button class="btn btn-xs btn-secondary" onclick="fecharModal()">&times; Fechar</button>' +
+    '</div>' +
     '</div>' +
     '<div style="display:flex;gap:12px;margin-bottom:16px;">' +
     '<div style="background:var(--blue-xpale);border-radius:8px;padding:10px 16px;flex:1;text-align:center;">' +
@@ -3273,7 +3275,9 @@ function exportarRespostasPDF(sessao) {
   var respLabel = ['—', 'N (Nunca)', 'AV (Às Vezes)', 'MF (Muitas Vezes)'];
   var rows = allItems.map(function(o) {
     var r = answers[o.item] || 0;
+    var txt = (typeof ITEM_TEXTS !== 'undefined' && ITEM_TEXTS[o.item - 1]) ? ITEM_TEXTS[o.item - 1] : 'Item ' + o.item;
     return '<tr><td style="text-align:center;font-weight:700;">' + o.item + '</td>' +
+      '<td>' + txt + '</td>' +
       '<td>' + o.scale + '</td>' +
       '<td style="text-align:center;">' + (respLabel[r] || '—') + '</td></tr>';
   }).join('');
@@ -3294,7 +3298,7 @@ function exportarRespostasPDF(sessao) {
     ' &nbsp;|&nbsp; Género: ' + gen + ' &nbsp;|&nbsp; Idade: ' + age + ' anos &nbsp;|&nbsp; Grupo: ' + ag +
     ' &nbsp;|&nbsp; Data: ' + dt +
     ' &nbsp;|&nbsp; Ricardina Correia · Cédula 8233</p>' +
-    '<table><thead><tr><th style="width:40px">#</th><th>Escala</th><th style="width:140px">Resposta</th></tr></thead>' +
+    '<table><thead><tr><th style="width:40px">#</th><th>Item</th><th style="width:150px">Escala</th><th style="width:120px">Resposta</th></tr></thead>' +
     '<tbody>' + rows + '</tbody></table>' +
     '<p style="margin-top:20px;font-style:italic;font-size:10px;color:#999;">Exportado automaticamente — para cotação manual se necessário.</p>' +
     '</body></html>';
@@ -3385,8 +3389,30 @@ function exportarInterpretacaoPDF(sessao) {
   if (!clinico.length && !borderline.length) sumParts.push('Todas as escalas e índices situam-se dentro dos limites normativos.');
   sumParts.push('<em style="font-size:10px;color:#999;">Esta interpretação é automática e deve ser integrada no contexto clínico completo da avaliação.</em>');
 
+  // ── Escalas de validade ──
+  var icv = sessao.inconsistencia !== undefined && sessao.inconsistencia !== null ? sessao.inconsistencia : '—';
+  var negv = sessao.negatividade !== undefined && sessao.negatividade !== null ? sessao.negatividade : '—';
+  var icTxt = icv === '—' ? '—' : (parseInt(icv) >= 9 ? 'Inconsistente (' + icv + ')' : 'Aceitável (' + icv + ')');
+  var negTxt = negv === '—' ? '—' : (parseInt(negv) >= 6 ? 'Elevada (' + negv + ')' : 'Aceitável (' + negv + ')');
+
+  // ── Respostas item-a-item ──
+  var itemRowsPdf = '';
+  if (sessao.answers) {
+    var ansPdf = {};
+    var pAns = (sessao.answers + '').split(',');
+    for (var ai = 0; ai < pAns.length; ai++) ansPdf[ai + 1] = parseInt(pAns[ai]) || 0;
+    var labelsPdf = ['—', 'N (Nunca)', 'AV (Às Vezes)', 'MF (Muitas Vezes)'];
+    for (var n = 1; n <= 80; n++) {
+      var vPdf = ansPdf[n] || 0;
+      var txtPdf = (typeof ITEM_TEXTS !== 'undefined' && ITEM_TEXTS[n - 1]) ? ITEM_TEXTS[n - 1] : 'Item ' + n;
+      itemRowsPdf += '<tr><td style="text-align:center;font-weight:700;">' + n + '</td>' +
+        '<td>' + txtPdf + '</td>' +
+        '<td style="text-align:center;">' + (labelsPdf[vPdf] || '—') + '</td></tr>';
+    }
+  }
+
   var html = '<!DOCTYPE html><html><head><meta charset="UTF-8">' +
-    '<title>BRIEF-SR — Interpretação Clínica</title>' +
+    '<title>BRIEF-SR — Relatório Completo</title>' +
     '<style>body{font-family:sans-serif;color:#2C3E50;padding:28px;font-size:12px;}' +
     'h1{color:#3B5A7A;font-size:16px;margin-bottom:4px;}' +
     'h2{color:#3B5A7A;font-size:13px;margin:20px 0 8px;}' +
@@ -3399,7 +3425,7 @@ function exportarInterpretacaoPDF(sessao) {
     '.no-print{margin-bottom:14px;}@media print{.no-print{display:none}}</style>' +
     '</head><body>' +
     '<div class="no-print"><button onclick="window.print()">🖨 Imprimir / Guardar PDF</button></div>' +
-    '<h1>BRIEF-SR — Interpretação Clínica</h1>' +
+    '<h1>BRIEF-SR — Relatório Completo</h1>' +
     '<p>Código: <strong>' + code + '</strong> &nbsp;|&nbsp; Nome: <strong>' + nome + '</strong>' +
     ' &nbsp;|&nbsp; Género: ' + gen + ' &nbsp;|&nbsp; Idade: ' + age + ' anos &nbsp;|&nbsp; Grupo: ' + ag +
     ' &nbsp;|&nbsp; Data: ' + dt +
@@ -3412,7 +3438,23 @@ function exportarInterpretacaoPDF(sessao) {
     '<table><thead><tr><th>Índice</th><th style="width:60px;text-align:center">SB</th>' +
     '<th style="width:50px;text-align:center">T</th><th style="width:130px">Perfil</th>' +
     '<th>Zona</th></tr></thead><tbody>' + compRows + '</tbody></table>' +
+    '<h2>Escalas de Validade</h2>' +
+    '<table><thead><tr><th>Escala</th><th style="width:220px;">Resultado</th></tr></thead><tbody>' +
+    '<tr><td>Inconsistência</td><td>' + icTxt + '</td></tr>' +
+    '<tr><td>Negatividade</td><td>' + negTxt + '</td></tr>' +
+    '</tbody></table>' +
+    '<h2>Interpretação Clínica</h2>' +
     '<div class="summary">' + sumParts.join(' ') + '</div>' +
+    '<h2>Limiares de Referência</h2>' +
+    '<div class="summary" style="background:#F5F5F5;color:#555;">' +
+    'T &ge; 65 = Clinicamente significativo &middot; T 60&ndash;64 = Limítrofe &middot; T &lt; 60 = Dentro da norma.<br>' +
+    'Escalas de validade: Inconsistência &ge; 9 = protocolo inconsistente &middot; Negatividade &ge; 6 = negatividade elevada.' +
+    '</div>' +
+    (itemRowsPdf ?
+      '<h2>Respostas por Item (80 itens)</h2>' +
+      '<table><thead><tr><th style="width:40px">#</th><th>Item</th>' +
+      '<th style="width:120px;text-align:center;">Resp.</th></tr></thead><tbody>' + itemRowsPdf + '</tbody></table>'
+      : '') +
     '</body></html>';
 
   var w = window.open('', '_blank');
