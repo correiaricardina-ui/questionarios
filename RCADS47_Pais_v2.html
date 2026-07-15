@@ -513,23 +513,76 @@ function submeterQuestionario(){
 
 // ── PAINEL CLÍNICO ──
 
+// Extrai sempre data.rows — o Apps Script devolve {"rows":[...]}, nunca um array directo.
+function _extrairRows(data){
+  if(Array.isArray(data)) return data;
+  if(data && Array.isArray(data.rows)) return data.rows;
+  if(data && Array.isArray(data.data)) return data.data;
+  return [];
+}
+
+// Formatação de datas: o Sheet pode devolver ISO, Date ou dd/mm/aaaa.
+function fmtData(v){
+  if(v===null||v===undefined||v==='') return '';
+  if(v instanceof Date) return v.toLocaleDateString('pt-PT');
+  var s=String(v).trim();
+  if(/^\d{1,2}\/\d{1,2}\/\d{4}/.test(s)) return s.slice(0,10);
+  var dt=new Date(s);
+  if(!isNaN(dt.getTime())) return dt.toLocaleDateString('pt-PT');
+  return s;
+}
+
+// Chave de deduplicação — 4 elementos (código + data + tipo respondente + nome respondente)
+function chaveSessao(row){
+  var d=extrairCampos(row);
+  return [(d.patientCode||''),fmtData(d.date),'Pais/EE',(d.nomeInformante||d.relation||'')].join('|').toUpperCase();
+}
+
 function carregarDados(){
   var el=document.getElementById('painel-content');
   el.innerHTML='<p style="color:var(--text-light);font-size:0.88rem">A carregar dados...</p>';
-  fetch(SCRIPT_URL+'?sheet='+SHEET_NAME+'&t='+Date.now())
+  var locais=(window._clinico_sessions)||[];
+  // O doGet do script central usa ?instrumento= ; ?sheet= fica como fallback
+  var url1=SCRIPT_URL+'?instrumento='+encodeURIComponent(SHEET_NAME)+'&t='+Date.now();
+  var url2=SCRIPT_URL+'?sheet='+encodeURIComponent(SHEET_NAME)+'&t='+Date.now();
+  fetch(url1)
     .then(function(r){return r.json();})
-    .then(function(data){window._clinico_sessions=data;renderTabela(data);})
-    .catch(function(){el.innerHTML='<p style="color:var(--text-light);font-size:0.88rem">&#9888; Não foi possível carregar os dados do servidor.</p>';});
+    .then(function(data){
+      var rows=_extrairRows(data);
+      if(rows.length) return rows;
+      return fetch(url2).then(function(r){return r.json();}).then(_extrairRows).catch(function(){return [];});
+    })
+    .then(function(rows){
+      var todos=rows.slice();
+      var chaves={};
+      todos.forEach(function(r){chaves[chaveSessao(r)]=true;});
+      locais.forEach(function(l){
+        var k=chaveSessao(l);
+        if(!chaves[k]){ todos.push(l); chaves[k]=true; }
+      });
+      window._clinico_sessions=todos;
+      renderTabela(todos);
+    })
+    .catch(function(){
+      window._clinico_sessions=locais;
+      if(locais.length){
+        renderTabela(locais);
+      } else {
+        el.innerHTML='<p style="color:var(--text-light);font-size:0.88rem">&#9888; Não foi possível carregar os dados do servidor.</p>';
+      }
+    });
 }
 
 function renderTabela(rows){
   if(!rows||!rows.length){document.getElementById('painel-content').innerHTML='<p style="color:var(--text-light);font-size:0.88rem">Sem dados registados.</p>';return;}
-  var html='<table><thead><tr><th>Data</th><th>Código / Criança</th><th>Respondente</th><th>Idade</th><th>Sexo</th><th>Total Raw</th><th>Total T</th><th>Classificação</th><th>Ações</th></tr></thead><tbody>';
+  var html='<div style="font-size:0.85rem;color:var(--text-light);margin-bottom:12px;">Total: '+rows.length+
+    ' registo'+(rows.length===1?'':'s')+' · Última sync: '+new Date().toLocaleTimeString('pt-PT')+'</div>'+
+    '<table><thead><tr><th>Data</th><th>Código / Criança</th><th>Respondente</th><th>Idade</th><th>Sexo</th><th>Total Raw</th><th>Total T</th><th>Classificação</th><th>Ações</th></tr></thead><tbody>';
   rows.forEach(function(row,i){
     var d=extrairCampos(row);
     var cls=classifyT(parseFloat(d.totalT));
     html+='<tr>';
-    html+='<td>'+(d.date?new Date(d.date).toLocaleDateString('pt-PT'):'')+'</td>';
+    html+='<td>'+fmtData(d.date)+'</td>';
     html+='<td><strong>'+(d.patientCode||'')+'</strong>'+
           (d.nomeCrianca?'<br><span style="font-size:0.75rem;color:var(--text-light)">'+ d.nomeCrianca +'</span>':'')+'</td>';
     html+='<td>'+(d.nomeInformante||d.relation||'')+'</td>';
@@ -558,21 +611,31 @@ function extrairCampos(row){
       sp:row[11],sad:row[12],gad:row[13],pd:row[14],ocd:row[15],answers:row[16]||''
     };
   }
+  // v(...) — nunca usar X||'' : converte um score válido de 0 em vazio
+  function v(){
+    for(var i=0;i<arguments.length;i++){
+      var x=arguments[i];
+      if(x!==undefined&&x!==null&&String(x).trim()!=='') return x;
+    }
+    return '';
+  }
   return {
-    date:row.data||row.date||row['Data']||'',
-    patientCode:row.patientCode||row['Código']||row.codigo||'',
-    nomeCrianca:row.nomeCrianca||row['NomeCriança']||row.nome_crianca||row.childName||''  ,
-    nomeInformante:row.nomeInformante||row['NomeInformante']||row.nome_informante||'',
-    age:row.age||row['Idade']||'',
-    gender:row.gender||row['Sexo']||'',
-    relation:row.relation||row['Relação']||'',
-    mdd:row.mdd||row['MDD_Raw']||'',mddT:row.mddT||row['MDD_T']||'',
-    anx:row.anx||row['ANX_Raw']||'',anxT:row.anxT||row['ANX_T']||'',
-    total:row.total||row['Total_Raw']||'',totalT:row.totalT||row['Total_T']||'',
-    sp:row.sp||row['SP']||'',sad:row.sad||row['SAD']||'',
-    gad:row.gad||row['GAD']||'',pd:row.pd||row['PD']||'',
-    ocd:row.ocd||row['OCD']||'',
-    answers:row.answers||row['Respostas']||''
+    date:v(row.data,row.date,row['Data']),
+    patientCode:String(v(row.patientCode,row['Código'],row['Codigo'],row.codigo)).toUpperCase(),
+    nomeCrianca:v(row.nomeCrianca,row['NomeCriança'],row['NomeCrianca'],row.nome_crianca,row.childName),
+    nomeInformante:v(row.nomeInformante,row['NomeInformante'],row['NomeInformante '],row.nome_informante,row['NomeRespondente'],row['PreenchidoPor']),
+    age:v(row.age,row['Idade'],row.idade),
+    gender:v(row.gender,row['Sexo'],row['Género'],row.sexo),
+    relation:v(row.relation,row['Relação'],row['Relacao'],row.relacao),
+    mdd:v(row.mdd,row['MDD_Raw']),mddT:v(row.mddT,row['MDD_T']),
+    anx:v(row.anx,row['ANX_Raw']),anxT:v(row.anxT,row['ANX_T']),
+    total:v(row.total,row['Total_Raw']),totalT:v(row.totalT,row['Total_T']),
+    sp:v(row.sp,row['SP'],row['SP_Raw']),   spT:v(row.spT,row['SP_T']),
+    sad:v(row.sad,row['SAD'],row['SAD_Raw']),sadT:v(row.sadT,row['SAD_T']),
+    gad:v(row.gad,row['GAD'],row['GAD_Raw']),gadT:v(row.gadT,row['GAD_T']),
+    pd:v(row.pd,row['PD'],row['PD_Raw']),   pdT:v(row.pdT,row['PD_T']),
+    ocd:v(row.ocd,row['OCD'],row['OCD_Raw']),ocdT:v(row.ocdT,row['OCD_T']),
+    answers:v(row.answers,row['Respostas'],row.respostas)
   };
 }
 
@@ -645,7 +708,7 @@ function verDetalhe(i){
       '<button class="btn btn-xs btn-secondary" onclick="this.closest(&quot;.modal-overlay&quot;).remove()">&#10005; Fechar</button>'+
     '</div>'+
     '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:20px">'+
-      '<div class="card" style="padding:12px"><div style="font-size:0.75rem;color:var(--text-light)">Data</div><div style="font-weight:600">'+(d.date?new Date(d.date).toLocaleDateString('pt-PT'):'')+'</div></div>'+
+      '<div class="card" style="padding:12px"><div style="font-size:0.75rem;color:var(--text-light)">Data</div><div style="font-weight:600">'+(fmtData(d.date)||'—')+'</div></div>'+
       '<div class="card" style="padding:12px"><div style="font-size:0.75rem;color:var(--text-light)">Relação</div><div style="font-weight:600">'+(d.relation||'—')+'</div></div>'+
       '<div class="card" style="padding:12px"><div style="font-size:0.75rem;color:var(--text-light)">Idade / Sexo</div><div style="font-weight:600">'+(d.age||'—')+' · '+(d.gender==='Female'?'F':d.gender==='Male'?'M':d.gender||'—')+'</div></div>'+
     '</div>'+
@@ -679,7 +742,7 @@ function exportarCSV(){
   var lines=[header.join(';')];
   rows.forEach(function(row){
     var d=extrairCampos(row);
-    lines.push([d.date?new Date(d.date).toLocaleDateString('pt-PT'):'',d.patientCode||''  ,d.nomeCrianca||''  ,d.nomeInformante||''  ,d.age||''  ,d.gender||''  ,d.relation||''  ,d.mdd||''  ,d.mddT||''  ,d.anx||''  ,d.anxT||''  ,d.total||''  ,d.totalT||''  ,d.sp||''  ,d.sad||''  ,d.gad||''  ,d.pd||''  ,d.ocd||''  ].map(function(v){return '"'+(v+'').replace(/"/g,'\"\\"')+'"'}).join(';'));
+    lines.push([fmtData(d.date),d.patientCode||''  ,d.nomeCrianca||''  ,d.nomeInformante||''  ,d.age||''  ,d.gender||''  ,d.relation||''  ,d.mdd||''  ,d.mddT||''  ,d.anx||''  ,d.anxT||''  ,d.total||''  ,d.totalT||''  ,d.sp||''  ,d.sad||''  ,d.gad||''  ,d.pd||''  ,d.ocd||''  ].map(function(v){return '"'+(v+'').replace(/"/g,'\"\\"')+'"'}).join(';'));
   });
   var blob=new Blob([bom+lines.join('\r\n')],{type:'text/csv;charset=utf-8;'});
   var url=URL.createObjectURL(blob);
@@ -694,7 +757,7 @@ function exportarPDF(){
   var linhas=rows.map(function(row){
     var d=extrairCampos(row);
     var cls=classifyT(parseFloat(d.totalT));
-    return '<tr><td>'+(d.date?new Date(d.date).toLocaleDateString('pt-PT'):'')+'</td><td>'+(d.patientCode||'')+'</td><td>'+(d.nomeCrianca||'')+'</td><td>'+(d.age||'')+'</td><td>'+(d.gender||'')+'</td><td>'+(d.total||'')+'</td><td>'+(d.totalT||'—')+'</td><td>'+cls.label+'</td></tr>';
+    return '<tr><td>'+fmtData(d.date)+'</td><td>'+(d.patientCode||'')+'</td><td>'+(d.nomeCrianca||'')+'</td><td>'+(d.age||'')+'</td><td>'+(d.gender||'')+'</td><td>'+(d.total||'')+'</td><td>'+(d.totalT||'—')+'</td><td>'+cls.label+'</td></tr>';
   }).join('');
   var htmlPdf='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>RCADS-47CG Relatório</title>'+
     '<style>body{font-family:DM Sans,sans-serif;color:#2C3E50;padding:32px}h1{color:#3B5A7A}table{width:100%;border-collapse:collapse;font-size:0.85rem}th{background:#D6E4F0;padding:8px;color:#3B5A7A}td{padding:7px 10px;border-bottom:1px solid #ddd}.no-print{margin-bottom:20px}@media print{.no-print{display:none}}</style></head><body>'+
