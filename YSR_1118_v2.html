@@ -106,6 +106,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--gray-bg);color:var(--text
 .t-normal{background:var(--green);}
 .t-borderline{background:var(--borderline);}
 .t-clinical{background:var(--red);}
+.t-unknown{background:#9AA7B4;}
 .composite-card{background:white;border-radius:12px;padding:24px;box-shadow:0 2px 8px rgba(59,90,122,0.06);margin-bottom:20px;}
 .composite-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--gray-bdr);}
 .composite-row:last-child{border-bottom:none;}
@@ -163,9 +164,25 @@ body{font-family:'DM Sans',sans-serif;background:var(--gray-bg);color:var(--text
   .items-header,.item-row{grid-template-columns:1fr 60px 60px 60px;}
 }
 @media print{
-  .app-header,.nav-wrap,.results-actions,.progress-bar-wrap{display:none!important;}
+  .app-header,.nav-wrap,.results-actions,.progress-bar-wrap,.no-print{display:none!important;}
   .results-wrap,.panel-wrap{margin:0;}
   body{background:white;}
+  /* ── IMPRESSÃO INTEGRAL — evita corte do relatório ── */
+  @page{margin:12mm;}
+  html,body{height:auto!important;max-height:none!important;overflow:visible!important;}
+  /* Modal de detalhe: só ele é impresso, sem limite de altura nem scroll */
+  body.printing-modal>*:not(#modal-detail){display:none!important;}
+  body.printing-modal #modal-detail{display:block!important;position:static!important;inset:auto!important;
+    background:none!important;overflow:visible!important;height:auto!important;max-height:none!important;padding:0!important;}
+  body.printing-modal #modal-detail .modal{width:100%!important;max-width:100%!important;max-height:none!important;
+    height:auto!important;overflow:visible!important;box-shadow:none!important;border-radius:0!important;padding:0!important;}
+  body.printing-modal #modal-detail *{overflow:visible!important;max-height:none!important;}
+  body.printing-modal #modal-detail button{display:none!important;}
+  body.printing-modal #modal-detail details>summary{list-style:none;}
+  /* Blocos que não devem partir a meio de uma página */
+  .scale-card,.composite-card,.composite-row,.scale-row,.comp-result-row{break-inside:avoid;page-break-inside:avoid;}
+  .results-grid{display:block!important;}
+  .results-grid>*{margin-bottom:10px;}
 }
 
 
@@ -957,16 +974,22 @@ const ITEMS = [
 ];
 
 // ═══════════ SCALES ═══════════
+// Mapa de itens conforme Tabela 2.1 do Manual ASEBA 6-18 (PT, Psiquilíbrios 2014, pp.16-17),
+// confirmado contra o Perfil YSR 11-18 e contra as fórmulas da folha de cotação.
+// NÃO ALTERAR sem verificar contra a Tabela 2.1. Os itens de desejabilidade social do YSR
+// (6, 15, 49, 59, 60, 73, 80, 88, 92, 98, 106, 107, 108, 109) não pontuam em escala nenhuma.
 const SCALES = {
   I:   {name:'Ansiedade/Depressão',          items:[14,29,30,31,32,33,35,45,50,52,71,91,112]},
   II:  {name:'Isolamento/Depressão',          items:[5,42,65,69,75,102,103,111]},
-  III: {name:'Queixas Somáticas',             items:[47,51,54,'56a','56b','56c','56d','56e','56f','56g','56h']},
-  IV:  {name:'Problemas Sociais',             items:[11,12,25,27,34,36,38,48,62]},
-  V:   {name:'Problemas de Pensamento',       items:[9,18,40,46,58,66,70,76,77,83,84,85,100]},
-  VI:  {name:'Problemas de Atenção',          items:[1,4,8,10,13,17,41,61,78,80]},
-  VII: {name:'Comportamento Delinquente',    items:[2,26,28,39,43,63,67,72,73,81,82,90,96,99,101,105]},
-  VIII:{name:'Comportamento Agressivo',       items:[3,16,19,20,21,22,23,37,57,68,86,87,88,89,94,95,97,104]}
+  III: {name:'Queixas Somáticas',             items:[47,51,54,'56a','56b','56c','56d','56e','56f','56g']},
+  IV:  {name:'Problemas Sociais',             items:[11,12,25,27,34,36,38,48,62,64,79]},
+  V:   {name:'Problemas de Pensamento',       items:[9,18,40,46,58,66,70,76,83,84,85,100]},
+  VI:  {name:'Problemas de Atenção',          items:[1,4,8,10,13,17,41,61,78]},
+  VII: {name:'Comportamento Delinquente',    items:[2,26,28,39,43,63,67,72,81,82,90,96,99,101,105]},
+  VIII:{name:'Comportamento Agressivo',       items:[3,16,19,20,21,22,23,37,57,68,86,87,89,94,95,97,104]}
 };
+// Outros Problemas: não é síndrome, mas entra no Total de Problemas (Cálculos do perfil).
+const OUTROS_PROB = {name:'Outros Problemas', items:[7,24,44,53,55,'56h',74,77,93,110]};
 
 // ═══════════ T-TABLES ═══════════
 const TF = {
@@ -996,10 +1019,24 @@ const TM = {
   TOT: [50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 51, 51, 51, 52, 52, 52, 53, 53, 53, 54, 54, 54, 55, 55, 55, 56, 56, 56, 57, 57, 58, 58, 58, 59, 59, 59, 60, 60, 60, 61, 61, 62, 62, 62, 63, 63, 63, 64, 64, 64, 65, 65, 65, 65, 66, 66, 67, 67, 67, 68, 68, 68, 69, 69, 69, 70, 70, 71, 71, 71, 72, 72, 72, 73, 73, 73, 74, 74, 74, 75, 75, 76, 76, 76, 77, 77, 77, 78, 78, 78, 79, 79, 79, 80, 80, 80, 81, 81, 81, 82, 82, 82, 83, 83, 83, 84, 84, 85, 85, 85, 86, 86, 86, 87, 87, 87, 88, 88, 89, 89, 89, 90, 90, 90, 91, 91, 91, 92, 92, 92, 93, 93, 93, 94, 94, 94, 95, 95, 95, 96, 96, 96, 97, 97, 98, 98, 98, 99, 99, 99, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100],
 };
 
-function getT(raw,sc,sex){const a=(sex==='F'?TF:TM)[sc];if(!a)return 50;return a[Math.min(raw,a.length-1)];}
-function classify(T,comp){if(comp)return T>=65?'clinical':T>=60?'borderline':'normal';return T>=70?'clinical':T>=65?'borderline':'normal';}
-function classLabel(c){return c==='clinical'?'Clínico':c==='borderline'?'Borderline':'Normativo';}
-function classCss(c){return c==='clinical'?'t-clinical':c==='borderline'?'t-borderline':'t-normal';}
+// ⚠ NORMAS NÃO VALIDADAS ⚠
+// As tabelas TF/TM abaixo não correspondem ao perfil publicado: têm incremento constante
+// ao longo de toda a tabela (TF.I +2, TF.II +3, TF.INT +1) e amplitudes que não batem com
+// nenhuma contagem real de itens (TOT máx 240 = 120 itens; o YSR cota 105 → máx 210).
+// São sintéticas. Enquanto NORMAS_VALIDADAS for false, o painel mostra brutos e omite T.
+// Para reactivar: transcrever as 11 tabelas do perfil em papel e pôr a flag a true.
+const NORMAS_VALIDADAS = false;
+function getT(raw,sc,sex){
+  if(!NORMAS_VALIDADAS) return null;
+  const a=(sex==='F'?TF:TM)[sc];if(!a)return 50;
+  if(raw >= a.length) return null;   // fora de amplitude: não extrapolar silenciosamente
+  return a[raw];
+}
+// Limiares conforme Manual pp.32-33: síndromes borderline percentil 93-97 (T65-69), clínico T>=70;
+// compostos (INT/EXT/Total) borderline T60-63 (percentil 84-90), clínico T>=64.
+function classify(T,comp){if(T==null)return 'unknown';if(comp)return T>=64?'clinical':T>=60?'borderline':'normal';return T>=70?'clinical':T>=65?'borderline':'normal';}
+function classLabel(c){return c==='clinical'?'Clínico':c==='borderline'?'Borderline':c==='unknown'?'T por validar':'Normativo';}
+function classCss(c){return c==='clinical'?'t-clinical':c==='borderline'?'t-borderline':c==='unknown'?'t-unknown':'t-normal';}
 
 // ═══════════ STATE ═══════════
 let answers={}, sessionMeta={};
@@ -1198,6 +1235,8 @@ function computeScores(){
   const sex=sessionMeta.sex||'F';
   const scales={};
   let intR=0,extR=0,totR=0;
+  let outrosR=0;
+  for(const it of OUTROS_PROB.items){const v=answers[it];if(v!==undefined)outrosR+=v;}
   for(const [k,sc] of Object.entries(SCALES)){
     let raw=0;
     for(const it of sc.items){const v=answers[it];if(v!==undefined)raw+=v;}
@@ -1205,10 +1244,12 @@ function computeScores(){
     scales[k]={name:sc.name,raw,T,class:classify(T,false)};
     if(['I','II','III'].includes(k))intR+=raw;
     if(['VII','VIII'].includes(k))extR+=raw;
-    totR+=raw;
   }
+  // Total de Problemas = (a)+(b)+(c), com (c) = IV + V + VI + Outros Problemas — caixa Cálculos do perfil.
+  totR = intR + extR + scales.IV.raw + scales.V.raw + scales.VI.raw + outrosR;
   const intT=getT(intR,'INT',sex),extT=getT(extR,'EXT',sex),totT=getT(totR,'TOT',sex);
   return {scales,
+    OUT:{name:OUTROS_PROB.name,raw:outrosR,T:null,class:'unknown'},
     INT:{raw:intR,T:intT,class:classify(intT,true)},
     EXT:{raw:extR,T:extT,class:classify(extT,true)},
     TOT:{raw:totR,T:totT,class:classify(totT,true)}};
@@ -1625,7 +1666,7 @@ function buildResultsHTML(sess){
           <span class="scale-name"><strong>${k}</strong> — ${s.name}</span>
           <span class="scale-scores">
             <span class="scale-raw">raw ${s.raw}</span>
-            <span class="t-badge ${classCss(s.class)}">T${s.T}</span>
+            <span class="t-badge ${classCss(s.class)}">${s.T!=null?'T'+s.T:'—'}</span>
           </span>
         </div>`;}).join('')}
     </div>`).join('');
@@ -1672,7 +1713,7 @@ function buildResultsHTML(sess){
       <div style="font-size:0.83rem;color:var(--text-light);margin-top:3px;">${sess.sex==='F'?'Feminino':'Masculino'} · ${sess.moment} · ${sess.date}${sess.grade?' · '+sess.grade:''}</div>
     </div>
     <div style="background:var(--blue-pale);border-left:3px solid var(--blue-mid);padding:10px 14px;border-radius:0 8px 8px 0;font-size:0.8rem;color:var(--text-light);margin-bottom:16px;">
-      Escalas: T≥70 Clínico · T65–69 Borderline · T&lt;65 Normativo &nbsp;|&nbsp; Compostos: T≥65 Clínico · T60–64 Borderline
+      Escalas: T≥70 Clínico · T65–69 Borderline &nbsp;|&nbsp; Compostos: T≥64 Clínico · T60–63 Borderline
     </div>
     <div class="composite-card">
       <div style="font-size:0.75rem;font-weight:700;color:var(--blue-mid);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:14px;">Índices Compostos</div>
@@ -1681,7 +1722,7 @@ function buildResultsHTML(sess){
         return `<div class="composite-row">
           <span class="composite-name">${lbl}</span>
           ${bar(d.T,c)}
-          <span class="composite-t" style="color:${d.class==='clinical'?'var(--red)':d.class==='borderline'?'var(--borderline)':'var(--green)'}">T${d.T}</span>
+          <span class="composite-t" style="color:${d.class==='clinical'?'var(--red)':d.class==='borderline'?'var(--borderline)':'var(--green)'}">${d.T!=null?'T'+d.T:'—'}</span>
           <span class="t-badge ${classCss(d.class)}" style="margin-left:10px;">${classLabel(d.class)}</span>
           <span style="font-size:0.8rem;color:var(--text-light);margin-left:8px;">raw ${d.raw}</span>
         </div>`;
@@ -1696,7 +1737,30 @@ const _origBuildResults = buildResultsHTML;
 // (competences appended in viewSession/doSubmit)
 // ═══════════ MODALS ═══════════
 function closeModal(){document.querySelectorAll('.modal-overlay').forEach(m=>m.classList.remove('open'));}
-function printModal(){window.print();}
+function printModal(){
+  var modal=document.getElementById('modal-detail');
+  if(!modal||!modal.classList.contains('open')){window.print();return;}
+  // 1) Expandir TODOS os <details> (respostas item a item) — se ficarem fechados não são impressos
+  var reFechar=[];
+  modal.querySelectorAll('details').forEach(function(d){ if(!d.open){ d.open=true; reFechar.push(d); } });
+  // 2) Retirar o limite de altura/scroll do modal durante a impressão
+  var box=document.getElementById('modal-box');
+  var scrollAnterior=box?box.scrollTop:0;
+  document.body.classList.add('printing-modal');
+  var reposto=false;
+  var repor=function(){
+    if(reposto)return; reposto=true;
+    document.body.classList.remove('printing-modal');
+    reFechar.forEach(function(d){ d.open=false; });
+    if(box)box.scrollTop=scrollAnterior;
+  };
+  var onAfter=function(){ window.removeEventListener('afterprint',onAfter); repor(); };
+  window.addEventListener('afterprint',onAfter);
+  setTimeout(function(){
+    try{ window.print(); }catch(e){}
+    setTimeout(repor,1200); // salvaguarda para navegadores sem afterprint
+  },80);
+}
 
 // ═══════════ CARREGAR DADOS DO SHEET ═══════════
 function carregarDados() {
@@ -1833,7 +1897,9 @@ function exportarRespostasPDFSheet(idx, arr) {
     '<style>body{font-family:Arial,sans-serif;font-size:12px;padding:24px} ' +
     'h1{color:#3B5A7A;font-size:15px} table{width:100%;border-collapse:collapse} ' +
     'th{background:#D6E4F0;padding:6px 8px;text-align:left;color:#3B5A7A} ' +
-    '.np{margin-bottom:16px} @media print{.np{display:none}}</style></head><body>' +
+    '@page{margin:12mm} .np{margin-bottom:16px} ' +
+    '@media print{.np{display:none} html,body{height:auto;overflow:visible} ' +
+    'thead{display:table-header-group} tr{page-break-inside:avoid;break-inside:avoid}}</style></head><body>' +
     '<div class="np"><button onclick="window.print()" style="padding:8px 16px;background:#3B5A7A;color:white;border:none;border-radius:6px;cursor:pointer">🖨 Imprimir</button></div>' +
     '<h1>YSR 11-18 — Respostas por Item</h1>' +
     '<p style="color:#6B7A8D;font-size:11px">Código: <strong>' + (row['Código']||row.codigo||'—') + '</strong> · Data: <strong>' + (row['Data']||row.data||'—') + '</strong><br>Ricardina Correia · Cédula 8233</p>' +
@@ -1883,25 +1949,31 @@ function exportarRespostasPDF(sessaoParam) {
   var s = sessaoParam || (Object.values(sessions).length===1 ? Object.values(sessions)[0] : null);
   if (!s) { alert('Seleccione primeiro uma sess\u00e3o (clique em "Ver").'); return; }
   const ans = s.answers || {};
-  const totalItems = 119;
   let linhas = '';
-  for (let i=1; i<=totalItems; i++) {
-    const r = ans[i]!==undefined ? ans[i] : '\u2014';
+  // Percorre o array ITEMS (119 entradas, inclui os sub-itens 56a–56h) — garante que nenhuma resposta fica de fora
+  ITEMS.forEach(function(item){
+    const v = ans[item.n];
+    const r = (v!==undefined && v!==null && v!=='') ? v : '\u2014';
     const cor = r==2?'#C0392B':r==1?'#E67E22':'#6B7A8D';
-    linhas += `<tr><td style="padding:3px 8px;border-bottom:1px solid #eee;color:#999;text-align:center;width:30px;">${i}</td><td style="padding:3px 8px;border-bottom:1px solid #eee;text-align:center;font-weight:700;color:${cor};width:40px;">${r}</td></tr>`;
-  }
+    linhas += `<tr><td style="padding:3px 8px;border-bottom:1px solid #eee;color:#999;text-align:center;width:34px;">${item.n}</td><td style="padding:3px 8px;border-bottom:1px solid #eee;font-size:11px;">${item.t}</td><td style="padding:3px 8px;border-bottom:1px solid #eee;text-align:center;font-weight:700;color:${cor};width:40px;">${r}</td></tr>`;
+  });
   const dt = s.date || s.fillDate || '\u2014';
   const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>YSR Respostas</title>
-    <style>body{font-family:Arial,sans-serif;font-size:12px;padding:24px;max-width:900px;margin:0 auto;}
+    <style>@page{margin:12mm;}
+    body{font-family:Arial,sans-serif;font-size:12px;padding:24px;max-width:900px;margin:0 auto;}
     h1{color:#3B5A7A;font-size:15px;}p{color:#6B7A8D;font-size:11px;margin-bottom:12px;}
-    table{width:auto;border-collapse:collapse;}th{background:#D6E4F0;padding:5px 8px;text-align:left;color:#3B5A7A;font-size:11px;}
-    .np{margin-bottom:14px;}@media print{.np{display:none;}}</style></head><body>
+    table{width:100%;border-collapse:collapse;}th{background:#D6E4F0;padding:5px 8px;text-align:left;color:#3B5A7A;font-size:11px;}
+    .np{margin-bottom:14px;}
+    @media print{.np{display:none;}
+      html,body{height:auto;overflow:visible;}
+      thead{display:table-header-group;} tfoot{display:table-footer-group;}
+      tr{page-break-inside:avoid;break-inside:avoid;}}</style></head><body>
     <div class="np"><button onclick="window.print()" style="padding:5px 12px;cursor:pointer;">&#128424; Imprimir</button></div>
     <h1>YSR 11-18 \u2014 Respostas por Item</h1>
     <p>C\u00f3digo: <strong>${s.code||''}</strong>
     ${s.name?' &nbsp;|&nbsp; Nome: <strong>'+s.name+'</strong>':''}
     &nbsp;|&nbsp; Data: ${dt} &nbsp;|&nbsp; Ricardina Correia \u00b7 C\u00e9dula 8233</p>
-    <table><thead><tr><th style="text-align:center">#</th><th style="text-align:center">Resp.</th></tr></thead>
+    <table><thead><tr><th style="text-align:center">#</th><th>Item</th><th style="text-align:center">Resp.</th></tr></thead>
     <tbody>${linhas}</tbody></table>
     <p style="margin-top:14px;font-size:10px;color:#999;">0=N\u00e3o verdadeiro &nbsp;|&nbsp; 1=\u00c0s vezes verdadeiro &nbsp;|&nbsp; 2=Muitas vezes verdadeiro</p>
     </body></html>`;
@@ -1949,13 +2021,33 @@ function exportarInterpretacaoPDF(sessaoParam) {
     row('Total de Problemas', sc.TOT, true),
   ].join('');
 
+  // ── Respostas item a item (relatório completo) ──
+  const ansRel = s.answers || {};
+  let itemRows = '';
+  ITEMS.forEach(function(item){
+    const v = ansRel[item.n];
+    const r = (v!==undefined && v!==null && v!=='') ? v : '\u2014';
+    const cor = r==2?'#C0392B':r==1?'#E67E22':'#6B7A8D';
+    itemRows += `<tr><td style="padding:3px 8px;border-bottom:1px solid #eee;color:#999;text-align:center;width:34px;">${item.n}</td>` +
+      `<td style="padding:3px 8px;border-bottom:1px solid #eee;font-size:11px;">${item.t}</td>` +
+      `<td style="padding:3px 8px;border-bottom:1px solid #eee;text-align:center;font-weight:700;color:${cor};width:40px;">${r}</td></tr>`;
+  });
+  const itemBlock = itemRows ? `<h2>Respostas Item a Item</h2>
+    <table><thead><tr><th style="text-align:center">#</th><th>Item</th><th style="text-align:center">Resp.</th></tr></thead><tbody>${itemRows}</tbody></table>
+    <p style="font-size:10px;color:#999;">0 = N\u00e3o verdadeiro &nbsp;|&nbsp; 1 = \u00c0s vezes verdadeiro &nbsp;|&nbsp; 2 = Muitas vezes verdadeiro</p>` : '';
+
   const dt = s.date || s.fillDate || '\u2014';
   const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>YSR 11-18 Interpreta\u00e7\u00e3o</title>
-    <style>body{font-family:Arial,sans-serif;font-size:12px;padding:24px;max-width:900px;margin:0 auto;}
+    <style>@page{margin:12mm;}
+    body{font-family:Arial,sans-serif;font-size:12px;padding:24px;max-width:900px;margin:0 auto;}
     h1{color:#3B5A7A;font-size:15px;}h2{color:#3B5A7A;font-size:12px;margin:14px 0 5px;border-bottom:2px solid #D6E4F0;padding-bottom:3px;}
     p{color:#6B7A8D;font-size:11px;margin-bottom:12px;}table{width:100%;border-collapse:collapse;margin-bottom:12px;}
     th{background:#D6E4F0;padding:5px 8px;text-align:left;color:#3B5A7A;font-size:11px;}
-    .np{margin-bottom:14px;}@media print{.np{display:none;}}</style></head><body>
+    .np{margin-bottom:14px;}
+    @media print{.np{display:none;}
+      html,body{height:auto;overflow:visible;}
+      h2{page-break-after:avoid;break-after:avoid;}
+      thead{display:table-header-group;} tr{page-break-inside:avoid;break-inside:avoid;}}</style></head><body>
     <div class="np"><button onclick="window.print()" style="padding:5px 12px;cursor:pointer;">&#128424; Imprimir</button></div>
     <h1>YSR 11-18 \u2014 Relat\u00f3rio de Avalia\u00e7\u00e3o</h1>
     <p>C\u00f3digo: <strong>${s.code||''}</strong>
@@ -1965,6 +2057,7 @@ function exportarInterpretacaoPDF(sessaoParam) {
     <table><thead><tr><th>S\u00edndrome</th><th style="text-align:center">Bruto</th><th style="text-align:center">T</th><th>Perfil</th><th>Zona</th></tr></thead><tbody>${synRows}</tbody></table>
     <h2>Escalas Compostas</h2>
     <table><thead><tr><th>Escala</th><th style="text-align:center">Bruto</th><th style="text-align:center">T</th><th>Perfil</th><th>Zona</th></tr></thead><tbody>${compRows}</tbody></table>
+    ${itemBlock}
     <p style="margin-top:18px;font-style:italic;color:#999;font-size:10px;">Interpreta\u00e7\u00e3o autom\u00e1tica \u2014 integrar no contexto cl\u00ednico completo.</p>
     </body></html>`;
 
