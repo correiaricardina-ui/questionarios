@@ -753,6 +753,10 @@ function verDetalhe(idx){
   parts.push("<span style=\"font-size:.76rem;color:var(--text-light);font-style:italic\">Interpreta&ccedil;&atilde;o autom&aacute;tica &mdash; integrar no contexto cl&iacute;nico completo.</span>");
   html+=parts.join(" ")+"</div></div>";
   html+="<div style=\"margin-top:14px;padding:10px;background:var(--gray);border-radius:8px;font-size:.76rem;color:var(--text-light)\">SS &ge; 8 = Normativo &middot; SS 6&ndash;7 = Borderline &middot; SS &le; 5 = Cl&iacute;nico &nbsp;|&nbsp; CAG &ge; 90 = Normativo &middot; CAG 80&ndash;89 = Borderline &middot; CAG &le; 79 = Cl&iacute;nico</div>";
+  html+="<div class=\"no-print\" style=\"margin-top:16px;display:flex;gap:8px;flex-wrap:wrap\">"+
+    "<button class=\"btn btn-secondary\" style=\"padding:6px 14px;font-size:.8rem\" onclick=\"exportarRespostasPDF(sessaoActual)\">&#128203; Respostas item a item</button>"+
+    "<button class=\"btn btn-primary\" style=\"padding:6px 14px;font-size:.8rem\" onclick=\"exportarInterpretacaoPDF(sessaoActual)\">&#128424; Relat&oacute;rio completo PDF</button>"+
+    "</div>";
   document.getElementById("modal-content").innerHTML=html;
   document.getElementById("modal-overlay").classList.add("open");
 }
