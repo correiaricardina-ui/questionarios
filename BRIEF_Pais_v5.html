@@ -1271,7 +1271,8 @@ function showDetail(i){
   for(const [key,def] of Object.entries(INDICES)){
     const raw = sc.indices?.[key]??null;
     const norm = hasNorms ? lookupNorm(gender, age, key, raw) : null;
-    const tBadge = norm ? `<span class="t-badge ${norm.interp.cls}">T=${norm.T} · P${norm.pct}</span>` : "";
+    const tBadge = (norm && norm.interp) ? `<span class="t-badge ${norm.interp.cls}">T=${norm.T} · P${norm.pct}</span>`
+                 : (norm && norm.erro) ? `<span class="t-badge" title="${norm.msg}">T n/d</span>` : "";
     html+=`<div class="sc-box ${norm?.interp?.cls||''}"><div class="sv">${raw??"-"}</div><div class="sl">${def.label}${tBadge?`<br>${tBadge}`:""}</div></div>`;
   }
   html+=`</div>`;
@@ -1282,7 +1283,8 @@ function showDetail(i){
   for(const [esc,val] of Object.entries(sc.escalas||{})){
     const nitens=ESCALAS[esc]?.length||0;
     const norm = hasNorms ? lookupNorm(gender, age, esc, val) : null;
-    const tBadge = norm ? `<span class="t-badge ${norm.interp.cls}">T=${norm.T} · P${norm.pct}</span>` : "";
+    const tBadge = (norm && norm.interp) ? `<span class="t-badge ${norm.interp.cls}">T=${norm.T} · P${norm.pct}</span>`
+                 : (norm && norm.erro) ? `<span class="t-badge" title="${norm.msg}">T n/d</span>` : "";
     html+=`<div class="sc-box ${norm?.interp?.cls||''}"><div class="sv">${val}</div><div class="sl">${ESCALAS_LABELS[esc]||esc}${tBadge?`<br>${tBadge}`:""}<br><small style="color:var(--gray-400)">${nitens} itens</small></div></div>`;
   }
   html+=`</div>`;
