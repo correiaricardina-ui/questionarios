@@ -217,14 +217,14 @@ body{font-family:'DM Sans',sans-serif;background:var(--gray);color:var(--text);m
         <span style="font-size:.82rem;color:var(--text-light)">Identificação</span>
         <div class="step-line" style="background:var(--blue)"></div>
         <div class="step-circle" style="background:var(--blue);color:white">2</div>
-        <span style="font-size:.82rem;font-weight:600;color:var(--blue)">Questionário (31 itens)</span>
+        <span style="font-size:.82rem;font-weight:600;color:var(--blue)">Questionário (45 itens)</span>
       </div>
 
       <div class="progress-bar no-print">
         <div class="progress-fill" id="progress-fill" style="width:0%"></div>
       </div>
       <div style="text-align:right;font-size:.78rem;color:var(--text-light);margin-bottom:12px"
-           id="progress-text">0 / 31 respondidas</div>
+           id="progress-text">0 / 45 respondidas</div>
 
       <div class="card">
         <p style="font-size:.88rem;color:var(--text-light);margin-bottom:20px;line-height:1.6">Por favor avalie o comportamento da criança nos últimos meses. Para cada afirmação, assinale a opção que melhor descreve o comportamento da criança: 0 = Nunca ou raramente, 1 = Por vezes, 2 = Frequentemente, 3 = Muito frequente.</p>
@@ -236,9 +236,11 @@ body{font-family:'DM Sans',sans-serif;background:var(--gray);color:var(--text);m
         </div>
         <div id="q-container">
 
+<div class="q-bloco" id="q-bloco-0" style="display:block">
+<div style="font-size:.8rem;font-weight:600;color:var(--blue);margin:6px 0 12px">Bloco 1 de 3 · itens 1–15</div>
         <div class="q-item" id="qi-0" data-idx="0">
           <div class="q-num">1</div>
-          <div class="q-text">Perde os seus pertences necessários para actividades.</div>
+          <div class="q-text">Esquece-se de entregar os trabalhos concluidos</div>
           <div class="q-options">
             <label class="q-opt"><input type="radio" name="q0" value="0" onchange="registar(0,0)"><span>0<br><small>Nunca</small></span></label>
             <label class="q-opt"><input type="radio" name="q0" value="1" onchange="registar(0,1)"><span>1<br><small>Por vezes</small></span></label>
@@ -248,8 +250,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--gray);color:var(--text);m
         </div>
 
         <div class="q-item" id="qi-1" data-idx="1">
-          <div class="q-num">3</div>
-          <div class="q-text">Está sempre em movimento, não para quieto/a.</div>
+          <div class="q-num">2</div>
+          <div class="q-text">É perfeito(a) em tudo</div>
           <div class="q-options">
             <label class="q-opt"><input type="radio" name="q1" value="0" onchange="registar(1,0)"><span>0<br><small>Nunca</small></span></label>
             <label class="q-opt"><input type="radio" name="q1" value="1" onchange="registar(1,1)"><span>1<br><small>Por vezes</small></span></label>
@@ -259,8 +261,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--gray);color:var(--text);m
         </div>
 
         <div class="q-item" id="qi-2" data-idx="2">
-          <div class="q-num">4</div>
-          <div class="q-text">Prefere estar sozinho/a a brincar com outras crianças.</div>
+          <div class="q-num">3</div>
+          <div class="q-text">Mexe-se ou contorce-se na cadeira</div>
           <div class="q-options">
             <label class="q-opt"><input type="radio" name="q2" value="0" onchange="registar(2,0)"><span>0<br><small>Nunca</small></span></label>
             <label class="q-opt"><input type="radio" name="q2" value="1" onchange="registar(2,1)"><span>1<br><small>Por vezes</small></span></label>
@@ -270,8 +272,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--gray);color:var(--text);m
         </div>
 
         <div class="q-item" id="qi-3" data-idx="3">
-          <div class="q-num">5</div>
-          <div class="q-text">Abandona o lugar em situações onde devia permanecer sentado/a.</div>
+          <div class="q-num">4</div>
+          <div class="q-text">É um dos últimos a ser escolhido para equipas ou jogos</div>
           <div class="q-options">
             <label class="q-opt"><input type="radio" name="q3" value="0" onchange="registar(3,0)"><span>0<br><small>Nunca</small></span></label>
             <label class="q-opt"><input type="radio" name="q3" value="1" onchange="registar(3,1)"><span>1<br><small>Por vezes</small></span></label>
@@ -281,8 +283,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--gray);color:var(--text);m
         </div>
 
         <div class="q-item" id="qi-4" data-idx="4">
-          <div class="q-num">6</div>
-          <div class="q-text">Não é convidado/a para festas ou casas de amigos.</div>
+          <div class="q-num">5</div>
+          <div class="q-text">Inquieto(a) ou hiperactivo(a)</div>
           <div class="q-options">
             <label class="q-opt"><input type="radio" name="q4" value="0" onchange="registar(4,0)"><span>0<br><small>Nunca</small></span></label>
             <label class="q-opt"><input type="radio" name="q4" value="1" onchange="registar(4,1)"><span>1<br><small>Por vezes</small></span></label>
@@ -292,8 +294,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--gray);color:var(--text);m
         </div>
 
         <div class="q-item" id="qi-5" data-idx="5">
-          <div class="q-num">7</div>
-          <div class="q-text">Corre ou trepa em excesso quando não é adequado.</div>
+          <div class="q-num">6</div>
+          <div class="q-text">Não sabe como fazer amigos</div>
           <div class="q-options">
             <label class="q-opt"><input type="radio" name="q5" value="0" onchange="registar(5,0)"><span>0<br><small>Nunca</small></span></label>
             <label class="q-opt"><input type="radio" name="q5" value="1" onchange="registar(5,1)"><span>1<br><small>Por vezes</small></span></label>
@@ -303,8 +305,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--gray);color:var(--text);m
         </div>
 
         <div class="q-item" id="qi-6" data-idx="6">
-          <div class="q-num">8</div>
-          <div class="q-text">Tem dificuldade em ler.</div>
+          <div class="q-num">7</div>
+          <div class="q-text">Corre ou trepa quando não é suposto</div>
           <div class="q-options">
             <label class="q-opt"><input type="radio" name="q6" value="0" onchange="registar(6,0)"><span>0<br><small>Nunca</small></span></label>
             <label class="q-opt"><input type="radio" name="q6" value="1" onchange="registar(6,1)"><span>1<br><small>Por vezes</small></span></label>
@@ -314,8 +316,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--gray);color:var(--text);m
         </div>
 
         <div class="q-item" id="qi-7" data-idx="7">
-          <div class="q-num">10</div>
-          <div class="q-text">Tem dificuldade em compreender o que lê.</div>
+          <div class="q-num">8</div>
+          <div class="q-text">Não consegue perceber aritmética</div>
           <div class="q-options">
             <label class="q-opt"><input type="radio" name="q7" value="0" onchange="registar(7,0)"><span>0<br><small>Nunca</small></span></label>
             <label class="q-opt"><input type="radio" name="q7" value="1" onchange="registar(7,1)"><span>1<br><small>Por vezes</small></span></label>
@@ -325,8 +327,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--gray);color:var(--text);m
         </div>
 
         <div class="q-item" id="qi-8" data-idx="8">
-          <div class="q-num">13</div>
-          <div class="q-text">Distrai-se facilmente com barulhos.</div>
+          <div class="q-num">9</div>
+          <div class="q-text">É difícil de agradar ou divertir</div>
           <div class="q-options">
             <label class="q-opt"><input type="radio" name="q8" value="0" onchange="registar(8,0)"><span>0<br><small>Nunca</small></span></label>
             <label class="q-opt"><input type="radio" name="q8" value="1" onchange="registar(8,1)"><span>1<br><small>Por vezes</small></span></label>
@@ -336,8 +338,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--gray);color:var(--text);m
         </div>
 
         <div class="q-item" id="qi-9" data-idx="9">
-          <div class="q-num">14</div>
-          <div class="q-text">Discute com adultos.</div>
+          <div class="q-num">10</div>
+          <div class="q-text">Necessita de explicações extra das instruções</div>
           <div class="q-options">
             <label class="q-opt"><input type="radio" name="q9" value="0" onchange="registar(9,0)"><span>0<br><small>Nunca</small></span></label>
             <label class="q-opt"><input type="radio" name="q9" value="1" onchange="registar(9,1)"><span>1<br><small>Por vezes</small></span></label>
@@ -347,8 +349,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--gray);color:var(--text);m
         </div>
 
         <div class="q-item" id="qi-10" data-idx="10">
-          <div class="q-num">15</div>
-          <div class="q-text">Tem dificuldade em iniciar tarefas.</div>
+          <div class="q-num">11</div>
+          <div class="q-text">É difícil de motivar (mesmo com recompensas como doces ou dinheiro)</div>
           <div class="q-options">
             <label class="q-opt"><input type="radio" name="q10" value="0" onchange="registar(10,0)"><span>0<br><small>Nunca</small></span></label>
             <label class="q-opt"><input type="radio" name="q10" value="1" onchange="registar(10,1)"><span>1<br><small>Por vezes</small></span></label>
@@ -358,8 +360,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--gray);color:var(--text);m
         </div>
 
         <div class="q-item" id="qi-11" data-idx="11">
-          <div class="q-num">17</div>
-          <div class="q-text">Não termina as tarefas que começa.</div>
+          <div class="q-num">12</div>
+          <div class="q-text">Comete erros</div>
           <div class="q-options">
             <label class="q-opt"><input type="radio" name="q11" value="0" onchange="registar(11,0)"><span>0<br><small>Nunca</small></span></label>
             <label class="q-opt"><input type="radio" name="q11" value="1" onchange="registar(11,1)"><span>1<br><small>Por vezes</small></span></label>
@@ -369,8 +371,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--gray);color:var(--text);m
         </div>
 
         <div class="q-item" id="qi-12" data-idx="12">
-          <div class="q-num">18</div>
-          <div class="q-text">É rejeitado/a ou ignorado/a pelos pares.</div>
+          <div class="q-num">13</div>
+          <div class="q-text">Age como se estivesse ligado(a) a um motor</div>
           <div class="q-options">
             <label class="q-opt"><input type="radio" name="q12" value="0" onchange="registar(12,0)"><span>0<br><small>Nunca</small></span></label>
             <label class="q-opt"><input type="radio" name="q12" value="1" onchange="registar(12,1)"><span>1<br><small>Por vezes</small></span></label>
@@ -380,8 +382,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--gray);color:var(--text);m
         </div>
 
         <div class="q-item" id="qi-13" data-idx="13">
-          <div class="q-num">19</div>
-          <div class="q-text">Não para quieto/a; age como se tivesse um motor.</div>
+          <div class="q-num">14</div>
+          <div class="q-text">Inicia brigas com os outros propositadamente</div>
           <div class="q-options">
             <label class="q-opt"><input type="radio" name="q13" value="0" onchange="registar(13,0)"><span>0<br><small>Nunca</small></span></label>
             <label class="q-opt"><input type="radio" name="q13" value="1" onchange="registar(13,1)"><span>1<br><small>Por vezes</small></span></label>
@@ -391,8 +393,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--gray);color:var(--text);m
         </div>
 
         <div class="q-item" id="qi-14" data-idx="14">
-          <div class="q-num">20</div>
-          <div class="q-text">Tem dificuldade em organizar tarefas.</div>
+          <div class="q-num">15</div>
+          <div class="q-text">Tem dificuldade em começar tarefas ou projectos</div>
           <div class="q-options">
             <label class="q-opt"><input type="radio" name="q14" value="0" onchange="registar(14,0)"><span>0<br><small>Nunca</small></span></label>
             <label class="q-opt"><input type="radio" name="q14" value="1" onchange="registar(14,1)"><span>1<br><small>Por vezes</small></span></label>
@@ -400,10 +402,14 @@ body{font-family:'DM Sans',sans-serif;background:var(--gray);color:var(--text);m
             <label class="q-opt"><input type="radio" name="q14" value="3" onchange="registar(14,3)"><span>3<br><small>Sempre</small></span></label>
           </div>
         </div>
+<div style="display:flex;justify-content:space-between;margin-top:18px;gap:12px" class="no-print"><span></span><button class="btn btn-primary" onclick="mostrarBloco(1)">Seguinte →</button></div>
+</div>
 
+<div class="q-bloco" id="q-bloco-1" style="display:none">
+<div style="font-size:.8rem;font-weight:600;color:var(--blue);margin:6px 0 12px">Bloco 2 de 3 · itens 16–30</div>
         <div class="q-item" id="qi-15" data-idx="15">
-          <div class="q-num">21</div>
-          <div class="q-text">Opõe-se activamente a cumprir pedidos.</div>
+          <div class="q-num">16</div>
+          <div class="q-text">É feliz, alegre e tem uma atitude positiva</div>
           <div class="q-options">
             <label class="q-opt"><input type="radio" name="q15" value="0" onchange="registar(15,0)"><span>0<br><small>Nunca</small></span></label>
             <label class="q-opt"><input type="radio" name="q15" value="1" onchange="registar(15,1)"><span>1<br><small>Por vezes</small></span></label>
@@ -413,8 +419,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--gray);color:var(--text);m
         </div>
 
         <div class="q-item" id="qi-16" data-idx="16">
-          <div class="q-num">23</div>
-          <div class="q-text">Chateia os outros de propósito.</div>
+          <div class="q-num">17</div>
+          <div class="q-text">Não prestá atenção aos pormenores; comete erros por descuido</div>
           <div class="q-options">
             <label class="q-opt"><input type="radio" name="q16" value="0" onchange="registar(16,0)"><span>0<br><small>Nunca</small></span></label>
             <label class="q-opt"><input type="radio" name="q16" value="1" onchange="registar(16,1)"><span>1<br><small>Por vezes</small></span></label>
@@ -424,8 +430,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--gray);color:var(--text);m
         </div>
 
         <div class="q-item" id="qi-17" data-idx="17">
-          <div class="q-num">24</div>
-          <div class="q-text">Tem dificuldade em esperar pela sua vez.</div>
+          <div class="q-num">18</div>
+          <div class="q-text">Tem dificuldade em manter as amizades</div>
           <div class="q-options">
             <label class="q-opt"><input type="radio" name="q17" value="0" onchange="registar(17,0)"><span>0<br><small>Nunca</small></span></label>
             <label class="q-opt"><input type="radio" name="q17" value="1" onchange="registar(17,1)"><span>1<br><small>Por vezes</small></span></label>
@@ -435,8 +441,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--gray);color:var(--text);m
         </div>
 
         <div class="q-item" id="qi-18" data-idx="18">
-          <div class="q-num">25</div>
-          <div class="q-text">Tem dificuldades em matemática.</div>
+          <div class="q-num">19</div>
+          <div class="q-text">Intimidia, ameaça ou assusta os outros</div>
           <div class="q-options">
             <label class="q-opt"><input type="radio" name="q18" value="0" onchange="registar(18,0)"><span>0<br><small>Nunca</small></span></label>
             <label class="q-opt"><input type="radio" name="q18" value="1" onchange="registar(18,1)"><span>1<br><small>Por vezes</small></span></label>
@@ -446,8 +452,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--gray);color:var(--text);m
         </div>
 
         <div class="q-item" id="qi-19" data-idx="19">
-          <div class="q-num">26</div>
-          <div class="q-text">Faz raivas ou acessos de mau humor.</div>
+          <div class="q-num">20</div>
+          <div class="q-text">Perde coisas (ex: trabalhos escolares, lapices, livros, ferramentas ou brinquedos)</div>
           <div class="q-options">
             <label class="q-opt"><input type="radio" name="q19" value="0" onchange="registar(19,0)"><span>0<br><small>Nunca</small></span></label>
             <label class="q-opt"><input type="radio" name="q19" value="1" onchange="registar(19,1)"><span>1<br><small>Por vezes</small></span></label>
@@ -457,8 +463,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--gray);color:var(--text);m
         </div>
 
         <div class="q-item" id="qi-20" data-idx="20">
-          <div class="q-num">27</div>
-          <div class="q-text">Tem dificuldade em manter a atenção.</div>
+          <div class="q-num">21</div>
+          <div class="q-text">Diz mentiras para magoar as outras pessoas</div>
           <div class="q-options">
             <label class="q-opt"><input type="radio" name="q20" value="0" onchange="registar(20,0)"><span>0<br><small>Nunca</small></span></label>
             <label class="q-opt"><input type="radio" name="q20" value="1" onchange="registar(20,1)"><span>1<br><small>Por vezes</small></span></label>
@@ -468,8 +474,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--gray);color:var(--text);m
         </div>
 
         <div class="q-item" id="qi-21" data-idx="21">
-          <div class="q-num">28</div>
-          <div class="q-text">Tem dificuldade em brincar calmamente.</div>
+          <div class="q-num">22</div>
+          <div class="q-text">Não consigo perceber o que o(a) faz feliz</div>
           <div class="q-options">
             <label class="q-opt"><input type="radio" name="q21" value="0" onchange="registar(21,0)"><span>0<br><small>Nunca</small></span></label>
             <label class="q-opt"><input type="radio" name="q21" value="1" onchange="registar(21,1)"><span>1<br><small>Por vezes</small></span></label>
@@ -479,8 +485,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--gray);color:var(--text);m
         </div>
 
         <div class="q-item" id="qi-22" data-idx="22">
-          <div class="q-num">30</div>
-          <div class="q-text">Comete erros por descuido.</div>
+          <div class="q-num">23</div>
+          <div class="q-text">Ameaça magoar os outros</div>
           <div class="q-options">
             <label class="q-opt"><input type="radio" name="q22" value="0" onchange="registar(22,0)"><span>0<br><small>Nunca</small></span></label>
             <label class="q-opt"><input type="radio" name="q22" value="1" onchange="registar(22,1)"><span>1<br><small>Por vezes</small></span></label>
@@ -490,8 +496,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--gray);color:var(--text);m
         </div>
 
         <div class="q-item" id="qi-23" data-idx="23">
-          <div class="q-num">32</div>
-          <div class="q-text">Perde o fio à tarefa quando se distrai.</div>
+          <div class="q-num">24</div>
+          <div class="q-text">Está constantemente em movimento</div>
           <div class="q-options">
             <label class="q-opt"><input type="radio" name="q23" value="0" onchange="registar(23,0)"><span>0<br><small>Nunca</small></span></label>
             <label class="q-opt"><input type="radio" name="q23" value="1" onchange="registar(23,1)"><span>1<br><small>Por vezes</small></span></label>
@@ -501,8 +507,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--gray);color:var(--text);m
         </div>
 
         <div class="q-item" id="qi-24" data-idx="24">
-          <div class="q-num">34</div>
-          <div class="q-text">Necessita de supervisão constante.</div>
+          <div class="q-num">25</div>
+          <div class="q-text">Tem dificuldades com a leitura</div>
           <div class="q-options">
             <label class="q-opt"><input type="radio" name="q24" value="0" onchange="registar(24,0)"><span>0<br><small>Nunca</small></span></label>
             <label class="q-opt"><input type="radio" name="q24" value="1" onchange="registar(24,1)"><span>1<br><small>Por vezes</small></span></label>
@@ -512,8 +518,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--gray);color:var(--text);m
         </div>
 
         <div class="q-item" id="qi-25" data-idx="25">
-          <div class="q-num">35</div>
-          <div class="q-text">Tem dificuldade em começar tarefas por si próprio/a.</div>
+          <div class="q-num">26</div>
+          <div class="q-text">Está zangado(a) e ressentido(a)</div>
           <div class="q-options">
             <label class="q-opt"><input type="radio" name="q25" value="0" onchange="registar(25,0)"><span>0<br><small>Nunca</small></span></label>
             <label class="q-opt"><input type="radio" name="q25" value="1" onchange="registar(25,1)"><span>1<br><small>Por vezes</small></span></label>
@@ -523,8 +529,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--gray);color:var(--text);m
         </div>
 
         <div class="q-item" id="qi-26" data-idx="26">
-          <div class="q-num">36</div>
-          <div class="q-text">Tem dificuldades em escrever.</div>
+          <div class="q-num">27</div>
+          <div class="q-text">Tem um período de atenção curto</div>
           <div class="q-options">
             <label class="q-opt"><input type="radio" name="q26" value="0" onchange="registar(26,0)"><span>0<br><small>Nunca</small></span></label>
             <label class="q-opt"><input type="radio" name="q26" value="1" onchange="registar(26,1)"><span>1<br><small>Por vezes</small></span></label>
@@ -534,8 +540,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--gray);color:var(--text);m
         </div>
 
         <div class="q-item" id="qi-27" data-idx="27">
-          <div class="q-num">38</div>
-          <div class="q-text">Intimida, ameaça ou assusta outros.</div>
+          <div class="q-num">28</div>
+          <div class="q-text">É excitavel e impulsivo(a)</div>
           <div class="q-options">
             <label class="q-opt"><input type="radio" name="q27" value="0" onchange="registar(27,0)"><span>0<br><small>Nunca</small></span></label>
             <label class="q-opt"><input type="radio" name="q27" value="1" onchange="registar(27,1)"><span>1<br><small>Por vezes</small></span></label>
@@ -545,8 +551,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--gray);color:var(--text);m
         </div>
 
         <div class="q-item" id="qi-28" data-idx="28">
-          <div class="q-num">39</div>
-          <div class="q-text">Tem dificuldade em soletrar palavras.</div>
+          <div class="q-num">29</div>
+          <div class="q-text">Não faz nada bem feito</div>
           <div class="q-options">
             <label class="q-opt"><input type="radio" name="q28" value="0" onchange="registar(28,0)"><span>0<br><small>Nunca</small></span></label>
             <label class="q-opt"><input type="radio" name="q28" value="1" onchange="registar(28,1)"><span>1<br><small>Por vezes</small></span></label>
@@ -556,8 +562,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--gray);color:var(--text);m
         </div>
 
         <div class="q-item" id="qi-29" data-idx="29">
-          <div class="q-num">41</div>
-          <div class="q-text">Não presta atenção; está facilmente distraído/a.</div>
+          <div class="q-num">30</div>
+          <div class="q-text">Tem dificuldade em concentrar-se</div>
           <div class="q-options">
             <label class="q-opt"><input type="radio" name="q29" value="0" onchange="registar(29,0)"><span>0<br><small>Nunca</small></span></label>
             <label class="q-opt"><input type="radio" name="q29" value="1" onchange="registar(29,1)"><span>1<br><small>Por vezes</small></span></label>
@@ -565,10 +571,14 @@ body{font-family:'DM Sans',sans-serif;background:var(--gray);color:var(--text);m
             <label class="q-opt"><input type="radio" name="q29" value="3" onchange="registar(29,3)"><span>3<br><small>Sempre</small></span></label>
           </div>
         </div>
+<div style="display:flex;justify-content:space-between;margin-top:18px;gap:12px" class="no-print"><button class="btn btn-secondary" onclick="mostrarBloco(0)">← Anterior</button><button class="btn btn-primary" onclick="mostrarBloco(2)">Seguinte →</button></div>
+</div>
 
+<div class="q-bloco" id="q-bloco-2" style="display:none">
+<div style="font-size:.8rem;font-weight:600;color:var(--blue);margin:6px 0 12px">Bloco 3 de 3 · itens 31–45</div>
         <div class="q-item" id="qi-30" data-idx="30">
-          <div class="q-num">43</div>
-          <div class="q-text">Tem poucos amigos.</div>
+          <div class="q-num">31</div>
+          <div class="q-text">Diz sempre a verdade; nem diz 'mentiras inocentes'</div>
           <div class="q-options">
             <label class="q-opt"><input type="radio" name="q30" value="0" onchange="registar(30,0)"><span>0<br><small>Nunca</small></span></label>
             <label class="q-opt"><input type="radio" name="q30" value="1" onchange="registar(30,1)"><span>1<br><small>Por vezes</small></span></label>
@@ -576,12 +586,167 @@ body{font-family:'DM Sans',sans-serif;background:var(--gray);color:var(--text);m
             <label class="q-opt"><input type="radio" name="q30" value="3" onchange="registar(30,3)"><span>3<br><small>Sempre</small></span></label>
           </div>
         </div>
+
+        <div class="q-item" id="qi-31" data-idx="31">
+          <div class="q-num">32</div>
+          <div class="q-text">Tem dificuldade em organizar tarefas ou actividades</div>
+          <div class="q-options">
+            <label class="q-opt"><input type="radio" name="q31" value="0" onchange="registar(31,0)"><span>0<br><small>Nunca</small></span></label>
+            <label class="q-opt"><input type="radio" name="q31" value="1" onchange="registar(31,1)"><span>1<br><small>Por vezes</small></span></label>
+            <label class="q-opt"><input type="radio" name="q31" value="2" onchange="registar(31,2)"><span>2<br><small>Freq.</small></span></label>
+            <label class="q-opt"><input type="radio" name="q31" value="3" onchange="registar(31,3)"><span>3<br><small>Sempre</small></span></label>
+          </div>
         </div>
+
+        <div class="q-item" id="qi-32" data-idx="32">
+          <div class="q-num">33</div>
+          <div class="q-text">É agradável estar com ele(a)</div>
+          <div class="q-options">
+            <label class="q-opt"><input type="radio" name="q32" value="0" onchange="registar(32,0)"><span>0<br><small>Nunca</small></span></label>
+            <label class="q-opt"><input type="radio" name="q32" value="1" onchange="registar(32,1)"><span>1<br><small>Por vezes</small></span></label>
+            <label class="q-opt"><input type="radio" name="q32" value="2" onchange="registar(32,2)"><span>2<br><small>Freq.</small></span></label>
+            <label class="q-opt"><input type="radio" name="q32" value="3" onchange="registar(32,3)"><span>3<br><small>Sempre</small></span></label>
+          </div>
+        </div>
+
+        <div class="q-item" id="qi-33" data-idx="33">
+          <div class="q-num">34</div>
+          <div class="q-text">Desatento(a); distrai-se facilmente</div>
+          <div class="q-options">
+            <label class="q-opt"><input type="radio" name="q33" value="0" onchange="registar(33,0)"><span>0<br><small>Nunca</small></span></label>
+            <label class="q-opt"><input type="radio" name="q33" value="1" onchange="registar(33,1)"><span>1<br><small>Por vezes</small></span></label>
+            <label class="q-opt"><input type="radio" name="q33" value="2" onchange="registar(33,2)"><span>2<br><small>Freq.</small></span></label>
+            <label class="q-opt"><input type="radio" name="q33" value="3" onchange="registar(33,3)"><span>3<br><small>Sempre</small></span></label>
+          </div>
+        </div>
+
+        <div class="q-item" id="qi-34" data-idx="34">
+          <div class="q-num">35</div>
+          <div class="q-text">É desarrumado(a) ou desorganizado(a)</div>
+          <div class="q-options">
+            <label class="q-opt"><input type="radio" name="q34" value="0" onchange="registar(34,0)"><span>0<br><small>Nunca</small></span></label>
+            <label class="q-opt"><input type="radio" name="q34" value="1" onchange="registar(34,1)"><span>1<br><small>Por vezes</small></span></label>
+            <label class="q-opt"><input type="radio" name="q34" value="2" onchange="registar(34,2)"><span>2<br><small>Freq.</small></span></label>
+            <label class="q-opt"><input type="radio" name="q34" value="3" onchange="registar(34,3)"><span>3<br><small>Sempre</small></span></label>
+          </div>
+        </div>
+
+        <div class="q-item" id="qi-35" data-idx="35">
+          <div class="q-num">36</div>
+          <div class="q-text">Tem dificuldades com a ortografia</div>
+          <div class="q-options">
+            <label class="q-opt"><input type="radio" name="q35" value="0" onchange="registar(35,0)"><span>0<br><small>Nunca</small></span></label>
+            <label class="q-opt"><input type="radio" name="q35" value="1" onchange="registar(35,1)"><span>1<br><small>Por vezes</small></span></label>
+            <label class="q-opt"><input type="radio" name="q35" value="2" onchange="registar(35,2)"><span>2<br><small>Freq.</small></span></label>
+            <label class="q-opt"><input type="radio" name="q35" value="3" onchange="registar(35,3)"><span>3<br><small>Sempre</small></span></label>
+          </div>
+        </div>
+
+        <div class="q-item" id="qi-36" data-idx="36">
+          <div class="q-num">37</div>
+          <div class="q-text">É paciente e tranquilo(a), mesmo quando espera numa fila</div>
+          <div class="q-options">
+            <label class="q-opt"><input type="radio" name="q36" value="0" onchange="registar(36,0)"><span>0<br><small>Nunca</small></span></label>
+            <label class="q-opt"><input type="radio" name="q36" value="1" onchange="registar(36,1)"><span>1<br><small>Por vezes</small></span></label>
+            <label class="q-opt"><input type="radio" name="q36" value="2" onchange="registar(36,2)"><span>2<br><small>Freq.</small></span></label>
+            <label class="q-opt"><input type="radio" name="q36" value="3" onchange="registar(36,3)"><span>3<br><small>Sempre</small></span></label>
+          </div>
+        </div>
+
+        <div class="q-item" id="qi-37" data-idx="37">
+          <div class="q-num">38</div>
+          <div class="q-text">Não tem amigos</div>
+          <div class="q-options">
+            <label class="q-opt"><input type="radio" name="q37" value="0" onchange="registar(37,0)"><span>0<br><small>Nunca</small></span></label>
+            <label class="q-opt"><input type="radio" name="q37" value="1" onchange="registar(37,1)"><span>1<br><small>Por vezes</small></span></label>
+            <label class="q-opt"><input type="radio" name="q37" value="2" onchange="registar(37,2)"><span>2<br><small>Freq.</small></span></label>
+            <label class="q-opt"><input type="radio" name="q37" value="3" onchange="registar(37,3)"><span>3<br><small>Sempre</small></span></label>
+          </div>
+        </div>
+
+        <div class="q-item" id="qi-38" data-idx="38">
+          <div class="q-num">39</div>
+          <div class="q-text">Não compreende o que le</div>
+          <div class="q-options">
+            <label class="q-opt"><input type="radio" name="q38" value="0" onchange="registar(38,0)"><span>0<br><small>Nunca</small></span></label>
+            <label class="q-opt"><input type="radio" name="q38" value="1" onchange="registar(38,1)"><span>1<br><small>Por vezes</small></span></label>
+            <label class="q-opt"><input type="radio" name="q38" value="2" onchange="registar(38,2)"><span>2<br><small>Freq.</small></span></label>
+            <label class="q-opt"><input type="radio" name="q38" value="3" onchange="registar(38,3)"><span>3<br><small>Sempre</small></span></label>
+          </div>
+        </div>
+
+        <div class="q-item" id="qi-39" data-idx="39">
+          <div class="q-num">40</div>
+          <div class="q-text">Comporta-se como um anjo</div>
+          <div class="q-options">
+            <label class="q-opt"><input type="radio" name="q39" value="0" onchange="registar(39,0)"><span>0<br><small>Nunca</small></span></label>
+            <label class="q-opt"><input type="radio" name="q39" value="1" onchange="registar(39,1)"><span>1<br><small>Por vezes</small></span></label>
+            <label class="q-opt"><input type="radio" name="q39" value="2" onchange="registar(39,2)"><span>2<br><small>Freq.</small></span></label>
+            <label class="q-opt"><input type="radio" name="q39" value="3" onchange="registar(39,3)"><span>3<br><small>Sempre</small></span></label>
+          </div>
+        </div>
+
+        <div class="q-item" id="qi-40" data-idx="40">
+          <div class="q-num">41</div>
+          <div class="q-text">Tem dificuldade em manter a atenção no trabalho ou no jogo durante muito tempo</div>
+          <div class="q-options">
+            <label class="q-opt"><input type="radio" name="q40" value="0" onchange="registar(40,0)"><span>0<br><small>Nunca</small></span></label>
+            <label class="q-opt"><input type="radio" name="q40" value="1" onchange="registar(40,1)"><span>1<br><small>Por vezes</small></span></label>
+            <label class="q-opt"><input type="radio" name="q40" value="2" onchange="registar(40,2)"><span>2<br><small>Freq.</small></span></label>
+            <label class="q-opt"><input type="radio" name="q40" value="3" onchange="registar(40,3)"><span>3<br><small>Sempre</small></span></label>
+          </div>
+        </div>
+
+        <div class="q-item" id="qi-41" data-idx="41">
+          <div class="q-num">42</div>
+          <div class="q-text">Precisa de muito esforço para terminar tarefas difíceis</div>
+          <div class="q-options">
+            <label class="q-opt"><input type="radio" name="q41" value="0" onchange="registar(41,0)"><span>0<br><small>Nunca</small></span></label>
+            <label class="q-opt"><input type="radio" name="q41" value="1" onchange="registar(41,1)"><span>1<br><small>Por vezes</small></span></label>
+            <label class="q-opt"><input type="radio" name="q41" value="2" onchange="registar(41,2)"><span>2<br><small>Freq.</small></span></label>
+            <label class="q-opt"><input type="radio" name="q41" value="3" onchange="registar(41,3)"><span>3<br><small>Sempre</small></span></label>
+          </div>
+        </div>
+
+        <div class="q-item" id="qi-42" data-idx="42">
+          <div class="q-num">43</div>
+          <div class="q-text">Não é convidado(a) para brincar ou sair com os outros</div>
+          <div class="q-options">
+            <label class="q-opt"><input type="radio" name="q42" value="0" onchange="registar(42,0)"><span>0<br><small>Nunca</small></span></label>
+            <label class="q-opt"><input type="radio" name="q42" value="1" onchange="registar(42,1)"><span>1<br><small>Por vezes</small></span></label>
+            <label class="q-opt"><input type="radio" name="q42" value="2" onchange="registar(42,2)"><span>2<br><small>Freq.</small></span></label>
+            <label class="q-opt"><input type="radio" name="q42" value="3" onchange="registar(42,3)"><span>3<br><small>Sempre</small></span></label>
+          </div>
+        </div>
+
+        <div class="q-item" id="qi-43" data-idx="43">
+          <div class="q-num">44</div>
+          <div class="q-text">Tem outras preocupações sobre o seu filho(a)?</div>
+          <div class="q-options">
+            <label class="q-opt"><input type="radio" name="q43" value="0" onchange="registar(43,0)"><span>0<br><small>Nunca</small></span></label>
+            <label class="q-opt"><input type="radio" name="q43" value="1" onchange="registar(43,1)"><span>1<br><small>Por vezes</small></span></label>
+            <label class="q-opt"><input type="radio" name="q43" value="2" onchange="registar(43,2)"><span>2<br><small>Freq.</small></span></label>
+            <label class="q-opt"><input type="radio" name="q43" value="3" onchange="registar(43,3)"><span>3<br><small>Sempre</small></span></label>
+          </div>
+        </div>
+
+        <div class="q-item" id="qi-44" data-idx="44">
+          <div class="q-num">45</div>
+          <div class="q-text">Quais são os pontos fortes ou capacidades do seu filho(a)?</div>
+          <div class="q-options">
+            <label class="q-opt"><input type="radio" name="q44" value="0" onchange="registar(44,0)"><span>0<br><small>Nunca</small></span></label>
+            <label class="q-opt"><input type="radio" name="q44" value="1" onchange="registar(44,1)"><span>1<br><small>Por vezes</small></span></label>
+            <label class="q-opt"><input type="radio" name="q44" value="2" onchange="registar(44,2)"><span>2<br><small>Freq.</small></span></label>
+            <label class="q-opt"><input type="radio" name="q44" value="3" onchange="registar(44,3)"><span>3<br><small>Sempre</small></span></label>
+          </div>
+        </div>
+<div style="display:flex;justify-content:space-between;margin-top:18px;gap:12px" class="no-print"><button class="btn btn-secondary" onclick="mostrarBloco(1)">← Anterior</button><button class="btn btn-primary" onclick="submeter()">Submeter questionário →</button></div>
+</div>
+        </div></div>
       </div>
 
-      <div style="display:flex;justify-content:space-between;margin-top:20px;gap:12px" class="no-print">
+      <div style="display:flex;justify-content:flex-start;margin-top:20px" class="no-print">
         <button class="btn btn-secondary" onclick="voltarParaIdentificacao()">← Identificação</button>
-        <button class="btn btn-primary" onclick="submeter()">Submeter questionário →</button>
       </div>
     </div>
 
@@ -663,10 +828,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--gray);color:var(--text);m
 <script>
 const PASSWORD = 'CNS2024';
 const STORE_KEY = 'conners_Pais_Short';
-const ESCALAS = [{"code": "IN", "label": "Inaten\u00e7\u00e3o", "nk": "PS_IN", "max_raw": 15, "items": [11, 20, 22, 24, 29], "inv": []}, {"code": "HI", "label": "Hiperatividade/Impuls.", "nk": "PS_HI", "max_raw": 18, "items": [1, 3, 5, 8, 17, 21], "inv": []}, {"code": "LP", "label": "Prob. Aprendizagem", "nk": "PS_LP", "max_raw": 15, "items": [6, 7, 18, 26, 28], "inv": []}, {"code": "EF", "label": "Funcionamento Executivo", "nk": "PS_EF", "max_raw": 15, "items": [0, 10, 14, 23, 25], "inv": []}, {"code": "AG", "label": "Defiance/Agress\u00e3o", "nk": "PS_AG", "max_raw": 15, "items": [9, 13, 15, 16, 19], "inv": []}, {"code": "PR", "label": "Rela\u00e7\u00f5es com Pares", "nk": "PS_PR", "max_raw": 15, "items": [2, 4, 12, 27, 30], "inv": []}];
-const NORMS = {"PS_IN": {"6": {"0": 40, "1": 40, "2": 40, "3": 47, "4": 51, "5": 56, "6": 61, "7": 66, "8": 71, "9": 76, "10": 80, "11": 85, "12": 90, "13": 90, "14": 90, "15": 90}, "7": {"0": 40, "1": 40, "2": 40, "3": 47, "4": 51, "5": 56, "6": 61, "7": 66, "8": 71, "9": 76, "10": 80, "11": 85, "12": 90, "13": 90, "14": 90, "15": 90}, "8": {"0": 40, "1": 40, "2": 44, "3": 49, "4": 53, "5": 58, "6": 63, "7": 68, "8": 72, "9": 77, "10": 82, "11": 87, "12": 90, "13": 90, "14": 90, "15": 90}, "9": {"0": 40, "1": 40, "2": 44, "3": 49, "4": 53, "5": 58, "6": 63, "7": 68, "8": 72, "9": 77, "10": 82, "11": 87, "12": 90, "13": 90, "14": 90, "15": 90}, "10": {"0": 40, "1": 43, "2": 48, "3": 52, "4": 57, "5": 61, "6": 66, "7": 71, "8": 75, "9": 80, "10": 85, "11": 89, "12": 90, "13": 90, "14": 90, "15": 90}, "11": {"0": 40, "1": 43, "2": 47, "3": 51, "4": 56, "5": 60, "6": 65, "7": 69, "8": 74, "9": 78, "10": 83, "11": 87, "12": 90, "13": 90, "14": 90, "15": 90}, "12": {"0": 40, "1": 43, "2": 47, "3": 51, "4": 56, "5": 60, "6": 65, "7": 69, "8": 74, "9": 78, "10": 83, "11": 87, "12": 90, "13": 90, "14": 90, "15": 90}, "13": {"0": 40, "1": 44, "2": 48, "3": 53, "4": 57, "5": 62, "6": 66, "7": 71, "8": 75, "9": 80, "10": 84, "11": 89, "12": 90, "13": 90, "14": 90, "15": 90}, "14": {"0": 40, "1": 44, "2": 48, "3": 52, "4": 57, "5": 61, "6": 65, "7": 70, "8": 74, "9": 79, "10": 83, "11": 87, "12": 90, "13": 90, "14": 90, "15": 90}, "15": {"0": 40, "1": 44, "2": 48, "3": 52, "4": 57, "5": 61, "6": 65, "7": 70, "8": 74, "9": 79, "10": 83, "11": 87, "12": 90, "13": 90, "14": 90, "15": 90}, "16": {"0": 40, "1": 44, "2": 48, "3": 52, "4": 57, "5": 61, "6": 65, "7": 70, "8": 74, "9": 79, "10": 83, "11": 87, "12": 90, "13": 90, "14": 90, "15": 90}, "17": {"0": 40, "1": 44, "2": 48, "3": 52, "4": 57, "5": 61, "6": 65, "7": 70, "8": 74, "9": 79, "10": 83, "11": 87, "12": 90, "13": 90, "14": 90, "15": 90}}, "PS_HI": {"6": {"0": 40, "1": 40, "2": 40, "3": 40, "4": 40, "5": 55, "6": 61, "7": 67, "8": 73, "9": 79, "10": 85, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90, "16": 90, "17": 90, "18": 90}, "7": {"0": 40, "1": 40, "2": 40, "3": 40, "4": 52, "5": 58, "6": 64, "7": 70, "8": 76, "9": 82, "10": 87, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90, "16": 90, "17": 90, "18": 90}, "8": {"0": 40, "1": 40, "2": 40, "3": 40, "4": 52, "5": 57, "6": 63, "7": 69, "8": 74, "9": 80, "10": 86, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90, "16": 90, "17": 90, "18": 90}, "9": {"0": 40, "1": 40, "2": 40, "3": 50, "4": 55, "5": 60, "6": 66, "7": 71, "8": 77, "9": 82, "10": 87, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90, "16": 90, "17": 90, "18": 90}, "10": {"0": 40, "1": 40, "2": 40, "3": 50, "4": 54, "5": 59, "6": 64, "7": 69, "8": 75, "9": 80, "10": 85, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90, "16": 90, "17": 90, "18": 90}, "11": {"0": 40, "1": 40, "2": 47, "3": 52, "4": 57, "5": 62, "6": 67, "7": 72, "8": 77, "9": 83, "10": 88, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90, "16": 90, "17": 90, "18": 90}, "12": {"0": 40, "1": 40, "2": 47, "3": 52, "4": 57, "5": 62, "6": 67, "7": 72, "8": 77, "9": 83, "10": 88, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90, "16": 90, "17": 90, "18": 90}, "13": {"0": 40, "1": 45, "2": 50, "3": 55, "4": 60, "5": 65, "6": 70, "7": 75, "8": 80, "9": 85, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90, "16": 90, "17": 90, "18": 90}, "14": {"0": 40, "1": 45, "2": 50, "3": 55, "4": 60, "5": 65, "6": 70, "7": 75, "8": 80, "9": 85, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90, "16": 90, "17": 90, "18": 90}, "15": {"0": 40, "1": 45, "2": 50, "3": 55, "4": 60, "5": 65, "6": 70, "7": 75, "8": 80, "9": 85, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90, "16": 90, "17": 90, "18": 90}, "16": {"0": 40, "1": 45, "2": 50, "3": 55, "4": 60, "5": 65, "6": 70, "7": 75, "8": 80, "9": 85, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90, "16": 90, "17": 90, "18": 90}, "17": {"0": 40, "1": 45, "2": 50, "3": 55, "4": 60, "5": 65, "6": 70, "7": 75, "8": 80, "9": 85, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90, "16": 90, "17": 90, "18": 90}}, "PS_LP": {"6": {"0": 40, "1": 40, "2": 40, "3": 40, "4": 51, "5": 57, "6": 63, "7": 69, "8": 75, "9": 81, "10": 87, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "7": {"0": 40, "1": 40, "2": 40, "3": 47, "4": 53, "5": 59, "6": 65, "7": 71, "8": 77, "9": 83, "10": 89, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "8": {"0": 40, "1": 40, "2": 40, "3": 47, "4": 52, "5": 58, "6": 64, "7": 70, "8": 76, "9": 81, "10": 87, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "9": {"0": 40, "1": 40, "2": 45, "3": 51, "4": 57, "5": 62, "6": 68, "7": 74, "8": 80, "9": 85, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "10": {"0": 40, "1": 40, "2": 45, "3": 50, "4": 56, "5": 61, "6": 67, "7": 72, "8": 78, "9": 83, "10": 89, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "11": {"0": 40, "1": 43, "2": 49, "3": 54, "4": 60, "5": 65, "6": 71, "7": 77, "8": 82, "9": 88, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "12": {"0": 40, "1": 43, "2": 49, "3": 54, "4": 59, "5": 65, "6": 70, "7": 76, "8": 81, "9": 87, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "13": {"0": 40, "1": 45, "2": 51, "3": 56, "4": 62, "5": 67, "6": 73, "7": 78, "8": 84, "9": 89, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "14": {"0": 40, "1": 45, "2": 50, "3": 56, "4": 61, "5": 67, "6": 72, "7": 78, "8": 83, "9": 89, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "15": {"0": 40, "1": 45, "2": 50, "3": 56, "4": 61, "5": 66, "6": 72, "7": 77, "8": 83, "9": 88, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "16": {"0": 40, "1": 46, "2": 51, "3": 57, "4": 62, "5": 68, "6": 73, "7": 79, "8": 84, "9": 90, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "17": {"0": 40, "1": 46, "2": 51, "3": 57, "4": 62, "5": 68, "6": 73, "7": 79, "8": 84, "9": 90, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}}, "PS_EF": {"6": {"0": 40, "1": 40, "2": 40, "3": 40, "4": 51, "5": 57, "6": 63, "7": 69, "8": 75, "9": 81, "10": 87, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "7": {"0": 40, "1": 40, "2": 40, "3": 40, "4": 51, "5": 57, "6": 62, "7": 68, "8": 74, "9": 80, "10": 85, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "8": {"0": 40, "1": 40, "2": 40, "3": 47, "4": 53, "5": 58, "6": 64, "7": 70, "8": 75, "9": 81, "10": 87, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "9": {"0": 40, "1": 40, "2": 40, "3": 47, "4": 53, "5": 58, "6": 64, "7": 69, "8": 75, "9": 81, "10": 86, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "10": {"0": 40, "1": 40, "2": 45, "3": 50, "4": 56, "5": 61, "6": 67, "7": 72, "8": 78, "9": 83, "10": 89, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "11": {"0": 40, "1": 40, "2": 45, "3": 50, "4": 55, "5": 61, "6": 66, "7": 71, "8": 77, "9": 82, "10": 88, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "12": {"0": 40, "1": 43, "2": 48, "3": 53, "4": 59, "5": 64, "6": 70, "7": 75, "8": 80, "9": 86, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "13": {"0": 40, "1": 43, "2": 48, "3": 53, "4": 59, "5": 64, "6": 69, "7": 75, "8": 80, "9": 85, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "14": {"0": 40, "1": 45, "2": 51, "3": 56, "4": 61, "5": 67, "6": 72, "7": 77, "8": 83, "9": 88, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "15": {"0": 40, "1": 45, "2": 50, "3": 56, "4": 61, "5": 66, "6": 72, "7": 77, "8": 82, "9": 88, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "16": {"0": 40, "1": 46, "2": 51, "3": 56, "4": 62, "5": 67, "6": 73, "7": 78, "8": 83, "9": 89, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "17": {"0": 40, "1": 46, "2": 51, "3": 56, "4": 62, "5": 67, "6": 73, "7": 78, "8": 83, "9": 89, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}}, "PS_AG": {"6": {"0": 44, "1": 44, "2": 53, "3": 59, "4": 65, "5": 71, "6": 90, "7": 90, "8": 90, "9": 90, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "7": {"0": 44, "1": 44, "2": 52, "3": 57, "4": 63, "5": 68, "6": 74, "7": 90, "8": 90, "9": 90, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "8": {"0": 44, "1": 49, "2": 54, "3": 59, "4": 64, "5": 69, "6": 75, "7": 90, "8": 90, "9": 90, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "9": {"0": 44, "1": 48, "2": 53, "3": 58, "4": 63, "5": 68, "6": 73, "7": 79, "8": 90, "9": 90, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "10": {"0": 44, "1": 48, "2": 52, "3": 57, "4": 62, "5": 67, "6": 72, "7": 77, "8": 82, "9": 90, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "11": {"0": 44, "1": 49, "2": 54, "3": 58, "4": 63, "5": 68, "6": 73, "7": 78, "8": 83, "9": 90, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "12": {"0": 44, "1": 49, "2": 53, "3": 58, "4": 63, "5": 67, "6": 72, "7": 77, "8": 82, "9": 90, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "13": {"0": 44, "1": 50, "2": 55, "3": 59, "4": 64, "5": 69, "6": 74, "7": 78, "8": 83, "9": 90, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "14": {"0": 44, "1": 50, "2": 54, "3": 59, "4": 64, "5": 68, "6": 73, "7": 78, "8": 83, "9": 90, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "15": {"0": 44, "1": 51, "2": 55, "3": 60, "4": 65, "5": 70, "6": 74, "7": 79, "8": 84, "9": 90, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "16": {"0": 44, "1": 51, "2": 55, "3": 60, "4": 65, "5": 70, "6": 74, "7": 79, "8": 84, "9": 90, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "17": {"0": 44, "1": 52, "2": 57, "3": 62, "4": 67, "5": 71, "6": 76, "7": 81, "8": 86, "9": 90, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}}, "PS_PR": {"6": {"0": 44, "1": 44, "2": 44, "3": 59, "4": 65, "5": 72, "6": 78, "7": 85, "8": 90, "9": 90, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "7": {"0": 44, "1": 44, "2": 44, "3": 59, "4": 65, "5": 72, "6": 78, "7": 85, "8": 90, "9": 90, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "8": {"0": 44, "1": 44, "2": 54, "3": 60, "4": 66, "5": 72, "6": 78, "7": 85, "8": 90, "9": 90, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "9": {"0": 44, "1": 44, "2": 53, "3": 59, "4": 65, "5": 71, "6": 77, "7": 84, "8": 90, "9": 90, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "10": {"0": 44, "1": 50, "2": 56, "3": 62, "4": 68, "5": 74, "6": 80, "7": 86, "8": 90, "9": 90, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "11": {"0": 44, "1": 50, "2": 56, "3": 62, "4": 68, "5": 74, "6": 80, "7": 86, "8": 90, "9": 90, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "12": {"0": 44, "1": 50, "2": 55, "3": 61, "4": 67, "5": 73, "6": 79, "7": 85, "8": 90, "9": 90, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "13": {"0": 44, "1": 51, "2": 57, "3": 63, "4": 69, "5": 75, "6": 81, "7": 87, "8": 90, "9": 90, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "14": {"0": 44, "1": 51, "2": 56, "3": 62, "4": 68, "5": 74, "6": 80, "7": 86, "8": 90, "9": 90, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "15": {"0": 44, "1": 52, "2": 58, "3": 64, "4": 70, "5": 76, "6": 82, "7": 88, "8": 90, "9": 90, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "16": {"0": 44, "1": 52, "2": 58, "3": 64, "4": 70, "5": 76, "6": 82, "7": 88, "8": 90, "9": 90, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "17": {"0": 44, "1": 53, "2": 59, "3": 65, "4": 71, "5": 77, "6": 83, "7": 90, "8": 90, "9": 90, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}}};
-const N_ITENS = 31;
-const ITEMS_TEXTO = ["Perde os seus pertences necessários para actividades.","Está sempre em movimento, não para quieto/a.","Prefere estar sozinho/a a brincar com outras crianças.","Abandona o lugar em situações onde devia permanecer sentado/a.","Não é convidado/a para festas ou casas de amigos.","Corre ou trepa em excesso quando não é adequado.","Tem dificuldade em ler.","Tem dificuldade em compreender o que lê.","Distrai-se facilmente com barulhos.","Discute com adultos.","Tem dificuldade em iniciar tarefas.","Não termina as tarefas que começa.","É rejeitado/a ou ignorado/a pelos pares.","Não para quieto/a; age como se tivesse um motor.","Tem dificuldade em organizar tarefas.","Opõe-se activamente a cumprir pedidos.","Chateia os outros de propósito.","Tem dificuldade em esperar pela sua vez.","Tem dificuldades em matemática.","Faz raivas ou acessos de mau humor.","Tem dificuldade em manter a atenção.","Tem dificuldade em brincar calmamente.","Comete erros por descuido.","Perde o fio à tarefa quando se distrai.","Necessita de supervisão constante.","Tem dificuldade em começar tarefas por si próprio/a.","Tem dificuldades em escrever.","Intimida, ameaça ou assusta outros.","Tem dificuldade em soletrar palavras.","Não presta atenção; está facilmente distraído/a.","Tem poucos amigos."];
+const ESCALAS = [{"code": "IN", "label": "Inatenção", "nk": "T_IN", "max_raw": 15, "items": [16, 26, 29, 33, 40], "inv": []}, {"code": "HI", "label": "Hiperatividade/Impulsividade", "nk": "T_HI", "max_raw": 18, "items": [2, 4, 6, 12, 23, 27], "inv": []}, {"code": "LP", "label": "Problemas de Aprendizagem", "nk": "T_LP", "max_raw": 15, "items": [7, 9, 24, 35, 38], "inv": []}, {"code": "EF", "label": "Funcionamento Executivo", "nk": "T_EF", "max_raw": 15, "items": [0, 14, 19, 31, 34], "inv": []}, {"code": "AG", "label": "Defiance/Agressão", "nk": "T_AG", "max_raw": 15, "items": [13, 18, 20, 22, 25], "inv": []}, {"code": "PR", "label": "Relações com Pares", "nk": "T_PR", "max_raw": 15, "items": [3, 5, 17, 37, 42], "inv": []}];
+const NORMS = {"T_IN": {"6": {"0": 41, "1": 45, "2": 49, "3": 53, "4": 57, "5": 61, "6": 66, "7": 70, "8": 74, "9": 78, "10": 82, "11": 86, "12": 90, "13": 90, "14": 90, "15": 90}, "7": {"0": 41, "1": 44, "2": 48, "3": 51, "4": 54, "5": 57, "6": 61, "7": 64, "8": 67, "9": 70, "10": 74, "11": 77, "12": 80, "13": 83, "14": 87, "15": 90}, "8": {"0": 41, "1": 44, "2": 48, "3": 51, "4": 54, "5": 57, "6": 61, "7": 64, "8": 67, "9": 70, "10": 74, "11": 77, "12": 80, "13": 83, "14": 87, "15": 90}, "9": {"0": 41, "1": 45, "2": 49, "3": 52, "4": 56, "5": 60, "6": 64, "7": 67, "8": 71, "9": 75, "10": 79, "11": 82, "12": 86, "13": 90, "14": 90, "15": 90}, "10": {"0": 41, "1": 44, "2": 48, "3": 51, "4": 54, "5": 57, "6": 61, "7": 64, "8": 67, "9": 70, "10": 74, "11": 77, "12": 80, "13": 83, "14": 87, "15": 90}, "11": {"0": 41, "1": 45, "2": 49, "3": 52, "4": 56, "5": 60, "6": 64, "7": 67, "8": 71, "9": 75, "10": 79, "11": 82, "12": 86, "13": 90, "14": 90, "15": 90}, "12": {"0": 41, "1": 44, "2": 48, "3": 52, "4": 55, "5": 58, "6": 62, "7": 66, "8": 69, "9": 72, "10": 76, "11": 80, "12": 83, "13": 86, "14": 90, "15": 90}, "13": {"0": 41, "1": 45, "2": 49, "3": 52, "4": 56, "5": 60, "6": 64, "7": 67, "8": 71, "9": 75, "10": 79, "11": 82, "12": 86, "13": 90, "14": 90, "15": 90}, "14": {"0": 41, "1": 44, "2": 48, "3": 51, "4": 54, "5": 57, "6": 61, "7": 64, "8": 67, "9": 70, "10": 74, "11": 77, "12": 80, "13": 83, "14": 87, "15": 90}, "15": {"0": 41, "1": 45, "2": 49, "3": 53, "4": 57, "5": 61, "6": 66, "7": 70, "8": 74, "9": 78, "10": 82, "11": 86, "12": 90, "13": 90, "14": 90, "15": 90}, "16": {"0": 41, "1": 44, "2": 48, "3": 51, "4": 54, "5": 57, "6": 61, "7": 64, "8": 67, "9": 70, "10": 74, "11": 77, "12": 80, "13": 83, "14": 87, "15": 90}, "17": {"0": 41, "1": 45, "2": 49, "3": 52, "4": 56, "5": 60, "6": 64, "7": 67, "8": 71, "9": 75, "10": 79, "11": 82, "12": 86, "13": 90, "14": 90, "15": 90}}, "T_HI": {"6": {"0": 41, "1": 44, "2": 48, "3": 51, "4": 54, "5": 57, "6": 61, "7": 64, "8": 67, "9": 70, "10": 74, "11": 77, "12": 80, "13": 83, "14": 87, "15": 90, "16": 90, "17": 90, "18": 90}, "7": {"0": 41, "1": 44, "2": 46, "3": 49, "4": 52, "5": 55, "6": 57, "7": 60, "8": 63, "9": 66, "10": 68, "11": 71, "12": 74, "13": 76, "14": 79, "15": 82, "16": 85, "17": 87, "18": 90}, "8": {"0": 41, "1": 44, "2": 47, "3": 50, "4": 53, "5": 56, "6": 59, "7": 62, "8": 66, "9": 69, "10": 72, "11": 75, "12": 78, "13": 81, "14": 84, "15": 87, "16": 90, "17": 90, "18": 90}, "9": {"0": 41, "1": 44, "2": 47, "3": 50, "4": 53, "5": 55, "6": 58, "7": 61, "8": 64, "9": 67, "10": 70, "11": 73, "12": 76, "13": 78, "14": 81, "15": 84, "16": 87, "17": 90, "18": 90}, "10": {"0": 41, "1": 45, "2": 49, "3": 52, "4": 56, "5": 60, "6": 64, "7": 67, "8": 71, "9": 75, "10": 79, "11": 82, "12": 86, "13": 90, "14": 90, "15": 90, "16": 90, "17": 90, "18": 90}, "11": {"0": 41, "1": 45, "2": 49, "3": 53, "4": 57, "5": 61, "6": 66, "7": 70, "8": 74, "9": 78, "10": 82, "11": 86, "12": 90, "13": 90, "14": 90, "15": 90, "16": 90, "17": 90, "18": 90}, "12": {"0": 41, "1": 45, "2": 49, "3": 53, "4": 57, "5": 61, "6": 66, "7": 70, "8": 74, "9": 78, "10": 82, "11": 86, "12": 90, "13": 90, "14": 90, "15": 90, "16": 90, "17": 90, "18": 90}, "13": {"0": 41, "1": 45, "2": 49, "3": 52, "4": 56, "5": 60, "6": 64, "7": 67, "8": 71, "9": 75, "10": 79, "11": 82, "12": 86, "13": 90, "14": 90, "15": 90, "16": 90, "17": 90, "18": 90}, "14": {"0": 41, "1": 45, "2": 49, "3": 53, "4": 57, "5": 61, "6": 66, "7": 70, "8": 74, "9": 78, "10": 82, "11": 86, "12": 90, "13": 90, "14": 90, "15": 90, "16": 90, "17": 90, "18": 90}, "15": {"0": 41, "1": 45, "2": 50, "3": 54, "4": 59, "5": 63, "6": 68, "7": 72, "8": 77, "9": 81, "10": 86, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90, "16": 90, "17": 90, "18": 90}, "16": {"0": 41, "1": 46, "2": 51, "3": 56, "4": 61, "5": 66, "6": 70, "7": 75, "8": 80, "9": 85, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90, "16": 90, "17": 90, "18": 90}, "17": {"0": 41, "1": 46, "2": 51, "3": 56, "4": 61, "5": 66, "6": 70, "7": 75, "8": 80, "9": 85, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90, "16": 90, "17": 90, "18": 90}}, "T_LP": {"6": {"0": 41, "1": 45, "2": 49, "3": 52, "4": 56, "5": 60, "6": 64, "7": 67, "8": 71, "9": 75, "10": 79, "11": 82, "12": 86, "13": 90, "14": 90, "15": 90}, "7": {"0": 41, "1": 44, "2": 48, "3": 52, "4": 55, "5": 58, "6": 62, "7": 66, "8": 69, "9": 72, "10": 76, "11": 80, "12": 83, "13": 86, "14": 90, "15": 90}, "8": {"0": 41, "1": 45, "2": 49, "3": 52, "4": 56, "5": 60, "6": 64, "7": 67, "8": 71, "9": 75, "10": 79, "11": 82, "12": 86, "13": 90, "14": 90, "15": 90}, "9": {"0": 41, "1": 44, "2": 48, "3": 52, "4": 55, "5": 58, "6": 62, "7": 66, "8": 69, "9": 72, "10": 76, "11": 80, "12": 83, "13": 86, "14": 90, "15": 90}, "10": {"0": 41, "1": 44, "2": 48, "3": 52, "4": 55, "5": 58, "6": 62, "7": 66, "8": 69, "9": 72, "10": 76, "11": 80, "12": 83, "13": 86, "14": 90, "15": 90}, "11": {"0": 41, "1": 45, "2": 49, "3": 52, "4": 56, "5": 60, "6": 64, "7": 67, "8": 71, "9": 75, "10": 79, "11": 82, "12": 86, "13": 90, "14": 90, "15": 90}, "12": {"0": 41, "1": 45, "2": 49, "3": 52, "4": 56, "5": 60, "6": 64, "7": 67, "8": 71, "9": 75, "10": 79, "11": 82, "12": 86, "13": 90, "14": 90, "15": 90}, "13": {"0": 41, "1": 45, "2": 50, "3": 54, "4": 59, "5": 63, "6": 68, "7": 72, "8": 77, "9": 81, "10": 86, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "14": {"0": 41, "1": 45, "2": 49, "3": 52, "4": 56, "5": 60, "6": 64, "7": 67, "8": 71, "9": 75, "10": 79, "11": 82, "12": 86, "13": 90, "14": 90, "15": 90}, "15": {"0": 41, "1": 45, "2": 50, "3": 54, "4": 59, "5": 63, "6": 68, "7": 72, "8": 77, "9": 81, "10": 86, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "16": {"0": 41, "1": 44, "2": 48, "3": 52, "4": 55, "5": 58, "6": 62, "7": 66, "8": 69, "9": 72, "10": 76, "11": 80, "12": 83, "13": 86, "14": 90, "15": 90}, "17": {"0": 41, "1": 45, "2": 49, "3": 53, "4": 57, "5": 61, "6": 66, "7": 70, "8": 74, "9": 78, "10": 82, "11": 86, "12": 90, "13": 90, "14": 90, "15": 90}}, "T_EF": {"6": {"0": 41, "1": 44, "2": 48, "3": 52, "4": 55, "5": 58, "6": 62, "7": 66, "8": 69, "9": 72, "10": 76, "11": 80, "12": 83, "13": 86, "14": 90, "15": 90}, "7": {"0": 41, "1": 44, "2": 48, "3": 51, "4": 54, "5": 57, "6": 61, "7": 64, "8": 67, "9": 70, "10": 74, "11": 77, "12": 80, "13": 83, "14": 87, "15": 90}, "8": {"0": 41, "1": 44, "2": 48, "3": 51, "4": 54, "5": 57, "6": 61, "7": 64, "8": 67, "9": 70, "10": 74, "11": 77, "12": 80, "13": 83, "14": 87, "15": 90}, "9": {"0": 41, "1": 44, "2": 48, "3": 52, "4": 55, "5": 58, "6": 62, "7": 66, "8": 69, "9": 72, "10": 76, "11": 80, "12": 83, "13": 86, "14": 90, "15": 90}, "10": {"0": 41, "1": 44, "2": 48, "3": 52, "4": 55, "5": 58, "6": 62, "7": 66, "8": 69, "9": 72, "10": 76, "11": 80, "12": 83, "13": 86, "14": 90, "15": 90}, "11": {"0": 41, "1": 44, "2": 48, "3": 52, "4": 55, "5": 58, "6": 62, "7": 66, "8": 69, "9": 72, "10": 76, "11": 80, "12": 83, "13": 86, "14": 90, "15": 90}, "12": {"0": 41, "1": 44, "2": 48, "3": 51, "4": 54, "5": 57, "6": 61, "7": 64, "8": 67, "9": 70, "10": 74, "11": 77, "12": 80, "13": 83, "14": 87, "15": 90}, "13": {"0": 41, "1": 44, "2": 48, "3": 51, "4": 54, "5": 57, "6": 61, "7": 64, "8": 67, "9": 70, "10": 74, "11": 77, "12": 80, "13": 83, "14": 87, "15": 90}, "14": {"0": 41, "1": 44, "2": 48, "3": 51, "4": 54, "5": 57, "6": 61, "7": 64, "8": 67, "9": 70, "10": 74, "11": 77, "12": 80, "13": 83, "14": 87, "15": 90}, "15": {"0": 41, "1": 44, "2": 48, "3": 51, "4": 54, "5": 57, "6": 61, "7": 64, "8": 67, "9": 70, "10": 74, "11": 77, "12": 80, "13": 83, "14": 87, "15": 90}, "16": {"0": 41, "1": 44, "2": 48, "3": 51, "4": 54, "5": 57, "6": 61, "7": 64, "8": 67, "9": 70, "10": 74, "11": 77, "12": 80, "13": 83, "14": 87, "15": 90}, "17": {"0": 41, "1": 44, "2": 48, "3": 51, "4": 54, "5": 57, "6": 61, "7": 64, "8": 67, "9": 70, "10": 74, "11": 77, "12": 80, "13": 83, "14": 87, "15": 90}}, "T_AG": {"6": {"0": 45, "1": 54, "2": 63, "3": 72, "4": 81, "5": 90, "6": 90, "7": 90, "8": 90, "9": 90, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "7": {"0": 45, "1": 52, "2": 60, "3": 68, "4": 75, "5": 82, "6": 90, "7": 90, "8": 90, "9": 90, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "8": {"0": 45, "1": 54, "2": 63, "3": 72, "4": 81, "5": 90, "6": 90, "7": 90, "8": 90, "9": 90, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "9": {"0": 45, "1": 51, "2": 58, "3": 64, "4": 71, "5": 77, "6": 84, "7": 90, "8": 90, "9": 90, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "10": {"0": 45, "1": 52, "2": 60, "3": 68, "4": 75, "5": 82, "6": 90, "7": 90, "8": 90, "9": 90, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "11": {"0": 45, "1": 51, "2": 56, "3": 62, "4": 68, "5": 73, "6": 79, "7": 84, "8": 90, "9": 90, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "12": {"0": 45, "1": 52, "2": 60, "3": 68, "4": 75, "5": 82, "6": 90, "7": 90, "8": 90, "9": 90, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "13": {"0": 45, "1": 51, "2": 58, "3": 64, "4": 71, "5": 77, "6": 84, "7": 90, "8": 90, "9": 90, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "14": {"0": 45, "1": 51, "2": 58, "3": 64, "4": 71, "5": 77, "6": 84, "7": 90, "8": 90, "9": 90, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "15": {"0": 45, "1": 51, "2": 56, "3": 62, "4": 68, "5": 73, "6": 79, "7": 84, "8": 90, "9": 90, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "16": {"0": 45, "1": 50, "2": 55, "3": 60, "4": 65, "5": 70, "6": 75, "7": 80, "8": 85, "9": 90, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "17": {"0": 45, "1": 51, "2": 58, "3": 64, "4": 71, "5": 77, "6": 84, "7": 90, "8": 90, "9": 90, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}}, "T_PR": {"6": {"0": 45, "1": 51, "2": 58, "3": 64, "4": 71, "5": 77, "6": 84, "7": 90, "8": 90, "9": 90, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "7": {"0": 45, "1": 51, "2": 58, "3": 64, "4": 71, "5": 77, "6": 84, "7": 90, "8": 90, "9": 90, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "8": {"0": 45, "1": 52, "2": 60, "3": 68, "4": 75, "5": 82, "6": 90, "7": 90, "8": 90, "9": 90, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "9": {"0": 45, "1": 51, "2": 58, "3": 64, "4": 71, "5": 77, "6": 84, "7": 90, "8": 90, "9": 90, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "10": {"0": 45, "1": 52, "2": 60, "3": 68, "4": 75, "5": 82, "6": 90, "7": 90, "8": 90, "9": 90, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "11": {"0": 45, "1": 52, "2": 60, "3": 68, "4": 75, "5": 82, "6": 90, "7": 90, "8": 90, "9": 90, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "12": {"0": 45, "1": 51, "2": 58, "3": 64, "4": 71, "5": 77, "6": 84, "7": 90, "8": 90, "9": 90, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "13": {"0": 45, "1": 51, "2": 58, "3": 64, "4": 71, "5": 77, "6": 84, "7": 90, "8": 90, "9": 90, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "14": {"0": 45, "1": 51, "2": 58, "3": 64, "4": 71, "5": 77, "6": 84, "7": 90, "8": 90, "9": 90, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "15": {"0": 45, "1": 51, "2": 58, "3": 64, "4": 71, "5": 77, "6": 84, "7": 90, "8": 90, "9": 90, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "16": {"0": 45, "1": 52, "2": 60, "3": 68, "4": 75, "5": 82, "6": 90, "7": 90, "8": 90, "9": 90, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "17": {"0": 45, "1": 51, "2": 58, "3": 64, "4": 71, "5": 77, "6": 84, "7": 90, "8": 90, "9": 90, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}}};
+const N_ITENS = 45;
+const ITEMS_TEXTO = ["Esquece-se de entregar os trabalhos concluidos", "É perfeito(a) em tudo", "Mexe-se ou contorce-se na cadeira", "É um dos últimos a ser escolhido para equipas ou jogos", "Inquieto(a) ou hiperactivo(a)", "Não sabe como fazer amigos", "Corre ou trepa quando não é suposto", "Não consegue perceber aritmética", "É difícil de agradar ou divertir", "Necessita de explicações extra das instruções", "É difícil de motivar (mesmo com recompensas como doces ou dinheiro)", "Comete erros", "Age como se estivesse ligado(a) a um motor", "Inicia brigas com os outros propositadamente", "Tem dificuldade em começar tarefas ou projectos", "É feliz, alegre e tem uma atitude positiva", "Não prestá atenção aos pormenores; comete erros por descuido", "Tem dificuldade em manter as amizades", "Intimidia, ameaça ou assusta os outros", "Perde coisas (ex: trabalhos escolares, lapices, livros, ferramentas ou brinquedos)", "Diz mentiras para magoar as outras pessoas", "Não consigo perceber o que o(a) faz feliz", "Ameaça magoar os outros", "Está constantemente em movimento", "Tem dificuldades com a leitura", "Está zangado(a) e ressentido(a)", "Tem um período de atenção curto", "É excitavel e impulsivo(a)", "Não faz nada bem feito", "Tem dificuldade em concentrar-se", "Diz sempre a verdade; nem diz 'mentiras inocentes'", "Tem dificuldade em organizar tarefas ou actividades", "É agradável estar com ele(a)", "Desatento(a); distrai-se facilmente", "É desarrumado(a) ou desorganizado(a)", "Tem dificuldades com a ortografia", "É paciente e tranquilo(a), mesmo quando espera numa fila", "Não tem amigos", "Não compreende o que le", "Comporta-se como um anjo", "Tem dificuldade em manter a atenção no trabalho ou no jogo durante muito tempo", "Precisa de muito esforço para terminar tarefas difíceis", "Não é convidado(a) para brincar ou sair com os outros", "Tem outras preocupações sobre o seu filho(a)?", "Quais são os pontos fortes ou capacidades do seu filho(a)?"];
 const IDADES_MAP = [6,7,8,9,10,11,12,13,14,15,16,17];
 
 let respostas = new Array(N_ITENS).fill(null);
@@ -708,8 +873,14 @@ function tentarLogin() {
 }
 
 // ── Questionário ──────────────────────────────────────────────────────────────
+function mostrarBloco(b) {
+  document.querySelectorAll('.q-bloco').forEach((el,i)=>{ el.style.display = (i===b?'block':'none'); });
+  window.scrollTo(0,0);
+}
+
 function iniciarQuestionario() {
   respostas = new Array(N_ITENS).fill(null);
+  mostrarBloco(0);
   document.querySelectorAll('input[type=radio]').forEach(r => r.checked=false);
   document.querySelectorAll('.q-item').forEach(el => el.classList.remove('answered'));
   document.getElementById('progress-fill').style.width='0%';
@@ -841,6 +1012,7 @@ function enviarAoSheet(s) {
   };
   fetch('https://script.google.com/macros/s/AKfycbxX2_Ry7VRH6jr7eGBMmtmyZFXZc69blwdO5bqJK0j69HRSexpXXPuEfDC5OHQRMLLL/exec', {
     method: 'POST',
+    mode: 'no-cors',
     body: JSON.stringify(payload),
   }).catch(function(){});
 }
