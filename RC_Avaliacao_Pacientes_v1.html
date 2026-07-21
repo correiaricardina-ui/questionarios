@@ -1294,7 +1294,7 @@ async function checkSheetForResponse(qid, patientCode) {
     const rows = (aba && data[aba]) ? data[aba] : await getSheetDataForAba(aba);
     if(!rows || !rows.length) return false;
     return rows.some(row => {
-      const rCode = String(row['Código'] || row['codigo'] || row['Código Paciente'] || row['patientCode'] || '').trim().toUpperCase();
+      const rCode = String(row['Código'] || row['Codigo'] || row['codigo'] || row['Código Paciente'] || row['patientCode'] || '').trim().toUpperCase();
       return rCode.length >= 4 && rCode === pCode;
     });
   } catch(e) { return false; }
@@ -5049,7 +5049,7 @@ function renderAssignments(patientId) {
             }
             const recipientRaw = (a.recipient || '').toLowerCase().trim();
             const found = patCode.length >= 4 && (sheetData[aba]||[]).some(row => {
-              const rowCod = String(row['Código'] || row['codigo'] || row['Código Paciente'] || row['patientCode'] || '').trim().toUpperCase();
+              const rowCod = String(row['Código'] || row['Codigo'] || row['codigo'] || row['Código Paciente'] || row['patientCode'] || '').trim().toUpperCase();
               if(rowCod.length < 4 || rowCod !== patCode) return false;
               return matchRespondent(row, aba, recipientRaw);
             });
@@ -5417,7 +5417,7 @@ async function syncAndMark(patientId, idx) {
         return false;
       }
       const found = sheetData[aba].some(row => {
-        const rowCod = String(row['Código'] || row['codigo'] || row['Código Paciente'] || row['patientCode'] || '').trim().toUpperCase();
+        const rowCod = String(row['Código'] || row['Codigo'] || row['codigo'] || row['Código Paciente'] || row['patientCode'] || '').trim().toUpperCase();
         if(rowCod !== patUpper) return false;
         return matchResp2(row, aba, smRecip);
       });
@@ -5759,7 +5759,7 @@ async function checkReceivedQuestionnaires() {
       }
       if(aba && sheetData[aba]) {
         found = sheetData[aba].some(row =>
-          String(row['Código'] || row['codigo'] || row['Código Paciente'] || row['patientCode'] || '') === String(p.code)
+          String(row['Código'] || row['Codigo'] || row['codigo'] || row['Código Paciente'] || row['patientCode'] || '') === String(p.code)
         );
       }
 
