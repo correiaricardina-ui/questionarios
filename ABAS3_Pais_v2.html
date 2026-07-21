@@ -96,6 +96,12 @@ input[type=text]:focus,select:focus{border-color:var(--blue-mid)}
 @media(max-width:600px){.landing-btn{min-width:140px}.likert-row{gap:5px}.circle{width:34px!important;height:34px!important;font-size:.85rem!important}}
 @media print{.no-print{display:none!important}.modal-overlay{position:static!important}}
 </style>
+
+<style id="abas-na-style">
+.item-card.na-on{opacity:.55;background:#fbf6e9 !important;border-left:3px solid #d68910}
+.likert-opt.na-opt .circle{border:1.5px solid #b8860b}
+.likert-opt.na-opt:hover .circle{background:#fcf3e2}
+</style>
 </head>
 <body>
 <script>
@@ -281,8 +287,8 @@ input[type=text]:focus,select:focus{border-color:var(--blue-mid)}
     <div style="overflow-x:auto">
     <table class="sessions-table" id="sessions-table">
       <thead><tr>
-        <th>C&oacute;digo</th><th>Data</th><th>Parentesco</th><th>Idade</th>
-        <th>CAG</th><th>Classif.</th><th>CC</th><th>SC</th><th>PC</th><th>A&ccedil;&otilde;es</th>
+        <th>C&oacute;digo</th><th>Data</th><th>Informante</th><th>Idade</th>
+        <th>Dom&iacute;nios v&aacute;lidos</th><th>Leitura</th><th class="no-print">A&ccedil;&otilde;es</th>
       </tr></thead>
       <tbody id="sessions-body"></tbody>
     </table>
@@ -1545,6 +1551,215 @@ function exportarInterpretacaoPDF(sessao) {
   if (!w) { alert('Pop-up bloqueado. Permite pop-ups para este site.'); return; }
   w.document.write(html); w.document.close();
 }
+
+/* ABAS PATCH v3 */
+/* ═══════════════════════════════════════════════════════════════════
+   ABAS-3 · PATCH v3 (pais) — cotação honesta
+   Substitui a conversão linear não-normativa por: score bruto administrado,
+   saturação de resposta e leitura por domínio (Interpretável / Reservada).
+   NÃO gera scores padronizados (SS), índices compostos nem percentis.
+   • Regra por idade: itens estruturalmente inaplicáveis à faixa pré-escolar
+     são pré-marcados como N/A.
+   • Botão N/A: o informante pode marcar qualquer item como não aplicável.
+   ═══════════════════════════════════════════════════════════════════ */
+(function(){
+  "use strict";
+  var NA_IDADE = {"COM": [1, 2, 4, 7, 8, 15, 17, 19], "CU": [0, 1, 2, 3, 4, 7, 9, 10, 12, 13, 16], "FA": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13], "HL": [1, 2, 3, 4, 6, 9, 13, 14, 16], "HS": [0, 1, 2, 6, 9, 10, 11, 15], "LE": [6], "SD": [5, 10, 12], "SO": [17], "WK": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]};          // {DOM:[idx,...]}
+  var SAT_MIN = 0.80;                   // saturação mínima para leitura válida
+
+  // offset global do 1.º item de cada domínio
+  function domOffsets(){
+    var off={}, acc=0;
+    DOMAINS.forEach(function(d){ off[d.code]=acc; acc+=d.items.length; });
+    return off;
+  }
+  function isNArule(code,i){ return (NA_IDADE[code]||[]).indexOf(i)>=0; }
+
+  // pré-marcar respostas segundo a regra (não sobrepõe respostas já dadas)
+  window.aplicarRegraNA = function(){
+    var off=domOffsets();
+    DOMAINS.forEach(function(d){
+      (NA_IDADE[d.code]||[]).forEach(function(i){
+        var g=off[d.code]+i;
+        if(!answers[g]) answers[g]='NA';
+      });
+    });
+  };
+
+  // ——— setAnswer aceita 'NA' ———
+  window.setAnswer=function(idx,val){ answers[idx]=val; };
+  window.marcarNA=function(idx){ answers[idx]='NA';
+    var r=document.querySelectorAll('input[name="item_'+idx+'"]');
+    r.forEach(function(el){ el.checked=false; });
+    var card=document.getElementById('na_'+idx);
+    if(card){ card.classList.toggle('na-on'); }
+  };
+
+  // ——— render da grelha de preenchimento: acrescenta botão N/A + realça regra ———
+  window.renderDomain=function(idx){
+    var d=DOMAINS[idx], off=domOffsets()[d.code];
+    var html='<div class="card" style="padding:0;overflow:hidden">';
+    html+='<div class="domain-header" style="background:linear-gradient(135deg,'+d.color+','+d.color+'99)">';
+    html+='<h3>'+d.name+(d.optional?'<span class="optional-badge">OPCIONAL</span>':'')+'</h3>';
+    html+='<p>'+d.desc+'</p></div><div style="padding:16px">';
+    d.items.forEach(function(item,i){
+      var g=off+i, cur=answers[g]||'';
+      var regra=isNArule(d.code,i);
+      var naOn=(cur==='NA');
+      html+='<div class="item-card'+(naOn?' na-on':'')+'" id="na_'+g+'">';
+      html+='<div class="item-num">Item '+(g+1)+(regra?' · <span style="color:#b8860b">n/aplic. à idade</span>':'')+'</div>';
+      html+='<div class="item-text">'+item+'</div>';
+      html+='<div class="likert-row">';
+      ['0','1','2','3'].forEach(function(v,vi){
+        var lbl=['Nunca','&Agrave;s vezes','Freq.','Sempre'][vi];
+        html+='<label class="likert-opt"><input type="radio" name="item_'+g+'" value="'+v+'"'+(cur===v?' checked':'')+' onchange="setAnswer('+g+',this.value);document.getElementById(\'na_'+g+'\').classList.remove(\'na-on\')">';
+        html+='<div class="circle">'+v+'</div><span class="lbl">'+lbl+'</span></label>';
+      });
+      html+='<label class="likert-opt na-opt" onclick="marcarNA('+g+')" style="cursor:pointer">';
+      html+='<div class="circle" style="border-color:#b8860b;color:#b8860b;font-size:.7rem">N/A</div><span class="lbl">N/aplic.</span></label>';
+      html+='</div></div>';
+    });
+    html+='</div></div>';
+    if(d.optional){
+      html='<div style="text-align:right;margin-bottom:8px"><button class="btn btn-secondary" onclick="saltarDominio()" style="font-size:.82rem;padding:6px 16px">Saltar sec&ccedil;&atilde;o &rarr;</button></div>'+html;
+    }
+    document.getElementById('domain-container').innerHTML=html;
+    updateProgress(idx);
+    document.getElementById('btn-prev').style.display=idx===0?'none':'';
+    var isLast=idx===DOMAINS.length-1;
+    document.getElementById('btn-next').textContent=isLast?'Submeter &#10003;':'Próximo →';
+    document.getElementById('btn-next').onclick=isLast?function(){submeter();}:function(){navDomain(1);};
+  };
+
+  // aceitar 'NA' como resposta válida na navegação/submissão
+  window.navDomain=function(dir){
+    if(dir===1){
+      var d=DOMAINS[currentDomain];
+      if(!d.optional){
+        var off=domOffsets()[d.code];
+        for(var i=0;i<d.items.length;i++){
+          var a=answers[off+i];
+          if(a===undefined||a===''){ alert('Por favor responda a todos os itens (ou marque N/A) antes de continuar.'); return; }
+        }
+      }
+    }
+    currentDomain+=dir;
+    if(currentDomain<0)currentDomain=0;
+    if(currentDomain>=DOMAINS.length)currentDomain=DOMAINS.length-1;
+    renderDomain(currentDomain);
+  };
+
+  // ——— cotação: brutos administrados, saturação, leitura ———
+  window.calcularResultados=function(ans){
+    var off=domOffsets(), dom={};
+    DOMAINS.forEach(function(d){
+      var soma=0, adm=0, na=0, tot=d.items.length;
+      d.items.forEach(function(_,i){
+        var v=ans[off[d.code]+i];
+        if(v==='NA'||v===undefined||v===''){ na++; return; }
+        var n=parseInt(v,10);
+        if(!isNaN(n)){ soma+=n; adm++; }
+      });
+      var sat=tot?adm/tot:0;
+      dom[d.code]={ sb:soma, adm:adm, tot:tot, na:na, sat:sat,
+        max:adm*3, pct: adm? soma/(adm*3):0,
+        leitura: adm===0?'—':(sat>=SAT_MIN?'Interpretável':'Reservada') };
+    });
+    return { dom:dom, sb:mapKey(dom,'sb'), sat:mapKey(dom,'sat') };
+  };
+  function mapKey(dom,k){ var o={}; for(var c in dom)o[c]=dom[c][k]; return o; }
+
+  // ——— síntese interpretativa automática ———
+  window.sinteseABAS=function(res){
+    var val=[], res_=[];
+    for(var c in res.dom){
+      var x=res.dom[c];
+      if(x.adm===0) continue;
+      (x.leitura==='Interpretável'?val:res_).push(c);
+    }
+    var nome={COM:'Comunicação',CU:'Recursos Comunitários/Escolares',HL:'Vida no Lar/Sala',HS:'Saúde e Segurança',LE:'Lazer',SD:'Autonomia Pessoal',SO:'Socialização',FA:'Habilidades Académicas',WK:'Trabalho'};
+    function lista(a){ return a.map(function(c){return nome[c]||c;}).join(', '); }
+    var t='';
+    t+='<p><strong>Domínios com leitura válida</strong> (saturação &ge; 80&nbsp;%): '+(val.length?lista(val):'—')+'. ';
+    t+='<strong>Leitura reservada</strong> (baixa saturação — o bruto reflete sobretudo ausência de oportunidade, não competência): '+(res_.length?lista(res_):'—')+'.</p>';
+    t+='<p>A interpretação clínica deve considerar apenas os domínios de leitura válida. Não são apresentados resultados padronizados (SS, índices, percentis): a conversão normativa do ABAS-3 é específica por idade e faz-se com as tabelas oficiais do manual.</p>';
+    return t;
+  };
+
+  // ——— detalhe no painel clínico: brutos + saturação + leitura + síntese ———
+  window.verDetalhe=function(idx){
+    sessaoActual=sessoes[idx];
+    var s=sessaoActual;
+    var dt=s.date?new Date(s.date).toLocaleString('pt-PT'):'—';
+    var ans=(typeof s.answers==='string')?s.answers.split('|'):(s.answers||[]);
+    var res=calcularResultados(ans);
+    var nome={COM:'Comunicação',CU:'Recursos Comunitários/Escolares',HL:'Vida no Lar/Sala',HS:'Saúde e Segurança',LE:'Lazer',SD:'Autonomia Pessoal',SO:'Socialização',FA:'Habilidades Académicas',WK:'Trabalho'};
+    var html='<h3 style="color:var(--blue);font-family:\'DM Serif Display\',serif;margin-bottom:4px">Detalhe &mdash; '+s.patientCode+'</h3>';
+    html+='<p style="color:var(--text-light);font-size:.82rem;margin-bottom:14px">'+dt+' &middot; '+(s.parentesco||'')+' &middot; Idade: '+(s.idade||'')+'</p>';
+    html+='<div class="no-print" style="margin-bottom:16px;display:flex;gap:8px;flex-wrap:wrap">'+
+      '<button class="btn btn-primary" style="padding:8px 16px;font-size:.85rem;font-weight:600" onclick="exportarRelatorioCompleto(sessaoActual)">&#128202; Relat&oacute;rio (PDF/Imprimir)</button>'+
+      '<button class="btn btn-secondary" style="padding:8px 16px;font-size:.85rem" onclick="exportarRespostasPDF(sessaoActual)">&#128203; S&oacute; Respostas</button></div>';
+    html+='<div style="background:#fcf3e2;border-left:4px solid #d68910;padding:10px 14px;border-radius:6px;margin-bottom:16px;font-size:.82rem;color:#7a5b12">'+
+      '<strong>Registo sem conversão normativa.</strong> Apresentam-se scores brutos e saturação de resposta. A conversão para scores padronizados exige as tabelas oficiais do ABAS-3 por idade.</div>';
+    html+='<h4 style="color:var(--blue);font-size:.9rem;margin-bottom:8px">Scores por Dom&iacute;nio</h4>';
+    html+='<table style="width:100%;border-collapse:collapse;font-size:.83rem;margin-bottom:16px">';
+    html+='<tr style="background:var(--blue);color:#fff"><th style="padding:6px 8px;text-align:left">Domínio</th><th style="padding:6px 8px">Bruto</th><th style="padding:6px 8px">Itens resp.</th><th style="padding:6px 8px">Saturação</th><th style="padding:6px 8px">Leitura</th></tr>';
+    var rIdx=0;
+    DOMAINS.forEach(function(d){
+      var x=res.dom[d.code];
+      var bg=(rIdx++%2)?'#f4f6f9':'#fff';
+      var lc=x.leitura==='Reservada'?'#d68910':(x.leitura==='—'?'#999':'#2c3e50');
+      html+='<tr style="background:'+bg+'"><td style="padding:5px 8px">'+(nome[d.code]||d.code)+'</td>'+
+        '<td style="padding:5px 8px;text-align:center">'+(x.adm?x.sb:'—')+'</td>'+
+        '<td style="padding:5px 8px;text-align:center">'+x.adm+'/'+x.tot+'</td>'+
+        '<td style="padding:5px 8px;text-align:center">'+Math.round(x.sat*100)+'%</td>'+
+        '<td style="padding:5px 8px;text-align:center;color:'+lc+';font-weight:600">'+x.leitura+'</td></tr>';
+    });
+    html+='</table>';
+    html+='<h4 style="color:var(--blue);font-size:.9rem;margin-bottom:8px">S&iacute;ntese interpretativa</h4>';
+    html+='<div style="font-size:.85rem;line-height:1.5">'+sinteseABAS(res)+'</div>';
+    var target=document.getElementById('modal-content')||document.getElementById('detalhe-content')||document.getElementById('modal-body');
+    if(target){ target.innerHTML=html; }
+    var mroot=document.getElementById('modal-overlay')||document.getElementById('modal-detalhe')||document.getElementById('modal');
+    if(mroot){ mroot.style.display='flex'; mroot.classList.add('active'); }
+  };
+
+  // aplicar a regra por idade quando arranca um questionário novo
+  var _ini = window.iniciarQuestionario;
+  if(typeof _ini==='function'){
+    window.iniciarQuestionario=function(){
+      var r=_ini.apply(this,arguments);
+      try{ aplicarRegraNA(); if(typeof currentDomain==='number') renderDomain(currentDomain); }catch(e){}
+      return r;
+    };
+  }
+})();
+
+
+/* --- renderTabela (sobreposição): sem SS/CAG, mostra domínios válidos --- */
+window.renderTabela=function(){
+  var tbody=document.getElementById('sessions-body');
+  var empty=document.getElementById('sessions-empty');
+  if(!sessoes||!sessoes.length){ if(tbody)tbody.innerHTML=''; if(empty)empty.style.display=''; return; }
+  if(empty)empty.style.display='none';
+  tbody.innerHTML=sessoes.map(function(s,i){
+    var dt=s.date?new Date(s.date).toLocaleDateString('pt-PT'):'—';
+    var ans=(typeof s.answers==='string')?s.answers.split('|'):(s.answers||[]);
+    var res=calcularResultados(ans);
+    var val=0,tot=0;
+    for(var c in res.dom){ if(res.dom[c].adm>0){ tot++; if(res.dom[c].leitura==='Interpretável') val++; } }
+    var leit=(val>=Math.ceil(tot/2))?'<span style="color:#2c3e50">Perfil leg&iacute;vel</span>':'<span style="color:#d68910">Leitura limitada</span>';
+    return '<tr>'+
+      '<td><strong>'+s.patientCode+'</strong></td>'+
+      '<td>'+dt+'</td>'+
+      '<td>'+(s.parentesco||s.nomeInformante||'—')+'</td>'+
+      '<td>'+(s.idade||'—')+'</td>'+
+      '<td style="text-align:center">'+val+'/'+tot+'</td>'+
+      '<td>'+leit+'</td>'+
+      '<td class="no-print"><button class="btn btn-secondary" style="padding:4px 12px;font-size:.78rem" onclick="verDetalhe('+i+')">Ver &rarr;</button></td>'+
+    '</tr>';
+  }).join('');
+};
 </script>
 </body>
 </html>
