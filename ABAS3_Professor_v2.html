@@ -616,7 +616,8 @@ function carregarDados(){
   fetch(SCRIPT_URL+"?instrumento="+INSTR+"&t="+Date.now())
     .then(function(r){return r.json();})
     .then(function(data){
-      sessoes=Array.isArray(data)?data.map(parseSessao):[];
+      var rows=Array.isArray(data)?data:(data&&data.rows?data.rows:[]);
+      sessoes=rows.map(parseSessao);
       if(window._clinico_sessions) window._clinico_sessions.forEach(function(s){
         if(!sessoes.some(function(x){return x.patientCode===s.patientCode&&x.date===s.date;}))
           sessoes.unshift(s);
@@ -628,15 +629,30 @@ function carregarDados(){
     });
 }
 
+function fmtData(v,comHora){
+  if(!v) return "\u2014";
+  var str=String(v);
+  var m=str.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+  if(m) return m[1].length<2?"0"+str:str; // já dd/mm/aaaa vindo do Sheet
+  var d=new Date(str);
+  if(isNaN(d.getTime())) return str;
+  return comHora?d.toLocaleString("pt-PT"):d.toLocaleDateString("pt-PT");
+}
+
 function parseSessao(row){
-  var s={patientCode:row.patientCode||"\u2014",date:row.date||"",
-    nomeCrianca:row.nomeCrianca||"",nomeInformante:row.nomeInformante||"",
-    answers:row.answers||"",sb:{},ss:{},cc:0,sc:0,pc:0,cag:0};
+  var s={patientCode:row["C\u00f3digo"]||row["Codigo"]||row.patientCode||"\u2014",
+    date:row["Data"]||row.date||"",
+    nomeCrianca:row["NomeCrian\u00e7a"]||row["NomeCrianca"]||row.nomeCrianca||"",
+    nomeInformante:row["NomeInformante"]||row.nomeInformante||"",
+    answers:row["Respostas"]||row.answers||"",sb:{},ss:{},cc:0,sc:0,pc:0,cag:0};
   if(s.answers){
     var r=calcularResultados(s.answers.split("|"));
     s.sb=r.sb;s.ss=r.ss;s.cc=r.cc;s.sc=r.sc;s.pc=r.pc;s.cag=r.cag;
   }
-  DOMAINS.forEach(function(d){ if(row[d.code+"_SS"]) s.ss[d.code]=parseInt(row[d.code+"_SS"])||0; });
+  DOMAINS.forEach(function(d){
+    if(row[d.code+"_SS"]) s.ss[d.code]=parseInt(row[d.code+"_SS"])||0;
+    if(row[d.code+"_SB"]) s.sb[d.code]=parseInt(row[d.code+"_SB"])||0;
+  });
   if(row.CAG) s.cag=parseInt(row.CAG)||0;
   if(row.CC)  s.cc=parseInt(row.CC)||0;
   if(row.SC)  s.sc=parseInt(row.SC)||0;
@@ -658,10 +674,10 @@ function renderTabela(){
   if(!sessoes.length){tb.innerHTML="";em.style.display="";return;}
   em.style.display="none";
   tb.innerHTML=sessoes.map(function(s,i){
-    var dt=s.date?new Date(s.date).toLocaleDateString("pt-PT"):"\u2014";
+    var dt=fmtData(s.date);
     var info="";
     Object.keys(s).forEach(function(k){
-      if(["patientCode","date","answers","sb","ss","cc","sc","pc","cag","code"].indexOf(k)<0 && typeof s[k]==="string" && s[k])
+      if(["patientCode","date","answers","sb","ss","cc","sc","pc","cag","code","Respostas","Instrumento","instrumento","Data","C\u00f3digo","Codigo","CAG","CC","SC","PC","NomeCrian\u00e7a","NomeCrianca","NomeInformante"].indexOf(k)<0 && !/_S[BS]$/.test(k) && typeof s[k]==="string" && s[k])
         info+=s[k]+" ";
     });
     return "<tr><td><strong>"+s.patientCode+"</strong></td><td>"+dt+"</td><td style=\"font-size:.8rem\">"+info.trim()+"</td>"+
@@ -676,7 +692,7 @@ function renderTabela(){
 function verDetalhe(idx){
   sessaoActual=sessoes[idx];
   var s=sessaoActual;
-  var dt=s.date?new Date(s.date).toLocaleString("pt-PT"):"\u2014";
+  var dt=fmtData(s.date,true);
   var html="<h3 style=\"color:var(--blue);font-family:DM Serif Display,serif;margin-bottom:4px\">Detalhe \u2014 "+s.patientCode+"</h3>";
   html+="<p style=\"color:var(--text-light);font-size:.82rem;margin-bottom:18px\">"+dt+"</p>";
   html+="<h4 style=\"color:var(--blue);font-size:.9rem;margin-bottom:8px\">Scores por Dom&iacute;nio</h4>";
@@ -750,7 +766,7 @@ function exportarCSV(){
   var cols=["Data","C\u00f3digo","CAG","Classif.","CC","SC","PC"].concat(DOMAINS.map(function(d){return d.code+"_SS";}));
   var cab=cols.join(";")+("\r\n");
   var linhas=sessoes.map(function(s){
-    var dt=s.date?new Date(s.date).toLocaleDateString("pt-PT"):"";
+    var dt=s.date?fmtData(s.date):"";
     var row=[dt,s.patientCode,s.cag,scParaClassif(s.cag).replace(/&[^;]+;/g,""),s.cc,s.sc,s.pc];
     DOMAINS.forEach(function(d){row.push(s.ss[d.code]||"");}); 
     return row.map(function(v){return '"'+(v+"").replace(/"/g,'""')+'"';}).join(";");
@@ -768,7 +784,7 @@ function exportarPDF(){
   html+="<h2>"+INSTR+" &mdash; Resultados</h2><p>Ricardina Correia &middot; "+new Date().toLocaleString("pt-PT")+"</p>";
   html+="<table><thead><tr><th>C&oacute;digo</th><th>Data</th><th>CAG</th><th>Classif.</th><th>CC</th><th>SC</th><th>PC</th></tr></thead><tbody>";
   sessoes.forEach(function(s){
-    var dt=s.date?new Date(s.date).toLocaleDateString("pt-PT"):"";
+    var dt=s.date?fmtData(s.date):"";
     html+="<tr><td>"+s.patientCode+"</td><td>"+dt+"</td><td><strong>"+s.cag+"</strong></td><td>"+scParaClassif(s.cag).replace(/&[^;]+;/g,"")+"</td><td>"+s.cc+"</td><td>"+s.sc+"</td><td>"+s.pc+"</td></tr>";
   });
   html+="</tbody></table></body></html>";
@@ -790,7 +806,7 @@ function exportarRespostasPDF(sessao){
   var html="<!DOCTYPE html><html><head><meta charset=\"UTF-8\"><title>Respostas</title>";
   html+="<style>body{font-family:sans-serif;font-size:11px;padding:20px}h2{color:#3B5A7A}table{width:100%;border-collapse:collapse}th{background:#D6E4F0;padding:6px 8px;color:#3B5A7A;text-align:left}.np{margin-bottom:12px}@media print{.np{display:none}}</style></head><body>";
   html+="<div class=\"np\"><button onclick=\"window.print()\">&#128424; PDF</button></div>";
-  html+="<h2>"+INSTR+" &mdash; Respostas por Item</h2><p>"+sessao.patientCode+" &middot; "+(sessao.date?new Date(sessao.date).toLocaleDateString("pt-PT"):"")+" &middot; Ricardina Correia</p>";
+  html+="<h2>"+INSTR+" &mdash; Respostas por Item</h2><p>"+sessao.patientCode+" &middot; "+(sessao.date?fmtData(sessao.date):"")+" &middot; Ricardina Correia</p>";
   html+="<table><thead><tr><th>#</th><th>Dom.</th><th>Item</th><th>Resp.</th></tr></thead><tbody>"+linhas+"</tbody></table></body></html>";
   var w=window.open("","_blank"); if(!w){alert("Pop-up bloqueado.");return;}
   w.document.write(html); w.document.close();
@@ -808,7 +824,7 @@ function processarFicheiroImportado(input){
     rows.slice(1).forEach(function(row){
       var cols=row.split(sep).map(function(c){return c.replace(/^"|"$/g,"").trim();});
       if(!cols[1]) return;
-      if(!sessoes.some(function(s){return s.patientCode===cols[1]&&new Date(s.date).toLocaleDateString("pt-PT")===cols[0];}) ){
+      if(!sessoes.some(function(s){return s.patientCode===cols[1]&&fmtData(s.date)===cols[0];}) ){
         sessoes.push({patientCode:cols[1],date:cols[0],answers:"",sb:{},ss:{},
           cag:parseInt(cols[2])||0,cc:parseInt(cols[4])||0,
           sc:parseInt(cols[5])||0,pc:parseInt(cols[6])||0});
@@ -886,7 +902,7 @@ function exportarInterpretacaoPDF(sessao) {
         '<td style="padding:3px 6px;border-bottom:1px solid #f0f0f0;text-align:center;font-weight:700;">'+r+'</td></tr>';
     }).join('');
   }
-  var dt = sessao.date ? new Date(sessao.date).toLocaleDateString('pt-PT') : '—';
+  var dt = sessao.date ? fmtData(sessao.date) : '—';
   var nomeCrianca    = sessao.nomeCrianca    || '';
   var nomeInformante = sessao.nomeInformante || '';
   var html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>ABAS-3 Prof — Interpretação — '+sessao.patientCode+'</title>' +
