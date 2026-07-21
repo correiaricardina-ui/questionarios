@@ -991,6 +991,20 @@ const SCALES = {
 // Outros Problemas: não é síndrome, mas entra no Total de Problemas (Cálculos do perfil).
 const OUTROS_PROB = {name:'Outros Problemas', items:[7,24,44,53,55,'56h',74,77,93,110]};
 
+// Recalcula todos os brutos a partir das respostas item-a-item.
+// As respostas são a única fonte de verdade — nunca ler brutos/T já gravados no Sheet.
+function rawsFromAnswers(ans){
+  ans = ans || {};
+  const val = it => { const v = ans[it]; return (v!==undefined && v!==null && v!=='') ? (Number(v)||0) : 0; };
+  const o = {};
+  for(const [k,sc] of Object.entries(SCALES)) o[k] = sc.items.reduce((a,it)=>a+val(it),0);
+  o.OUT = OUTROS_PROB.items.reduce((a,it)=>a+val(it),0);
+  o.INT = o.I + o.II + o.III;
+  o.EXT = o.VII + o.VIII;
+  o.TOT = o.INT + o.EXT + o.IV + o.V + o.VI + o.OUT;
+  return o;
+}
+
 // ═══════════ T-TABLES ═══════════
 const TF = {
   I: [50, 50, 50, 52, 54, 56, 58, 60, 62, 64, 66, 68, 70, 72, 74, 76, 78, 80, 82, 84, 86, 88, 90, 92, 94, 96, 98],
@@ -1167,7 +1181,7 @@ function doSubmit(){
       code: code,
       date: new Date().toISOString(),
       status: 'complete',
-      scores: { 'T-INT': scores&&scores.tScores&&scores.tScores.INT, 'T-EXT': scores&&scores.tScores&&scores.tScores.EXT, 'T-TOT': scores&&scores.tScores&&scores.tScores.TOT }
+      scores: { 'RAW-INT': scores&&scores.INT?scores.INT.raw:'', 'RAW-EXT': scores&&scores.EXT?scores.EXT.raw:'', 'RAW-TOT': scores&&scores.TOT?scores.TOT.raw:'' }
     }));
   } catch(e) {}
 
@@ -1197,6 +1211,18 @@ function doSubmit(){
       tVI:  ts.VI  ? ts.VI.T  : '',
       tVII: ts.VII ? ts.VII.T : '',
       tVIII:ts.VIII? ts.VIII.T: '',
+      rawI:   ts.I   ? ts.I.raw   : '',
+      rawII:  ts.II  ? ts.II.raw  : '',
+      rawIII: ts.III ? ts.III.raw : '',
+      rawIV:  ts.IV  ? ts.IV.raw  : '',
+      rawV:   ts.V   ? ts.V.raw   : '',
+      rawVI:  ts.VI  ? ts.VI.raw  : '',
+      rawVII: ts.VII ? ts.VII.raw : '',
+      rawVIII:ts.VIII? ts.VIII.raw: '',
+      rawOutros: sc.OUT ? sc.OUT.raw : '',
+      rawInternalizacao: sc.INT ? sc.INT.raw : '',
+      rawExternalizacao: sc.EXT ? sc.EXT.raw : '',
+      rawTotal: sc.TOT ? sc.TOT.raw : '',
       answers: JSON.stringify(answers)
     })
   }).catch(e => console.log('YSR Sheets sync failed:', e));
@@ -1206,7 +1232,7 @@ function doSubmit(){
     if(location.protocol === 'file:' || !navigator.onLine){
       const bom = '\uFEFF';
       const linhas = [
-        ['Data','Código','Nome','Idade','Sexo','Grupo Idade','T-INT','T-EXT','T-Total'].join(';'),
+        ['Data','Código','Nome','Idade','Sexo','Grupo Idade','Bruto-INT','Bruto-EXT','Bruto-Total'].join(';'),
         [
           new Date().toLocaleDateString('pt-PT'),
           sessionMeta.code || '',
@@ -1214,9 +1240,9 @@ function doSubmit(){
           sessionMeta.age || '',
           sessionMeta.sex || '',
           sessionMeta.ageGroup || '',
-          scores&&scores.tScores ? scores.tScores.INT||'' : '',
-          scores&&scores.tScores ? scores.tScores.EXT||'' : '',
-          scores&&scores.tScores ? scores.tScores.TOT||'' : ''
+          scores&&scores.INT ? scores.INT.raw : '',
+          scores&&scores.EXT ? scores.EXT.raw : '',
+          scores&&scores.TOT ? scores.TOT.raw : ''
         ].map(v => '"'+(v+'').replace(/"/g,'""')+'"').join(';')
       ];
       const blob = new Blob([bom + linhas.join('\r\n')], {type:'text/csv;charset=utf-8;'});
@@ -1307,6 +1333,18 @@ async function syncToSheets() {
           tVI:  _ts.VI  ? _ts.VI.T  : '',
           tVII: _ts.VII ? _ts.VII.T : '',
           tVIII:_ts.VIII? _ts.VIII.T: '',
+          rawI:   _ts.I   ? _ts.I.raw   : '',
+          rawII:  _ts.II  ? _ts.II.raw  : '',
+          rawIII: _ts.III ? _ts.III.raw : '',
+          rawIV:  _ts.IV  ? _ts.IV.raw  : '',
+          rawV:   _ts.V   ? _ts.V.raw   : '',
+          rawVI:  _ts.VI  ? _ts.VI.raw  : '',
+          rawVII: _ts.VII ? _ts.VII.raw : '',
+          rawVIII:_ts.VIII? _ts.VIII.raw: '',
+          rawOutros: _sc.OUT ? _sc.OUT.raw : '',
+          rawInternalizacao: _sc.INT ? _sc.INT.raw : '',
+          rawExternalizacao: _sc.EXT ? _sc.EXT.raw : '',
+          rawTotal: _sc.TOT ? _sc.TOT.raw : '',
           answers: JSON.stringify(s.answers || {})
         })
       });
@@ -1785,12 +1823,15 @@ function carregarDados() {
         var nome = row['Nome'] || row.nome || '—';
         var data = row['Data'] || row.data || '—';
         var sex = row['Sexo'] || row.sexo || '—';
-        var tINT = row['T_INT'] || row.tInternalizacao || '—';
-        var tEXT = row['T_EXT'] || row.tExternalizacao || '—';
-        var tTOT = row['T_TOT'] || row.tTotal || '—';
+        // Brutos recalculados a partir das respostas item-a-item (fonte de verdade)
+        var _a = {}; try { _a = JSON.parse(row['Respostas'] || row.answers || '{}'); } catch(e) {}
+        var _r = Object.keys(_a).length ? rawsFromAnswers(_a) : null;
+        var resumo = _r
+          ? 'Brutos — INT: ' + _r.INT + ' · EXT: ' + _r.EXT + ' · Total: ' + _r.TOT
+          : 'Respostas item-a-item indisponíveis neste registo';
         return '<div class="session-card" style="cursor:pointer;" onclick="verDetalheSheet(' + idx + ', sheetData)">' +
           '<div class="session-info"><h3>' + nome + ' <span style="font-size:0.8rem;color:var(--text-light);">' + sex + ' · ' + data + '</span></h3>' +
-          '<p>INT: T' + tINT + ' · EXT: T' + tEXT + ' · TOT: T' + tTOT + '</p></div>' +
+          '<p>' + resumo + '</p></div>' +
           '<div class="session-badges"><span class="badge-code">' + code + '</span>' +
           '<span class="badge-status status-done">✅ No servidor</span>' +
           '<button class="btn-del" onclick="event.stopPropagation();exportarRespostasPDFSheet(' + idx + ',sheetData)" title="PDF Respostas">📋</button>' +
@@ -1810,31 +1851,34 @@ function verDetalheSheet(idx, arr) {
   var code = row['Código'] || row.codigo || row.patientCode || '—';
   var nome = row['Nome'] || row.nome || '—';
   var data = row['Data'] || row.data || '—';
-  var tINT = Number(row['T_INT'] || row.tInternalizacao || 0);
-  var tEXT = Number(row['T_EXT'] || row.tExternalizacao || 0);
-  var tTOT = Number(row['T_TOT'] || row.tTotal || 0);
+  // Brutos recalculados a partir das respostas — nunca ler brutos/T gravados no Sheet.
+  var _ans = {}; try { _ans = JSON.parse(row['Respostas'] || row.answers || '{}'); } catch(e) {}
+  var _raw = Object.keys(_ans).length ? rawsFromAnswers(_ans) : null;
   var scaleLbls = [['I','Ansiedade/Depressão'],['II','Isolamento/Depressão'],['III','Queixas Somáticas'],
     ['IV','Problemas Sociais'],['V','Problemas de Pensamento'],['VI','Problemas de Atenção'],
     ['VII','Comp. Delinquente'],['VIII','Comp. Agressivo']];
-  var scaleRows = scaleLbls.map(([k,lbl]) => {
-    var T = Number(row['T_' + k] || 0);
-    if (!T) return '';
-    var cl = T >= 70 ? 'clínico' : T >= 65 ? 'borderline' : 'normativo';
-    var col = T >= 70 ? 'var(--red)' : T >= 65 ? 'var(--amber)' : 'var(--green)';
+  var scaleRows = !_raw ? '' : (scaleLbls.map(([k,lbl]) => {
+    var maxRaw = (SCALES[k] ? SCALES[k].items.length : 0) * 2;
     return '<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--gray-bdr);font-size:0.85rem;">' +
       '<span><strong>' + k + '</strong> — ' + lbl + '</span>' +
-      '<span style="font-weight:700;color:' + col + ';">T' + T + ' · ' + cl + '</span></div>';
-  }).join('');
+      '<span style="font-weight:700;">bruto ' + _raw[k] +
+      ' <span style="font-weight:400;color:var(--text-light);">/ ' + maxRaw + '</span></span></div>';
+  }).join('') +
+  '<div style="display:flex;justify-content:space-between;padding:5px 0;font-size:0.85rem;">' +
+  '<span>Outros Problemas</span><span style="font-weight:700;">bruto ' + _raw.OUT +
+  ' <span style="font-weight:400;color:var(--text-light);">/ ' + (OUTROS_PROB.items.length*2) + '</span></span></div>');
   var html = '<div style="margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--blue-pale);">' +
     '<div style="font-size:1.1rem;font-weight:700;color:var(--blue);">' + nome + '</div>' +
     '<div style="font-size:0.83rem;color:var(--text-light);">' + data + ' · ' + code + '</div></div>' +
-    '<div style="background:var(--blue-pale);padding:10px 14px;border-radius:8px;font-size:0.8rem;margin-bottom:16px;">' +
-    'Compostos: T≥65 Clínico · T60–64 Borderline &nbsp;|&nbsp; Síndromes: T≥70 Clínico · T65–69 Borderline</div>' +
+    '<div style="background:#FFF4E5;border-left:3px solid #E67E22;padding:10px 14px;border-radius:0 8px 8px 0;font-size:0.8rem;margin-bottom:16px;">' +
+    '<strong>Notas T suspensas</strong> — as tabelas normativas do ficheiro não correspondem ao perfil publicado. ' +
+    'Ler o T no perfil em papel a partir dos brutos abaixo.</div>' +
+    (!_raw ? '<div style="font-size:0.85rem;color:var(--text-light);">Sem respostas item-a-item neste registo — brutos não recalculáveis.</div>' :
     '<div style="margin-bottom:16px;">' +
-    '<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--gray-bdr);"><span>Internalização</span><span style="font-weight:700;color:' + (tINT>=65?'var(--red)':tINT>=60?'var(--amber)':'var(--green)') + '">T' + tINT + '</span></div>' +
-    '<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--gray-bdr);"><span>Externalização</span><span style="font-weight:700;color:' + (tEXT>=65?'var(--red)':tEXT>=60?'var(--amber)':'var(--green)') + '">T' + tEXT + '</span></div>' +
-    '<div style="display:flex;justify-content:space-between;padding:8px 0;"><span><strong>Total de Problemas</strong></span><span style="font-weight:700;color:' + (tTOT>=65?'var(--red)':tTOT>=60?'var(--amber)':'var(--green)') + '">T' + tTOT + '</span></div>' +
-    '</div>' + scaleRows;
+    '<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--gray-bdr);"><span>Internalização <span style="color:var(--text-light);font-size:0.78rem;">I+II+III</span></span><span style="font-weight:700;">bruto ' + _raw.INT + ' <span style="font-weight:400;color:var(--text-light);">/ 62</span></span></div>' +
+    '<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--gray-bdr);"><span>Externalização <span style="color:var(--text-light);font-size:0.78rem;">VII+VIII</span></span><span style="font-weight:700;">bruto ' + _raw.EXT + ' <span style="font-weight:400;color:var(--text-light);">/ 64</span></span></div>' +
+    '<div style="display:flex;justify-content:space-between;padding:8px 0;"><span><strong>Total de Problemas</strong></span><span style="font-weight:700;">bruto ' + _raw.TOT + ' <span style="font-weight:400;color:var(--text-light);">/ 210</span></span></div>' +
+    '</div>') + scaleRows;
   // Secção item a item (dados do Sheet)
   var answersRawSheet = '';
   if (row['Respostas']) answersRawSheet = row['Respostas'];

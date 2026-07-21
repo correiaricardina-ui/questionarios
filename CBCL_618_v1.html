@@ -107,6 +107,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--gray-bg);color:var(--text
 .t-normal{background:var(--green);}
 .t-borderline{background:var(--borderline);}
 .t-clinical{background:var(--red);}
+.t-unknown{background:#9AA7B4;}
 .composite-card{background:white;border-radius:12px;padding:24px;box-shadow:0 2px 8px rgba(59,90,122,0.06);margin-bottom:20px;}
 .composite-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--gray-bdr);}
 .composite-row:last-child{border-bottom:none;}
@@ -471,12 +472,14 @@ const CBCL_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxX2_Ry7VRH6jr7
 // ═══════════════════════════════════════════════════════
 
 // Composição das escalas de síndromes
+// Mapa conforme Tabela 2.1 do Manual ASEBA 6-18 (PT, Psiquilíbrios 2014, pp.16-17), coluna CBCL.
+// NÃO ALTERAR sem verificar contra a Tabela 2.1.
 const SCALES = {
   I:    { name:'Ansiedade/Depressão',          items:[14,29,30,31,32,33,35,45,50,52,71,91,112] },
   II:   { name:'Isolamento/Depressão',          items:[5,42,65,69,75,102,103,111] },
   III:  { name:'Queixas Somáticas',             items:[47,49,51,54,'56a','56b','56c','56d','56e','56f','56g'] },
-  IV:   { name:'Problemas Sociais',             items:[11,12,25,27,34,36,38,48,62] },
-  V:    { name:'Problemas de Pensamento',       items:[9,18,40,46,58,59,60,66,70,76,77,83,84,85,92,100] },
+  IV:   { name:'Problemas Sociais',             items:[11,12,25,27,34,36,38,48,62,64,79] },
+  V:    { name:'Problemas de Pensamento',       items:[9,18,40,46,58,59,60,66,70,76,83,84,85,92,100] },
   VI:   { name:'Problemas de Atenção',          items:[1,4,8,10,13,17,41,61,78,80] },
   VII:  { name:'Comportamento Delinquente',     items:[2,26,28,39,43,63,67,72,73,81,82,90,96,99,101,105,106] },
   VIII: { name:'Comportamento Agressivo',       items:[3,16,19,20,21,22,23,37,57,68,86,87,88,89,94,95,97,104] }
@@ -539,27 +542,37 @@ const TM1218 = {
   TOT: [50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 51, 51, 51, 52, 53, 53, 54, 54, 55, 55, 56, 56, 57, 57, 58, 58, 59, 59, 60, 61, 61, 62, 62, 62, 63, 64, 64, 65, 65, 66, 66, 67, 67, 68, 68, 69, 69, 70, 71, 71, 72, 72, 73, 73, 73, 74, 75, 75, 76, 76, 77, 77, 78, 78, 79, 79, 80, 80, 81, 82, 82, 83, 83, 84, 84, 84, 85, 86, 86, 87, 87, 88, 89, 89, 89, 90, 90, 91, 91, 92, 93, 93, 94, 94, 95, 95, 95, 96, 97, 97, 98, 98, 99, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100],
 };
 
+// Tabelas suspensas: foram dimensionadas para o mapa ERRADO que estava no código
+// (IV a 9 itens → tabela até raw 18; V a 16 itens → tabela até raw 32), e não para
+// o mapa do manual (IV = 11 itens → 22; V = 15 itens → 30). Uma transcrição real do
+// perfil sairia com 22 e 30. Enquanto não forem transcritas do perfil do CBCL, o T
+// destas duas escalas fica omitido — os brutos continuam correctos.
+const TABELAS_SUSPENSAS = ['IV', 'V'];
+
 function getT(raw, scaleKey, sex, ageGroup) {
+  if (TABELAS_SUSPENSAS.indexOf(scaleKey) !== -1) return null;
   const table = sex==='F' ? (ageGroup==='6-11' ? TF611 : TF1218) : (ageGroup==='6-11' ? TM611 : TM1218);
   const arr = table[scaleKey];
   if (!arr) return null;
-  const idx = Math.min(raw, arr.length-1);
-  return arr[idx];
+  if (raw < 0 || raw >= arr.length) return null;   // fora de amplitude: não extrapolar em silêncio
+  return arr[raw];
 }
 
 function tLevel(t, type='syndrome') {
   // type: 'syndrome' (I-VIII), 'composite' (Int/Ext/Total), 'competence' (inverted)
+  if (t == null) return {label:'T por validar', cls:'t-unknown'};
   if (type === 'competence') {
     if (t<=30) return {label:'Clínico',cls:'t-clinical'};
     if (t<=35) return {label:'Borderline',cls:'t-borderline'};
     return {label:'Normativo',cls:'t-normal'};
   }
   if (type === 'composite') {
-    if (t>=65) return {label:'Clínico',cls:'t-clinical'};
+    // Manual p.33: borderline dos compostos = T 60-63 (percentil 84-90) → clínico a partir de 64.
+    if (t>=64) return {label:'Clínico',cls:'t-clinical'};
     if (t>=60) return {label:'Borderline',cls:'t-borderline'};
     return {label:'Normativo',cls:'t-normal'};
   }
-  // syndrome (default)
+  // syndrome (default) — borderline percentil 93-97 (T 65-69), clínico T>=70
   if (t>=70) return {label:'Clínico',cls:'t-clinical'};
   if (t>=65) return {label:'Borderline',cls:'t-borderline'};
   return {label:'Normativo',cls:'t-normal'};
@@ -1089,6 +1102,17 @@ async function submitCBCL() {
           tI: scores.tScores.I, tII: scores.tScores.II, tIII: scores.tScores.III,
           tIV: scores.tScores.IV, tV: scores.tScores.V, tVI: scores.tScores.VI,
           tVII: scores.tScores.VII, tVIII: scores.tScores.VIII,
+          // Brutos por escala. Teste explícito a null: um bruto 0 é válido e (0||'') dava ''.
+          rawInternalizacao: scores.intRaw != null ? scores.intRaw : '',
+          rawExternalizacao: scores.extRaw != null ? scores.extRaw : '',
+          rawI:   scores.scaleRaws.I    != null ? scores.scaleRaws.I    : '',
+          rawII:  scores.scaleRaws.II   != null ? scores.scaleRaws.II   : '',
+          rawIII: scores.scaleRaws.III  != null ? scores.scaleRaws.III  : '',
+          rawIV:  scores.scaleRaws.IV   != null ? scores.scaleRaws.IV   : '',
+          rawV:   scores.scaleRaws.V    != null ? scores.scaleRaws.V    : '',
+          rawVI:  scores.scaleRaws.VI   != null ? scores.scaleRaws.VI   : '',
+          rawVII: scores.scaleRaws.VII  != null ? scores.scaleRaws.VII  : '',
+          rawVIII:scores.scaleRaws.VIII != null ? scores.scaleRaws.VIII : '',
           answers: JSON.stringify(answers)
         })
       });
@@ -1271,14 +1295,14 @@ function showResults(session, scores) {
         return `<div class="composite-row">
           <div class="composite-name">${r.name}</div>
           <div class="bar-container">
-            <div class="bar-fill" style="width:${barW(r.t)}%;background:${r.type==='composite'?(r.t>=65?'var(--red)':r.t>=60?'var(--borderline)':'var(--green)'):(r.t>=70?'var(--red)':r.t>=65?'var(--borderline)':'var(--green)')}"></div>
-            <div class="bar-mark" style="left:${barW(r.type==='composite'?65:70)}%"></div>
+            <div class="bar-fill" style="width:${r.t==null?0:barW(r.t)}%;background:${r.type==='composite'?(r.t>=64?'var(--red)':r.t>=60?'var(--borderline)':'var(--green)'):(r.t>=70?'var(--red)':r.t>=65?'var(--borderline)':'var(--green)')}"></div>
+            <div class="bar-mark" style="left:${barW(r.type==='composite'?64:70)}%"></div>
             <div class="bar-mark-bl" style="left:${barW(r.type==='composite'?60:65)}%"></div>
           </div>
           <div style="display:flex;align-items:center;gap:8px;">
             <span class="scale-raw">raw=${r.raw}</span>
-            <span class="t-badge ${lv.cls}">T=${r.t}</span>
-            <span style="font-size:0.8rem;color:${r.t>=70?'var(--red)':r.t>=65?'var(--amber)':'var(--green)'};">${lv.label}</span>
+            <span class="t-badge ${lv.cls}">${r.t==null?'T —':'T='+r.t}</span>
+            <span style="font-size:0.8rem;color:${r.t==null?'var(--text-light)':(r.t>=70?'var(--red)':r.t>=65?'var(--amber)':'var(--green)')};">${lv.label}</span>
           </div>
         </div>`;
       }).join('')}
