@@ -372,8 +372,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
       <div class="thanks-icon">✅</div>
       <div class="thanks-title">Obrigado pelo preenchimento!</div>
       <div class="thanks-text">
-        As suas respostas foram registadas com sucesso.<br>
-        A Dra. Ricardina Correia analisará os resultados e entrará em contacto brevemente.
+        As suas respostas foram registadas com sucesso.
       </div>
       <div style="margin-top:28px;">
         <button class="btn btn-secondary" onclick="showPage('page-home')">← Página inicial</button>
@@ -700,11 +699,26 @@ function carregarDados() {
     .then(function(r){ return r.json(); })
     .then(function(data) {
       var rows = Array.isArray(data) ? data : (data.rows || data.data || []);
+      rows = rows.map(normalizarRowSheet);
       if (window._clinico_sessions)
         window._clinico_sessions.forEach(function(s){ rows.unshift(s); });
       renderTabela(rows);
     })
     .catch(function() { renderTabela(window._clinico_sessions || []); });
+}
+
+// Normaliza linhas vindas do Sheet (cabeçalhos PT) para as chaves locais do painel.
+// Sem isto, sessões sincronizadas ficam sem nome do respondente nem respostas item a item.
+function normalizarRowSheet(r) {
+  if (!r || typeof r !== 'object') return r;
+  if (r.patientCode === undefined && r['Código'] !== undefined) r.patientCode = r['Código'];
+  if (r.nomeCrianca === undefined && r['NomeCriança'] !== undefined) r.nomeCrianca = r['NomeCriança'];
+  if (r.nome_informante === undefined && r['NomeInformante'] !== undefined) r.nome_informante = r['NomeInformante'];
+  if (r.respondente === undefined && r['Relação'] !== undefined && String(r['Relação']).trim() !== '') r.respondente = r['Relação'];
+  if (r.instituicao === undefined && r['Instituição'] !== undefined) r.instituicao = r['Instituição'];
+  if (r.answers === undefined && r['Respostas'] !== undefined && r['Respostas'] !== null && String(r['Respostas']).trim() !== '') r.answers = String(r['Respostas']);
+  if (r.date === undefined && r['Data'] != null && /^\d{4}-\d{2}-\d{2}T/.test(String(r['Data']))) r.date = String(r['Data']);
+  return r;
 }
 
 function renderTabela(rows) {
@@ -721,9 +735,12 @@ function renderTabela(rows) {
     var sc = r.scores ? r.scores['Total'] : (parseInt(r.Total)||0);
     var cl = classificar(sc, TOTAL_NORMA.media, TOTAL_NORMA.dp);
     var dt = r.date ? new Date(r.date).toLocaleDateString('pt-PT') : (r.Data||'—');
+    var respNome = r.nome_informante||r.nome_preenche||'';
+    var respTipo = r.respondente||r.Respondente||'';
+    var respCell = respNome ? respNome + (respTipo ? ' · ' + respTipo : '') : (respTipo||'—');
     html += '<tr><td>' + dt + '</td><td><strong>' + (r.patientCode||r.Código||'—') + '</strong></td>' +
       '<td>' + (r.nomeCrianca||r.Nome||'—') + '</td>' +
-      '<td>' + (r.respondente||r.Respondente||'—') + '</td>' +
+      '<td>' + respCell + '</td>' +
       '<td style="font-size:.8rem">' + (r.instituicao||r.Instituição||'—') + '</td>' +
       '<td><strong>' + sc + '</strong>/88</td>' +
       '<td><span class="badge ' + cl.cls + '">' + cl.label + '</span></td>' +
@@ -808,7 +825,7 @@ function verDetalhe(idx) {
     '<div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px;margin-bottom:18px;font-size:.83rem;">' +
       '<div><span style="color:var(--text-light);font-size:.72rem;text-transform:uppercase;letter-spacing:.05em">Código</span><br><strong>' + (r.patientCode||'—') + '</strong></div>' +
       '<div><span style="color:var(--text-light);font-size:.72rem;text-transform:uppercase;letter-spacing:.05em">Data</span><br><strong>' + (r.date?new Date(r.date).toLocaleDateString('pt-PT'):'—') + '</strong></div>' +
-      '<div><span style="color:var(--text-light);font-size:.72rem;text-transform:uppercase;letter-spacing:.05em">Respondente</span><br><strong>' + (r.respondente||'—') + '</strong></div>' +
+      '<div><span style="color:var(--text-light);font-size:.72rem;text-transform:uppercase;letter-spacing:.05em">Respondente</span><br><strong>' + (r.nome_informante||r.nome_preenche||r.respondente||'—') + '</strong><br><span style="font-size:.75rem;color:var(--text-light)">' + (r.respondente||'') + '</span></div>' +
       '<div><span style="color:var(--text-light);font-size:.72rem;text-transform:uppercase;letter-spacing:.05em">Instituição</span><br><strong style="font-size:.82rem">' + (r.instituicao||'—') + '</strong></div>' +
     '</div>' +
     chartHtml +
@@ -821,6 +838,7 @@ function verDetalhe(idx) {
     '<div style="margin-top:16px;display:flex;gap:8px;flex-wrap:wrap;" class="no-print">' +
       '<button class="btn btn-secondary btn-sm" onclick="exportarRespostasPDF(' + idx + ')">📋 Respostas PDF</button>' +
       '<button class="btn btn-secondary btn-sm" onclick="exportarInterpretacaoPDF(' + idx + ')">📄 Interpretação PDF</button>' +
+      '<button class="btn btn-sm" style="background:var(--teal);color:white;border:none;border-radius:8px;padding:6px 14px;font-size:.82rem;cursor:pointer;font-weight:600" onclick="relatorioCompletoSPASProf(' + idx + ')">📊 Relatório Completo PDF</button>' +
     '</div>' +
     (answersArr && answersArr.length ? '<div style="margin-top:18px;"><h4 style=\"color:var(--teal);font-size:.9rem;margin-bottom:8px;\">Respostas Item a Item</h4><div style=\"overflow-x:auto\"><table style=\"width:100%;border-collapse:collapse;font-size:.78rem;\"><thead><tr style=\"background:rgba(38,166,154,0.1)\"><th style=\"padding:6px 8px;text-align:left\">Nº</th><th style=\"padding:6px 8px;text-align:left\">Item</th><th style=\"padding:6px 8px;text-align:center\">Resp.</th></tr></thead><tbody>' + ITENS.map(function(txt,i){var v=answersArr[i]||'—';var bg=parseInt(v)>=3?'rgba(192,57,43,0.08)':parseInt(v)>=2?'rgba(230,126,34,0.06)':'';return '<tr style=\"border-bottom:1px solid #DDE3EA;background:'+bg+'\"><td style=\"padding:5px 8px;color:#6B7A8D\">'+(i+1)+'</td><td style=\"padding:5px 8px\">'+txt+'</td><td style=\"padding:5px 8px;text-align:center;font-weight:600\">'+v+'</td></tr>';}).join('') + '</tbody></table></div></div>' : '') +
     '<div class="modal-footer-note">SPAS Versão Educador/Professor · <strong>Referência normativa: Spence, Rapee, McDonald &amp; Ingram (2001), amostra australiana (N≈1559, idades 3–6 anos).</strong> Não existem normas portuguesas publicadas para esta versão. Os limiares devem ser interpretados com cautela. Limiares: M+1DP (Intermédio) · M+1,5DP (Elevado). Ricardina Correia · Cédula 8233.</div>';
@@ -913,6 +931,9 @@ function exportarInterpretacaoPDF(idx) {
   }).join('');
   var tot=scores['Total']||0,totCl=classificar(tot,TOTAL_NORMA.media,TOTAL_NORMA.dp);
   linhas+='<tr style="background:#D1F0EC"><td><strong>TOTAL</strong></td><td style="text-align:center"><strong>'+tot+'/88</strong></td><td style="text-align:center">'+TOTAL_NORMA.media+'</td><td style="text-align:center"><strong>'+totCl.label+'</strong></td></tr>';
+  var respNomeI=r.nome_informante||r.nome_preenche||'';
+  var respTipoI=r.respondente||'';
+  var respondenteFullI=respNomeI?(respNomeI+(respTipoI?' ('+respTipoI+')':'')):(respTipoI||'—');
   var html='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Interpretação SPAS Prof</title>'+
     '<style>body{font-family:Arial,sans-serif;font-size:11px;padding:24px;color:#2C3E50}'+
     'h2{color:#1A7A6E}table{width:100%;border-collapse:collapse;margin-top:12px}'+
@@ -921,7 +942,7 @@ function exportarInterpretacaoPDF(idx) {
     '<div class="np"><button onclick="window.print()">🖨 Imprimir</button></div>'+
     '<h2>SPAS Educador/Professor · Interpretação Clínica</h2>'+
     '<p>Código: <strong>'+(r.patientCode||'—')+'</strong> · Data: '+(r.date?new Date(r.date).toLocaleDateString('pt-PT'):'—')+
-    ' · Respondente: '+(r.respondente||'—')+' · Ricardina Correia · Cédula 8233</p>'+
+    ' · Respondente: '+respondenteFullI+' · Ricardina Correia · Cédula 8233</p>'+
     '<table><thead><tr><th>Subescala</th><th>Score</th><th>Média PT</th><th>Classificação</th></tr></thead>'+
     '<tbody>'+linhas+'</tbody></table>'+
     '<p style="margin-top:14px;font-size:10px;color:#6B7A8D;font-style:italic">Referência normativa: Spence et al. (2001), amostra australiana (N≈1559, idades 3–6 anos). Sem aferição portuguesa — interpretar com cautela. Limiares: Intermédio ≥ M+1DP; Elevado ≥ M+1,5DP. Interpretação automática — integrar no contexto clínico.</p>'+
@@ -929,6 +950,203 @@ function exportarInterpretacaoPDF(idx) {
   var w=window.open('','_blank');
   if(!w){alert('Pop-up bloqueado.');return;}
   w.document.write(html);w.document.close();
+}
+
+// ─── RELATÓRIO COMPLETO PDF ──────────────────────────────────────
+// Gráfico de barras SVG estático (sem dependências — imprime sempre no PDF).
+// Barra cinzenta = máximo da subescala; barra colorida = score (cor da classificação);
+// traço vermelho tracejado = limiar clínico (M + 1,5 DP) de cada subescala.
+function svgChartSPAS(scores) {
+  var subs = ['Ansiedade Geral','Ansiedade Social','Ansiedade de Separação','Medo de Dano Físico','Perturbação OC'];
+  var labels = ['AG','AS','SEP','MDF','POC'];
+  var W = 560, H = 220, padX = 34, topY = 22, gh = 150;
+  var gw = W - 2*padX;
+  var slot = gw / subs.length;
+  var bw = slot * 0.52;
+  var maxY = 0;
+  subs.forEach(function(s){ if (SUBESCALAS[s] && SUBESCALAS[s].max > maxY) maxY = SUBESCALAS[s].max; });
+  if (!maxY) maxY = 20;
+  var partes = subs.map(function(s, i) {
+    var nm = SUBESCALAS[s]; if (!nm) return '';
+    var v = scores[s]||0;
+    var cl = classificar(v, nm.media, nm.dp);
+    var x = padX + slot*i + (slot-bw)/2;
+    var hMax = (nm.max/maxY)*gh;
+    var hVal = (Math.min(v, nm.max)/maxY)*gh;
+    var yLim = topY + gh - ((Math.min(nm.media + 1.5*nm.dp, nm.max)/maxY)*gh);
+    return '<rect x="'+x.toFixed(1)+'" y="'+(topY+gh-hMax).toFixed(1)+'" width="'+bw.toFixed(1)+'" height="'+hMax.toFixed(1)+'" fill="#DDE3EA" rx="3"/>' +
+      '<rect x="'+x.toFixed(1)+'" y="'+(topY+gh-hVal).toFixed(1)+'" width="'+bw.toFixed(1)+'" height="'+Math.max(hVal,1.5).toFixed(1)+'" fill="'+cl.cor+'" rx="3"/>' +
+      '<line x1="'+(x-4).toFixed(1)+'" y1="'+yLim.toFixed(1)+'" x2="'+(x+bw+4).toFixed(1)+'" y2="'+yLim.toFixed(1)+'" stroke="#C0392B" stroke-width="1.4" stroke-dasharray="4,3"/>' +
+      '<text x="'+(x+bw/2).toFixed(1)+'" y="'+(topY+gh-hVal-5).toFixed(1)+'" text-anchor="middle" font-size="11" font-weight="700" fill="#2C3E50">'+v+'</text>' +
+      '<text x="'+(x+bw/2).toFixed(1)+'" y="'+(topY+gh+16)+'" text-anchor="middle" font-size="10" fill="#6B7A8D">'+labels[i]+'</text>' +
+      '<text x="'+(x+bw/2).toFixed(1)+'" y="'+(topY+gh+29)+'" text-anchor="middle" font-size="8" fill="#AAB4BE">máx '+nm.max+'</text>';
+  }).join('');
+  return '<svg viewBox="0 0 '+W+' '+H+'" width="'+W+'" height="'+H+'" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;display:block;margin:0 auto">' +
+    '<line x1="'+padX+'" y1="'+(topY+gh)+'" x2="'+(W-padX)+'" y2="'+(topY+gh)+'" stroke="#C8D2DC" stroke-width="1"/>' +
+    partes +
+    '<text x="'+(W-padX)+'" y="12" text-anchor="end" font-size="8.5" fill="#C0392B">‑ ‑ limiar clínico (M + 1,5 DP)</text>' +
+    '</svg>';
+}
+
+function relatorioCompletoSPASProf(idx) {
+  var r = window._sessoes_display[idx];
+  if (!r) { alert('Seleccione primeiro uma sessão.'); return; }
+  var scores = r.scores || {};
+  if (!Object.keys(scores).length) {
+    scores = {
+      'Ansiedade Geral':        parseInt(r.AG)||0,
+      'Ansiedade Social':       parseInt(r.AS)||0,
+      'Ansiedade de Separação': parseInt(r.SEP)||0,
+      'Medo de Dano Físico':    parseInt(r.MDF)||0,
+      'Perturbação OC':         parseInt(r.POC)||0,
+      'Total':                  parseInt(r.Total)||0
+    };
+  }
+
+  var nomeCrianca = r.nomeCrianca||r.Nome||'—';
+  var respNome = r.nome_informante||r.nome_preenche||'';
+  var respTipo = r.respondente||'';
+  var respondenteFull = respNome ? (respNome + (respTipo ? ' (' + respTipo + ')' : '')) : (respTipo||'—');
+  var dataFmt = r.date ? new Date(r.date).toLocaleDateString('pt-PT') : (r.Data||'—');
+
+  var cabecalho =
+    '<h1 style="color:#1A7A6E;font-size:16px;margin:0 0 4px">SPAS — Escala de Ansiedade Pré-Escolar · Versão Educador/Professor</h1>' +
+    '<table style="width:100%;border-collapse:collapse;margin-bottom:16px;font-size:11px">' +
+    '<tr>' +
+      '<td style="padding:4px 8px;border:1px solid #B8E4DE;background:#D1F0EC;font-weight:700;color:#1A7A6E;width:120px">Código</td>' +
+      '<td style="padding:4px 8px;border:1px solid #B8E4DE"><strong>' + (r.patientCode||r.Código||'—') + '</strong></td>' +
+      '<td style="padding:4px 8px;border:1px solid #B8E4DE;background:#D1F0EC;font-weight:700;color:#1A7A6E;width:120px">Nome da Criança</td>' +
+      '<td style="padding:4px 8px;border:1px solid #B8E4DE"><strong>' + nomeCrianca + '</strong></td>' +
+    '</tr>' +
+    '<tr>' +
+      '<td style="padding:4px 8px;border:1px solid #B8E4DE;background:#D1F0EC;font-weight:700;color:#1A7A6E">Data</td>' +
+      '<td style="padding:4px 8px;border:1px solid #B8E4DE">' + dataFmt + '</td>' +
+      '<td style="padding:4px 8px;border:1px solid #B8E4DE;background:#D1F0EC;font-weight:700;color:#1A7A6E">Respondente</td>' +
+      '<td style="padding:4px 8px;border:1px solid #B8E4DE">' + respondenteFull + '</td>' +
+    '</tr>' +
+    '<tr>' +
+      '<td style="padding:4px 8px;border:1px solid #B8E4DE;background:#D1F0EC;font-weight:700;color:#1A7A6E">Instituição</td>' +
+      '<td style="padding:4px 8px;border:1px solid #B8E4DE">' + (r.instituicao||'—') + '</td>' +
+      '<td style="padding:4px 8px;border:1px solid #B8E4DE;background:#D1F0EC;font-weight:700;color:#1A7A6E">Clínico</td>' +
+      '<td style="padding:4px 8px;border:1px solid #B8E4DE">Ricardina Correia · Cédula 8233 · Psicologia Pediátrica</td>' +
+    '</tr>' +
+    '</table>';
+
+  function corClass(cl) {
+    return cl.label.indexOf('Elevado')>-1?'#C0392B':cl.label==='Intermédio'?'#E67E22':'#27AE60';
+  }
+  var subEsc = Object.keys(SUBESCALAS);
+  var tabRows = subEsc.map(function(sub) {
+    var s = scores[sub]||0, nm = SUBESCALAS[sub];
+    var cl = classificar(s, nm.media, nm.dp);
+    var pct = Math.min(100, Math.round((s/nm.max)*100));
+    var cor = corClass(cl);
+    return '<tr>' +
+      '<td style="padding:5px 8px;font-weight:600;font-size:11px">' + sub + '</td>' +
+      '<td style="padding:5px 8px;text-align:center;font-weight:700;color:' + cor + '">' + s + '/' + nm.max + '</td>' +
+      '<td style="padding:5px 8px;text-align:center;color:#888;font-size:10px">' + nm.media.toFixed(1) + '</td>' +
+      '<td style="padding:5px 8px"><div style="background:#DDE3EA;border-radius:4px;height:10px;width:120px;display:inline-block;vertical-align:middle">' +
+        '<div style="background:' + cor + ';border-radius:4px;height:10px;width:' + pct + '%"></div></div>' +
+        ' <span style="font-size:10px;color:#888">' + pct + '%</span></td>' +
+      '<td style="padding:5px 8px;font-weight:600;font-size:11px;color:' + cor + '">' + cl.label + '</td>' +
+      '</tr>';
+  }).join('');
+
+  var tot = scores['Total']||0, totCl = classificar(tot, TOTAL_NORMA.media, TOTAL_NORMA.dp);
+  var totPct = Math.min(100, Math.round((tot/TOTAL_NORMA.max)*100));
+  var totCor = corClass(totCl);
+  tabRows += '<tr style="background:#D1F0EC;border-top:2px solid #B8E4DE">' +
+    '<td style="padding:6px 8px;font-weight:700;font-size:12px">TOTAL GERAL</td>' +
+    '<td style="padding:6px 8px;text-align:center;font-weight:700;font-size:13px;color:' + totCor + '">' + tot + '/88</td>' +
+    '<td style="padding:6px 8px;text-align:center;color:#888;font-size:10px">9.8</td>' +
+    '<td style="padding:6px 8px"><div style="background:#DDE3EA;border-radius:4px;height:10px;width:120px;display:inline-block;vertical-align:middle">' +
+      '<div style="background:' + totCor + ';border-radius:4px;height:10px;width:' + totPct + '%"></div></div>' +
+      ' <span style="font-size:10px;color:#888">' + totPct + '%</span></td>' +
+    '<td style="padding:6px 8px;font-weight:700;color:' + totCor + '">' + totCl.label + '</td>' +
+    '</tr>';
+
+  var clinicos = [], intermedios = [];
+  subEsc.forEach(function(sub) {
+    var cl = classificar(scores[sub]||0, SUBESCALAS[sub].media, SUBESCALAS[sub].dp);
+    if (cl.label.indexOf('Elevado')>-1) clinicos.push(sub);
+    else if (cl.label==='Intermédio') intermedios.push(sub);
+  });
+  var parts = ['Pontuação total obtida: <strong>' + tot + ' pontos</strong> (máx. 88; média normativa australiana: 9,8 — Spence et al., 2001).'];
+  parts.push('<span style="color:#E67E22">⚠ Nota: não existem normas portuguesas para esta versão. Os limiares de referência são da amostra australiana original e devem ser interpretados com cautela.</span>');
+  if (totCl.label.indexOf('Elevado')>-1)
+    parts.push('O resultado global situa-se <strong>acima do limiar de preocupação clínica</strong> (≥ M + 1,5 DP).');
+  else if (totCl.label==='Intermédio')
+    parts.push('O resultado global situa-se numa <strong>zona de vigilância</strong> (M + 1 DP a M + 1,5 DP).');
+  else
+    parts.push('O resultado global encontra-se dentro dos <strong>limites normativos</strong>.');
+  if (clinicos.length)  parts.push('Subescalas em zona clínica: <strong>' + clinicos.join(', ') + '</strong>.');
+  if (intermedios.length) parts.push('Subescalas em zona intermédia: <strong>' + intermedios.join(', ') + '</strong>.');
+
+  var answersArr = r.answers || [];
+  if (typeof answersArr === 'string') answersArr = answersArr.split('|');
+  var respostasHtml = '';
+  if (answersArr && answersArr.length) {
+    var subItensMap = {};
+    Object.keys(SUBESCALAS).forEach(function(sub) {
+      SUBESCALAS[sub].itens.forEach(function(n){ subItensMap[n] = sub; });
+    });
+    respostasHtml = '<h2>Respostas por Item</h2>' +
+      '<table><thead><tr>' +
+      '<th style="text-align:center;width:36px">#</th>' +
+      '<th style="width:60px">Subescala</th>' +
+      '<th>Item</th>' +
+      '<th style="text-align:center;width:52px">Resp.<br><span style="font-weight:400;font-size:9px">(0–4)</span></th>' +
+      '</tr></thead><tbody>' +
+      ITENS.map(function(txt, i) {
+        var n = i+1;
+        var v = answersArr[i] !== undefined ? answersArr[i] : '—';
+        var vInt = parseInt(v);
+        var sub = subItensMap[n] ? subItensMap[n].replace('Ansiedade ','A.').replace('Medo de Dano Físico','MDF').replace('Perturbação OC','POC') : '';
+        var bg = vInt>=3?'rgba(192,57,43,0.06)':vInt>=2?'rgba(230,126,34,0.04)':'';
+        var valCor = vInt>=3?'#C0392B':vInt>=2?'#E67E22':'#2C3E50';
+        return '<tr style="background:' + bg + ';border-bottom:1px solid #f0f0f0">' +
+          '<td style="padding:3px 6px;text-align:center;color:#6B7A8D;font-size:10px">' + n + '</td>' +
+          '<td style="padding:3px 6px;font-size:9px;color:#1A7A6E">' + sub + '</td>' +
+          '<td style="padding:3px 6px;font-size:11px">' + txt + '</td>' +
+          '<td style="padding:3px 6px;text-align:center;font-weight:700;color:' + valCor + '">' + v + '</td>' +
+          '</tr>';
+      }).join('') +
+      '</tbody></table>';
+  }
+
+  var html = '<!DOCTYPE html><html><head><meta charset="UTF-8">' +
+    '<title>SPAS Educador/Professor — Relatório ' + (r.patientCode||'') + '</title>' +
+    '<style>' +
+    'body{font-family:Arial,sans-serif;font-size:12px;color:#2C3E50;padding:28px;max-width:900px;margin:0 auto}' +
+    'h2{color:#1A7A6E;font-size:13px;margin:20px 0 8px;border-bottom:2px solid #B8E4DE;padding-bottom:4px}' +
+    'table{width:100%;border-collapse:collapse;margin-bottom:8px}' +
+    'th{background:#D1F0EC;padding:6px 8px;text-align:left;color:#1A7A6E;font-size:11px}' +
+    'td{border-bottom:1px solid #f0f0f0}' +
+    '.no-print{margin-bottom:20px}' +
+    '@media print{.no-print{display:none}body{padding:12px}}' +
+    '</style></head><body>' +
+    '<div class="no-print"><button onclick="window.print()" style="padding:8px 18px;background:#1A7A6E;color:white;border:none;border-radius:6px;cursor:pointer;font-size:13px">🖨 Imprimir / Guardar PDF</button></div>' +
+    cabecalho +
+    '<h2>Perfil Gráfico das Subescalas</h2>' +
+    svgChartSPAS(scores) +
+    '<h2>Resultados por Subescala</h2>' +
+    '<table><thead><tr><th>Subescala</th><th style="text-align:center">Score</th><th style="text-align:center">Média (ref.)</th><th>Perfil visual</th><th>Classificação</th></tr></thead>' +
+    '<tbody>' + tabRows + '</tbody></table>' +
+    '<h2>Interpretação Clínica</h2>' +
+    '<div style="background:#D1F0EC;border-radius:8px;padding:14px;font-size:11px;line-height:1.8">' +
+    parts.join(' ') +
+    '<br><br><em style="color:#666">Esta interpretação é automática e deve ser integrada no contexto clínico completo da avaliação.</em></div>' +
+    '<div style="background:#f4f6f9;border-radius:6px;padding:8px 12px;margin:12px 0;font-size:10px;color:#6B7A8D">' +
+    '<strong style="color:#2C3E50">Limiares:</strong> Normal &lt; M+1DP &nbsp;·&nbsp; Intermédio ≥ M+1DP &nbsp;·&nbsp; Elevado ≥ M+1,5DP &nbsp;|&nbsp; Referência: Spence, Rapee, McDonald &amp; Ingram (2001), amostra australiana (N≈1559, idades 3–6 anos) — sem aferição portuguesa' +
+    '</div>' +
+    respostasHtml +
+    '<p style="margin-top:28px;font-size:10px;color:#bbb;border-top:1px solid #eee;padding-top:10px">' +
+    'SPAS — Escala de Ansiedade Pré-Escolar · Versão Educador/Professor · Ricardina Correia · Cédula 8233 · Psicologia Pediátrica</p>' +
+    '</body></html>';
+
+  var w = window.open('','_blank');
+  if (!w) { alert('Pop-up bloqueado. Permite pop-ups para este site.'); return; }
+  w.document.write(html); w.document.close();
 }
 
 // ─── CSV ─────────────────────────────────────────────────────────

@@ -358,7 +358,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--gray);color:var(--text);m
 
     <div style="margin-top:20px;display:flex;flex-wrap:wrap;gap:8px" class="no-print">
       <button class="btn btn-secondary btn-xs" onclick="exportarRespostasPDF(__sessaoActual)">📋 Respostas PDF</button>
-      <button class="btn btn-secondary btn-xs" onclick="exportarInterpretacaoPDF(__sessaoActual)">📊 Interpretação PDF</button>
+      <button class="btn btn-secondary btn-xs" onclick="exportarInterpretacaoPDF(__sessaoActual)">📊 Relatório Completo PDF</button>
     </div>
   </div>
 </div>
@@ -1102,43 +1102,120 @@ function exportarRespostasPDF(s){
 }
 
 function exportarInterpretacaoPDF(s){
-  if(!s){ alert('Sessão indisponível.'); return; }
-  var jsPDF = window.jspdf.jsPDF;
-  var doc = new jsPDF('p','pt','a4');
-  doc.setFontSize(14); doc.setTextColor(59,90,122);
-  doc.text(VERSION_CODE + ' — Interpretação clínica', 40, 50);
-  doc.setFontSize(9); doc.setTextColor(80,80,80);
-  doc.text('Código: ' + (s.codigo||''), 40, 68);
-  doc.text('Data: ' + (s.data||''), 40, 80);
-  doc.text('Respondente: ' + (s.nomeInformante||'—') + (s.relacao?' ('+s.relacao+')':''), 40, 92);
-  if(s.nomeCrianca) doc.text('Criança: ' + s.nomeCrianca, 40, 104);
-  doc.text('Ricardina Correia · Psicologia Pediátrica', 40, 118);
+  if(!s){ alert('Sess\u00e3o indispon\u00edvel.'); return; }
 
-  var body = SUBSCALES.map(function(sub){
+  // ── 1. Scores por subescala com barras de perfil ──
+  var linhasSub = '';
+  SUBSCALES.forEach(function(sub){
     var v = s.scores[sub.c];
+    if(v === undefined || v === null) return;
     var cls = classificarSubescala(sub.c, v);
-    return [sub.c + ' · ' + sub.n, v!==undefined?v.toFixed(2):'—', cls.cls];
+    var pct = Math.max(0, Math.min(100, Math.round((v-1)/4*100)));
+    linhasSub +=
+      '<tr>' +
+      '<td style="padding:5px 8px;border-bottom:1px solid #eee;"><strong>' + sub.c + '</strong> \u00b7 ' + sub.n + '</td>' +
+      '<td style="padding:5px 8px;border-bottom:1px solid #eee;text-align:center;font-weight:700;color:' + cls.cor + ';">' + v.toFixed(2) + '</td>' +
+      '<td style="padding:5px 8px;border-bottom:1px solid #eee;">' +
+        '<div style="background:#eee;border-radius:3px;height:8px;width:120px;">' +
+          '<div style="background:' + cls.cor + ';border-radius:3px;height:8px;width:' + pct + '%;"></div>' +
+        '</div></td>' +
+      '<td style="padding:5px 8px;border-bottom:1px solid #eee;color:' + cls.cor + ';font-weight:600;">' + cls.cls + '</td>' +
+      '</tr>';
   });
   var total = s.scores.Total;
-  var totalLabel = (SCORING_MODE === 'A') ? 'TOTAL POSITIVO (F1–F4)' : 'TOTAL';
-  body.push([totalLabel, total!==undefined?total.toFixed(2):'—', total!==undefined?classificar(total).cls:'—']);
+  if(total !== undefined && total !== null){
+    var clsT = classificar(total);
+    var pctT = Math.max(0, Math.min(100, Math.round((total-1)/4*100)));
+    var totalLabel = (SCORING_MODE === 'A') ? 'TOTAL POSITIVO (m\u00e9dia F1\u2013F4)' : 'TOTAL';
+    linhasSub +=
+      '<tr style="background:#EBF2F8;">' +
+      '<td style="padding:5px 8px;border-bottom:1px solid #eee;"><strong>' + totalLabel + '</strong></td>' +
+      '<td style="padding:5px 8px;border-bottom:1px solid #eee;text-align:center;font-weight:700;color:' + clsT.cor + ';">' + total.toFixed(2) + '</td>' +
+      '<td style="padding:5px 8px;border-bottom:1px solid #eee;">' +
+        '<div style="background:#e0e0e0;border-radius:3px;height:8px;width:120px;">' +
+          '<div style="background:' + clsT.cor + ';border-radius:3px;height:8px;width:' + pctT + '%;"></div>' +
+        '</div></td>' +
+      '<td style="padding:5px 8px;border-bottom:1px solid #eee;color:' + clsT.cor + ';font-weight:600;">' + clsT.cls + '</td>' +
+      '</tr>';
+  }
 
-  doc.autoTable({
-    startY: 135, head: [['Subescala','Score','Classificação']],
-    body: body, styles:{fontSize:9}, headStyles:{fillColor:[59,90,122]},
-    columnStyles: {0:{cellWidth:300},1:{cellWidth:60,halign:'center'},2:{cellWidth:130}}
+  // ── 2. Significado clínico das subescalas ──
+  var significadoHtml = '';
+  SUBSCALES.forEach(function(sub){
+    significadoHtml += '<p style="margin:4px 0;color:#2C3E50;font-size:11px;"><strong>' + sub.c + '</strong> \u00b7 ' + sub.d + '</p>';
   });
 
-  // Sumário textual
-  var y = doc.lastAutoTable.finalY + 25;
-  doc.setFontSize(11); doc.setTextColor(59,90,122);
-  doc.text('Sumário interpretativo', 40, y);
-  doc.setFontSize(9); doc.setTextColor(40,40,40);
-  var raw = sumarioInterpretativo(s).replace(/<br\s*\/?>/g, '\n').replace(/<\/?strong>/g, '');
-  var lines = doc.splitTextToSize(raw, 510);
-  doc.text(lines, 40, y + 16);
+  // ── 3. Sumário interpretativo (análise dos dados) ──
+  var sumarioHtml = sumarioInterpretativo(s);
 
-  doc.save(SHEET_NAME + '_interpretacao_' + (s.codigo||'sem_codigo') + '.pdf');
+  // ── 4. Respostas item-a-item ──
+  var respostasHtml = '';
+  if(s.respostas && s.respostas.length){
+    ITEMS.forEach(function(it, idx){
+      var r = s.respostas[idx];
+      var respStr = (r===null||r===undefined||r==='') ? '\u2013' : r;
+      var subStr = it.fil ? '\u2014 (filler)' : (it.f + (it.r ? ' (R)' : ''));
+      respostasHtml +=
+        '<tr>' +
+        '<td style="padding:3px 6px;border-bottom:1px solid #f0f0f0;color:#999;text-align:center;">' + it.n + '</td>' +
+        '<td style="padding:3px 6px;border-bottom:1px solid #f0f0f0;font-size:11px;">' + it.t + '</td>' +
+        '<td style="padding:3px 6px;border-bottom:1px solid #f0f0f0;color:#5B7FA6;font-size:11px;text-align:center;">' + subStr + '</td>' +
+        '<td style="padding:3px 6px;border-bottom:1px solid #f0f0f0;text-align:center;font-weight:700;">' + respStr + '</td>' +
+        '</tr>';
+    });
+  }
+
+  var html = '<!DOCTYPE html><html><head><meta charset="UTF-8">' +
+    '<title>Relat\u00f3rio Completo \u2014 ' + (s.codigo||'') + '</title>' +
+    '<style>' +
+    'body{font-family:Arial,sans-serif;font-size:12px;color:#2C3E50;padding:24px;max-width:900px;margin:0 auto;}' +
+    'h1{color:#3B5A7A;font-size:16px;margin-bottom:4px;}' +
+    'h2{color:#3B5A7A;font-size:13px;margin:18px 0 8px;border-bottom:2px solid #D6E4F0;padding-bottom:4px;}' +
+    'p.meta{color:#6B7A8D;margin-bottom:16px;font-size:11px;}' +
+    'table{width:100%;border-collapse:collapse;margin-bottom:16px;}' +
+    'th{background:#D6E4F0;padding:6px 8px;text-align:left;color:#3B5A7A;font-size:11px;}' +
+    '.no-print{margin-bottom:16px;}' +
+    '@media print{.no-print{display:none;} body{padding:12px;}}' +
+    '</style></head><body>' +
+    '<div class="no-print"><button onclick="window.print()" style="padding:6px 14px;cursor:pointer;">&#128424; Imprimir / Guardar PDF</button></div>' +
+    '<h1>' + VERSION_CODE + ' \u2014 Relat\u00f3rio de Avalia\u00e7\u00e3o</h1>' +
+    '<p class="meta">' +
+      'C\u00f3digo: <strong>' + (s.codigo||'') + '</strong>' +
+      (s.nomeCrianca ? ' &nbsp;|&nbsp; Crian\u00e7a: <strong>' + s.nomeCrianca + '</strong>' : '') +
+      ' &nbsp;|&nbsp; Respondente: <strong>' + (s.nomeInformante||'\u2014') + '</strong>' + (s.relacao ? ' (' + s.relacao + ')' : '') +
+      (s.idade ? ' &nbsp;|&nbsp; Idade: ' + s.idade : '') +
+      (s.sexo ? ' &nbsp;|&nbsp; Sexo: ' + s.sexo : '') +
+      ' &nbsp;|&nbsp; Data: ' + (s.data||'\u2014') +
+      ' &nbsp;|&nbsp; Ricardina Correia \u00b7 C\u00e9dula 8233 \u00b7 Psicologia Pedi\u00e1trica' +
+    '</p>';
+
+  if(linhasSub){
+    html += '<h2>Scores por Subescala</h2>' +
+      '<table><thead><tr>' +
+      '<th>Subescala</th><th style="text-align:center;">Score (1\u20135)</th><th>Perfil</th><th>Classifica\u00e7\u00e3o</th>' +
+      '</tr></thead><tbody>' + linhasSub + '</tbody></table>';
+  }
+
+  html += '<h2>Significado cl\u00ednico das subescalas</h2>' + significadoHtml;
+
+  html += '<h2>Sum\u00e1rio interpretativo</h2>' +
+    '<div style="border-left:3px solid #3B5A7A;padding:8px 12px;font-size:11px;line-height:1.6;color:#2C3E50;">' + sumarioHtml + '</div>';
+
+  if(respostasHtml){
+    html += '<h2>Respostas por Item</h2>' +
+      '<table><thead><tr>' +
+      '<th style="text-align:center;">#</th><th>Item</th><th style="text-align:center;">Subescala</th><th style="text-align:center;">Resposta</th>' +
+      '</tr></thead><tbody>' + respostasHtml + '</tbody></table>';
+  }
+
+  html += '<p style="margin-top:24px;font-style:italic;color:#999;">' +
+    'Interpreta\u00e7\u00e3o autom\u00e1tica \u2014 integrar sempre no contexto cl\u00ednico completo da avalia\u00e7\u00e3o.' +
+    '</p></body></html>';
+
+  var w = window.open('', '_blank');
+  if(!w){ alert('Pop-up bloqueado. Permite pop-ups para este site.'); return; }
+  w.document.write(html);
+  w.document.close();
 }
 
 /* ===========================================================

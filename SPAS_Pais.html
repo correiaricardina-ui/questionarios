@@ -423,8 +423,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
       <div class="thanks-icon">✅</div>
       <div class="thanks-title">Obrigado pelo preenchimento!</div>
       <div class="thanks-text">
-        As suas respostas foram registadas com sucesso.<br>
-        A Dra. Ricardina Correia analisará os resultados e entrará em contacto brevemente.
+        As suas respostas foram registadas com sucesso.
       </div>
       <div style="margin-top:28px;">
         <button class="btn btn-secondary" onclick="showPage('page-home')">← Página inicial</button>
@@ -784,6 +783,7 @@ function carregarDados() {
     .then(function(r){ return r.json(); })
     .then(function(data) {
       var rows = Array.isArray(data) ? data : (data.rows || data.data || []);
+      rows = rows.map(normalizarRowSheet);
       // Merge com sessões locais
       if (window._clinico_sessions) {
         window._clinico_sessions.forEach(function(s){ rows.unshift(s); });
@@ -794,6 +794,19 @@ function carregarDados() {
       // Só local
       renderTabela(window._clinico_sessions || []);
     });
+}
+
+// Normaliza linhas vindas do Sheet (cabeçalhos PT) para as chaves locais do painel.
+// Sem isto, sessões sincronizadas ficam sem nome do respondente nem respostas item a item.
+function normalizarRowSheet(r) {
+  if (!r || typeof r !== 'object') return r;
+  if (r.patientCode === undefined && r['Código'] !== undefined) r.patientCode = r['Código'];
+  if (r.nomeCrianca === undefined && r['NomeCriança'] !== undefined) r.nomeCrianca = r['NomeCriança'];
+  if (r.nome_informante === undefined && r['NomeInformante'] !== undefined) r.nome_informante = r['NomeInformante'];
+  if (r.respondente === undefined && r['Relação'] !== undefined && String(r['Relação']).trim() !== '') r.respondente = r['Relação'];
+  if (r.answers === undefined && r['Respostas'] !== undefined && r['Respostas'] !== null && String(r['Respostas']).trim() !== '') r.answers = String(r['Respostas']);
+  if (r.date === undefined && r['Data'] != null && /^\d{4}-\d{2}-\d{2}T/.test(String(r['Data']))) r.date = String(r['Data']);
+  return r;
 }
 
 function renderTabela(rows) {
@@ -810,11 +823,14 @@ function renderTabela(rows) {
     var sc = r.scores ? r.scores['Total'] : (parseInt(r.Total)||0);
     var cl = classificar(sc, TOTAL_NORMA.media, TOTAL_NORMA.dp);
     var dt = r.date ? new Date(r.date).toLocaleDateString('pt-PT') : (r.Data||'—');
+    var respNome = r.nome_informante||r.nome_preenche||'';
+    var respTipo = r.respondente||r.Respondente||'';
+    var respCell = respNome ? respNome + (respTipo ? ' · ' + respTipo : '') : (respTipo||'—');
     html += '<tr>' +
       '<td>' + dt + '</td>' +
       '<td><strong>' + (r.patientCode||r.Código||'—') + '</strong></td>' +
       '<td>' + (r.nomeCrianca||r.Nome||'—') + '</td>' +
-      '<td>' + (r.respondente||r.Respondente||'—') + '</td>' +
+      '<td>' + respCell + '</td>' +
       '<td><strong>' + sc + '</strong>/112</td>' +
       '<td><span class="badge ' + cl.cls + '">' + cl.label + '</span></td>' +
       '<td class="no-print"><button class="btn btn-secondary btn-sm" onclick="verDetalhe(' + idx + ')">Ver →</button></td>' +
@@ -926,6 +942,7 @@ function verDetalhe(idx) {
     '<div class="profile-text">' + parts.join(' ') +
       '<br><em style="font-size:.78rem;color:var(--text-light)">Esta interpretação é automática e deve ser integrada no contexto clínico completo.</em></div>' +
     '<div style="margin-top:16px;display:flex;gap:8px;flex-wrap:wrap;" class="no-print">' +
+      '<button class="btn btn-secondary btn-sm" onclick="exportarRespostasPDF(' + idx + ')">📋 Respostas PDF</button>' +
       '<button class="btn btn-sm" style="background:var(--blue);color:white;border:none;border-radius:8px;padding:6px 14px;font-size:.82rem;cursor:pointer;font-weight:600" onclick="relatórioCompletoSPAS(sessaoActual)">📊 Relatório Completo PDF</button>' +
     '</div>' +
     (answersArr && answersArr.length ? '<div style="margin-top:18px;"><h4 style=\"color:var(--blue);font-size:.9rem;margin-bottom:8px;\">Respostas Item a Item</h4><div style=\"overflow-x:auto\"><table style=\"width:100%;border-collapse:collapse;font-size:.78rem;\"><thead><tr style=\"background:var(--blue-xpale)\"><th style=\"padding:6px 8px;text-align:left\">Nº</th><th style=\"padding:6px 8px;text-align:left\">Item</th><th style=\"padding:6px 8px;text-align:center\">Resp.</th></tr></thead><tbody>' + ITENS.map(function(txt,i){var v=answersArr[i]||'—';var bg=parseInt(v)>=3?'rgba(192,57,43,0.08)':parseInt(v)>=2?'rgba(230,126,34,0.06)':'';return '<tr style=\"border-bottom:1px solid var(--border);background:'+bg+'\"><td style=\"padding:5px 8px;color:var(--text-light)\">'+  (i+1)+'</td><td style=\"padding:5px 8px\">'+txt+'</td><td style=\"padding:5px 8px;text-align:center;font-weight:600\">'+v+'</td></tr>';}).join('') + '</tbody></table></div></div>' : '') +
@@ -962,6 +979,41 @@ function verDetalhe(idx) {
       }
     });
   }, 100);
+}
+
+// Gráfico de barras SVG estático (sem dependências — imprime sempre no PDF).
+// Barra cinzenta = máximo da subescala; barra colorida = score (cor da classificação);
+// traço vermelho tracejado = limiar clínico (M + 1,5 DP) de cada subescala.
+function svgChartSPAS(scores) {
+  var subs = ['Ansiedade Geral','Ansiedade Social','Ansiedade de Separação','Medo de Dano Físico','Perturbação OC'];
+  var labels = ['AG','AS','SEP','MDF','POC'];
+  var W = 560, H = 220, padX = 34, topY = 22, gh = 150;
+  var gw = W - 2*padX;
+  var slot = gw / subs.length;
+  var bw = slot * 0.52;
+  var maxY = 0;
+  subs.forEach(function(s){ if (SUBESCALAS[s] && SUBESCALAS[s].max > maxY) maxY = SUBESCALAS[s].max; });
+  if (!maxY) maxY = 20;
+  var partes = subs.map(function(s, i) {
+    var nm = SUBESCALAS[s]; if (!nm) return '';
+    var v = scores[s]||0;
+    var cl = classificar(v, nm.media, nm.dp);
+    var x = padX + slot*i + (slot-bw)/2;
+    var hMax = (nm.max/maxY)*gh;
+    var hVal = (Math.min(v, nm.max)/maxY)*gh;
+    var yLim = topY + gh - ((Math.min(nm.media + 1.5*nm.dp, nm.max)/maxY)*gh);
+    return '<rect x="'+x.toFixed(1)+'" y="'+(topY+gh-hMax).toFixed(1)+'" width="'+bw.toFixed(1)+'" height="'+hMax.toFixed(1)+'" fill="#DDE3EA" rx="3"/>' +
+      '<rect x="'+x.toFixed(1)+'" y="'+(topY+gh-hVal).toFixed(1)+'" width="'+bw.toFixed(1)+'" height="'+Math.max(hVal,1.5).toFixed(1)+'" fill="'+cl.cor+'" rx="3"/>' +
+      '<line x1="'+(x-4).toFixed(1)+'" y1="'+yLim.toFixed(1)+'" x2="'+(x+bw+4).toFixed(1)+'" y2="'+yLim.toFixed(1)+'" stroke="#C0392B" stroke-width="1.4" stroke-dasharray="4,3"/>' +
+      '<text x="'+(x+bw/2).toFixed(1)+'" y="'+(topY+gh-hVal-5).toFixed(1)+'" text-anchor="middle" font-size="11" font-weight="700" fill="#2C3E50">'+v+'</text>' +
+      '<text x="'+(x+bw/2).toFixed(1)+'" y="'+(topY+gh+16)+'" text-anchor="middle" font-size="10" fill="#6B7A8D">'+labels[i]+'</text>' +
+      '<text x="'+(x+bw/2).toFixed(1)+'" y="'+(topY+gh+29)+'" text-anchor="middle" font-size="8" fill="#AAB4BE">máx '+nm.max+'</text>';
+  }).join('');
+  return '<svg viewBox="0 0 '+W+' '+H+'" width="'+W+'" height="'+H+'" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;display:block;margin:0 auto">' +
+    '<line x1="'+padX+'" y1="'+(topY+gh)+'" x2="'+(W-padX)+'" y2="'+(topY+gh)+'" stroke="#C8D2DC" stroke-width="1"/>' +
+    partes +
+    '<text x="'+(W-padX)+'" y="12" text-anchor="end" font-size="8.5" fill="#C0392B">‑ ‑ limiar clínico (M + 1,5 DP)</text>' +
+    '</svg>';
 }
 
 function relatórioCompletoSPAS(r) {
@@ -1104,6 +1156,8 @@ function relatórioCompletoSPAS(r) {
     '</style></head><body>' +
     '<div class="no-print"><button onclick="window.print()" style="padding:8px 18px;background:#3B5A7A;color:white;border:none;border-radius:6px;cursor:pointer;font-size:13px">🖨 Imprimir / Guardar PDF</button></div>' +
     cabecalho +
+    '<h2>Perfil Gráfico das Subescalas</h2>' +
+    svgChartSPAS(scores) +
     '<h2>Resultados por Subescala</h2>' +
     '<table><thead><tr><th>Subescala</th><th style="text-align:center">Score</th><th style="text-align:center">Média PT</th><th>Perfil visual</th><th>Classificação</th></tr></thead>' +
     '<tbody>' + tabRows + '</tbody></table>' +

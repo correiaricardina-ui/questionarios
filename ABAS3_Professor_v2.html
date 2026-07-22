@@ -579,15 +579,15 @@ function submeter(){
     cag:res.cag, cc:res.cc, sc:res.sc, pc:res.pc
   }, patientInfo);
   DOMAINS.forEach(function(d){
-    payload[d.code+"_SB"]=res.sb[d.code]||0;
-    payload[d.code+"_SS"]=res.ss[d.code]||0;
+    payload[d.code+"_SB"]=(res.sb&&res.sb[d.code])||0;
+    payload[d.code+"_SS"]=(res.ss&&res.ss[d.code])||"";
   });
   try{
     if(location.protocol==="file:"||!navigator.onLine){
       var bom="\uFEFF";
       var linha=[now.toLocaleDateString("pt-PT"),patientInfo.code,
-        res.cag,scParaClassif(res.cag).replace(/&[^;]+;/g,""),
-        res.cc,res.sc,res.pc].map(function(v){return '"'+(v+"").replace(/"/g,'"')+'"';}).join(";");
+        res.cag||"\u2014",res.cag?scParaClassif(res.cag).replace(/&[^;]+;/g,""):"\u2014",
+        res.cc||"\u2014",res.sc||"\u2014",res.pc||"\u2014"].map(function(v){return '"'+(v+"").replace(/"/g,'"')+'"';}).join(";");
       var csv=bom+"Data;C\u00f3digo;CAG;Classif.;CC;SC;PC\r\n"+linha;
       var blob=new Blob([csv],{type:"text/csv;charset=utf-8;"});
       var a=document.createElement("a"); a.href=URL.createObjectURL(blob);
@@ -631,7 +631,7 @@ function carregarDados(){
       renderTabela(); msg.textContent="Actualizado: "+new Date().toLocaleTimeString("pt-PT");
     }).catch(function(){
       sessoes=window._clinico_sessions?window._clinico_sessions.slice():[];
-      renderTabela(); msg.textContent="Sem liga\u00e7\u00e3o &mdash; dados locais.";
+      renderTabela(); msg.textContent="Sem liga\u00e7\u00e3o \u2014 dados locais.";
     });
 }
 
@@ -653,7 +653,7 @@ function parseSessao(row){
     answers:row["Respostas"]||row.answers||"",sb:{},ss:{},cc:0,sc:0,pc:0,cag:0};
   if(s.answers){
     var r=calcularResultados(s.answers.split("|"));
-    s.sb=r.sb;s.ss=r.ss;s.cc=r.cc;s.sc=r.sc;s.pc=r.pc;s.cag=r.cag;
+    s.sb=r.sb||{};s.ss=r.ss||{};s.cc=r.cc||0;s.sc=r.sc||0;s.pc=r.pc||0;s.cag=r.cag||0;
   }
   DOMAINS.forEach(function(d){
     if(row[d.code+"_SS"]) s.ss[d.code]=parseInt(row[d.code+"_SS"])||0;
@@ -1117,7 +1117,7 @@ function exportarInterpretacaoPDF(sessao) {
     var target=document.getElementById('modal-content')||document.getElementById('detalhe-content')||document.getElementById('modal-body');
     if(target){ target.innerHTML=html; }
     var mroot=document.getElementById('modal-overlay')||document.getElementById('modal-detalhe')||document.getElementById('modal');
-    if(mroot){ mroot.style.display='flex'; mroot.classList.add('active'); }
+    if(mroot){ mroot.classList.add('open'); }
   };
 
   // aplicar a regra por idade quando arranca um questionário novo

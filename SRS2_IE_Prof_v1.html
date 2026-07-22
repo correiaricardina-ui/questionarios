@@ -1370,6 +1370,16 @@ function carregarDados(){
     .then(function(data){
       var rows=(data&&data.rows)||data.data||data||[];
       if(!Array.isArray(rows)) rows=[];
+      // Normalizar chaves vindas da folha (cabeçalhos da aba) para as chaves internas do painel
+      rows.forEach(function(r){
+        if(r.patientCode==null||r.patientCode===''){ if(r['C\u00f3digo']!=null&&r['C\u00f3digo']!=='') r.patientCode=r['C\u00f3digo']; else if(r.Codigo!=null&&r.Codigo!=='') r.patientCode=r.Codigo; }
+        if((r.respondente==null||r.respondente==='')&&r.Respondente!=null) r.respondente=r.Respondente;
+        if((r.sexo==null||r.sexo==='')&&r.Sexo!=null) r.sexo=r.Sexo;
+        if((r.idade==null||r.idade==='')&&r.Idade!=null) r.idade=r.Idade;
+        if((r.timestamp==null||r.timestamp==='')&&r.Data!=null&&r.Data!=='') r.timestamp=r.Data;
+        if((r.classif_total==null||r.classif_total==='')&&r['Classifica\u00e7\u00e3o']!=null) r.classif_total=r['Classifica\u00e7\u00e3o'];
+        if((r.respostas==null||r.respostas==='')&&r.Respostas!=null) r.respostas=r.Respostas;
+      });
       // Fundir com sessões locais
       var local=(window._clinico_sessions&&window._clinico_sessions[SYNC_KEY])||[];
       local.forEach(function(l){

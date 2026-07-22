@@ -336,6 +336,7 @@ tr:last-child td{border-bottom:none}
       <h2 style="font-family:'DM Serif Display',serif;color:var(--blue)">Painel Clínico — MCP Breve</h2>
       <div style="display:flex;gap:8px;flex-wrap:wrap" class="no-print">
         <button class="btn btn-secondary btn-small" onclick="showPage('page-home')">← Início</button>
+        <button id="btn-sync" class="btn btn-secondary btn-small" onclick="sincronizarComSheet()">↺ Sincronizar</button>
         <button class="btn btn-primary btn-small" onclick="compararPerfis()">⚖ Comparar Perfis</button>
         <button class="btn btn-secondary btn-small" onclick="exportarTudo()">↓ Exportar JSON</button>
         <label class="btn btn-secondary btn-small" style="cursor:pointer">↑ Importar JSON<input type="file" accept=".json" style="display:none" onchange="importarJSON(this)"></label>
@@ -628,11 +629,149 @@ function enviarParaSheet(s){
   }catch(e){}
 }
 
+// ── Sincronização Sheet → painel clínico (Skill §14 / §24) ──────────────
+// GET ?instrumento=MCP_Breve ao Apps Script; reconstrói a sessão aninhada
+// (id, s1..s4) a partir da linha do Sheet e funde com o localStorage.
+// Dedup por chave de 4 elementos: código + dia + relação + nome informante.
+
+function _mcpNormDia(v){
+  if(v==null||v==='')return '';
+  var s=String(v).trim();
+  var m=s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+  if(m)return m[3]+'-'+('0'+m[2]).slice(-2)+'-'+('0'+m[1]).slice(-2);
+  var d=new Date(s);
+  if(!isNaN(d.getTime()))return d.toISOString().slice(0,10);
+  return s;
+}
+
+function _mcpRelacaoValor(v){
+  if(!v)return '';
+  var s=String(v).trim().toLowerCase();
+  var m={'mãe':'mae','mae':'mae','pai':'pai','madrasta':'madrasta','padrasto':'padrasto','tutor/a':'tutor','tutor':'tutor','tutora':'tutor','tutor(a)':'tutor','outro':'outro','outra':'outro'};
+  return m[s]||s;
+}
+
+function _mcpChave(s){
+  return ((s.id&&s.id.patientCode||'')+'').trim().toUpperCase()
+    +'|'+_mcpNormDia(s.id&&s.id.data)
+    +'|'+_mcpRelacaoValor(s.id&&s.id.relacao)
+    +'|'+((s.id&&s.id.nomeInformante||'')+'').trim().toLowerCase();
+}
+
+function _mcpCol(row,nomes){
+  for(var i=0;i<nomes.length;i++){
+    var v=row[nomes[i]];
+    if(v!=null&&v!=='')return v;
+  }
+  return '';
+}
+
+function _mcpParseJSON(v){
+  if(v&&typeof v==='object')return v;
+  if(typeof v==='string'&&v.charAt(0)==='{'){
+    try{return JSON.parse(v);}catch(e){}
+  }
+  return null;
+}
+
+function _mcpSessaoDefaults(s){
+  s.id=s.id||{};
+  s.s1=s.s1||{};if(!Array.isArray(s.s1.coabitantes))s.s1.coabitantes=[];if(s.s1.inicio==null)s.s1.inicio='';
+  s.s2=s.s2||{};
+  s.s3=s.s3||{};if(!s.s3.itens||typeof s.s3.itens!=='object')s.s3.itens={};
+  s.s4=s.s4||{};if(!s.s4.itens||typeof s.s4.itens!=='object')s.s4.itens={};
+  return s;
+}
+
+function _mcpExtrairItens(fonte,prefixo,alvo){
+  if(!fonte||typeof fonte!=='object')return;
+  Object.keys(fonte).forEach(function(k){
+    if(k.indexOf(prefixo+'_')===0&&alvo[k]==null){
+      var v=parseInt(fonte[k],10);
+      if(!isNaN(v))alvo[k]=v;
+    }
+  });
+}
+
+function _mcpRowParaSessao(row){
+  if(!row||typeof row!=='object')return null;
+  // 1) Coluna com o JSON completo da sessão (formato nativo id/s1..s4)
+  var jsonCols=['DadosCompletos','Dados_Completos','DadosCompletas','Sessao','Sessão','Dados','JSON','Respostas','respostas'];
+  var parsed=null;
+  for(var i=0;i<jsonCols.length;i++){
+    var p=_mcpParseJSON(row[jsonCols[i]]);
+    if(p){parsed=p;if(p.id)break;}
+  }
+  if(parsed&&parsed.id){
+    var s=_mcpSessaoDefaults(JSON.parse(JSON.stringify(parsed)));
+    if(!s.id.data)s.id.data=_mcpNormDia(_mcpCol(row,['Data','data']))||'';
+    return s;
+  }
+  // 2) Fallback — reconstrução a partir de colunas planas
+  var s2={
+    id:{
+      patientCode:(_mcpCol(row,['Código','Codigo','CódigoPaciente','patientCode','codigo'])+'').trim(),
+      nomeCrianca:_mcpCol(row,['NomeCriança','NomeCrianca','Criança','Crianca','nomeCrianca']),
+      nomeInformante:_mcpCol(row,['NomeInformante','Nome_Informante','Informante_Nome','nomeInformante']),
+      relacao:_mcpRelacaoValor(_mcpCol(row,['Relação','Relacao','Informante','relacao'])),
+      configTipo:_mcpCol(row,['Configuração','Configuracao','ConfigTipo','configTipo']),
+      tempoCoabitacao:_mcpCol(row,['TempoCoabitação','TempoCoabitacao','tempoCoabitacao']),
+      data:_mcpNormDia(_mcpCol(row,['Data','data']))
+    },
+    s1:{coabitantes:[],inicio:_mcpCol(row,['Início','Inicio','ConfigInicio','inicio'])},
+    s2:{},s3:{itens:{}},s4:{itens:{}}
+  };
+  var coab=_mcpParseJSON(_mcpCol(row,['Coabitantes','coabitantes']));
+  if(coab&&Array.isArray(coab))s2.s1.coabitantes=coab;
+  else if(coab&&Array.isArray(coab.coabitantes))s2.s1.coabitantes=coab.coabitantes;
+  // Itens s3/s4: procurar em qualquer JSON parseado e nas próprias colunas da linha
+  [parsed,parsed&&parsed.s3&&parsed.s3.itens,parsed&&parsed.s4&&parsed.s4.itens,row].forEach(function(f){
+    _mcpExtrairItens(f,'s3',s2.s3.itens);
+    _mcpExtrairItens(f,'s4',s2.s4.itens);
+  });
+  if(parsed&&parsed.s2&&typeof parsed.s2==='object')s2.s2=parsed.s2;
+  if(parsed&&parsed.s1&&Array.isArray(parsed.s1.coabitantes)){s2.s1=parsed.s1;}
+  return _mcpSessaoDefaults(s2);
+}
+
+function sincronizarComSheet(silencioso){
+  var btn=document.getElementById('btn-sync');
+  function restaurar(){if(btn){btn.disabled=false;btn.innerHTML='↺ Sincronizar';}}
+  if(btn){btn.disabled=true;btn.innerHTML='↺ A sincronizar…';}
+  fetch(SCRIPT_URL+'?instrumento='+encodeURIComponent(SHEET_NAME)+'&t='+Date.now())
+    .then(function(r){return r.json();})
+    .then(function(data){
+      var rows=Array.isArray(data)?data:((data&&Array.isArray(data.rows))?data.rows:((data&&Array.isArray(data[SHEET_NAME]))?data[SHEET_NAME]:[]));
+      loadSessoes();
+      var keys={};
+      sessoes.forEach(function(s){keys[_mcpChave(s)]=1;});
+      var added=0;
+      rows.forEach(function(row){
+        var s=_mcpRowParaSessao(row);
+        if(!s||!s.id||!s.id.patientCode)return;
+        var k=_mcpChave(s);
+        if(keys[k])return;
+        keys[k]=1;sessoes.push(s);added++;
+      });
+      if(added>0)saveSessoes();
+      renderSessoes();
+      restaurar();
+      if(!silencioso)alert(added>0?(added+' nova(s) sessão(ões) sincronizada(s) do Sheet.'):'Sincronizado — sem sessões novas no Sheet.');
+    })
+    .catch(function(e){
+      restaurar();
+      renderSessoes();
+      if(!silencioso)alert('Não foi possível sincronizar com o Sheet: '+e.message);
+    });
+}
+// ────────────────────────────────────────────────────────────────────────
+
 function tentarLogin(){
   var pw=document.getElementById('login-pw').value;
   if(pw===PASSWORD){
     document.getElementById('login-error').style.display='none';
     showPage('page-clinico');
+    sincronizarComSheet(true);
   } else {
     document.getElementById('login-error').style.display='block';
   }
@@ -919,6 +1058,17 @@ function imprimirRelatorio(){
 
 loadSessoes();
 showPage('page-home');
+
+// Auto-login clínico via URL (?clinico=CNS2024) + sincronização automática
+(function(){
+  try{
+    var _params=new URLSearchParams(window.location.search);
+    if(_params.get('clinico')===PASSWORD){
+      showPage('page-clinico');
+      sincronizarComSheet(true);
+    }
+  }catch(e){}
+})();
 </script>
 </body>
 </html>
