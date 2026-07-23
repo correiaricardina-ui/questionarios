@@ -481,80 +481,100 @@ const SCALES = {
   IV:   { name:'Problemas Sociais',             items:[11,12,25,27,34,36,38,48,62,64,79] },
   V:    { name:'Problemas de Pensamento',       items:[9,18,40,46,58,59,60,66,70,76,83,84,85,92,100] },
   VI:   { name:'Problemas de Atenção',          items:[1,4,8,10,13,17,41,61,78,80] },
-  VII:  { name:'Comportamento Delinquente',     items:[2,26,28,39,43,63,67,72,73,81,82,90,96,99,101,105,106] },
+  VII:  { name:'Comportamento de Quebra de Regras', items:[2,26,28,39,43,63,67,72,73,81,82,90,96,99,101,105,106] },
   VIII: { name:'Comportamento Agressivo',       items:[3,16,19,20,21,22,23,37,57,68,86,87,88,89,94,95,97,104] }
 };
 
 // T-scores — Raparigas 6-11
 const TF611 = {
-  I: [50, 50, 50, 50, 50, 52, 55, 58, 61, 64, 68, 71, 74, 77, 80, 83, 86, 89, 92, 95, 98, 100, 100, 100, 100, 100, 100],
-  II: [50, 50, 52, 58, 63, 69, 75, 80, 86, 91, 97, 100, 100, 100, 100, 100, 100],
-  III: [50, 50, 50, 54, 59, 64, 69, 74, 78, 83, 88, 93, 97, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100],
-  IV: [50, 50, 50, 54, 59, 63, 68, 72, 77, 81, 86, 90, 95, 99, 100, 100, 100, 100, 100],
-  V: [50, 50, 52, 57, 62, 67, 72, 77, 82, 86, 91, 96, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100],
-  VI: [50, 50, 50, 50, 53, 56, 59, 62, 65, 68, 71, 74, 77, 80, 83, 86, 90, 93, 96, 99, 100],
-  VII: [50, 50, 55, 61, 67, 73, 80, 86, 92, 98, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100],
-  VIII: [50, 50, 50, 50, 50, 52, 55, 57, 59, 62, 64, 67, 69, 71, 74, 76, 78, 81, 83, 86, 88, 90, 93, 95, 98, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100],
-  INT: [50, 50, 50, 50, 50, 50, 50, 50, 50, 52, 53, 55, 57, 59, 60, 62, 64, 65, 67, 69, 71, 72, 74, 76, 78, 79, 81, 83, 84, 86, 88, 90, 91, 93, 95, 96, 98, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100],
-  EXT: [50, 50, 50, 50, 50, 50, 51, 53, 55, 57, 59, 61, 62, 64, 66, 68, 70, 72, 73, 75, 77, 79, 81, 83, 84, 86, 88, 90, 92, 94, 95, 97, 99, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100],
-  TOT: [50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 51, 51, 52, 53, 53, 54, 54, 55, 55, 56, 57, 57, 58, 58, 59, 59, 60, 61, 61, 62, 62, 63, 64, 64, 65, 65, 66, 66, 67, 68, 68, 69, 69, 70, 71, 71, 72, 72, 73, 73, 74, 75, 75, 76, 76, 77, 77, 78, 79, 79, 80, 80, 81, 82, 82, 83, 83, 84, 84, 85, 86, 86, 87, 87, 88, 89, 89, 90, 90, 91, 91, 92, 93, 93, 94, 94, 95, 95, 96, 97, 97, 98, 98, 99, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100],
+  I:[50,50,52,54,56,58,60,62,64,66,68,70,72,74,76,78,80,82,84,86,88,90,92,94,96,98,100],
+  II:[50,52,56,60,64,66,68,70,73,77,80,83,87,90,93,97,100],
+  III:[50,51,56,60,64,66,68,70,72,74,76,78,80,82,84,86,88,90,92,94,96,98,100],
+  IV:[50,51,52,54,57,59,62,64,67,70,72,75,77,79,82,84,86,88,91,93,95,98,100],
+  V:[50,51,54,58,62,66,68,70,71,73,74,75,77,78,79,80,82,83,84,86,87,88,90,91,92,93,95,96,97,99,100],
+  VI:[50,50,52,53,55,57,59,62,64,66,68,70,73,77,80,83,87,90,93,97,100],
+  VII:[50,52,55,58,63,66,68,70,71,72,73,74,76,77,78,79,80,81,82,83,84,86,87,88,89,90,91,92,93,94,96,97,98,99,100],
+  VIII:[50,50,50,51,52,54,56,57,59,60,61,63,65,66,68,69,70,72,73,75,76,78,79,81,82,84,85,87,88,90,91,93,94,96,97,99,100],
+  INT:[29,31,38,44,51,52,53,55,57,58,59,60,61,62,64,65,66,67,68,69,70,71,72,73,73,74,75,76,77,78,79,80,80,81,82,83,84,85,86,86,87,88,89,89,90,90,91,91,92,92,93,94,94,94,95,96,96,96,97,98,98,98,99,100,100],
+  EXT:[29,46,47,49,50,51,53,54,56,57,58,59,60,61,62,63,64,66,67,68,70,71,71,72,72,73,73,74,74,75,75,76,76,77,77,78,78,79,79,80,81,81,82,82,83,83,84,84,85,85,86,86,87,88,88,88,89,90,91,91,92,93,94,94,95,96,97,98,98,99,100],
+  TOT:[null,null,33,34,36,38,39,40,41,42,43,44,45,46,47,48,48,49,50,50,50,51,51,52,53,53,54,54,54,55,56,56,57,57,58,59,59,59,60,60,60,61,62,62,62,63,63,63,63,64,64,64,65,65,66,67,67,67,68,68,69,69,69,70,70,70,70,70,71,71,71,71,71,71,72,72,72,72,72,72,73,73,73,73,73,73,74,74,74,74,74,74,75,75,75,75,75,75,76,76,76,76,76,77,77,77,77,77,77,78,78,78,78,78,78,79,79,79,79,79,79,80,80,80,80,80,80,81,81,81,81,81,81,82,82,82,82,82,82,83,83,83,83,83,83,83,83,84,84,84,85,85,85,85,85,85,86,86,86,86,86,86,87,87,87,87,87,87,88,88,88,88,88,88,89,89,89,89,89,90,90,90,90,90,90,91,91,91,91,91,91,92,92,92,92,92,92,93,93,93,93,93,93,94,94,94,94,94,94,95,95,95,95,95,96,96,96,96,96,96,97,97,97,97,97,97,98,98,98,98,98,98,99,99,99,99,99,99,100,100,100],
 };
 // T-scores — Raparigas 12-18
 const TF1218 = {
-  I: [50, 50, 50, 50, 50, 52, 55, 58, 61, 64, 68, 71, 74, 76, 79, 82, 85, 88, 91, 94, 97, 99, 100, 100, 100, 100, 100],
-  II: [50, 50, 50, 52, 56, 60, 64, 69, 74, 78, 82, 86, 90, 95, 98, 100, 100],
-  III: [50, 50, 50, 51, 55, 60, 64, 68, 73, 76, 80, 85, 89, 93, 97, 99, 100, 100, 100, 100, 100, 100, 100],
-  IV: [50, 50, 52, 56, 61, 66, 71, 75, 80, 85, 90, 95, 99, 100, 100, 100, 100, 100, 100],
-  V: [50, 50, 52, 56, 60, 65, 69, 74, 79, 83, 87, 91, 96, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100],
-  VI: [50, 50, 50, 50, 52, 55, 58, 61, 64, 67, 69, 72, 75, 78, 81, 84, 86, 90, 93, 96, 99],
-  VII: [50, 50, 52, 56, 61, 65, 70, 74, 80, 84, 89, 93, 97, 99, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100],
-  VIII: [50, 50, 50, 50, 50, 52, 55, 57, 59, 61, 63, 66, 68, 70, 72, 75, 77, 79, 82, 84, 86, 88, 90, 93, 95, 98, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100],
-  INT: [50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 51, 52, 53, 55, 57, 59, 60, 61, 63, 64, 65, 67, 69, 71, 72, 73, 75, 77, 78, 79, 81, 83, 84, 85, 87, 89, 90, 91, 93, 95, 96, 97, 99, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100],
-  EXT: [50, 50, 50, 50, 50, 50, 51, 52, 54, 56, 57, 59, 61, 62, 63, 65, 67, 69, 70, 72, 73, 75, 77, 78, 80, 82, 83, 84, 86, 88, 90, 92, 93, 95, 96, 98, 99, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100],
-  TOT: [50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 51, 51, 52, 53, 53, 54, 54, 55, 55, 55, 56, 57, 57, 58, 58, 59, 59, 60, 61, 61, 61, 62, 62, 63, 64, 64, 65, 65, 66, 66, 66, 67, 68, 68, 69, 69, 70, 71, 71, 71, 72, 72, 73, 73, 74, 75, 75, 76, 76, 77, 77, 77, 78, 79, 79, 80, 80, 81, 82, 82, 82, 83, 83, 84, 84, 85, 86, 86, 87, 87, 88, 88, 89, 89, 90, 90, 91, 91, 92, 93, 93, 93, 94, 94, 95, 95, 96, 97, 97, 98, 98, 99, 99, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100],
+  I:[50,50,51,52,55,57,59,62,64,67,68,70,72,74,76,78,80,82,84,86,88,90,92,94,96,98,100],
+  II:[50,51,54,57,60,63,66,69,70,74,79,82,86,89,93,96,100],
+  III:[50,53,56,59,62,65,68,70,72,74,76,78,80,82,84,86,88,90,92,94,96,98,100],
+  IV:[50,51,54,58,61,64,66,68,69,70,72,75,77,79,82,84,86,88,91,93,95,98,100],
+  V:[50,52,55,59,64,67,69,70,71,73,74,75,77,78,79,80,82,83,84,86,87,88,90,91,92,93,95,96,97,99,100],
+  VI:[50,51,52,54,56,59,61,63,65,66,68,70,73,77,80,83,87,90,93,97,100],
+  VII:[50,52,54,56,59,62,64,65,67,68,69,70,71,73,74,75,77,78,79,80,82,83,84,86,87,88,90,91,92,93,95,96,97,99,100],
+  VIII:[50,50,50,51,52,54,56,58,59,61,63,64,65,66,67,68,69,70,70,72,73,75,77,78,80,82,83,85,87,88,90,92,93,95,97,98,100],
+  INT:[30,35,40,46,51,52,53,54,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,70,71,71,72,73,73,74,74,75,76,76,77,78,78,79,80,80,81,81,82,83,83,84,85,85,86,86,87,88,89,90,90,91,92,93,94,95,96,97,98,99,100],
+  EXT:[45,46,47,48,50,51,52,54,55,56,58,59,60,61,62,63,64,65,66,66,67,68,68,68,68,69,70,70,70,71,71,72,72,73,74,74,75,76,76,77,77,78,78,79,80,80,81,82,82,83,83,84,85,85,86,87,87,88,88,89,90,91,92,93,94,95,96,97,98,99,100],
+  TOT:[30,30,32,34,36,38,39,40,41,42,43,44,45,46,47,48,49,50,50,51,51,52,52,53,54,54,55,56,56,56,57,57,57,58,58,59,60,60,60,61,62,62,62,63,64,64,64,65,65,65,65,65,65,65,65,65,65,65,66,66,66,67,68,68,68,68,68,68,68,69,69,70,70,70,70,70,70,70,70,70,71,71,71,71,71,71,71,72,72,73,73,73,73,73,74,74,74,74,74,75,75,75,75,76,76,76,76,76,77,77,77,77,77,78,78,78,78,79,79,79,79,79,79,80,80,80,80,81,81,81,81,82,82,82,82,82,83,83,83,83,83,84,84,84,84,85,85,85,85,85,86,86,86,86,86,87,87,87,87,88,88,88,88,88,89,89,89,89,89,89,90,90,90,90,90,90,90,91,91,91,91,91,91,92,92,92,92,92,92,92,93,93,93,93,93,93,93,94,94,94,94,94,94,95,95,95,95,95,95,95,96,96,96,96,96,96,96,97,97,97,97,97,97,97,98,98,98,98,98,98,99,99,99,99,99,99,99,100,100,100,100],
 };
 // T-scores — Rapazes 6-11
 const TM611 = {
-  I: [50, 50, 50, 50, 51, 53, 56, 59, 62, 65, 69, 72, 75, 78, 81, 84, 87, 90, 93, 96, 99, 100, 100, 100, 100, 100, 100],
-  II: [50, 50, 52, 57, 62, 68, 74, 79, 85, 90, 96, 99, 100, 100, 100, 100, 100],
-  III: [50, 50, 52, 56, 62, 66, 72, 76, 80, 86, 90, 95, 98, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100],
-  IV: [50, 50, 50, 53, 58, 62, 67, 71, 76, 80, 85, 89, 94, 98, 100, 100, 100, 100, 100],
-  V: [50, 50, 52, 56, 61, 66, 71, 76, 81, 85, 90, 95, 99, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100],
-  VI: [50, 50, 50, 50, 50, 53, 56, 59, 62, 65, 68, 71, 74, 77, 80, 83, 87, 90, 93, 96, 99],
-  VII: [50, 50, 53, 58, 64, 70, 77, 83, 89, 95, 99, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100],
-  VIII: [50, 50, 50, 50, 50, 51, 54, 56, 58, 61, 63, 66, 68, 70, 73, 75, 77, 80, 82, 85, 87, 89, 92, 94, 97, 99, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100],
-  INT: [50, 50, 50, 50, 50, 50, 50, 50, 51, 53, 54, 56, 58, 60, 61, 63, 65, 66, 68, 70, 72, 73, 75, 77, 79, 80, 82, 84, 85, 87, 89, 91, 92, 94, 96, 97, 99, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100],
-  EXT: [50, 50, 50, 50, 50, 50, 50, 52, 54, 56, 58, 60, 61, 62, 64, 66, 68, 70, 72, 74, 76, 78, 80, 82, 83, 84, 86, 88, 90, 92, 94, 96, 98, 99, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100],
-  TOT: [50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 51, 51, 52, 53, 53, 54, 54, 55, 55, 56, 57, 57, 58, 58, 59, 59, 60, 61, 61, 62, 62, 63, 64, 64, 65, 65, 66, 66, 67, 68, 68, 69, 69, 70, 71, 71, 72, 72, 73, 73, 74, 75, 75, 76, 76, 77, 77, 78, 79, 79, 80, 80, 81, 82, 82, 83, 83, 84, 84, 85, 86, 86, 87, 87, 88, 89, 89, 90, 90, 91, 91, 92, 93, 93, 94, 94, 95, 95, 96, 97, 97, 98, 98, 99, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100],
+  I:[50,50,51,53,57,60,62,64,66,67,69,70,72,74,76,78,80,82,84,86,88,90,92,94,96,98,100],
+  II:[50,54,58,62,66,68,70,73,76,79,82,85,88,91,94,97,100],
+  III:[50,53,57,61,64,67,68,70,72,74,76,78,80,82,84,86,88,90,92,94,96,98,100],
+  IV:[50,51,53,56,58,60,62,65,67,69,70,73,75,78,80,83,85,88,90,93,95,98,100],
+  V:[50,51,54,58,61,64,67,70,71,73,74,75,77,78,79,80,82,83,84,86,87,88,90,91,92,93,95,96,97,99,100],
+  VI:[50,50,51,52,53,55,57,59,61,64,66,67,69,71,75,79,83,88,92,96,100],
+  VII:[50,51,53,57,60,64,67,70,71,72,73,74,76,77,78,79,80,81,82,83,84,86,87,88,89,90,91,92,93,94,96,97,98,99,100],
+  VIII:[50,50,50,51,52,53,55,57,59,61,62,64,65,66,67,68,69,70,72,73,75,76,78,79,81,83,84,86,87,89,91,92,94,95,97,98,100],
+  INT:[32,33,37,41,45,48,52,56,59,60,62,64,65,65,66,67,68,68,70,70,71,71,72,72,73,74,74,75,75,76,77,77,78,78,79,80,80,81,81,82,82,83,84,84,85,85,86,87,87,88,88,89,90,91,92,92,93,94,95,96,97,97,98,99,100],
+  EXT:[null,null,null,50,51,52,53,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,71,72,72,73,73,74,74,75,75,76,76,77,77,78,78,79,79,80,80,81,81,82,82,83,83,84,84,85,85,86,86,87,87,88,88,89,90,91,92,93,94,95,96,97,98,99,100],
+  TOT:[31,32,34,35,36,38,39,40,41,42,43,44,45,45,46,47,48,49,49,50,50,51,51,51,52,53,53,53,54,54,55,55,56,56,57,58,58,59,59,60,60,60,61,62,62,62,62,63,63,64,64,64,65,66,66,66,67,68,68,69,69,70,70,70,70,70,71,71,71,71,71,71,72,72,72,72,72,72,73,73,73,73,73,73,74,74,74,74,74,74,75,75,75,75,75,75,76,76,76,76,76,76,77,77,77,77,77,77,78,78,78,78,78,78,79,79,79,79,79,79,79,80,80,80,80,80,80,81,81,81,81,81,81,82,82,82,82,82,82,83,83,83,83,83,83,84,84,84,84,84,84,85,85,85,85,85,85,86,86,86,86,86,86,87,87,87,87,87,87,88,88,88,88,88,88,89,89,89,89,89,89,90,90,90,90,90,90,91,91,91,91,91,91,92,92,92,92,92,92,92,92,92,93,94,94,94,94,94,94,94,95,95,95,95,95,96,96,96,96,96,96,97,97,97,97,97,98,98,98,98,98,98,99,99,99,99,99,99,100,100,100],
 };
 // T-scores — Rapazes 12-18
 const TM1218 = {
-  I: [50, 50, 50, 50, 51, 53, 56, 59, 62, 65, 68, 71, 74, 77, 80, 83, 86, 89, 92, 95, 98, 100, 100, 100, 100, 100, 100],
-  II: [50, 50, 50, 52, 55, 60, 63, 68, 73, 77, 81, 86, 89, 94, 98, 100, 100],
-  III: [50, 50, 50, 53, 57, 62, 66, 70, 75, 78, 83, 87, 91, 95, 98, 100, 100, 100, 100, 100, 100, 100, 100],
-  IV: [50, 50, 51, 55, 60, 65, 70, 74, 79, 84, 89, 93, 98, 100, 100, 100, 100, 100, 100],
-  V: [50, 50, 51, 55, 59, 64, 68, 73, 78, 82, 86, 90, 95, 99, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100],
-  VI: [50, 50, 50, 50, 50, 53, 56, 58, 61, 64, 67, 70, 73, 75, 78, 81, 84, 87, 91, 93, 96],
-  VII: [50, 50, 51, 54, 59, 63, 68, 72, 77, 82, 86, 91, 95, 99, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100],
-  VIII: [50, 50, 50, 50, 50, 52, 54, 56, 58, 61, 63, 65, 68, 70, 72, 74, 76, 78, 81, 83, 86, 88, 90, 92, 94, 97, 99, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100],
-  INT: [50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 52, 53, 54, 56, 58, 59, 60, 62, 64, 65, 66, 68, 70, 71, 72, 74, 76, 78, 79, 80, 82, 83, 85, 86, 88, 90, 91, 92, 94, 95, 97, 98, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100],
-  EXT: [50, 50, 50, 50, 50, 50, 50, 51, 52, 54, 56, 58, 60, 61, 62, 64, 66, 67, 69, 71, 72, 73, 75, 77, 79, 81, 82, 84, 85, 87, 88, 90, 92, 94, 95, 96, 98, 99, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100],
-  TOT: [50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 51, 51, 51, 52, 53, 53, 54, 54, 55, 55, 56, 56, 57, 57, 58, 58, 59, 59, 60, 61, 61, 62, 62, 62, 63, 64, 64, 65, 65, 66, 66, 67, 67, 68, 68, 69, 69, 70, 71, 71, 72, 72, 73, 73, 73, 74, 75, 75, 76, 76, 77, 77, 78, 78, 79, 79, 80, 80, 81, 82, 82, 83, 83, 84, 84, 84, 85, 86, 86, 87, 87, 88, 89, 89, 89, 90, 90, 91, 91, 92, 93, 93, 94, 94, 95, 95, 95, 96, 97, 97, 98, 98, 99, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100],
+  I:[50,52,54,56,58,60,63,65,66,68,70,72,74,76,78,79,81,83,85,87,89,91,93,94,96,98,100],
+  II:[50,53,54,57,60,63,66,68,70,74,78,81,85,90,93,96,100],
+  III:[50,54,58,61,64,67,70,72,74,76,78,79,81,83,85,87,89,91,93,94,96,98,100],
+  IV:[50,51,54,58,61,63,66,67,69,70,72,75,77,79,82,84,86,88,91,93,95,98,100],
+  V:[50,51,55,59,63,66,67,69,70,71,73,74,75,77,78,80,81,82,84,85,86,88,89,90,92,93,95,96,97,99,100],
+  VI:[50,50,51,52,53,55,57,59,61,62,64,65,67,69,71,77,81,86,90,95,100],
+  VII:[50,51,52,54,57,60,62,63,64,66,67,68,69,70,71,73,74,76,77,79,80,81,83,84,86,87,89,90,91,93,94,96,97,99,100],
+  VIII:[50,50,50,51,52,54,55,57,58,60,61,63,64,65,66,68,69,70,72,73,75,76,78,79,81,83,84,86,87,89,91,92,94,95,97,98,100],
+  INT:[33,34,50,51,54,55,56,57,58,59,60,61,62,64,65,66,67,68,69,69,70,70,70,71,71,72,73,74,74,75,76,77,77,78,79,79,80,81,82,82,83,84,85,85,86,87,88,88,89,90,90,91,92,92,93,94,94,95,96,97,97,98,99,99,100],
+  EXT:[null,null,null,null,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,64,66,66,67,68,68,69,69,69,70,71,71,72,72,73,74,74,75,76,76,77,77,78,79,79,80,80,81,82,82,83,83,84,85,85,86,87,87,88,88,89,90,91,92,93,94,95,96,97,98,99,100],
+  TOT:[null,null,34,35,37,38,40,41,42,43,44,45,45,46,47,47,48,49,49,50,51,51,52,52,53,53,54,54,55,55,56,56,56,57,57,58,58,58,59,59,59,59,59,60,60,60,61,62,62,62,63,64,64,64,64,64,64,64,65,65,65,66,66,66,67,67,68,68,69,69,69,70,70,70,70,70,70,70,70,70,70,71,72,72,72,72,72,73,73,73,73,73,74,74,74,74,74,75,75,75,75,75,76,76,76,76,77,77,77,77,77,77,77,78,78,78,79,79,79,79,79,80,80,80,80,81,81,81,81,81,82,82,82,82,82,83,83,83,83,84,84,84,84,84,85,85,85,85,85,86,86,86,86,86,87,87,87,87,88,88,88,88,88,89,89,89,89,89,89,90,90,90,90,90,90,90,91,91,91,91,91,91,91,92,92,92,92,92,92,93,93,93,93,93,93,93,94,94,94,94,94,94,94,95,95,95,95,95,95,95,96,96,96,96,96,96,96,97,97,97,97,97,97,98,98,98,98,98,98,98,99,99,99,99,99,99,99,100,100,100,100],
 };
+// Células obtidas por INTERPOLAÇÃO LINEAR entre linhas verificadas do perfil
+// (nunca extrapoladas). Apresentadas com "≈" e assinaladas em legenda.
+const T_ESTIMADO = {"M/6-11": {"I": [5, 7, 11], "INT": [2, 3, 4, 5, 6, 7, 9, 10, 11, 15, 58, 59], "EXT": [9, 10, 11, 12, 13, 14, 15, 16], "TOT": [10, 11, 39, 40, 41, 42, 43, 50, 51, 52, 53, 198, 199, 200, 201, 202, 203]}, "M/12-18": {"I": [1, 2, 3, 4, 10], "INT": [7, 8, 9, 11, 12, 13, 57, 58], "EXT": [11, 12, 13, 14, 15, 16, 17, 18], "TOT": [4, 5, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 78, 79, 80, 81, 82, 111, 112, 113, 114, 115]}, "F/6-11": {"I": [2, 3, 4, 5, 6, 7, 8], "IV": [1, 2], "INT": [2, 3, 10, 11, 12, 13, 18, 19, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63], "EXT": [7, 8, 10, 11, 12, 13, 14, 15, 16, 50, 51, 52, 53, 62, 63], "TOT": [4, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 29, 30, 31, 38, 39, 40, 41, 42, 43, 44, 144, 145, 146, 147, 148, 149]}, "F/12-18": {"I": [1, 8], "III": [5], "V": [1], "VI": [1, 2], "VII": [1], "VIII": [15, 16, 17], "INT": [1, 2, 3, 7, 8, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 37, 38, 39, 51, 52, 53], "EXT": [1, 11, 12, 13, 14, 15, 16, 24, 25, 26, 42], "TOT": [2, 3, 4, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 26, 27, 28, 29, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 87, 88, 122, 123]}};
+function ehEstimado(sex, ag, escala, raw){
+  if(sex!=='M' && sex!=='F') return false;
+  const g = T_ESTIMADO[sex+'/'+ag]; if(!g) return false;
+  const lst = g[escala]; return !!lst && lst.indexOf(raw) !== -1;
+}
+
 
 // Tabelas suspensas: foram dimensionadas para o mapa ERRADO que estava no código
 // (IV a 9 itens → tabela até raw 18; V a 16 itens → tabela até raw 32), e não para
 // o mapa do manual (IV = 11 itens → 22; V = 15 itens → 30). Uma transcrição real do
 // perfil sairia com 22 e 30. Enquanto não forem transcritas do perfil do CBCL, o T
 // destas duas escalas fica omitido — os brutos continuam correctos.
-const TABELAS_SUSPENSAS = ['IV', 'V'];
+// ⚠ NORMAS SUSPENSAS ⚠
+// Várias tabelas TF/TM deste ficheiro têm assinatura de geração sintética
+// (incrementos lineares constantes, ex.: TF611.V com +5; TF611.VII com +6) e não
+// correspondem a transcrição verificada do perfil em papel. Conforme decisão da
+// auditoria ASEBA: NENHUM T é apresentado até as tabelas serem transcritas para
+// RC_Transcricao_Normas.xlsx e validadas. Os brutos (verificados) mantêm-se.
+// Para reactivar: transcrever do perfil CBCL em papel e pôr a flag a true.
+let NORMAS_VALIDADAS = true; // rapazes ativos (transcritos do perfil de papel); raparigas em curso
 
 function getT(raw, scaleKey, sex, ageGroup) {
-  if (TABELAS_SUSPENSAS.indexOf(scaleKey) !== -1) return null;
+  if (!NORMAS_VALIDADAS) return null; // normas suspensas: T retido — nunca aproximado nem inventado
+  // Asserção 5: chave inexistente, sexo/escalão não resolvidos ou linha em falta → ERRO, nunca interpolação.
+  if (sex!=='F' && sex!=='M') throw CotacaoErro('NORMA_EM_FALTA', scaleKey, 'sexo "'+sex+'" não resolve tabela normativa.');
+  if (ageGroup!=='6-11' && ageGroup!=='12-18') throw CotacaoErro('NORMA_EM_FALTA', scaleKey, 'escalão etário "'+ageGroup+'" não resolve tabela normativa.');
   const table = sex==='F' ? (ageGroup==='6-11' ? TF611 : TF1218) : (ageGroup==='6-11' ? TM611 : TM1218);
+  if (!table) return null; // grupo por transcrever (raparigas): T retido, sem erro
   const arr = table[scaleKey];
-  if (!arr) return null;
-  if (raw < 0 || raw >= arr.length) return null;   // fora de amplitude: não extrapolar em silêncio
+  if (!arr) throw CotacaoErro('NORMA_EM_FALTA', scaleKey, 'sem tabela para '+sex+'/'+ageGroup+'.');
+  if (raw < 0 || raw >= arr.length) throw CotacaoErro('NORMA_EM_FALTA', scaleKey, 'bruto '+raw+' sem linha na tabela '+sex+'/'+ageGroup+' — não se extrapola.');
   return arr[raw];
 }
 
@@ -567,9 +587,9 @@ function tLevel(t, type='syndrome') {
     return {label:'Normativo',cls:'t-normal'};
   }
   if (type === 'composite') {
-    // Manual p.33: borderline dos compostos = T 60-63 (percentil 84-90) → clínico a partir de 64.
-    if (t>=64) return {label:'Clínico',cls:'t-clinical'};
-    if (t>=60) return {label:'Borderline',cls:'t-borderline'};
+    // Manual p.33: fonte única THRESHOLDS (compostos: borderline 60-63, clínico ≥64).
+    if (t>=THRESHOLDS.composite.clin) return {label:'Clínico',cls:'t-clinical'};
+    if (t>=THRESHOLDS.composite.bl) return {label:'Borderline',cls:'t-borderline'};
     return {label:'Normativo',cls:'t-normal'};
   }
   // syndrome (default) — borderline percentil 93-97 (T 65-69), clínico T>=70
@@ -951,7 +971,10 @@ function startQuestionnaire() {
 // ═══════════════════════════════════════════════════════
 // Normalizar sexo ('Feminino'/'F'/'f' -> 'F'; resto -> 'M') e grupo etário
 function normSex(sex) {
-  return (sex || '').toString().trim().toUpperCase().charAt(0) === 'F' ? 'F' : 'M';
+  // Sem valor por omissão silencioso: só devolve F/M quando reconhecível;
+  // caso contrário devolve '' e o getT (com normas activas) FALHA em vez de aproximar.
+  const c = (sex || '').toString().trim().toUpperCase().charAt(0);
+  return c === 'F' ? 'F' : (c === 'M' ? 'M' : '');
 }
 function normAgeGroup(ageGroup, ageYears) {
   const g = (ageGroup || '').toString().trim();
@@ -960,72 +983,132 @@ function normAgeGroup(ageGroup, ageYears) {
   return '12-18';
 }
 
-// Cotação pura — recebe respostas + sexo + grupo etário (reutilizável no painel)
-function computeScores(ans, sex, ageGroup) {
+// ══════════════ MOTOR DE COTAÇÃO v2 — dados·lógica·validação separados ══════════════
+// FORM_ID: chave obrigatória de formulário. scoreProtocol FALHA se o pedido não
+// corresponder — herança/fallback entre CBCL e TRF é estruturalmente impossível.
+const FORM_ID = 'cbcl_6_18';
+const DATA_VERSION = 'cbcl_6_18 · Tabela 2.1 Manual ASEBA 6-18 (Psiquilíbrios 2014) · 2026-07-23';
+// Limiares (manual p.33) — fonte ÚNICA para classificador, barras e legendas.
+const THRESHOLDS = { composite:{bl:60, clin:64}, syndrome:{bl:65, clin:70} };
+// Regra de invalidação (manual p.29): >8 omissos nos itens de problemas, excluindo 56h e 113.
+const OMISS_EXCLUIR = ['56h','113'];
+const LIMITE_OMISSOS = 8;
+
+function CotacaoErro(codigo, escala, msg){
+  const e = new Error('['+codigo+']'+(escala?' escala '+escala:'')+' — '+msg);
+  e.codigo = codigo; e.escala = escala; e.cotacao = true; return e;
+}
+
+// Cotação pura e rastreável. NUNCA converte omisso em zero: omisso fica listado.
+function scoreProtocol(formId, ans, sex, ageGroup) {
+  if (formId !== FORM_ID) throw CotacaoErro('FORMULARIO', null,
+    'pedido de cotação para "'+formId+'" mas este módulo cota exclusivamente "'+FORM_ID+'". Sem fallback entre formulários.');
   ans = ans || {};
   sex = normSex(sex);
-  const scaleRaws = {};
-
-  // Raw por escala de síndrome (chaves podem ser numéricas ou string, ex.: '56a')
+  const getV = (n)=>{ let v = ans[n]!==undefined ? ans[n] : ans[String(n)];
+    if(v===''||v===undefined||v===null) return null; v=Number(v); return isNaN(v)?null:v; };
+  const contaveis = ITEMS.filter(it=>it.note!=='aberto' && OMISS_EXCLUIR.indexOf(String(it.n))===-1);
+  const omissos = contaveis.filter(it=>getV(it.n)===null).map(it=>it.n);
+  const invalido = omissos.length > LIMITE_OMISSOS;
+  const escalas = {}; const scaleRaws = {};
   for (const [key, scale] of Object.entries(SCALES)) {
-    let raw = 0;
-    for (const item of scale.items) {
-      const v = (ans[item] !== undefined) ? ans[item] : ans[String(item)];
-      if (v != null) raw += Number(v); // != null preserva o zero
-    }
+    const valores = {}; const om = []; let raw = 0; let nResp = 0;
+    for (const item of scale.items) { const v = getV(item);
+      if (v===null) om.push(item); else { valores[item]=v; raw+=v; nResp++; } }
+    const rawMax = 2*scale.items.length;
+    const T = getT(raw, key, sex, ageGroup);
+    escalas[key] = { escala:key, nome:scale.name, itens:scale.items.slice(), valores, omissos:om,
+      raw, rawMax, nRespondidos:nResp, T,
+      tabela: NORMAS_VALIDADAS ? ('CBCL/'+sex+'/'+ageGroup+'/'+key+'/linha '+raw) : 'suspensa (por transcrever do perfil em papel)',
+      limiar: THRESHOLDS.syndrome, limiteInferior: om.length>0,
+      estimado: T!=null && ehEstimado(sex, ageGroup, key, raw),
+      classificacao: invalido ? 'invalido' : (T==null?'unknown':(T>=THRESHOLDS.syndrome.clin?'clin':T>=THRESHOLDS.syndrome.bl?'bl':'norm')) };
     scaleRaws[key] = raw;
   }
-
-  const intRaw = scaleRaws.I + scaleRaws.II + scaleRaws.III; // Internalização
-  const extRaw = scaleRaws.VII + scaleRaws.VIII;             // Externalização
-
-  // Total de Problemas — soma de todos os itens respondidos
-  let totRaw = 0;
-  for (const item of ITEMS) {
-    const v = (ans[item.n] !== undefined) ? ans[item.n] : ans[String(item.n)];
-    if (v != null) totRaw += Number(v);
-  }
-
+  const intRaw = scaleRaws.I + scaleRaws.II + scaleRaws.III;
+  const extRaw = scaleRaws.VII + scaleRaws.VIII;
+  let totRaw = 0, totResp = 0;
+  for (const item of ITEMS) { if(item.note==='aberto') continue;
+    const v = getV(item.n); if (v!==null){ totRaw += v; totResp++; } }
   const tScores = {};
-  for (const key of Object.keys(SCALES)) {
-    tScores[key] = getT(scaleRaws[key], key, sex, ageGroup);
-  }
+  for (const key of Object.keys(SCALES)) tScores[key] = escalas[key].T;
   tScores.INT = getT(intRaw, 'INT', sex, ageGroup);
   tScores.EXT = getT(extRaw, 'EXT', sex, ageGroup);
   tScores.TOT = getT(totRaw, 'TOT', sex, ageGroup);
+  const estCompostos = { INT: ehEstimado(sex, ageGroup, 'INT', intRaw),
+                         EXT: ehEstimado(sex, ageGroup, 'EXT', extRaw),
+                         TOT: ehEstimado(sex, ageGroup, 'TOT', totRaw) };
+  const algumEstimado = Object.values(estCompostos).some(Boolean) ||
+                        Object.values(escalas).some(e => e.estimado);
+  const resultado = { form:FORM_ID, dataVersion:DATA_VERSION, escalas, scaleRaws, tScores, estCompostos, algumEstimado,
+    intRaw, extRaw, totRaw, omissos, nOmissos:omissos.length, invalido, totResp, limiares:THRESHOLDS };
+  validarCotacao(resultado);
+  return resultado;
+}
 
-  return { scaleRaws, intRaw, extRaw, totRaw, tScores };
+// Camada de validação BLOQUEANTE — em erro, nenhum número é emitido.
+function validarCotacao(r) {
+  for (const [k,e] of Object.entries(r.escalas)) {
+    // Asserção 1 — assinatura do defeito TRF de 10/07/2026
+    if (e.raw===0 && e.T!=null && e.T>50)
+      throw CotacaoErro('RAW0_T_ALTO', k, 'bruto 0 com T='+e.T+' — logicamente impossível; valores derivados corrompidos.');
+    // Asserção 2
+    if (e.raw<0 || e.raw>e.rawMax)
+      throw CotacaoErro('RAW_FORA_INTERVALO', k, 'bruto '+e.raw+' fora de [0,'+e.rawMax+'].');
+    // Asserção 3
+    if (e.T!=null && (e.T<20 || e.T>100))
+      throw CotacaoErro('T_FORA_TABELA', k, 'T='+e.T+' fora do intervalo admissível da tabela.');
+    // Asserção 4
+    if (e.nRespondidos===0 && e.T!=null)
+      throw CotacaoErro('ESCALA_SEM_RESPOSTAS', k, 'nenhum item respondido mas T/classificação atribuídos.');
+  }
+  // Asserção 7 — coerência dos compostos
+  if (r.scaleRaws.I+r.scaleRaws.II+r.scaleRaws.III !== r.intRaw)
+    throw CotacaoErro('COERENCIA_COMPOSTO','INT','I+II+III ≠ intRaw='+r.intRaw);
+  if (r.scaleRaws.VII+r.scaleRaws.VIII !== r.extRaw)
+    throw CotacaoErro('COERENCIA_COMPOSTO','EXT','VII+VIII ≠ extRaw='+r.extRaw);
+  if (r.totRaw<0 || r.totRaw>2*r.totResp)
+    throw CotacaoErro('RAW_FORA_INTERVALO','TOT','totRaw='+r.totRaw+' incompatível com '+r.totResp+' itens respondidos.');
+  return true;
+}
+
+function cartaoErroCotacao(erro) {
+  return '<div style="background:#FDECEA;border:2px solid #C0392B;border-radius:10px;padding:16px 20px;margin:10px 0;">'+
+    '<div style="font-weight:700;color:#C0392B;font-size:0.95rem;margin-bottom:6px;">⛔ Cotação bloqueada pela camada de validação</div>'+
+    '<div style="font-size:0.85rem;color:#7a2620;font-family:monospace;">'+erro+'</div>'+
+    '<div style="font-size:0.78rem;color:#8a6a66;margin-top:8px;">Nenhum valor normativo é apresentado enquanto a asserção não for resolvida. As respostas item a item permanecem consultáveis, se existirem.</div></div>';
+}
+
+function bannerOmissos(sc) {
+  if (!sc || !sc.nOmissos) return '';
+  if (sc.invalido) return '<div style="background:#C0392B;color:white;border-radius:10px;padding:14px 18px;margin:0 0 14px;font-weight:700;">'+
+    '⛔ PROTOCOLO FORMALMENTE INVÁLIDO — '+sc.nOmissos+' itens de problemas sem resposta (limite do manual: '+LIMITE_OMISSOS+').'+
+    '<div style="font-weight:400;font-size:0.82rem;margin-top:5px;">Itens omissos: '+sc.omissos.join(', ')+'. Os valores brutos abaixo são limites inferiores e NÃO são classificáveis normativamente.</div></div>';
+  return '<div style="background:#FFF8E1;border-left:4px solid #E67E22;border-radius:0 8px 8px 0;padding:10px 14px;margin:0 0 14px;font-size:0.82rem;color:#7a5b1e;">'+
+    '⚠ '+sc.nOmissos+' item(ns) sem resposta: '+sc.omissos.join(', ')+'. Nas escalas afectadas, a soma bruta constitui um limite inferior (assinalado com *).</div>';
+}
+
+// Wrapper de compatibilidade (mesma assinatura anterior)
+function computeScores(ans, sex, ageGroup) {
+  return scoreProtocol(FORM_ID, ans, sex, ageGroup);
 }
 
 function calcScores() {
   return computeScores(answers, sessionData.sex, sessionData.ageGroup);
 }
 
-// Resolve a cotação de uma sessão do painel: se houver respostas item-a-item,
-// RECALCULA tudo (raws + compostos + T) a partir delas — assim o painel mostra
-// sempre valores completos e corretos, quer a sessão seja local quer venha do
-// Google Sheet. Só usa os valores guardados como recurso quando não há respostas.
-function resolveScores(s) {
+// Resolve a cotação de uma sessão do painel a partir das RESPOSTAS item a item
+// (única fonte de verdade), com validação bloqueante. Sem respostas → erro técnico.
+// ⚠ NUNCA ressuscitar colunas T_* do Sheet: foram calculadas por versões antigas
+// e são a mesma classe de defeito do TRF (raw=0 + T alto, 10/07/2026).
+// A ÚNICA fonte de verdade são as respostas item a item.
+function resolverCotacaoValidada(s) {
   const ans = (s && s.answers) || {};
-  if (Object.keys(ans).length > 0) {
-    const sex = normSex(s.sex);
-    const ageGroup = normAgeGroup(s.ageGroup, s.ageYears);
-    return computeScores(ans, sex, ageGroup);
-  }
-  const st = (s && s.scores) || {};
-  const ts = st.tScores || {};
-  return {
-    scaleRaws: st.scaleRaws || {},
-    intRaw: st.intRaw,
-    extRaw: st.extRaw,
-    totRaw: st.totRaw,
-    tScores: {
-      INT: ts.INT || ts['T-INT'] || (s && s['T_INT']) || null,
-      EXT: ts.EXT || ts['T-EXT'] || (s && s['T_EXT']) || null,
-      TOT: ts.TOT || ts['T-Total'] || ts['T-TOT'] || (s && s['T_TOT']) || null,
-      I: ts.I, II: ts.II, III: ts.III, IV: ts.IV, V: ts.V, VI: ts.VI, VII: ts.VII, VIII: ts.VIII
-    }
-  };
+  if (!Object.keys(ans).length)
+    return { ok:false, erro:'[ESCALA_SEM_RESPOSTAS] Sessão sem respostas item a item — impossível cotar. Sincronize a coluna Respostas do Sheet ou reimporte o registo.' };
+  try {
+    return { ok:true, scores: scoreProtocol(FORM_ID, ans, s.sex, normAgeGroup(s.ageGroup, s.ageYears)) };
+  } catch(e) { return { ok:false, erro: e.message }; }
 }
 
 // ═══════════════════════════════════════════════════════
@@ -1035,8 +1118,13 @@ async function submitCBCL() {
   // Check all behavioral items answered
   const unanswered = ITEMS.filter(it => it.note !== 'aberto' && answers[it.n] === undefined);
   if (unanswered.length > 0) {
-    const first = unanswered[0];
-    if (!confirm(`Ainda há ${unanswered.length} item(ns) por responder. Deseja submeter mesmo assim?\n(Os itens sem resposta serão considerados 0)`)) return;
+    // Os itens sem resposta ficam registados como OMISSOS (nunca como zero).
+    // Regra do manual (p.29): mais de 8 omissos nos itens de problemas invalida o protocolo.
+    let aviso = 'Ainda há ' + unanswered.length + ' item(ns) por responder.\n' +
+      'Os itens sem resposta ficarão registados como OMISSOS (não como zero).';
+    if (unanswered.length > 8) aviso += '\n\n⚠ ATENÇÃO: acima de 8 omissos o protocolo é considerado FORMALMENTE INVÁLIDO segundo o manual.';
+    aviso += '\n\nDeseja submeter mesmo assim?';
+    if (!confirm(aviso)) return;
   }
 
   const scores = calcScores();
@@ -1399,19 +1487,9 @@ async function syncFromSheets() {
       const code = (row['Código'] || row['codigo'] || row['Codigo'] || '').toString().trim();
       if (!code) continue;
 
-      const tINT  = row['T_INT']  || row['T-INT']  || row['tInternalizacao'] || null;
-      const tEXT  = row['T_EXT']  || row['T-EXT']  || row['tExternalizacao'] || null;
-      const tTOT  = row['T_TOT']  || row['T-Total'] || row['T-TOT']  || row['tTotal'] || null;
-      const tI    = row['T_I']    || row['tI']    || null;
-      const tII   = row['T_II']   || row['tII']   || null;
-      const tIII  = row['T_III']  || row['tIII']  || null;
-      const tIV   = row['T_IV']   || row['tIV']   || null;
-      const tV    = row['T_V']    || row['tV']    || null;
-      const tVI   = row['T_VI']   || row['tVI']   || null;
-      const tVII  = row['T_VII']  || row['tVII']  || null;
-      const tVIII = row['T_VIII'] || row['tVIII'] || null;
-      const rawTot = row['RawTotal'] || row['rawTotal'] || null;
-
+      // ⚠ As colunas T_* do Sheet NÃO são importadas: foram calculadas por versões
+      // antigas (tabelas erradas) e são a origem do defeito raw=0 + T alto.
+      // A ÚNICA fonte de verdade são as Respostas; a cotação é recalculada localmente.
       let answers = {};
       const respostasRaw = row['Respostas'] || row['respostas'] || row['answers'] || '';
       if (respostasRaw) {
@@ -1433,10 +1511,7 @@ async function syncFromSheets() {
         submittedAt:  row['Data']          || row['data']          || '',
         status: 'complete',
         answers: answers,
-        scores: {
-          totRaw: rawTot ? Number(rawTot) : undefined,
-          tScores: { INT:tINT, EXT:tEXT, TOT:tTOT, I:tI, II:tII, III:tIII, IV:tIV, V:tV, VI:tVI, VII:tVII, VIII:tVIII }
-        }
+        scores: null  // a cotação é sempre recalculada das respostas por resolverCotacaoValidada
       };
 
       const idx = all.findIndex(s =>
@@ -1577,23 +1652,35 @@ function showSessionDetail(idx) {
   if (!s) return;
   sessaoActual = s;
 
-  // Recalcula a partir das respostas quando disponíveis (local ou vindo do Sheet)
-  const scores = resolveScores(s);
-  const tScores = scores.tScores || {};
-  const scaleRaws = scores.scaleRaws || {};
+  // ÚNICA fonte de verdade: respostas item a item; cotação validada, senão erro técnico.
+  const res = resolverCotacaoValidada(s);
+  const doc0 = document.getElementById('modal-content');
+  if (!res.ok) {
+    doc0.innerHTML = `<div style="margin-bottom:20px;">
+      <div style="font-family:'DM Serif Display';font-size:1.4rem;color:var(--blue);">${s.childName||'—'} <span style="font-size:0.85rem;color:var(--text-light);font-family:'DM Sans';">· ${s.patientCode||''}</span></div>
+    </div>` + cartaoErroCotacao(res.erro);
+    document.getElementById('modal-box').dataset.sessionIdx = idx;
+    document.getElementById('modal-detail').classList.add('open');
+    return;
+  }
+  const scores = res.scores;
+  const tScores = scores.tScores;
+  const scaleRaws = scores.scaleRaws;
   const intRaw = scores.intRaw;
   const extRaw = scores.extRaw;
   const totRaw = scores.totRaw;
-  const barW = (t) => Math.min(100, Math.max(0, ((t-35)/(100-35))*100));
+  const invalido = scores.invalido;
+  const omStar = k => (scores.escalas[k] && scores.escalas[k].limiteInferior) ? '*' : '';
+  const barW = (t) => Math.min(100, Math.max(0, (((t==null?35:t)-35)/(100-35))*100));
 
-  const tINT = tScores.INT || null;
-  const tEXT = tScores.EXT || null;
-  const tTOT = tScores.TOT || null;
+  const tINT = tScores.INT != null ? tScores.INT : null;
+  const tEXT = tScores.EXT != null ? tScores.EXT : null;
+  const tTOT = tScores.TOT != null ? tScores.TOT : null;
 
   const compositeRows = [
-    { name:'Internalização',     raw:intRaw,  t:tINT, type:'composite' },
-    { name:'Externalização',     raw:extRaw,  t:tEXT, type:'composite' },
-    { name:'Total de Problemas', raw:totRaw,  t:tTOT, type:'composite' },
+    { name:'Internalização',     raw:intRaw,  t:tINT, type:'composite', chave:'INT' },
+    { name:'Externalização',     raw:extRaw,  t:tEXT, type:'composite', chave:'EXT' },
+    { name:'Total de Problemas', raw:totRaw,  t:tTOT, type:'composite', chave:'TOT' },
   ];
   const syndromeRows = Object.entries(SCALES).map(([key,scale]) => ({
     key, name:scale.name, raw:scaleRaws[key], t:tScores[key], type:'syndrome'
@@ -1606,23 +1693,27 @@ function showSessionDetail(idx) {
       <div style="font-size:0.84rem;color:var(--text-light);margin-top:4px;">${s.sex==='F'?'Feminino':'Masculino'} · ${s.ageYears||'—'} anos · Grupo: ${(s.ageGroup||s.ageYears)?normAgeGroup(s.ageGroup, s.ageYears):'—'} · Preenchido por: ${s.filledBy||s.preenchidoPor||'—'} · ${s.fillDate||s.submittedAt?.split('T')[0]||''}</div>
     </div>
 
+    ${bannerOmissos(scores)}
+    <div style="background:var(--blue-xpale,#F0F7FF);border-left:3px solid var(--blue-mid);border-radius:0 8px 8px 0;padding:8px 12px;font-size:0.78rem;color:var(--text-light);margin-bottom:14px;">
+      Escalas de síndromes: T≥${THRESHOLDS.syndrome.clin} Clínico · T${THRESHOLDS.syndrome.bl}–${THRESHOLDS.syndrome.clin-1} Borderline &nbsp;|&nbsp; Índices compostos: T≥${THRESHOLDS.composite.clin} Clínico · T${THRESHOLDS.composite.bl}–${THRESHOLDS.composite.clin-1} Borderline
+      ${scores.algumEstimado?'<div style="margin-top:6px;color:#7a5b1e;">≈ Valores assinalados com ≈ resultam de interpolação linear entre linhas verificadas do perfil em papel (nunca extrapolados). Confirmar no perfil antes de uso em relatório formal.</div>':''}
+    </div>
     <!-- Composite with bars -->
     <div style="background:var(--blue-pale);border-radius:10px;padding:16px 20px;margin-bottom:16px;">
       <div style="font-size:0.72rem;font-weight:700;color:var(--blue-mid);text-transform:uppercase;letter-spacing:0.07em;margin-bottom:14px;">Índices Compostos</div>
       ${compositeRows.map(r => {
-        const lv = tLevel(r.t||50, 'composite');
-        const tVal = r.t||50;
-        const barColor = tVal>=65?'var(--red)':tVal>=60?'var(--borderline)':'var(--green)';
+        const lv = invalido ? {label:'Protocolo inválido', cls:'t-unknown'} : tLevel(r.t, 'composite');
+        const barColor = r.t==null?'#9AA7B4':(r.t>=THRESHOLDS.composite.clin?'var(--red)':r.t>=THRESHOLDS.composite.bl?'var(--borderline)':'var(--green)');
         return `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--gray-bdr);">
           <div style="min-width:140px;font-weight:600;font-size:0.9rem;">${r.name}</div>
           <div style="flex:1;height:8px;background:var(--gray-bdr);border-radius:4px;position:relative;">
-            <div style="height:100%;width:${barW(tVal)}%;background:${barColor};border-radius:4px;"></div>
-            <div style="position:absolute;top:-4px;left:${barW(65)}%;width:2px;height:16px;background:var(--red);border-radius:1px;"></div>
-            <div style="position:absolute;top:-4px;left:${barW(60)}%;width:2px;height:16px;background:var(--amber);border-radius:1px;"></div>
+            <div style="height:100%;width:${barW(r.t)}%;background:${barColor};border-radius:4px;"></div>
+            <div style="position:absolute;top:-4px;left:${barW(THRESHOLDS.composite.clin)}%;width:2px;height:16px;background:var(--red);border-radius:1px;"></div>
+            <div style="position:absolute;top:-4px;left:${barW(THRESHOLDS.composite.bl)}%;width:2px;height:16px;background:var(--amber);border-radius:1px;"></div>
           </div>
-          <span style="font-size:0.78rem;color:var(--text-light);min-width:52px;">raw=${r.raw??'—'}</span>
-          <span class="t-badge ${lv.cls}" style="min-width:52px;text-align:center;">T=${r.t||'—'}</span>
-          <span style="font-size:0.8rem;min-width:72px;color:${tVal>=65?'var(--red)':tVal>=60?'var(--borderline)':'var(--green)'};">${lv.label}</span>
+          <span style="font-size:0.78rem;color:var(--text-light);min-width:52px;">raw=${r.raw??'—'}${invalido?'†':''}</span>
+          <span class="t-badge ${lv.cls}" style="min-width:52px;text-align:center;">${invalido?'inválido':(r.t!=null?((scores.estCompostos&&scores.estCompostos[r.chave]?'T≈':'T=')+r.t):'T —')}</span>
+          <span style="font-size:0.8rem;min-width:72px;color:${invalido?'var(--red)':barColor};">${lv.label}</span>
         </div>`;
       }).join('')}
     </div>
@@ -1632,12 +1723,12 @@ function showSessionDetail(idx) {
       <div style="background:white;border:1px solid var(--gray-bdr);border-radius:10px;padding:14px 16px;">
         <div style="font-size:0.72rem;font-weight:700;color:var(--blue-mid);text-transform:uppercase;letter-spacing:0.07em;margin-bottom:10px;">Escalas de Internalização</div>
         ${syndromeRows.slice(0,3).map(r => {
-          const lv = tLevel(r.t||50,'syndrome');
+          const lv = invalido ? {label:'inválido', cls:'t-unknown'} : tLevel(r.t,'syndrome');
           return `<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--gray-bdr);gap:6px;">
             <span style="font-size:0.82rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;min-width:0;">${r.key}. ${r.name}</span>
             <div style="display:flex;gap:5px;align-items:center;flex-shrink:0;">
-              <span style="font-size:0.74rem;color:var(--text-light);white-space:nowrap;">raw=${r.raw??'—'}</span>
-              <span class="t-badge ${lv.cls}" style="font-size:0.75rem;padding:2px 7px;white-space:nowrap;">T=${r.t||'—'}</span>
+              <span style="font-size:0.74rem;color:var(--text-light);white-space:nowrap;">raw=${r.raw??'—'}${omStar(r.key)}${invalido?'†':''}</span>
+              <span class="t-badge ${lv.cls}" style="font-size:0.75rem;padding:2px 7px;white-space:nowrap;">${invalido?'—':(r.t!=null?((scores.escalas[r.key]&&scores.escalas[r.key].estimado?'T≈':'T=')+r.t):'T —')}</span>
               <span style="font-size:0.74rem;white-space:nowrap;">${lv.label}</span>
             </div>
           </div>`;
@@ -1646,12 +1737,12 @@ function showSessionDetail(idx) {
       <div style="background:white;border:1px solid var(--gray-bdr);border-radius:10px;padding:14px 16px;">
         <div style="font-size:0.72rem;font-weight:700;color:var(--blue-mid);text-transform:uppercase;letter-spacing:0.07em;margin-bottom:10px;">Outras Escalas</div>
         ${syndromeRows.slice(3,6).map(r => {
-          const lv = tLevel(r.t||50,'syndrome');
+          const lv = invalido ? {label:'inválido', cls:'t-unknown'} : tLevel(r.t,'syndrome');
           return `<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--gray-bdr);gap:6px;">
             <span style="font-size:0.82rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;min-width:0;">${r.key}. ${r.name}</span>
             <div style="display:flex;gap:5px;align-items:center;flex-shrink:0;">
-              <span style="font-size:0.74rem;color:var(--text-light);white-space:nowrap;">raw=${r.raw??'—'}</span>
-              <span class="t-badge ${lv.cls}" style="font-size:0.75rem;padding:2px 7px;white-space:nowrap;">T=${r.t||'—'}</span>
+              <span style="font-size:0.74rem;color:var(--text-light);white-space:nowrap;">raw=${r.raw??'—'}${omStar(r.key)}${invalido?'†':''}</span>
+              <span class="t-badge ${lv.cls}" style="font-size:0.75rem;padding:2px 7px;white-space:nowrap;">${invalido?'—':(r.t!=null?((scores.escalas[r.key]&&scores.escalas[r.key].estimado?'T≈':'T=')+r.t):'T —')}</span>
               <span style="font-size:0.74rem;white-space:nowrap;">${lv.label}</span>
             </div>
           </div>`;
@@ -1661,12 +1752,12 @@ function showSessionDetail(idx) {
     <div style="background:white;border:1px solid var(--gray-bdr);border-radius:10px;padding:14px 16px;">
       <div style="font-size:0.72rem;font-weight:700;color:var(--blue-mid);text-transform:uppercase;letter-spacing:0.07em;margin-bottom:10px;">Escalas de Externalização</div>
       ${syndromeRows.slice(6,8).map(r => {
-        const lv = tLevel(r.t||50,'syndrome');
+        const lv = invalido ? {label:'inválido', cls:'t-unknown'} : tLevel(r.t,'syndrome');
         return `<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--gray-bdr);">
           <span style="font-size:0.83rem;">${r.key}. ${r.name}</span>
           <div style="display:flex;gap:6px;align-items:center;">
-            <span style="font-size:0.75rem;color:var(--text-light);">raw=${r.raw??'—'}</span>
-            <span class="t-badge ${lv.cls}" style="font-size:0.76rem;padding:2px 8px;">T=${r.t||'—'}</span>
+            <span style="font-size:0.75rem;color:var(--text-light);">raw=${r.raw??'—'}${omStar(r.key)}${invalido?'†':''}</span>
+            <span class="t-badge ${lv.cls}" style="font-size:0.76rem;padding:2px 8px;">${invalido?'—':(r.t!=null?((scores.escalas[r.key]&&scores.escalas[r.key].estimado?'T≈':'T=')+r.t):'T —')}</span>
             <span style="font-size:0.75rem;min-width:64px;">${lv.label}</span>
           </div>
         </div>`;
@@ -1693,8 +1784,8 @@ function showSessionDetail(idx) {
         var rows = its.map(function(i) {
           // Chave pode ser numérica ou string (ex: '56a')
           var v = (ans[i.n] !== undefined) ? ans[i.n] : (ans[String(i.n)] !== undefined ? ans[String(i.n)] : undefined);
-          var vStr = (v !== undefined && v !== null) ? String(v) : '—';
-          var bg = v == 2 ? '#FDECEA' : v == 1 ? '#FFF8E1' : '#F0F7FF';
+          var vStr = (v !== undefined && v !== null && v !== '') ? String(v) : 'omisso';
+          var bg = v == 2 ? '#FDECEA' : v == 1 ? '#FFF8E1' : (vStr==='omisso' ? '#FDECEA' : '#F0F7FF');
           return '<div style="display:grid;grid-template-columns:32px 1fr 28px;gap:6px;align-items:center;padding:5px 8px;border-bottom:1px solid #F0F4F8;background:' + bg + ';font-size:0.8rem;">' +
             '<span style="color:var(--text-light);text-align:right;">' + i.n + '</span>' +
             '<span>' + i.text + '</span>' +
@@ -1723,28 +1814,35 @@ function printModal() {
   const s = sessions[idx];
   if (!s) return;
 
-  const scores = resolveScores(s);
-  const tScores = scores.tScores || {};
-  const scaleRaws = scores.scaleRaws || {};
+  const res = resolverCotacaoValidada(s);
+  if (!res.ok) { alert('Cotação bloqueada pela camada de validação:\n\n' + res.erro + '\n\nNenhum relatório com valores é emitido.'); return; }
+  const scores = res.scores;
+  const tScores = scores.tScores;
+  const scaleRaws = scores.scaleRaws;
   const intRaw = scores.intRaw;
   const extRaw = scores.extRaw;
   const totRaw = scores.totRaw;
+  const invalido = scores.invalido;
+  const omStar = k => (scores.escalas[k] && scores.escalas[k].limiteInferior) ? '*' : '';
 
-  const tINT = tScores.INT || null;
-  const tEXT = tScores.EXT || null;
-  const tTOT = tScores.TOT || null;
+  const tINT = tScores.INT != null ? tScores.INT : null;
+  const tEXT = tScores.EXT != null ? tScores.EXT : null;
+  const tTOT = tScores.TOT != null ? tScores.TOT : null;
 
   // Helper: bar percentage from T-score (range 35–100)
-  const bw = t => Math.min(98, Math.max(2, ((t - 35) / 65) * 100)).toFixed(1);
+  const bw = t => Math.min(98, Math.max(2, (((t==null?35:t) - 35) / 65) * 100)).toFixed(1);
 
-  // Helper: colors
+  // Helpers de cor/rótulo — fonte única THRESHOLDS (manual p.33)
   const col = (t, type) => {
-    if (type === 'composite') return t >= 65 ? '#C0392B' : t >= 60 ? '#5B7FA6' : '#27AE60';
-    return t >= 70 ? '#C0392B' : t >= 65 ? '#5B7FA6' : '#27AE60';
+    if (t == null || invalido) return '#9AA7B4';
+    const th = type === 'composite' ? THRESHOLDS.composite : THRESHOLDS.syndrome;
+    return t >= th.clin ? '#C0392B' : t >= th.bl ? '#5B7FA6' : '#27AE60';
   };
   const lbl = (t, type) => {
-    if (type === 'composite') return t >= 65 ? 'Clínico' : t >= 60 ? 'Borderline' : 'Normativo';
-    return t >= 70 ? 'Clínico' : t >= 65 ? 'Borderline' : 'Normativo';
+    if (invalido) return 'Inválido';
+    if (t == null) return 'T por validar';
+    const th = type === 'composite' ? THRESHOLDS.composite : THRESHOLDS.syndrome;
+    return t >= th.clin ? 'Clínico' : t >= th.bl ? 'Borderline' : 'Normativo';
   };
 
   const composites = [
@@ -1758,10 +1856,10 @@ function printModal() {
 
   // Build bar HTML for composites
   const barRows = composites.map(r => {
-    const t = r.t || 50;
+    const t = r.t;
     const c = col(t, 'composite');
-    const borderlinePct = bw(60);
-    const clinicalPct = bw(65);
+    const borderlinePct = bw(THRESHOLDS.composite.bl);
+    const clinicalPct = bw(THRESHOLDS.composite.clin);
     return `<tr>
       <td style="width:160px;font-weight:600;font-size:11.5px;padding:9px 0;vertical-align:middle;">${r.name}</td>
       <td style="padding:9px 8px;vertical-align:middle;">
@@ -1771,9 +1869,9 @@ function printModal() {
           <div style="position:absolute;top:-3px;left:${clinicalPct}%;width:2px;height:16px;background:#C0392B;opacity:0.7;"></div>
         </div>
       </td>
-      <td style="width:58px;font-size:10px;color:#8a99a8;text-align:right;padding:9px 4px;vertical-align:middle;">raw=${r.raw ?? '—'}</td>
+      <td style="width:58px;font-size:10px;color:#8a99a8;text-align:right;padding:9px 4px;vertical-align:middle;">raw=${r.raw ?? '—'}${invalido?'†':''}</td>
       <td style="width:54px;text-align:center;padding:9px 4px;vertical-align:middle;">
-        <span style="display:inline-block;background:${c};color:white;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700;">T=${t}</span>
+        <span style="display:inline-block;background:${c};color:white;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700;">${invalido?'—':'T='+(t!=null?t:'—')}</span>
       </td>
       <td style="width:72px;font-size:10.5px;color:${c};font-weight:600;padding:9px 0;vertical-align:middle;">${lbl(t,'composite')}</td>
     </tr>`;
@@ -1781,13 +1879,13 @@ function printModal() {
 
   // Build syndrome rows HTML
   const synRow = (r) => {
-    const t = r.t || 50;
+    const t = r.t;
     const c = col(t, 'syndrome');
     return `<tr style="border-bottom:1px solid #f0f4f8;">
       <td style="font-size:10.5px;padding:6px 0;">${r.key}. ${r.name}</td>
-      <td style="font-size:9.5px;color:#8a99a8;text-align:right;padding:6px 4px;">raw=${r.raw ?? '—'}</td>
+      <td style="font-size:9.5px;color:#8a99a8;text-align:right;padding:6px 4px;">raw=${r.raw ?? '—'}${omStar(r.key)}${invalido?'†':''}</td>
       <td style="text-align:center;padding:6px 4px;">
-        <span style="display:inline-block;background:${c};color:white;padding:2px 8px;border-radius:20px;font-size:9.5px;font-weight:700;-webkit-print-color-adjust:exact;print-color-adjust:exact;">T=${t}</span>
+        <span style="display:inline-block;background:${c};color:white;padding:2px 8px;border-radius:20px;font-size:9.5px;font-weight:700;-webkit-print-color-adjust:exact;print-color-adjust:exact;">${invalido?'—':'T='+(t!=null?t:'—')}</span>
       </td>
       <td style="font-size:9.5px;color:${c};font-weight:600;padding:6px 0;-webkit-print-color-adjust:exact;print-color-adjust:exact;">${lbl(t,'syndrome')}</td>
     </tr>`;
@@ -1803,9 +1901,9 @@ function printModal() {
       const its = ITEMS.filter(i => { const n = parseFloat(i.n); return n >= from && n <= to; });
       const rows = its.map(i => {
         const v = (ansObj[i.n] !== undefined) ? ansObj[i.n] : (ansObj[String(i.n)] !== undefined ? ansObj[String(i.n)] : undefined);
-        const vStr = (v !== undefined && v !== null) ? String(v) : '—';
-        const bg = v == 2 ? '#FDECEA' : v == 1 ? '#FFF8E1' : '#F5F8FF';
-        const cor = v == 2 ? '#C0392B' : v == 1 ? '#E67E22' : '#8a99a8';
+        const vStr = (v !== undefined && v !== null && v !== '') ? String(v) : 'omisso';
+        const bg = v == 2 ? '#FDECEA' : v == 1 ? '#FFF8E1' : (vStr==='omisso' ? '#FDECEA' : '#F5F8FF');
+        const cor = v == 2 ? '#C0392B' : v == 1 ? '#E67E22' : (vStr==='omisso' ? '#C0392B' : '#8a99a8');
         return '<tr style="background:' + bg + ';">' +
           '<td style="width:28px;text-align:right;padding:3px 6px;color:#8a99a8;font-size:9px;">' + i.n + '</td>' +
           '<td style="padding:3px 6px;font-size:9.5px;">' + i.text + '</td>' +
@@ -1858,14 +1956,15 @@ function printModal() {
 <body>
   <div class="header">
     <div>
-      <div class="logo-name">CNS Campus Neurológico</div>
+      <div class="logo-name">Ricardina Correia · Psicologia Pediátrica</div>
       <div class="logo-sub">CBCL 6-18 — Questionário de Comportamentos da Criança</div>
     </div>
-    <div class="logo-sub" style="text-align:right;">Ricardina Correia · Cédula 8233<br>ricardinacorreia@cnscampus.com</div>
+    <div class="logo-sub" style="text-align:right;">Ricardina Correia · Cédula 8233<br>Ordem dos Psicólogos Portugueses</div>
   </div>
 
   <div class="patient-name">${s.childName} <span style="font-family:'DM Sans';font-size:12px;color:#8a99a8;font-weight:400;">· ${s.patientCode}</span></div>
   <div class="patient-meta">${sexLabel} · ${s.ageYears||'—'} anos · Grupo normativo: ${(s.ageGroup||s.ageYears)?normAgeGroup(s.ageGroup, s.ageYears):'—'} · Preenchido por: ${s.filledBy || s.preenchidoPor || '—'} · ${s.fillDate || s.submittedAt?.split('T')[0] || ''}</div>
+  ${invalido?`<div style="background:#C0392B;color:white;border-radius:8px;padding:10px 14px;margin-bottom:14px;font-weight:700;font-size:11px;">⛔ PROTOCOLO FORMALMENTE INVÁLIDO — ${scores.nOmissos} itens de problemas omissos (limite: ${LIMITE_OMISSOS}). Itens: ${scores.omissos.join(', ')}. Valores brutos = limites inferiores; sem classificação normativa.</div>`:(scores.nOmissos?`<div style="background:#FFF8E1;border-left:3px solid #E67E22;padding:7px 10px;margin-bottom:14px;font-size:9.5px;color:#7a5b1e;">⚠ ${scores.nOmissos} item(ns) omissos: ${scores.omissos.join(', ')} — somas das escalas afectadas são limites inferiores (assinaladas com *).</div>`:'')}
 
   <!-- COMPOSITES WITH BARS -->
   <div class="section-box">
@@ -1874,8 +1973,8 @@ function printModal() {
       <tbody>${barRows}</tbody>
     </table>
     <div style="margin-top:10px;display:flex;gap:20px;font-size:8.5px;color:#8a99a8;">
-      <span><span style="display:inline-block;width:10px;height:2px;background:#5B7FA6;vertical-align:middle;margin-right:3px;"></span>limiar Borderline (T=60)</span>
-      <span><span style="display:inline-block;width:10px;height:2px;background:#C0392B;vertical-align:middle;margin-right:3px;"></span>limiar Clínico (T=65)</span>
+      <span><span style="display:inline-block;width:10px;height:2px;background:#5B7FA6;vertical-align:middle;margin-right:3px;"></span>Borderline (compostos T${THRESHOLDS.composite.bl}–${THRESHOLDS.composite.clin-1} · síndromes T${THRESHOLDS.syndrome.bl}–${THRESHOLDS.syndrome.clin-1})</span>
+      <span><span style="display:inline-block;width:10px;height:2px;background:#C0392B;vertical-align:middle;margin-right:3px;"></span>Clínico (compostos T≥${THRESHOLDS.composite.clin} · síndromes T≥${THRESHOLDS.syndrome.clin})</span>
     </div>
   </div>
 
@@ -1904,7 +2003,7 @@ function printModal() {
 
   ${compHTML}
   ${respostasHTML}
-  <div class="footer" style="margin-top:18px;">Documento confidencial — uso clínico exclusivo · CNS Campus Neurológico · ricardinacorreia@cnscampus.com</div>
+  <div class="footer" style="margin-top:18px;">Documento confidencial — uso clínico exclusivo · Ricardina Correia · Psicologia Pediátrica · Cédula 8233 · Ordem dos Psicólogos Portugueses</div>
 </body>
 </html>`);
   printWin.document.close();
@@ -1995,23 +2094,24 @@ function exportarInterpretacaoPDF(sessaoParam) {
     alert('Seleccione primeiro uma sess\u00e3o (clique em "Ver detalhes").');
     return;
   }
-  if (!s.scores && !s['T_INT'] && !(s.answers && Object.keys(s.answers).length)) { alert('Esta sessão n\u00e3o tem scores calculados.'); return; }
-
-  const scores = resolveScores(s);
-  const tScores = scores.tScores || {};
-  const scaleRaws = scores.scaleRaws || {};
+  const resEI = resolverCotacaoValidada(s);
+  if (!resEI.ok) { alert('Cotação bloqueada pela camada de validação:\n\n' + resEI.erro + '\n\nNenhum relatório com valores é emitido.'); return; }
+  const scores = resEI.scores;
+  const tScores = scores.tScores;
+  const scaleRaws = scores.scaleRaws;
   const intRaw = scores.intRaw;
   const extRaw = scores.extRaw;
   const totRaw = scores.totRaw;
-  const tINT = tScores.INT || null;
-  const tEXT = tScores.EXT || null;
-  const tTOT = tScores.TOT || null;
+  const tINT = tScores.INT != null ? tScores.INT : null;
+  const tEXT = tScores.EXT != null ? tScores.EXT : null;
+  const tTOT = tScores.TOT != null ? tScores.TOT : null;
   const dt = s.submittedAt ? new Date(s.submittedAt).toLocaleDateString('pt-PT') : (s.fillDate||'\u2014');
 
-  function row(label, raw, t, bold) {
-    const zona = !t ? '\u2014' : t>=65?'Cl\u00ednica':t>=60?'Aten\u00e7\u00e3o':'Normal';
-    const cor  = !t ? '#6B7A8D' : t>=65?'#C0392B':t>=60?'#E67E22':'#27AE60';
-    const pct  = t ? Math.min(100,Math.round(((t-35)/65)*100)) : 0;
+  function row(label, raw, t, bold, comp) {
+    const th = comp ? THRESHOLDS.composite : THRESHOLDS.syndrome;
+    const zona = scores.invalido ? 'Inv\u00e1lido' : (t==null ? 'T por validar' : t>=th.clin?'Cl\u00ednica':t>=th.bl?'Borderline':'Normal');
+    const cor  = scores.invalido ? '#C0392B' : (t==null ? '#6B7A8D' : t>=th.clin?'#C0392B':t>=th.bl?'#E67E22':'#27AE60');
+    const pct  = t != null ? Math.min(100,Math.round(((t-35)/65)*100)) : 0;
     return '<tr'+(bold?' style="background:#EBF2F8;"':'')+'>'+
       '<td style="padding:5px 8px;border-bottom:1px solid #eee;">'+(bold?'<strong>'+label+'</strong>':label)+'</td>'+
       '<td style="padding:5px 8px;border-bottom:1px solid #eee;text-align:center;">'+(raw!==undefined?raw:'\u2014')+'</td>'+
@@ -2020,36 +2120,26 @@ function exportarInterpretacaoPDF(sessaoParam) {
       '<td style="padding:5px 8px;border-bottom:1px solid #eee;color:'+cor+';font-weight:600;">'+zona+'</td></tr>';
   }
 
-  const syndromeLabels = {
-    I:'Ansiedade/Depress\u00e3o', II:'Isolamento/Depress\u00e3o', III:'Queixas Som\u00e1ticas',
-    IV:'Problemas Sociais', V:'Problemas de Pensamento', VI:'Problemas de Aten\u00e7\u00e3o',
-    VII:'Comportamento Delinquente', VIII:'Comportamento Agressivo'
-  };
-
+  // Rótulos alinhados com SCALES (VII = Quebra de Regras, revisão 2001)
   let synRows = '';
-  if (tScores && Object.keys(tScores).length > 0) {
-    Object.entries(syndromeLabels).forEach(([key,label]) => {
-      const t = tScores[key];
-      const raw = scaleRaws ? scaleRaws[key] : null;
-      synRows += row(label, raw, t, false);
-    });
-  }
+  Object.entries(SCALES).forEach(([key,scale]) => {
+    synRows += row(scale.name, scaleRaws[key], tScores[key], false, false);
+  });
 
   const compRows = [
-    row('Internaliza\u00e7\u00e3o', intRaw, tINT, false),
-    row('Externaliza\u00e7\u00e3o', extRaw, tEXT, false),
-    row('Total de Problemas', totRaw, tTOT, true),
+    row('Internaliza\u00e7\u00e3o', intRaw, tINT, false, true),
+    row('Externaliza\u00e7\u00e3o', extRaw, tEXT, false, true),
+    row('Total de Problemas', totRaw, tTOT, true, true),
   ].join('');
 
-  // Respostas item-a-item — chaves são strings (ex: '1', '56a')
+  // Registo item a item COMPLETO (inclui 56a–56h e 113); omissos assinalados.
   const answers = s.answers || {};
-  const totalItems = 113;
   let respRows = '';
-  for (let i=1; i<=totalItems; i++) {
-    // Tentar chave numérica e string
-    const r = (answers[i] !== undefined) ? answers[i] : (answers[String(i)] !== undefined ? answers[String(i)] : '\u2014');
-    respRows += '<tr><td style="padding:3px 6px;border-bottom:1px solid #f0f0f0;color:#999;text-align:center;width:30px;">'+i+'</td>'+
-      '<td style="padding:3px 6px;border-bottom:1px solid #f0f0f0;text-align:center;font-weight:700;width:40px;">'+r+'</td></tr>';
+  for (const it of ITEMS) {
+    const v = (answers[it.n] !== undefined) ? answers[it.n] : (answers[String(it.n)] !== undefined ? answers[String(it.n)] : null);
+    const r = (v !== null && v !== undefined && v !== '') ? String(v) : 'omisso';
+    respRows += '<tr><td style="padding:3px 6px;border-bottom:1px solid #f0f0f0;color:#999;text-align:center;width:30px;">'+it.n+'</td>'+
+      '<td style="padding:3px 6px;border-bottom:1px solid #f0f0f0;text-align:center;font-weight:700;width:60px;'+(r==='omisso'?'color:#C0392B;':'')+'">'+r+'</td></tr>';
   }
 
   const html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>CBCL 6-18 Interpreta\u00e7\u00e3o</title>'+
@@ -2064,11 +2154,12 @@ function exportarInterpretacaoPDF(sessaoParam) {
     (s.childName?' &nbsp;|&nbsp; Crian\u00e7a: <strong>'+s.childName+'</strong>':'')+
     (s.nome_preenche?' &nbsp;|&nbsp; Respondente: <strong>'+s.nome_preenche+'</strong>':'')+
     ' &nbsp;|&nbsp; Data: '+dt+' &nbsp;|&nbsp; Ricardina Correia \u00b7 C\u00e9dula 8233</p>'+
+    (scores.invalido?'<div style="background:#C0392B;color:white;border-radius:8px;padding:10px 14px;margin-bottom:12px;font-weight:700;">\u26d4 PROTOCOLO FORMALMENTE INV\u00c1LIDO \u2014 '+scores.nOmissos+' itens de problemas omissos (limite: '+LIMITE_OMISSOS+'). Itens: '+scores.omissos.join(', ')+'. Valores brutos = limites inferiores; sem classifica\u00e7\u00e3o normativa.</div>':(scores.nOmissos?'<div style="background:#FFF8E1;border-left:3px solid #E67E22;padding:8px 10px;margin-bottom:12px;font-size:11px;color:#7a5b1e;">\u26a0 '+scores.nOmissos+' item(ns) omissos: '+scores.omissos.join(', ')+' \u2014 somas das escalas afectadas s\u00e3o limites inferiores.</div>':''))+
     '<h2>S\u00edndromes Cl\u00ednicas</h2>'+
     '<table><thead><tr><th>S\u00edndrome</th><th style="text-align:center">Bruto</th><th style="text-align:center">T</th><th>Perfil</th><th>Zona</th></tr></thead><tbody>'+synRows+'</tbody></table>'+
     '<h2>Escalas Compostas</h2>'+
     '<table><thead><tr><th>Escala</th><th style="text-align:center">Bruto</th><th style="text-align:center">T</th><th>Perfil</th><th>Zona</th></tr></thead><tbody>'+compRows+'</tbody></table>'+
-    '<h2>Respostas por Item (113 itens)</h2>'+
+    '<h2>Respostas por Item ('+ITEMS.length+' itens)</h2>'+
     '<table style="width:auto"><thead><tr><th style="text-align:center">#</th><th style="text-align:center">Resp.</th></tr></thead><tbody>'+respRows+'</tbody></table>'+
     '<p style="margin-top:18px;font-style:italic;color:#999;font-size:10px;">Interpreta\u00e7\u00e3o autom\u00e1tica \u2014 integrar no contexto cl\u00ednico completo.</p>'+
     '</body></html>';
