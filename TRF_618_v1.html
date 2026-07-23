@@ -538,7 +538,7 @@ input,select,textarea,button{font-family:'DM Sans',sans-serif;}
       <div class="panel-title">TRF 6-18 · Painel Clínico</div>
       <div style="display:flex;gap:8px;">
         <button style="padding:8px 18px;background:#1E7E5A;color:white;border:none;border-radius:8px;font-size:0.85rem;font-weight:600;cursor:pointer;" onclick="syncToSheets()">⬆ Enviar para Sheet</button>
-        <button style="padding:8px 18px;background:#3B5A7A;color:white;border:none;border-radius:8px;font-size:0.85rem;font-weight:600;cursor:pointer;" onclick="carregarDoSheet()">↺ Sincronizar Sheet</button>
+        <button style="padding:8px 18px;background:#3B5A7A;color:white;border:none;border-radius:8px;font-size:0.85rem;font-weight:600;cursor:pointer;" id="btn-sync-trf" onclick="carregarDoSheet(event)">↺ Sincronizar Sheet</button>
         <button style="padding:8px 18px;background:#5B7FA6;color:white;border:none;border-radius:8px;font-size:0.85rem;font-weight:600;cursor:pointer;" onclick="exportarRespostasPDF(sessaoActual)">📋 Respostas PDF</button>
         <button style="padding:8px 18px;background:#5B7FA6;color:white;border:none;border-radius:8px;font-size:0.85rem;font-weight:600;cursor:pointer;" onclick="exportarInterpretacaoPDF(sessaoActual)">📊 Exportar Interpretação PDF</button>
         <button style="padding:8px 18px;background:#5B7FA6;color:white;border:none;border-radius:8px;font-size:0.85rem;font-weight:600;cursor:pointer;" onclick="exportarDados()">📤 Exportar</button>
@@ -980,11 +980,13 @@ function scoreProtocol(formId, ans, sex, ageGroup) {
     for (const it of sc.items) { const v = getV(it);
       if (v===null) om.push(it); else { valores[it]=v; raw+=v; nResp++; } }
     const rawMax = 2*sc.items.length;
-    const T = getT(raw, k, sex, ageGroup);
+    // Escala sem qualquer item respondido: o bruto 0 traduz AUSÊNCIA DE DADOS,
+    // não um zero clínico. Não se converte em T (seria ler "Normativo" de nada).
+    const T = nResp === 0 ? null : getT(raw, k, sex, ageGroup);
     escalas[k] = { escala:k, nome:sc.name, itens:sc.items.slice(), valores, omissos:om,
       raw, rawMax, nRespondidos:nResp, T,
       tabela: NORMAS_VALIDADAS ? ('TRF/'+sex+'/'+ageGroup+'/'+k+'/linha '+raw) : 'suspensa (por transcrever do perfil em papel)',
-      limiar: THRESHOLDS.syndrome, limiteInferior: om.length>0,
+      limiar: THRESHOLDS.syndrome, limiteInferior: om.length>0, semDados: nResp === 0,
       estimado: T!=null && ehEstimado(sex, ageGroup, k, raw),
       classificacao: invalido ? 'invalido' : classify(T,false) };
     scaleRaws[k]=raw;
@@ -1028,7 +1030,7 @@ function validarCotacao(r) {
       throw CotacaoErro('T_FORA_TABELA', k, 'T='+e.T+' fora do intervalo admissível da tabela.');
     // Asserção 4
     if (e.nRespondidos===0 && e.T!=null)
-      throw CotacaoErro('ESCALA_SEM_RESPOSTAS', k, 'nenhum item respondido mas T/classificação atribuídos.');
+      throw CotacaoErro('ESCALA_SEM_RESPOSTAS', k, 'nenhum item respondido mas T atribuído — invariante violada.');
   }
   // Asserção 7 — coerência dos compostos
   if (r.scaleRaws.I+r.scaleRaws.II+r.scaleRaws.III !== r.intRaw)
@@ -1155,16 +1157,20 @@ async function syncToSheets() {
 }
 
 // ══════════════ CARREGAR DO SHEET (doGet) ══════════════
-async function carregarDoSheet() {
-  const btn = event.target;
-  btn.disabled = true; btn.textContent = '⏳ A carregar...';
+async function carregarDoSheet(ev) {
+  // Referência ao botão robusta: não depender do 'event' implícito (pode ser
+  // undefined e rebentar ANTES do try, deixando o botão preso e sem mensagem).
+  const btn = (ev && ev.target) || (typeof event !== 'undefined' && event && event.target)
+              || document.getElementById('btn-sync-trf');
+  const txt = btn ? btn.textContent : '';
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ A carregar...'; }
   try {
     const url = 'https://script.google.com/macros/s/AKfycbxX2_Ry7VRH6jr7eGBMmtmyZFXZc69blwdO5bqJK0j69HRSexpXXPuEfDC5OHQRMLLL/exec'
       + '?instrumento=TRF_618&t=' + Date.now();
     const res = await fetch(url);
     const data = await res.json();
     if (!data || !data.rows || !data.rows.length) {
-      alert('Sem dados no Sheet para este instrumento (TRF_618).'); return;
+      alert('O Sheet não devolveu registos para o TRF_618.'); return;
     }
     const sessions = loadSessions();
     let importados = 0;
@@ -1223,7 +1229,7 @@ async function carregarDoSheet() {
     alert('Erro ao carregar do Sheet: ' + e.message);
     console.error(e);
   } finally {
-    btn.disabled = false; btn.textContent = '↺ Sincronizar Sheet';
+    if (btn) { btn.disabled = false; btn.textContent = txt || '↺ Sincronizar Sheet'; }
   }
 }
 

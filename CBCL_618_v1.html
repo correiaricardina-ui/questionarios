@@ -421,7 +421,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--gray-bg);color:var(--text
     <div class="panel-header">
       <div class="panel-title">Painel Clínico — CBCL 6-18</div>
       <div style="display:flex;gap:10px;">
-        <button class="btn-nav btn-back" onclick="syncFromSheets()" style="font-size:0.82rem;padding:8px 16px;">🔄 Sincronizar</button>
+        <button id="btn-sync" class="btn-nav btn-back" onclick="syncFromSheets(true)" style="font-size:0.82rem;padding:8px 16px;">🔄 Sincronizar</button>
         <button class="btn-nav btn-back" onclick="limparESync()" style="font-size:0.82rem;padding:8px 16px;background:#E67E22;color:white;border:none;" title="Apaga dados locais e volta a importar tudo do Sheet">🗑+🔄 Reimportar Sheet</button>
         <button class="btn-nav btn-back" onclick="syncToSheets()" style="font-size:0.82rem;padding:8px 16px;background:var(--green,#1E7E5A);color:white;border:none;">⬆ Enviar para Sheet</button>
         <button class="btn-nav btn-back" onclick="exportarDados()" style="font-size:0.82rem;padding:8px 16px;background:#5B7FA6;color:white;border:none;">📤 Exportar</button>
@@ -1016,11 +1016,13 @@ function scoreProtocol(formId, ans, sex, ageGroup) {
     for (const item of scale.items) { const v = getV(item);
       if (v===null) om.push(item); else { valores[item]=v; raw+=v; nResp++; } }
     const rawMax = 2*scale.items.length;
-    const T = getT(raw, key, sex, ageGroup);
+    // Escala sem qualquer item respondido: o bruto 0 traduz AUSÊNCIA DE DADOS,
+    // não um zero clínico. Não se converte em T (seria ler "Normativo" de nada).
+    const T = nResp === 0 ? null : getT(raw, key, sex, ageGroup);
     escalas[key] = { escala:key, nome:scale.name, itens:scale.items.slice(), valores, omissos:om,
       raw, rawMax, nRespondidos:nResp, T,
       tabela: NORMAS_VALIDADAS ? ('CBCL/'+sex+'/'+ageGroup+'/'+key+'/linha '+raw) : 'suspensa (por transcrever do perfil em papel)',
-      limiar: THRESHOLDS.syndrome, limiteInferior: om.length>0,
+      limiar: THRESHOLDS.syndrome, limiteInferior: om.length>0, semDados: nResp === 0,
       estimado: T!=null && ehEstimado(sex, ageGroup, key, raw),
       classificacao: invalido ? 'invalido' : (T==null?'unknown':(T>=THRESHOLDS.syndrome.clin?'clin':T>=THRESHOLDS.syndrome.bl?'bl':'norm')) };
     scaleRaws[key] = raw;
@@ -1060,7 +1062,7 @@ function validarCotacao(r) {
       throw CotacaoErro('T_FORA_TABELA', k, 'T='+e.T+' fora do intervalo admissível da tabela.');
     // Asserção 4
     if (e.nRespondidos===0 && e.T!=null)
-      throw CotacaoErro('ESCALA_SEM_RESPOSTAS', k, 'nenhum item respondido mas T/classificação atribuídos.');
+      throw CotacaoErro('ESCALA_SEM_RESPOSTAS', k, 'nenhum item respondido mas T atribuído — invariante violada.');
   }
   // Asserção 7 — coerência dos compostos
   if (r.scaleRaws.I+r.scaleRaws.II+r.scaleRaws.III !== r.intRaw)
@@ -1463,13 +1465,25 @@ function loadPanel() {
   renderPanel();
 }
 
-async function syncFromSheets() {
-  if (!CBCL_SCRIPT_URL) return;
+async function syncFromSheets(avisar) {
+  const btnSync = document.getElementById('btn-sync');
+  const txtSync = btnSync ? btnSync.textContent : '';
+  if (btnSync && avisar) { btnSync.disabled = true; btnSync.textContent = '⏳ A sincronizar...'; }
+  let importados = 0;
+  if (!CBCL_SCRIPT_URL) {
+    if (avisar) alert('URL do Apps Script não configurado.');
+    if (btnSync) { btnSync.disabled = false; btnSync.textContent = txtSync; }
+    return;
+  }
   try {
     const res = await fetch(CBCL_SCRIPT_URL + '?instrumento=CBCL_618&t=' + Date.now());
     const data = await res.json();
     const data2 = Array.isArray(data) ? data : (data && data.rows ? data.rows : []);
-    if (!data2.length) return;
+    if (!data2.length) {
+      if (avisar) alert('O Sheet não devolveu registos para o CBCL_618.');
+      if (btnSync) { btnSync.disabled = false; btnSync.textContent = txtSync; }
+      return;
+    }
     const all = load(STORE_KEY) || [];
     let changed = false;
 
@@ -1529,21 +1543,25 @@ async function syncFromSheets() {
         // Preservar campos locais que não vêm do Sheet
         if (all[idx].compAnswers) sessaoSheet.compAnswers = all[idx].compAnswers;
         if (all[idx].dob && !sessaoSheet.dob) sessaoSheet.dob = all[idx].dob;
-        if (all[idx].scores && all[idx].scores.scaleRaws) {
-          sessaoSheet.scores.scaleRaws = all[idx].scores.scaleRaws;
-          sessaoSheet.scores.intRaw    = all[idx].scores.intRaw;
-          sessaoSheet.scores.extRaw    = all[idx].scores.extRaw;
-          sessaoSheet.scores.totRaw    = all[idx].scores.totRaw || sessaoSheet.scores.totRaw;
-        }
+        // Nota: não se copiam scores em cache. A cotação é SEMPRE recalculada das
+        // respostas por resolverCotacaoValidada — valores guardados podem estar
+        // desactualizados e foram a origem do defeito de 10/07/2026.
         all[idx] = sessaoSheet;
       } else {
         all.push(sessaoSheet);
       }
-      changed = true;
+      changed = true; importados++;
     }
 
     if (changed) { store(STORE_KEY, all); renderPanel(); }
-  } catch(e) { console.log('Sync error:', e); }
+    if (avisar) alert(importados + ' registo(s) importado(s)/actualizado(s) do Sheet.\nTotal local: ' + all.length);
+  } catch(e) {
+    console.error('Sync error:', e);
+    if (avisar) alert('Não foi possível sincronizar com o Sheet:\n\n' + (e && e.message ? e.message : e) +
+      '\n\nAs sessões locais não foram alteradas.');
+  } finally {
+    if (btnSync) { btnSync.disabled = false; btnSync.textContent = txtSync; }
+  }
 }
 
 function limparESync() {
