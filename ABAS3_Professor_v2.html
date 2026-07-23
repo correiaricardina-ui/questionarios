@@ -1132,6 +1132,64 @@ function exportarInterpretacaoPDF(sessao) {
 })();
 
 
+/* --- exportarRelatorioCompleto (PATCH v3): relatório honesto — bruto + saturação + leitura, sem SS/índices --- */
+window.exportarRelatorioCompleto=function(sessao){
+  if(!sessao){ alert('Seleccione primeiro uma sess\u00e3o (clique em "Ver \u2192").'); return; }
+  var ans=(typeof sessao.answers==='string')?sessao.answers.split('|'):(sessao.answers||[]);
+  var res=calcularResultados(ans);
+  var nome={COM:'Comunica\u00e7\u00e3o',CU:'Recursos Comunit\u00e1rios/Escolares',HL:'Vida no Lar/Sala',HS:'Sa\u00fade e Seguran\u00e7a',LE:'Lazer',SD:'Autonomia Pessoal',SO:'Socializa\u00e7\u00e3o',FA:'Habilidades Acad\u00e9micas',WK:'Trabalho'};
+  var dt=sessao.date?fmtData(sessao.date):'\u2014';
+  var linhas='';
+  DOMAINS.forEach(function(d){
+    var x=res.dom[d.code]; if(!x) return;
+    var lc=x.leitura==='Reservada'?'#d68910':(x.leitura==='\u2014'?'#999':'#2c3e50');
+    linhas+='<tr><td style="padding:5px 8px;border-bottom:1px solid #eee;">'+(nome[d.code]||d.code)+'</td>'+
+      '<td style="padding:5px 8px;border-bottom:1px solid #eee;text-align:center;">'+(x.adm?x.sb:'\u2014')+'</td>'+
+      '<td style="padding:5px 8px;border-bottom:1px solid #eee;text-align:center;">'+x.adm+'/'+x.tot+'</td>'+
+      '<td style="padding:5px 8px;border-bottom:1px solid #eee;text-align:center;">'+Math.round(x.sat*100)+'%</td>'+
+      '<td style="padding:5px 8px;border-bottom:1px solid #eee;text-align:center;color:'+lc+';font-weight:600;">'+x.leitura+'</td></tr>';
+  });
+  var allItems=[]; DOMAINS.forEach(function(d){ d.items.forEach(function(it){ allItems.push({dom:d.code,text:it}); }); });
+  var respostas=ans.map(function(r,i){
+    var it=allItems[i]||{};
+    var rv=(r===''||r===undefined)?'\u2014':r;
+    return '<tr><td style="padding:3px 6px;border-bottom:1px solid #f0f0f0;color:#999;text-align:center;">'+(i+1)+'</td>'+
+      '<td style="padding:3px 6px;border-bottom:1px solid #f0f0f0;color:#5B7FA6;font-size:11px;">'+(it.dom||'')+'</td>'+
+      '<td style="padding:3px 6px;border-bottom:1px solid #f0f0f0;font-size:11px;">'+(it.text||'Item '+(i+1))+'</td>'+
+      '<td style="padding:3px 6px;border-bottom:1px solid #f0f0f0;text-align:center;font-weight:700;">'+rv+'</td></tr>';
+  }).join('');
+  var html='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>ABAS-3 Professor \u00b7 Relat\u00f3rio \u00b7 '+sessao.patientCode+'</title>'+
+    '<style>body{font-family:Arial,sans-serif;font-size:12px;color:#2C3E50;padding:24px;max-width:900px;margin:0 auto;}'+
+    'h1{color:#3B5A7A;font-size:16px;margin-bottom:4px;}h2{color:#3B5A7A;font-size:13px;margin:18px 0 8px;border-bottom:2px solid #D6E4F0;padding-bottom:4px;}'+
+    'p{color:#6B7A8D;margin-bottom:12px;font-size:11px;}table{width:100%;border-collapse:collapse;margin-bottom:16px;}'+
+    'th{background:#D6E4F0;padding:6px 8px;text-align:left;color:#3B5A7A;font-size:11px;}'+
+    '.aviso{background:#fcf3e2;border-left:4px solid #d68910;padding:10px 14px;border-radius:6px;margin-bottom:16px;font-size:11px;color:#7a5b12;}'+
+    '.sintese{font-size:11.5px;color:#2C3E50;line-height:1.55;}.sintese p{color:#2C3E50;font-size:11.5px;}'+
+    '.no-print{margin-bottom:16px;}@media print{.no-print{display:none;}body{padding:12px;}}</style></head><body>'+
+    '<div class="no-print"><button onclick="window.print()" style="padding:6px 14px;cursor:pointer;">\uD83D\uDDA8 Imprimir / Guardar PDF</button></div>'+
+    '<h1>ABAS-3 Professor \u2014 Relat\u00f3rio de Avalia\u00e7\u00e3o</h1>'+
+    '<p>C\u00f3digo: <strong>'+sessao.patientCode+'</strong>'+
+    (sessao.nomeCrianca?' &nbsp;|&nbsp; Aluno: <strong>'+sessao.nomeCrianca+'</strong>':'')+
+    (sessao.nomeInformante?' &nbsp;|&nbsp; Professor/a: <strong>'+sessao.nomeInformante+'</strong>':'')+
+    (sessao.parentesco?' &nbsp;|&nbsp; '+sessao.parentesco:'')+
+    (sessao.idade?' &nbsp;|&nbsp; Idade: '+sessao.idade:'')+
+    ' &nbsp;|&nbsp; Data: '+dt+' &nbsp;|&nbsp; Ricardina Correia \u00b7 C\u00e9dula 8233 \u00b7 Psicologia Pedi\u00e1trica</p>'+
+    '<div class="aviso"><strong>Registo sem convers\u00e3o normativa.</strong> Apresentam-se scores brutos e satura\u00e7\u00e3o de resposta. A convers\u00e3o para scores padronizados exige as tabelas oficiais do ABAS-3 por idade.</div>'+
+    '<h2>Scores por Dom\u00ednio</h2>'+
+    '<table><thead><tr><th>Dom\u00ednio</th><th style="text-align:center;">Bruto</th><th style="text-align:center;">Itens resp.</th><th style="text-align:center;">Satura\u00e7\u00e3o</th><th style="text-align:center;">Leitura</th></tr></thead>'+
+    '<tbody>'+linhas+'</tbody></table>'+
+    '<h2>S\u00edntese interpretativa</h2>'+
+    '<div class="sintese">'+sinteseABAS(res)+'</div>'+
+    (respostas?'<h2>Respostas por Item</h2>'+
+      '<table><thead><tr><th style="text-align:center;">#</th><th>Dom.</th><th>Item</th><th style="text-align:center;">Resp.</th></tr></thead>'+
+      '<tbody>'+respostas+'</tbody></table>':'')+
+    '<p style="margin-top:24px;font-style:italic;color:#999;">Relat\u00f3rio autom\u00e1tico \u2014 integrar sempre no contexto cl\u00ednico completo da avalia\u00e7\u00e3o (observa\u00e7\u00e3o directa, outros informantes, instrumentos complementares).</p>'+
+    '</body></html>';
+  var w=window.open('','_blank');
+  if(!w){ alert('Pop-up bloqueado. Permite pop-ups para este site.'); return; }
+  w.document.write(html); w.document.close();
+};
+
 /* --- renderTabela (sobreposição): sem SS/CAG, mostra domínios válidos --- */
 window.renderTabela=function(){
   var tbody=document.getElementById('sessions-body');

@@ -1228,18 +1228,18 @@ function carregarDados() {
       .then(function(r){ return r.json(); })
       .then(function(data){
         if (!data || !data.rows) return;
-        // Dedupe key: código + data + nome_informante (Secção 33)
+        // Dedupe key: código + data + relação + nome_informante (4 elementos — Secção 33)
         var existSet = {};
         for (var k = 0; k < sessoes.length; k++) {
           var s = sessoes[k];
-          var key = (s.codigo||'') + '|' + (s.data||'') + '|' + (s.nome_informante||'');
+          var key = (s.codigo||'') + '|' + (s.data||'') + '|' + (s.relacao||'') + '|' + (s.nome_informante||'');
           existSet[key] = true;
         }
         for (var r = 0; r < data.rows.length; r++) {
           var row = data.rows[r];
           var registo = construirRegistoFromRow(row);
           if (!registo) continue;
-          var k2 = (registo.codigo||'') + '|' + (registo.data||'') + '|' + (registo.nome_informante||'');
+          var k2 = (registo.codigo||'') + '|' + (registo.data||'') + '|' + (registo.relacao||'') + '|' + (registo.nome_informante||'');
           if (existSet[k2]) continue;
           sessoes.push(registo);
           existSet[k2] = true;
@@ -1365,13 +1365,21 @@ function renderPainel() {
 function abrirDetalhe(idx) {
   sessaoActual = sessoes[idx];
   if (!sessaoActual) return;
-  var modal = document.getElementById('detalhe-modal');
-  document.getElementById('detalhe-conteudo').innerHTML = construirHTMLDetalhe(sessaoActual);
-  modal.classList.add('active');
+  var modal = document.getElementById('modal-detalhe');
+  document.getElementById('modal-titulo').textContent = 'Detalhe \u00b7 ' + (sessaoActual.codigo || '\u2014');
+  document.getElementById('modal-subtitulo').textContent =
+    (sessaoActual.nome_avaliando || '') +
+    (sessaoActual.data ? ' \u00b7 ' + sessaoActual.data : '') +
+    (sessaoActual.relacao || sessaoActual.nome_informante
+      ? ' \u00b7 ' + (sessaoActual.relacao ? sessaoActual.relacao + ' ' : '') + (sessaoActual.nome_informante || '')
+      : '');
+  document.getElementById('modal-conteudo').innerHTML = construirHTMLDetalhe(sessaoActual);
+  modal.style.display = 'flex';
+  window.scrollTo(0, 0);
 }
 
 function fecharModal() {
-  document.getElementById('detalhe-modal').classList.remove('active');
+  document.getElementById('modal-detalhe').style.display = 'none';
   sessaoActual = null;
 }
 
