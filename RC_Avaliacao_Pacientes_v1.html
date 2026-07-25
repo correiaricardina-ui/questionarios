@@ -772,7 +772,9 @@ const QID_TO_ABA = {
   'q_cuidar_corpo':    'CUIDAR_CORPO',
   // ── CSAS / CSAS-P · Ansiedade de Separação (Méndez et al., 2014/2022) ──
   'q_csas':            'CSAS',
-  'q_csas_p':          'CSAS_P'
+  'q_csas_p':          'CSAS_P',
+  // ── BESAA · Escala de Estima Corporal (Mendelson et al., 2001) ──
+  'q_besaa':           'BESAA'
 };
 
 
@@ -1242,7 +1244,11 @@ const SYNC_KEY_TO_ABA = {
   'CUIDAR_CORPO':          'CUIDAR_CORPO',
   // ── CSAS / CSAS-P · Ansiedade de Separação (Méndez et al., 2014/2022) ──
   'csas':                  'CSAS',
-  'csas_p':                'CSAS_P'
+  'csas_p':                'CSAS_P',
+  // ── BESAA · Escala de Estima Corporal (Mendelson et al., 2001) ──
+  'besaa':                 'BESAA',
+  'BESAA':                 'BESAA',
+  'BESAA_v1':              'BESAA'
 };
 
 // Cache em memória das respostas do Sheet (evita fetch repetidos na mesma sessão)
@@ -3850,6 +3856,32 @@ function formatScoreSummary(scores, syncKey) {
       const extra = partes.length ? ' · ' + partes.join(' ') : '';
       return '<span style="font-size:0.78rem;' + cls + '">AIS-8 = ' + v + '/24'
            + (banda ? ' · ' + banda : '') + extra + '</span>';
+    }
+  }
+  // ── BESAA · Escala de Estima Corporal (Mendelson et al., 2001) ────
+  // Inserida ANTES do fallback genérico (que preempta qualquer branch colocada depois).
+  // Aceita as chaves do Sheet central (Score_*) e as variantes locais (BE_*).
+  if(syncKey === 'besaa' || syncKey === 'BESAA' || syncKey === 'BESAA_v1') {
+    const bAp = scores['Score_Aparencia'] ?? scores['Score_Aparência'] ?? scores['BE_Aparencia'] ?? scores['BE_Aparência'] ?? scores['aparScore'] ?? null;
+    const bPe = scores['Score_Peso']      ?? scores['BE_Peso']      ?? scores['pesoScore']  ?? null;
+    const bAt = scores['Score_Atribuicao']?? scores['Score_Atribuição'] ?? scores['BE_Atribuicao'] ?? scores['BE_Atribuição'] ?? scores['atribScore'] ?? null;
+    const bTo = scores['Score_Total']     ?? scores['BE_Total']     ?? scores['total']      ?? null;
+    if(bAp != null || bPe != null || bAt != null || bTo != null) {
+      const partesBE = [];
+      if(bAp != null) partesBE.push('Ap=' + bAp);
+      if(bPe != null) partesBE.push('Pe=' + bPe);
+      if(bAt != null) partesBE.push('At=' + bAt);
+      let corBE = 'var(--blue-dark)', pesoBE = '600';
+      if(bTo != null) {
+        const tNum = parseFloat(bTo);
+        if(!isNaN(tNum)) {
+          corBE  = tNum >= 69 ? '#27AE60' : tNum >= 46 ? '#E67E22' : '#C0392B';
+          pesoBE = tNum < 46 ? '700' : '600';
+        }
+      }
+      const totalBE = bTo != null ? 'BESAA = ' + bTo + '/92' : 'BESAA';
+      return '<span style="font-size:0.78rem;font-weight:' + pesoBE + ';color:' + corBE + '">'
+           + totalBE + (partesBE.length ? ' · ' + partesBE.join(' ') : '') + '</span>';
     }
   }
   // Genérico
