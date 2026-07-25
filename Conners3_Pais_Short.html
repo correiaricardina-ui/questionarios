@@ -776,11 +776,18 @@ body{font-family:'DM Sans',sans-serif;background:var(--gray);color:var(--text);m
         <div style="font-size:.82rem;color:var(--text-light)">Normas: Appendix B Combined Gender · Conners 3rd Edition™ · MHS Inc. © 2008/2009</div>
       </div>
       <div style="display:flex;gap:8px;flex-wrap:wrap" class="no-print">
+        <button class="btn btn-secondary btn-sm" id="btn-sync" onclick="carregarDados()">↺ Sincronizar</button>
+        <button class="btn btn-secondary btn-sm" onclick="importarCSV()">⬆ Importar</button>
         <button class="btn btn-secondary btn-sm" onclick="exportarCSV()">⬇ CSV</button>
+        <button class="btn btn-secondary btn-sm" onclick="exportarPDF()">📄 Exportar PDF</button>
+        <button class="btn btn-secondary btn-sm" onclick="window.print()">🖨 Imprimir</button>
         <button class="btn btn-secondary btn-sm" onclick="limparDados()">🗑 Limpar</button>
         <button class="btn btn-ghost btn-sm" style="background:var(--blue);color:white" onclick="showPage('page-home')">← Início</button>
+        <input type="file" id="import-file-input" accept=".csv" style="display:none" onchange="processarFicheiroImportado(this)">
       </div>
     </div>
+
+    <div id="import-feedback" style="margin-bottom:12px;display:none" class="no-print"></div>
 
     <div id="clinico-vazio" class="card" style="text-align:center;padding:40px;color:var(--text-light)">
       <div style="font-size:2rem;margin-bottom:12px">📭</div>
@@ -815,11 +822,16 @@ body{font-family:'DM Sans',sans-serif;background:var(--gray);color:var(--text);m
         <h3 style="font-family:'DM Serif Display',serif;color:var(--blue);font-size:1.3rem" id="modal-titulo">Resultados</h3>
         <div style="font-size:.8rem;color:var(--text-light)" id="modal-subtitulo"></div>
       </div>
-      <button class="btn btn-secondary btn-sm no-print" onclick="document.getElementById('modal-detalhe').style.display='none'">✕ Fechar</button>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end" class="no-print">
+        <button class="btn btn-secondary btn-sm" onclick="exportarRespostasPDF(sessaoActual)">📋 Respostas PDF</button>
+        <button class="btn btn-secondary btn-sm" onclick="exportarRelatorioPDF(sessaoActual)">📊 Relatório Completo PDF</button>
+        <button class="btn btn-secondary btn-sm" onclick="document.getElementById('modal-detalhe').style.display='none'">✕ Fechar</button>
+      </div>
     </div>
     <div id="modal-corpo"></div>
     <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:20px;flex-wrap:wrap" class="no-print">
-      <button class="btn btn-secondary btn-sm" onclick="exportarRelatorioPDF()">📄 PDF Relatório Completo</button>
+      <button class="btn btn-secondary btn-sm" onclick="exportarRespostasPDF(sessaoActual)">📋 Respostas PDF</button>
+      <button class="btn btn-secondary btn-sm" onclick="exportarRelatorioPDF(sessaoActual)">📊 Relatório Completo PDF</button>
       <button class="btn btn-secondary btn-sm" onclick="window.print()">🖨 Imprimir</button>
     </div>
   </div>
@@ -1087,6 +1099,9 @@ function verDetalhe(id) {
   html += '<div style="font-size:.72rem;color:var(--text-light);margin-top:6px">● Vermelho: T≥70 (Clínica) · Laranja: T65–69 (Borderline) · Azul: T&lt;65 (Normativa)</div>';
   html += '</div>';
 
+  // Interpretação clínica
+  html += interpretacaoHTML(s, false);
+
   // Nota de rodapé
   html += '<div style="margin-top:20px;font-size:.72rem;color:var(--text-light);border-top:1px solid var(--gray-bdr);padding-top:10px">';
   html += 'Normas: Appendix B Combined Gender — Conners 3rd Edition™, MHS Inc. © 2008/2009 · ';
@@ -1115,8 +1130,8 @@ function verDetalhe(id) {
   document.getElementById('modal-detalhe').style.display = 'flex';
 }
 
-function exportarRelatorioPDF() {
-  const s = sessaoActual;
+function exportarRelatorioPDF(sess) {
+  const s = sess || sessaoActual;
   if (!s) { alert('Seleccione primeiro uma sessão (clique em "Ver →").'); return; }
   const dt = s.data || '—';
   const nomeCrianca = s.nomeCrianca || '';
@@ -1182,6 +1197,7 @@ function exportarRelatorioPDF() {
     ' &nbsp;|&nbsp; Data: <strong>'+dt+'</strong> &nbsp;|&nbsp; Ricardina Correia · Cédula 8233</p>'+
     '<h2>Resultados por Escala</h2>'+tabelaEsc+
     '<h2>Perfil Visual</h2>'+perfil+
+    interpretacaoHTML(s, true)+
     '<div style="font-size:10px;color:#888;border-top:1px solid #eee;padding-top:8px">'+
     'Normas: Appendix B Combined Gender — Conners 3rd Edition™, MHS Inc. © 2008/2009 · '+
     'T≥70 = Clinicamente significativo · T65–69 = Borderline · T&lt;65 = Normativo</div>'+
@@ -1216,24 +1232,447 @@ function limparDados() {
 function exportarCSV() {
   if (!sessoes.length) { alert('Sem dados para exportar.'); return; }
   const esc_codes = ESCALAS.map(e=>e.code);
-  let csv = 'Data,Hora,Codigo,Crianca,Respondente,Idade';
-  for (const c of esc_codes) csv += ',Raw_'+c+',T_'+c;
-  csv += '\n';
+  const q = function(v) {
+    const s = (v === null || v === undefined) ? '' : String(v);
+    return '"' + s.replace(/"/g, '""') + '"';
+  };
+  let cab = ['Data','Hora','Codigo','Crianca','Respondente','Relacao','Idade'];
+  for (const c of esc_codes) { cab.push('Raw_'+c); cab.push('T_'+c); }
+  cab.push('Respostas');
+  let csv = cab.map(q).join(',') + '\r\n';
   for (const s of sessoes) {
-    csv += [s.data,s.hora,s.code,s.nomeCrianca,s.nomeInf,s.idade||''].join(',');
+    const linha = [s.data, s.hora, s.code, s.nomeCrianca, s.nomeInf, s.relacao||RELACAO_DEF, s.idade||''];
     for (const c of esc_codes) {
-      csv += ','+(s.scores[c]??'')+(','+(s.tscores[c]||''));
+      linha.push(s.scores && s.scores[c] !== null && s.scores[c] !== undefined ? s.scores[c] : '');
+      linha.push(s.tscores && s.tscores[c] !== null && s.tscores[c] !== undefined ? s.tscores[c] : '');
     }
-    csv += '\n';
+    linha.push(JSON.stringify(respostasArray(s)));
+    csv += linha.map(q).join(',') + '\r\n';
   }
-  const blob = new Blob([csv],{type:'text/csv;charset=utf-8;'});
+  const blob = new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'});
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
   a.download = 'Conners3_Pais_Short_'+new Date().toISOString().slice(0,10)+'.csv';
-  a.click();
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
 }
 
-carregarDados = renderClinico; // alias para auto-login
+// ══════════════════════════════════════════════════════════════════════════════
+// SINCRONIZAÇÃO SHEET → PAINEL CLÍNICO
+// ══════════════════════════════════════════════════════════════════════════════
+const SCRIPT_URL   = 'https://script.google.com/macros/s/AKfycbxX2_Ry7VRH6jr7eGBMmtmyZFXZc69blwdO5bqJK0j69HRSexpXXPuEfDC5OHQRMLLL/exec';
+const INSTRUMENTO  = 'CONNERS3PS';
+const RELACAO_DEF  = 'Pais';
+const NOME_INSTR   = 'Conners 3-P(S) — Escala para Pais';
+const FICH_BASE    = 'Conners3_Pais_Short';
+const N_LIKERT     = N_ITENS - 2;   // os 2 últimos itens são de resposta aberta
+
+function feedbackPainel(msg, tipo) {
+  const el = document.getElementById('import-feedback');
+  if (!el) return;
+  const cor = tipo === 'erro' ? 'var(--red)' : (tipo === 'aviso' ? 'var(--orange)' : 'var(--blue)');
+  el.style.display = 'block';
+  el.innerHTML = '<div style="font-size:.8rem;padding:8px 12px;border-left:3px solid '+cor+
+                 ';background:var(--blue-xpale);border-radius:4px;color:var(--text)">'+msg+'</div>';
+  clearTimeout(feedbackPainel._t);
+  feedbackPainel._t = setTimeout(function(){ el.style.display='none'; }, 8000);
+}
+
+function respostasArray(s) {
+  if (!s) return [];
+  if (Array.isArray(s.respostas)) return s.respostas;
+  if (typeof s.respostas === 'string' && s.respostas.trim()) {
+    try { const p = JSON.parse(s.respostas); return Array.isArray(p) ? p : []; } catch(e) { return []; }
+  }
+  return [];
+}
+
+function chaveSessao(s) {
+  return [ String(s.code||'').toUpperCase().trim(),
+           String(s.data||'').trim(),
+           String(s.relacao||RELACAO_DEF).toLowerCase().trim(),
+           String(s.nomeInf||'').toLowerCase().trim() ].join('|');
+}
+
+function ordemSessao(s) {
+  const m = /^(\d{1,2})\/(\d{1,2})\/(\d{4})/.exec(String(s.data||''));
+  if (!m) return 0;
+  let t = new Date(+m[3], +m[2]-1, +m[1]).getTime();
+  const h = /^(\d{1,2}):(\d{2})/.exec(String(s.hora||''));
+  if (h) t += (+h[1]*3600 + +h[2]*60) * 1000;
+  return t;
+}
+
+function parseSessao(row, idx) {
+  if (!row) return null;
+  function val(k) { const v = row[k]; return (v === undefined || v === null) ? '' : v; }
+
+  let d = val('Data');
+  if (d instanceof Date) {
+    d = ('0'+d.getDate()).slice(-2)+'/'+('0'+(d.getMonth()+1)).slice(-2)+'/'+d.getFullYear();
+  } else {
+    d = String(d).trim();
+  }
+
+  const scores = {}, tscores = {};
+  for (const esc of ESCALAS) {
+    const raw = val('Raw_'+esc.code);
+    const t   = val('T_'+esc.code);
+    scores[esc.code]  = (raw === '' ? null : Number(raw));
+    tscores[esc.code] = (t   === '' ? null : Number(t));
+  }
+
+  // ⚠️ Reconstrução obrigatória de `respostas` a partir do JSON do Sheet.
+  let resp = [];
+  const rawResp = val('Respostas');
+  if (Array.isArray(rawResp)) resp = rawResp;
+  else if (typeof rawResp === 'string' && rawResp.trim()) {
+    try { const p = JSON.parse(rawResp); if (Array.isArray(p)) resp = p; } catch(e) { resp = []; }
+  }
+
+  return {
+    id: 900000000 + idx,
+    data: d,
+    hora: '',
+    code: String(val('Codigo') || val('Código') || '').trim().toUpperCase(),
+    nomeCrianca: String(val('NomeCrianca')).trim(),
+    nomeInf: String(val('NomeInformante')).trim(),
+    relacao: String(val('Relação') || val('Relacao') || RELACAO_DEF).trim(),
+    idade: (val('Idade') === '' ? '' : Number(val('Idade'))),
+    respostas: resp,
+    scores: scores,
+    tscores: tscores,
+    origem: 'sheet'
+  };
+}
+
+async function carregarDados() {
+  const btn = document.getElementById('btn-sync');
+  if (btn) { btn.disabled = true; btn.textContent = '↺ A sincronizar…'; }
+  try {
+    const res  = await fetch(SCRIPT_URL + '?instrumento=' + INSTRUMENTO + '&t=' + Date.now());
+    const data = await res.json();
+    // ✅ O Apps Script devolve SEMPRE {rows: [...]} — nunca um array directo.
+    const rows = Array.isArray(data) ? data : (data && data.rows ? data.rows : []);
+
+    const remotas = [];
+    for (let i = 0; i < rows.length; i++) {
+      const s = parseSessao(rows[i], i);
+      if (s && s.code) remotas.push(s);
+    }
+
+    // Deduplicação por chave de 4 elementos: código + data + relação + nome respondente.
+    const mapa = {};
+    for (const loc of sessoes) mapa[chaveSessao(loc)] = loc;
+    let novas = 0;
+    for (const rem of remotas) {
+      const ch = chaveSessao(rem);
+      if (!mapa[ch]) { mapa[ch] = rem; novas++; }
+      else if (mapa[ch].origem === 'sheet') { mapa[ch] = rem; }
+    }
+
+    const lista = [];
+    for (const k in mapa) if (Object.prototype.hasOwnProperty.call(mapa, k)) lista.push(mapa[k]);
+    lista.sort(function(a,b){ return ordemSessao(a) - ordemSessao(b); });
+    for (let n = 0; n < lista.length; n++) {
+      if (lista[n].origem === 'sheet') lista[n].id = 900000000 + n;
+    }
+
+    sessoes = lista;
+    guardarSessoes();
+    renderClinico();
+    feedbackPainel('Sincronizado. '+remotas.length+' registo(s) no Sheet · '+novas+' novo(s) importado(s) · '+sessoes.length+' no painel.', 'ok');
+  } catch(e) {
+    renderClinico();
+    feedbackPainel('Não foi possível sincronizar ('+e+'). A mostrar apenas os dados guardados neste dispositivo.', 'erro');
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = '↺ Sincronizar'; }
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// INTERPRETAÇÃO CLÍNICA
+// ══════════════════════════════════════════════════════════════════════════════
+function gerarInterpretacao(s) {
+  const linhas = [], elevadas = [];
+
+  for (const esc of ESCALAS) {
+    const t = s.tscores[esc.code];
+    let nivel, cls;
+    if (t === null || t === undefined || t === '' || isNaN(t)) { nivel = 'sem T-score disponível'; cls = 'nd'; }
+    else if (t >= 70) { nivel = 'muito elevado, clinicamente significativo'; cls = 'clin'; }
+    else if (t >= 65) { nivel = 'elevado'; cls = 'bord'; }
+    else if (t >= 60) { nivel = 'médio-elevado, a monitorizar'; cls = 'elev'; }
+    else { nivel = 'dentro da faixa normativa'; cls = 'norm'; }
+    if (cls === 'clin' || cls === 'bord') elevadas.push({ label: esc.label, code: esc.code, t: t });
+    linhas.push({ code: esc.code, label: esc.label, t: t, nivel: nivel, cls: cls });
+  }
+
+  elevadas.sort(function(a,b){ return b.t - a.t; });
+
+  let sintese;
+  if (!elevadas.length) {
+    sintese = 'Nenhuma escala atinge o limiar de elevação (T≥65). Perfil sem elevações clinicamente significativas nas dimensões avaliadas.';
+  } else {
+    sintese = 'Elevação em ' + elevadas.length + ' escala(s), por ordem decrescente de T: ' +
+              elevadas.map(function(x){ return x.label + ' (T=' + x.t + ')'; }).join('; ') + '.';
+  }
+
+  // ── Validade do preenchimento ──
+  const avisos = [];
+  const resp = respostasArray(s);
+  if (!resp.length) {
+    avisos.push('Respostas item-a-item indisponíveis para este registo; validade não verificável.');
+  } else {
+    let omissos = 0;
+    const preenchidos = [];
+    for (let i = 0; i < N_LIKERT; i++) {
+      const r = resp[i];
+      if (r === null || r === undefined || r === '') omissos++;
+      else preenchidos.push(r);
+    }
+    if (omissos >= 5) {
+      avisos.push('Foram omitidos ' + omissos + ' itens. Interpretar os resultados com reserva.');
+    }
+    let omissosCotados = 0;
+    for (const esc of ESCALAS) {
+      for (const idx of esc.items) {
+        const r = resp[idx];
+        if (r === null || r === undefined || r === '') omissosCotados++;
+      }
+    }
+    if (omissosCotados > 0) {
+      avisos.push('Há ' + omissosCotados + ' item(ns) omisso(s) entre os itens cotados; os scores brutos estão subestimados.');
+    }
+    if (preenchidos.length >= 30 && preenchidos.every(function(v){ return v === preenchidos[0]; })) {
+      avisos.push('Padrão de resposta uniforme (todos os itens com o valor ' + preenchidos[0] + '). Verificar a validade do preenchimento.');
+    }
+  }
+
+  return { linhas: linhas, sintese: sintese, avisos: avisos };
+}
+
+const NOTA_INTERP = 'Interpretação automática de apoio. Não substitui o julgamento clínico. ' +
+                    'Normas: Appendix B Combined Gender — Conners 3rd Edition™, MHS Inc. © 2008/2009.';
+
+function interpretacaoHTML(s, paraPDF) {
+  const it = gerarInterpretacao(s);
+  const C = paraPDF
+    ? { clin:'#c0392b', bord:'#e67e22', elev:'#b8860b', norm:'#27AE60', nd:'#888',
+        titulo:'#3B5A7A', bordaTop:'#D6E4F0', fundo:'#F5F9FC', texto:'#2C3E50', suave:'#888' }
+    : { clin:'var(--red)', bord:'var(--orange)', elev:'var(--yellow)', norm:'var(--blue-mid)', nd:'var(--text-light)',
+        titulo:'var(--blue)', bordaTop:'var(--gray-bdr)', fundo:'var(--blue-xpale)', texto:'var(--text)', suave:'var(--text-light)' };
+  const fs   = paraPDF ? '11px' : '.8rem';
+  const fsT  = paraPDF ? '13px' : '.85rem';
+  const fsSm = paraPDF ? '10px' : '.72rem';
+
+  let h = '';
+  if (paraPDF) {
+    h += '<h2 style="color:'+C.titulo+';font-size:13px;border-bottom:2px solid '+C.bordaTop+';padding-bottom:4px;margin:20px 0 8px">Interpretação Clínica</h2>';
+  } else {
+    h += '<div style="margin-top:24px"><div style="font-size:'+fsT+';font-weight:700;color:'+C.titulo+';margin-bottom:10px">Interpretação Clínica</div>';
+  }
+
+  h += '<div style="font-size:'+fs+';background:'+C.fundo+';padding:10px 12px;border-radius:6px;margin-bottom:10px;color:'+C.texto+'"><strong>Síntese:</strong> '+it.sintese+'</div>';
+
+  h += '<ul style="font-size:'+fs+';margin:0 0 10px 0;padding-left:18px;color:'+C.texto+'">';
+  for (const l of it.linhas) {
+    h += '<li style="margin-bottom:3px"><strong>'+l.label+'</strong> ('+l.code+')'+
+         (l.t !== null && l.t !== undefined && l.t !== '' && !isNaN(l.t) ? ' — T='+l.t : '')+
+         ': <span style="color:'+C[l.cls]+';font-weight:600">'+l.nivel+'</span></li>';
+  }
+  h += '</ul>';
+
+  if (it.avisos.length) {
+    h += '<div style="font-size:'+fs+';border-left:3px solid '+C.bord+';padding:8px 10px;margin-bottom:10px;color:'+C.texto+'"><strong>Validade:</strong><ul style="margin:4px 0 0 0;padding-left:16px">';
+    for (const a of it.avisos) h += '<li style="margin-bottom:2px">'+a+'</li>';
+    h += '</ul></div>';
+  }
+
+  h += '<div style="font-size:'+fsSm+';color:'+C.suave+';border-top:1px solid '+C.bordaTop+';padding-top:6px">'+NOTA_INTERP+'</div>';
+  if (!paraPDF) h += '</div>';
+  return h;
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// EXPORTAÇÕES
+// ══════════════════════════════════════════════════════════════════════════════
+function abrirJanelaImpressao(titulo, corpo) {
+  const html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>'+titulo+'</title>'+
+    '<style>body{font-family:Arial,sans-serif;font-size:12px;color:#2C3E50;padding:24px;max-width:900px;margin:0 auto}'+
+    'h1{color:#3B5A7A;font-size:16px;margin-bottom:4px}'+
+    'h2{color:#3B5A7A;font-size:13px;margin:18px 0 8px;border-bottom:2px solid #D6E4F0;padding-bottom:4px}'+
+    'p{color:#6B7A8D;margin-bottom:16px;font-size:11px}'+
+    '.no-print{margin-bottom:16px}'+
+    '@media print{.no-print{display:none}body{padding:12px}}</style></head><body>'+
+    '<div class="no-print"><button onclick="window.print()" style="padding:6px 14px;cursor:pointer">🖨 Imprimir / Guardar PDF</button></div>'+
+    corpo + '</body></html>';
+  const w = window.open('','_blank');
+  if (!w) { alert('Pop-up bloqueado. Permite pop-ups para este site.'); return; }
+  w.document.write(html); w.document.close();
+}
+
+function cabecalhoSessaoHTML(s) {
+  const idade = s.idade ? s.idade + ' anos' : '';
+  return '<p>Código: <strong>'+s.code+'</strong>'+
+    (s.nomeCrianca ? ' &nbsp;|&nbsp; Criança: <strong>'+s.nomeCrianca+'</strong>' : '')+
+    (s.nomeInf ? ' &nbsp;|&nbsp; Respondente: <strong>'+s.nomeInf+'</strong>' : '')+
+    (idade ? ' &nbsp;|&nbsp; Idade: <strong>'+idade+'</strong>' : '')+
+    ' &nbsp;|&nbsp; Data: <strong>'+(s.data||'—')+'</strong>'+
+    ' &nbsp;|&nbsp; Ricardina Correia · Cédula 8233 · Psicologia Pediátrica</p>';
+}
+
+function exportarRespostasPDF(sess) {
+  const s = sess || sessaoActual;
+  if (!s) { alert('Seleccione primeiro uma sessão (clique em "Ver →").'); return; }
+  const resp = respostasArray(s);
+  if (!resp.length) { alert('Este registo não tem respostas item-a-item guardadas.'); return; }
+
+  let t = '<table style="width:100%;border-collapse:collapse;font-size:11px"><thead><tr style="background:#D6E4F0">'+
+          '<th style="padding:5px 8px;text-align:center">#</th><th style="padding:5px 8px;text-align:left">Item</th>'+
+          '<th style="padding:5px 8px;text-align:center">Resposta</th></tr></thead><tbody>';
+  resp.forEach(function(r, i) {
+    const cor = r >= 2 ? '#c0392b' : (r === 1 ? '#e67e22' : '#888');
+    t += '<tr style="border-bottom:1px solid #f0f0f0">'+
+         '<td style="padding:3px 8px;text-align:center;color:#aaa">'+(i+1)+'</td>'+
+         '<td style="padding:3px 8px">'+(ITEMS_TEXTO[i]||'Item '+(i+1))+'</td>'+
+         '<td style="padding:3px 8px;text-align:center;font-weight:700;color:'+cor+'">'+
+         (r !== null && r !== undefined ? r : '—')+'</td></tr>';
+  });
+  t += '</tbody></table>';
+
+  abrirJanelaImpressao(NOME_INSTR+' — Respostas — '+s.nomeCrianca+' ('+s.code+')',
+    '<h1>'+NOME_INSTR+' — Respostas por Item</h1>'+cabecalhoSessaoHTML(s)+t);
+}
+
+function exportarPDF() {
+  if (!sessoes.length) { alert('Sem dados para exportar.'); return; }
+  let t = '<table style="width:100%;border-collapse:collapse;font-size:11px"><thead><tr style="background:#D6E4F0">'+
+          '<th style="padding:5px 8px;text-align:left">Data</th>'+
+          '<th style="padding:5px 8px;text-align:left">Código</th>'+
+          '<th style="padding:5px 8px;text-align:left">Criança</th>'+
+          '<th style="padding:5px 8px;text-align:left">Respondente</th>'+
+          '<th style="padding:5px 8px;text-align:center">Idade</th>';
+  for (const esc of ESCALAS) t += '<th style="padding:5px 8px;text-align:center">T '+esc.code+'</th>';
+  t += '</tr></thead><tbody>';
+  for (const s of [...sessoes].reverse()) {
+    t += '<tr style="border-bottom:1px solid #f0f0f0">'+
+         '<td style="padding:3px 8px">'+(s.data||'')+' '+(s.hora||'')+'</td>'+
+         '<td style="padding:3px 8px"><strong>'+(s.code||'')+'</strong></td>'+
+         '<td style="padding:3px 8px">'+(s.nomeCrianca||'')+'</td>'+
+         '<td style="padding:3px 8px">'+(s.nomeInf||'')+'</td>'+
+         '<td style="padding:3px 8px;text-align:center">'+(s.idade||'—')+'</td>';
+    for (const esc of ESCALAS) {
+      const v = s.tscores ? s.tscores[esc.code] : null;
+      const cor = (v >= 70) ? '#c0392b' : (v >= 65 ? '#e67e22' : (v >= 60 ? '#b8860b' : '#2C3E50'));
+      t += '<td style="padding:3px 8px;text-align:center;font-weight:700;color:'+cor+'">'+
+           (v !== null && v !== undefined && v !== '' && !isNaN(v) ? v : '—')+'</td>';
+    }
+    t += '</tr>';
+  }
+  t += '</tbody></table>'+
+       '<div style="font-size:10px;color:#888;border-top:1px solid #eee;padding-top:8px;margin-top:12px">'+
+       'T≥70 = Clinicamente significativo · T65–69 = Borderline · T&lt;65 = Normativo · '+
+       'Normas: Appendix B Combined Gender — Conners 3rd Edition™, MHS Inc. © 2008/2009 · '+
+       'Ricardina Correia · Cédula 8233 · Psicologia Pediátrica</div>';
+
+  abrirJanelaImpressao(NOME_INSTR+' — Painel Clínico',
+    '<h1>'+NOME_INSTR+' — Painel Clínico</h1>'+
+    '<p>'+sessoes.length+' registo(s) · Exportado a '+new Date().toLocaleDateString('pt-PT')+'</p>'+t);
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// IMPORTAÇÃO CSV
+// ══════════════════════════════════════════════════════════════════════════════
+function importarCSV() {
+  const el = document.getElementById('import-file-input');
+  if (el) { el.value = ''; el.click(); }
+}
+
+function parseCSV(texto) {
+  const linhas = [];
+  let campo = '', linha = [], dentro = false;
+  const t = texto.replace(/^\uFEFF/, '');
+  for (let i = 0; i < t.length; i++) {
+    const c = t[i];
+    if (dentro) {
+      if (c === '"') {
+        if (t[i+1] === '"') { campo += '"'; i++; } else dentro = false;
+      } else campo += c;
+    } else {
+      if (c === '"') dentro = true;
+      else if (c === ',') { linha.push(campo); campo = ''; }
+      else if (c === '\n') { linha.push(campo); linhas.push(linha); linha = []; campo = ''; }
+      else if (c === '\r') { /* ignorar */ }
+      else campo += c;
+    }
+  }
+  if (campo !== '' || linha.length) { linha.push(campo); linhas.push(linha); }
+  return linhas.filter(function(l){ return l.some(function(x){ return String(x).trim() !== ''; }); });
+}
+
+function processarFicheiroImportado(input) {
+  const f = input && input.files && input.files[0];
+  if (!f) return;
+  const nome = f.name.toLowerCase();
+  if (!/\.csv$/.test(nome)) {
+    feedbackPainel('Formato não suportado. Exporte primeiro para CSV a partir do Excel e importe esse ficheiro.', 'erro');
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = function(ev) {
+    try {
+      const linhas = parseCSV(String(ev.target.result));
+      if (linhas.length < 2) { feedbackPainel('Ficheiro sem linhas de dados.', 'erro'); return; }
+      const cab = linhas[0].map(function(x){ return String(x).trim(); });
+      const col = {};
+      cab.forEach(function(h, i){ col[h] = i; });
+      if (col['Codigo'] === undefined) { feedbackPainel('Cabeçalho inesperado: falta a coluna "Codigo".', 'erro'); return; }
+
+      const mapa = {};
+      for (const loc of sessoes) mapa[chaveSessao(loc)] = loc;
+      let novas = 0, ignoradas = 0;
+
+      for (let i = 1; i < linhas.length; i++) {
+        const L = linhas[i];
+        const v = function(nomeCol) { const k = col[nomeCol]; return (k === undefined || L[k] === undefined) ? "" : String(L[k]).trim(); };
+        const code = v('Codigo').toUpperCase();
+        if (!code) { ignoradas++; continue; }
+        const scores = {}, tscores = {};
+        for (const esc of ESCALAS) {
+          const r = v('Raw_'+esc.code), tt = v('T_'+esc.code);
+          scores[esc.code]  = (r  === '' ? null : Number(r));
+          tscores[esc.code] = (tt === '' ? null : Number(tt));
+        }
+        let resp = [];
+        const rj = v('Respostas');
+        if (rj) { try { const p = JSON.parse(rj); if (Array.isArray(p)) resp = p; } catch(e) { resp = []; } }
+        const s = {
+          id: Date.now() + i,
+          data: v('Data'), hora: v('Hora'), code: code,
+          nomeCrianca: v('Crianca') || v('NomeCrianca'),
+          nomeInf: v('Respondente') || v('NomeInformante'),
+          relacao: v('Relacao') || RELACAO_DEF,
+          idade: v('Idade') === '' ? '' : Number(v('Idade')),
+          respostas: resp, scores: scores, tscores: tscores, origem: 'csv'
+        };
+        const ch = chaveSessao(s);
+        if (!mapa[ch]) { mapa[ch] = s; novas++; } else ignoradas++;
+      }
+
+      const lista = [];
+      for (const k in mapa) if (Object.prototype.hasOwnProperty.call(mapa, k)) lista.push(mapa[k]);
+      lista.sort(function(a,b){ return ordemSessao(a) - ordemSessao(b); });
+      sessoes = lista;
+      guardarSessoes();
+      renderClinico();
+      feedbackPainel('Importação concluída: '+novas+' novo(s) registo(s) · '+ignoradas+' duplicado(s)/ignorado(s) · '+sessoes.length+' no painel.', 'ok');
+    } catch(err) {
+      feedbackPainel('Erro a ler o ficheiro: '+err, 'erro');
+    }
+  };
+  reader.readAsText(f, 'UTF-8');
+}
+
 </script>
 </body>
 </html>
