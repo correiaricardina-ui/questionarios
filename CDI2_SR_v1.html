@@ -368,7 +368,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--gray);color:var(--text);m
     <div style="margin-top:16px;font-size:0.78rem;color:var(--text-light);line-height:1.6">
       <strong>Limiares T-score (Kovacs 2011, USA · únicas normas disponíveis para CDI-2:SR):</strong><br>
       &lt; 55 — Médio ou inferior · 55–64 — Médio-alto · 65–69 — Elevado · ≥ 70 — Muito elevado<br>
-      <em>Não existem normas portuguesas publicadas para o CDI-2:SR. Os T-scores resultam de aproximação linear a partir das tabelas Kovacs 2011 (M e DP por idade × sexo). Para máxima precisão, consultar tabelas oficiais raw → T-Score do manual MHS.</em>
+      <em>Não existem normas portuguesas publicadas para o CDI-2:SR. <strong>A conversão bruto→T-score não é calculada por este sistema:</strong> faz-se exclusivamente por tabela normativa do manual MHS, por sexo e grupo etário, e não é linear. A aproximação linear usada na versão anterior foi desativada. Os resultados apresentam-se em pontuação bruta e percentagem de amplitude, para leitura qualitativa integrada.</em>
     </div>
   </div>
 </div>
@@ -445,13 +445,26 @@ const ITEMS = [
   ["Consigo concentrar-me tão bem como antes.","Não consigo concentrar-me tão bem como antes.","Não consigo concentrar-me em nada.","FP","INE"]
 ];
 
-// ── Itens por subescala (1-based, do manual Kovacs 2011) ──
-const ITEMS_HMSF = [1,6,10,11,14,16,17,18,19];   // 9
-const ITEMS_AE   = [2,3,7,8,9];                   // 5
-const ITEMS_INE  = [4,13,15,21,23,24,26,28];     // 8
-const ITEMS_PI   = [12,20,22,25,27];              // 5
-const ITEM_MARKER_EP = [5];                       // marker que pertence à EP mas a nenhuma subescala
-// EP = HMSF + AE + 5 (15 itens) | FP = INE + PI (13 itens) | TOTAL = 28
+// ── Itens por subescala (1-based, Kovacs & MHS Staff, 2011) — v2.0 CORRIGIDA ──
+// ERRATA v1.0: o item 5 estava órfão ("marker EP") e o item 14 estava em HM/SF.
+// Pelo manual, o 5 pertence a HM/SF (9 itens) e o 14 a AE− (6 itens).
+const ITEMS_HMSF = [1,5,6,10,11,16,17,18,19];    // 9 · amplitude 0-18
+const ITEMS_AE   = [2,3,7,8,9,14];                // 6 · amplitude 0-12
+const ITEMS_INE  = [4,13,15,21,23,24,26,28];     // 8 · amplitude 0-16
+const ITEMS_PI   = [12,20,22,25,27];              // 5 · amplitude 0-10
+// EP = HMSF + AE (15 itens) | FP = INE + PI (13 itens) | TOTAL = 28
+
+// ── Chave de cotação item a item — v2.0 CORRIGIDA ────────────────────────
+// ERRATA v1.0: aplicava-se A=0 · B=1 · C=2 aos 28 itens. Nos itens 2, 5 e 21 as
+// opções estão por gravidade DESCENDENTE (a frase mais grave é a da coluna A):
+// nestes três a chave inverte-se. A chave fixa atribuía 2 pontos a quem escolhia
+// a frase adaptativa — até 6 pontos de inflação no total.
+const ITENS_REVERSOS = [2,5,21];
+function pontosItem(nItem, valorColuna) {
+  // valorColuna: 0 (col. A) · 1 (col. B) · 2 (col. C), tal como registado na UI
+  if (typeof valorColuna !== 'number') return null;
+  return ITENS_REVERSOS.indexOf(nItem) !== -1 ? (2 - valorColuna) : valorColuna;
+}
 
 // ── Normas Kovacs 2011 (USA) — M e DP estimadas a partir das tabelas de percentis do manual ──
 // Permitem cálculo aproximado de T-score por (raw - M)/DP * 10 + 50
@@ -468,6 +481,8 @@ const NORMS = {
 
 // ── Limiares T-score (Kovacs 2011) ──
 function classificarT(t) {
+  if (t === null || t === undefined || isNaN(t))
+    return {nivel:'indisponivel', label:'Não calculável', badge:'badge-normative', cor:'#5B7FA6'};
   if (t < 55)  return {nivel:'normativo',  label:'Médio ou inferior',         badge:'badge-normative',  cor:'#27AE60'};
   if (t < 65)  return {nivel:'medio-alto', label:'Médio-alto',                badge:'badge-medio-alto', cor:'#a67c00'};
   if (t < 70)  return {nivel:'elevado',    label:'Elevado',                   badge:'badge-borderline', cor:'#E67E22'};
@@ -476,6 +491,7 @@ function classificarT(t) {
 
 // ── Aproximação de percentil a partir de T-score (normal padrão, μ=50, σ=10) ──
 function percentilDeT(t) {
+  if (t === null || t === undefined || isNaN(t)) return '—';
   // Φ((t-50)/10), aproximação Abramowitz & Stegun
   const z = (t - 50) / 10;
   const p = phi(z);
@@ -641,7 +657,7 @@ function cotar(respostas) {
   function somaItens(lista) {
     var s = 0;
     for (var i = 0; i < lista.length; i++) {
-      var v = respostas[lista[i]-1];
+      var v = pontosItem(lista[i], respostas[lista[i]-1]);
       if (typeof v === 'number') s += v;
     }
     return s;
@@ -652,15 +668,21 @@ function cotar(respostas) {
     INE:   somaItens(ITEMS_INE),
     PI:    somaItens(ITEMS_PI)
   };
-  raw.EP    = raw.HMSF + raw.AE + somaItens(ITEM_MARKER_EP);
+  raw.EP    = raw.HMSF + raw.AE;
   raw.FP    = raw.INE + raw.PI;
   raw.TOTAL = raw.EP + raw.FP;
   // Item 9 — ideação suicida (índice 8)
-  var item9 = (typeof respostas[8] === 'number') ? respostas[8] : null;
+  var item9 = pontosItem(9, respostas[8]);
   return {raw: raw, item9: item9};
 }
 
 function calcularTScore(rawTotal, idade, sexo) {
+  // v2.0 — A conversão bruto→T do CDI-2 faz-se por TABELA NORMATIVA do manual
+  // (por sexo e grupo etário) e NÃO é linear. A aproximação (raw−M)/DP*10+50
+  // usada na v1.0 não é admissível e foi desativada. Sem normas portuguesas.
+  return {t: null, normaKey: '—', normaLabel: 'T não calculável — requer tabela raw→T do manual MHS'};
+}
+function _calcularTScore_v1_DESATIVADA(rawTotal, idade, sexo) {
   // Selecciona norma por idade × sexo; fallback geral
   var key;
   if (idade >= 7 && idade <= 12) key = '7-12_' + sexo;
@@ -996,7 +1018,7 @@ function renderInterpretacao(s) {
   // Tabela de escalas e subescalas — mostra raw, máximo, % amplitude
   var subscales = [
     {label: 'HM/SF — Humor / Sint. Físicos', raw: raw.HMSF, max: 18, sub: true},
-    {label: 'AE− — Auto-estima Negativa',     raw: raw.AE,   max: 10, sub: true},
+    {label: 'AE− — Auto-estima Negativa',     raw: raw.AE,   max: 12, sub: true},
     {label: 'INE — Ineficácia',               raw: raw.INE,  max: 16, sub: true},
     {label: 'PI — Problemas Interpessoais',   raw: raw.PI,   max: 10, sub: true},
     {label: 'EP — Problemas Emocionais',      raw: raw.EP,   max: 30, sub: false, sep: true},
@@ -1054,10 +1076,14 @@ function renderInterpretacao(s) {
 
   // ── Parágrafo sumário dinâmico ──
   var partes = [];
-  partes.push('<strong>Interpretação automática.</strong> O score total bruto é <strong>' + (raw.TOTAL != null ? raw.TOTAL : '—') + '/56</strong>, ' +
-    'correspondendo a um T-score de <strong>' + t + '</strong> (norma: ' + escapeHtml(s.normaUsada || classifT.label) + ').');
+  partes.push('<strong>Interpretação automática.</strong> O score total bruto é <strong>' + (raw.TOTAL != null ? raw.TOTAL : '—') + '/56</strong> ' +
+    '(' + Math.round((raw.TOTAL||0)/56*100) + '% da amplitude). <strong>T-score não calculado:</strong> a conversão bruto→T do CDI-2 ' +
+    'faz-se por tabela normativa do manual (por sexo e grupo etário) e não é linear; não existem normas portuguesas publicadas. ' +
+    'Os valores abaixo são brutos e devem ser lidos qualitativamente, em integração clínica.');
 
-  if (classifT.nivel === 'normativo') {
+  if (classifT.nivel === 'indisponivel') {
+    partes.push('A leitura de gravidade não pode assentar neste instrumento isoladamente: sem conversão normativa, os brutos indicam a densidade de endosso, não a posição da criança face ao seu grupo etário.');
+  } else if (classifT.nivel === 'normativo') {
     partes.push('Este resultado situa-se na zona <strong>médio ou inferior</strong>, sem indicadores de depressão na escala global.');
   } else if (classifT.nivel === 'medio-alto') {
     partes.push('Este resultado situa-se ligeiramente <strong>acima da média</strong>, sem atingir o limiar clínico mas merecendo monitorização.');
@@ -1375,8 +1401,9 @@ function exportarInterpretacaoPDF(sessao) {
   var pctEP = raw.EP ? Math.round(raw.EP / 30 * 100) : 0;
   var pctFP = raw.FP ? Math.round(raw.FP / 26 * 100) : 0;
   var sumarioPartes = [];
-  sumarioPartes.push('Score total bruto: <strong>' + (raw.TOTAL != null ? raw.TOTAL : '—') + '/56</strong> · T-score: <strong>' + t + '</strong> · Percentil aprox.: <strong>' + pct + '</strong> · Classificação: <strong>' + classifT.label + '</strong>.');
-  if (classifT.nivel === 'normativo') sumarioPartes.push('Sem indicadores de depressão na escala global.');
+  sumarioPartes.push('Score total bruto: <strong>' + (raw.TOTAL != null ? raw.TOTAL : '—') + '/56</strong> (' + Math.round((raw.TOTAL||0)/56*100) + '% da amplitude) · T-score: não calculado (requer tabela do manual; sem normas portuguesas).');
+  if (classifT.nivel === 'indisponivel') sumarioPartes.push('Leitura qualitativa — os brutos não são convertíveis em posição normativa.');
+  else if (classifT.nivel === 'normativo') sumarioPartes.push('Sem indicadores de depressão na escala global.');
   else if (classifT.nivel === 'medio-alto') sumarioPartes.push('Resultado ligeiramente acima da média — monitorização recomendada.');
   else if (classifT.nivel === 'elevado') sumarioPartes.push('Sintomas depressivos moderados — atenção clínica.');
   else sumarioPartes.push('Sintomas depressivos clinicamente significativos.');
