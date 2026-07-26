@@ -661,7 +661,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--gray);color:var(--text);m
 
         <div class="q-item" id="qi-37" data-idx="37">
           <div class="q-num">38</div>
-          <div class="q-text">Não consigo perceber o que o(a) faz feliz</div>
+          <div class="q-text">É difícil de motivar (mesmo com recompensas como doces ou dinheiro)</div>
           <div class="q-options">
             <label class="q-opt"><input type="radio" name="q37" value="0" onchange="registar(37,0)"><span>0<br><small>Nunca</small></span></label>
             <label class="q-opt"><input type="radio" name="q37" value="1" onchange="registar(37,1)"><span>1<br><small>Por vezes</small></span></label>
@@ -803,9 +803,23 @@ body{font-family:'DM Sans',sans-serif;background:var(--gray);color:var(--text);m
 const PASSWORD = 'CNS2024';
 const STORE_KEY = 'conners_Professores_Short';
 const ESCALAS = [{"code": "IN", "label": "Inatenção", "nk": "T_IN", "max_raw": 15, "items": [2, 9, 25, 35, 38], "inv": []}, {"code": "HI", "label": "Hiperatividade/Impulsividade", "nk": "T_HI", "max_raw": 18, "items": [0, 7, 21, 23, 29, 31], "inv": []}, {"code": "LPEF", "label": "Aprendizagem/Func. Executivo", "nk": "T_LPEF", "max_raw": 18, "items": [13, 15, 17, 22, 27, 34], "inv": [22]}, {"code": "AG", "label": "Defiance/Agressão", "nk": "T_AG", "max_raw": 15, "items": [4, 6, 11, 14, 16], "inv": []}, {"code": "PR", "label": "Relações com Pares", "nk": "T_PR", "max_raw": 15, "items": [10, 19, 26, 28, 36], "inv": []}];
-const NORMS = {"T_IN": {"6": {"0": 41, "1": 43, "2": 45, "3": 47, "4": 50, "5": 52, "6": 54, "7": 56, "8": 58, "9": 60, "10": 62, "11": 64, "12": 67, "13": 69, "14": 71, "15": 73}, "7": {"0": 41, "1": 43, "2": 46, "3": 48, "4": 51, "5": 53, "6": 56, "7": 58, "8": 61, "9": 63, "10": 66, "11": 68, "12": 71, "13": 73, "14": 76, "15": 78}, "8": {"0": 41, "1": 44, "2": 46, "3": 49, "4": 52, "5": 55, "6": 57, "7": 60, "8": 63, "9": 66, "10": 68, "11": 71, "12": 74, "13": 77, "14": 79, "15": 82}, "9": {"0": 41, "1": 44, "2": 46, "3": 49, "4": 52, "5": 54, "6": 57, "7": 60, "8": 62, "9": 65, "10": 68, "11": 70, "12": 73, "13": 76, "14": 78, "15": 81}, "10": {"0": 41, "1": 44, "2": 47, "3": 50, "4": 52, "5": 55, "6": 58, "7": 61, "8": 64, "9": 67, "10": 70, "11": 73, "12": 75, "13": 78, "14": 81, "15": 84}, "11": {"0": 41, "1": 44, "2": 47, "3": 50, "4": 53, "5": 56, "6": 59, "7": 62, "8": 66, "9": 69, "10": 72, "11": 75, "12": 78, "13": 81, "14": 84, "15": 87}, "12": {"0": 41, "1": 44, "2": 48, "3": 52, "4": 55, "5": 58, "6": 62, "7": 66, "8": 69, "9": 72, "10": 76, "11": 80, "12": 83, "13": 86, "14": 90, "15": 90}, "13": {"0": 41, "1": 44, "2": 48, "3": 51, "4": 55, "5": 58, "6": 61, "7": 65, "8": 68, "9": 71, "10": 75, "11": 78, "12": 82, "13": 85, "14": 88, "15": 90}, "14": {"0": 41, "1": 44, "2": 48, "3": 51, "4": 54, "5": 57, "6": 61, "7": 64, "8": 67, "9": 70, "10": 74, "11": 77, "12": 80, "13": 83, "14": 87, "15": 90}, "15": {"0": 41, "1": 44, "2": 48, "3": 51, "4": 54, "5": 57, "6": 61, "7": 64, "8": 67, "9": 70, "10": 74, "11": 77, "12": 80, "13": 83, "14": 87, "15": 90}, "16": {"0": 41, "1": 44, "2": 48, "3": 51, "4": 54, "5": 57, "6": 61, "7": 64, "8": 67, "9": 71, "10": 74, "11": 77, "12": 80, "13": 84, "14": 87, "15": 90}, "17": {"0": 41, "1": 44, "2": 48, "3": 52, "4": 55, "5": 58, "6": 62, "7": 66, "8": 69, "9": 72, "10": 76, "11": 80, "12": 83, "13": 86, "14": 90, "15": 90}}, "T_HI": {"6": {"0": 41, "1": 44, "2": 47, "3": 50, "4": 53, "5": 55, "6": 58, "7": 61, "8": 64, "9": 67, "10": 70, "11": 73, "12": 76, "13": 78, "14": 81, "15": 84, "16": 87, "17": 90, "18": 90}, "7": {"0": 41, "1": 44, "2": 47, "3": 50, "4": 53, "5": 56, "6": 59, "7": 62, "8": 66, "9": 69, "10": 72, "11": 75, "12": 78, "13": 81, "14": 84, "15": 87, "16": 90, "17": 90, "18": 90}, "8": {"0": 41, "1": 44, "2": 48, "3": 51, "4": 54, "5": 57, "6": 61, "7": 64, "8": 67, "9": 70, "10": 74, "11": 77, "12": 80, "13": 83, "14": 87, "15": 90, "16": 90, "17": 90, "18": 90}, "9": {"0": 41, "1": 44, "2": 48, "3": 51, "4": 54, "5": 57, "6": 61, "7": 64, "8": 67, "9": 70, "10": 74, "11": 77, "12": 80, "13": 83, "14": 87, "15": 90, "16": 90, "17": 90, "18": 90}, "10": {"0": 41, "1": 44, "2": 48, "3": 51, "4": 54, "5": 57, "6": 61, "7": 64, "8": 67, "9": 70, "10": 74, "11": 77, "12": 80, "13": 83, "14": 87, "15": 90, "16": 90, "17": 90, "18": 90}, "11": {"0": 41, "1": 45, "2": 49, "3": 52, "4": 56, "5": 60, "6": 64, "7": 67, "8": 71, "9": 75, "10": 79, "11": 82, "12": 86, "13": 90, "14": 90, "15": 90, "16": 90, "17": 90, "18": 90}, "12": {"0": 41, "1": 45, "2": 49, "3": 52, "4": 56, "5": 60, "6": 64, "7": 67, "8": 71, "9": 75, "10": 79, "11": 82, "12": 86, "13": 90, "14": 90, "15": 90, "16": 90, "17": 90, "18": 90}, "13": {"0": 41, "1": 45, "2": 49, "3": 53, "4": 57, "5": 61, "6": 66, "7": 70, "8": 74, "9": 78, "10": 82, "11": 86, "12": 90, "13": 90, "14": 90, "15": 90, "16": 90, "17": 90, "18": 90}, "14": {"0": 41, "1": 45, "2": 49, "3": 52, "4": 56, "5": 60, "6": 64, "7": 67, "8": 71, "9": 75, "10": 79, "11": 82, "12": 86, "13": 90, "14": 90, "15": 90, "16": 90, "17": 90, "18": 90}, "15": {"0": 41, "1": 45, "2": 49, "3": 53, "4": 57, "5": 61, "6": 66, "7": 70, "8": 74, "9": 78, "10": 82, "11": 86, "12": 90, "13": 90, "14": 90, "15": 90, "16": 90, "17": 90, "18": 90}, "16": {"0": 41, "1": 45, "2": 49, "3": 52, "4": 56, "5": 60, "6": 64, "7": 67, "8": 71, "9": 75, "10": 79, "11": 82, "12": 86, "13": 90, "14": 90, "15": 90, "16": 90, "17": 90, "18": 90}, "17": {"0": 41, "1": 45, "2": 49, "3": 53, "4": 57, "5": 61, "6": 66, "7": 70, "8": 74, "9": 78, "10": 82, "11": 86, "12": 90, "13": 90, "14": 90, "15": 90, "16": 90, "17": 90, "18": 90}}, "T_LPEF": {"6": {"0": 42, "1": 44, "2": 46, "3": 49, "4": 51, "5": 53, "6": 55, "7": 58, "8": 60, "9": 62, "10": 64, "11": 66, "12": 69, "13": 71, "14": 73, "15": 75, "16": 78, "17": 80, "18": 82}, "7": {"0": 42, "1": 44, "2": 47, "3": 49, "4": 51, "5": 54, "6": 56, "7": 58, "8": 61, "9": 63, "10": 65, "11": 68, "12": 70, "13": 72, "14": 75, "15": 77, "16": 79, "17": 82, "18": 84}, "8": {"0": 42, "1": 44, "2": 47, "3": 49, "4": 52, "5": 54, "6": 56, "7": 59, "8": 61, "9": 64, "10": 66, "11": 69, "12": 71, "13": 73, "14": 76, "15": 78, "16": 81, "17": 83, "18": 85}, "9": {"0": 42, "1": 44, "2": 47, "3": 49, "4": 52, "5": 54, "6": 56, "7": 59, "8": 61, "9": 64, "10": 66, "11": 68, "12": 71, "13": 73, "14": 75, "15": 78, "16": 80, "17": 83, "18": 85}, "10": {"0": 42, "1": 44, "2": 47, "3": 49, "4": 52, "5": 54, "6": 56, "7": 59, "8": 61, "9": 64, "10": 66, "11": 68, "12": 71, "13": 73, "14": 75, "15": 78, "16": 80, "17": 83, "18": 85}, "11": {"0": 42, "1": 45, "2": 47, "3": 50, "4": 52, "5": 55, "6": 58, "7": 60, "8": 63, "9": 65, "10": 68, "11": 70, "12": 73, "13": 76, "14": 78, "15": 81, "16": 83, "17": 86, "18": 89}, "12": {"0": 42, "1": 45, "2": 48, "3": 51, "4": 54, "5": 57, "6": 60, "7": 63, "8": 66, "9": 68, "10": 71, "11": 74, "12": 77, "13": 80, "14": 83, "15": 86, "16": 89, "17": 90, "18": 90}, "13": {"0": 42, "1": 45, "2": 48, "3": 50, "4": 53, "5": 56, "6": 59, "7": 61, "8": 64, "9": 67, "10": 70, "11": 72, "12": 75, "13": 78, "14": 81, "15": 83, "16": 86, "17": 89, "18": 90}, "14": {"0": 42, "1": 45, "2": 48, "3": 50, "4": 53, "5": 56, "6": 59, "7": 61, "8": 64, "9": 67, "10": 70, "11": 72, "12": 75, "13": 78, "14": 81, "15": 83, "16": 86, "17": 89, "18": 90}, "15": {"0": 42, "1": 45, "2": 47, "3": 50, "4": 53, "5": 56, "6": 58, "7": 61, "8": 64, "9": 66, "10": 69, "11": 72, "12": 74, "13": 77, "14": 80, "15": 83, "16": 85, "17": 88, "18": 90}, "16": {"0": 42, "1": 45, "2": 47, "3": 50, "4": 53, "5": 55, "6": 58, "7": 61, "8": 63, "9": 66, "10": 69, "11": 71, "12": 74, "13": 77, "14": 79, "15": 82, "16": 85, "17": 87, "18": 90}, "17": {"0": 42, "1": 45, "2": 48, "3": 51, "4": 54, "5": 57, "6": 60, "7": 63, "8": 66, "9": 68, "10": 71, "11": 74, "12": 77, "13": 80, "14": 83, "15": 86, "16": 89, "17": 90, "18": 90}}, "T_AG": {"6": {"0": 45, "1": 51, "2": 58, "3": 64, "4": 71, "5": 77, "6": 84, "7": 90, "8": 90, "9": 90, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "7": {"0": 45, "1": 51, "2": 58, "3": 64, "4": 71, "5": 77, "6": 84, "7": 90, "8": 90, "9": 90, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "8": {"0": 45, "1": 54, "2": 63, "3": 72, "4": 81, "5": 90, "6": 90, "7": 90, "8": 90, "9": 90, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "9": {"0": 45, "1": 52, "2": 60, "3": 68, "4": 75, "5": 82, "6": 90, "7": 90, "8": 90, "9": 90, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "10": {"0": 45, "1": 51, "2": 58, "3": 64, "4": 71, "5": 77, "6": 84, "7": 90, "8": 90, "9": 90, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "11": {"0": 45, "1": 51, "2": 58, "3": 64, "4": 71, "5": 77, "6": 84, "7": 90, "8": 90, "9": 90, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "12": {"0": 45, "1": 51, "2": 58, "3": 64, "4": 71, "5": 77, "6": 84, "7": 90, "8": 90, "9": 90, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "13": {"0": 45, "1": 51, "2": 56, "3": 62, "4": 68, "5": 73, "6": 79, "7": 84, "8": 90, "9": 90, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "14": {"0": 45, "1": 52, "2": 60, "3": 68, "4": 75, "5": 82, "6": 90, "7": 90, "8": 90, "9": 90, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "15": {"0": 45, "1": 52, "2": 60, "3": 68, "4": 75, "5": 82, "6": 90, "7": 90, "8": 90, "9": 90, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "16": {"0": 45, "1": 52, "2": 60, "3": 68, "4": 75, "5": 82, "6": 90, "7": 90, "8": 90, "9": 90, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "17": {"0": 45, "1": 52, "2": 60, "3": 68, "4": 75, "5": 82, "6": 90, "7": 90, "8": 90, "9": 90, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}}, "T_PR": {"6": {"0": 44, "1": 49, "2": 54, "3": 59, "4": 64, "5": 70, "6": 75, "7": 80, "8": 85, "9": 90, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "7": {"0": 44, "1": 50, "2": 56, "3": 61, "4": 67, "5": 73, "6": 78, "7": 84, "8": 90, "9": 90, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "8": {"0": 44, "1": 51, "2": 57, "3": 64, "4": 70, "5": 77, "6": 83, "7": 90, "8": 90, "9": 90, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "9": {"0": 44, "1": 50, "2": 56, "3": 61, "4": 67, "5": 73, "6": 78, "7": 84, "8": 90, "9": 90, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "10": {"0": 44, "1": 50, "2": 56, "3": 61, "4": 67, "5": 73, "6": 78, "7": 84, "8": 90, "9": 90, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "11": {"0": 44, "1": 51, "2": 57, "3": 64, "4": 70, "5": 77, "6": 83, "7": 90, "8": 90, "9": 90, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "12": {"0": 44, "1": 49, "2": 54, "3": 59, "4": 64, "5": 70, "6": 75, "7": 80, "8": 85, "9": 90, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "13": {"0": 44, "1": 50, "2": 56, "3": 61, "4": 67, "5": 73, "6": 78, "7": 84, "8": 90, "9": 90, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "14": {"0": 44, "1": 52, "2": 59, "3": 67, "4": 75, "5": 82, "6": 90, "7": 90, "8": 90, "9": 90, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "15": {"0": 44, "1": 50, "2": 56, "3": 61, "4": 67, "5": 73, "6": 78, "7": 84, "8": 90, "9": 90, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "16": {"0": 44, "1": 51, "2": 57, "3": 64, "4": 70, "5": 77, "6": 83, "7": 90, "8": 90, "9": 90, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "17": {"0": 44, "1": 50, "2": 56, "3": 61, "4": 67, "5": 73, "6": 78, "7": 84, "8": 90, "9": 90, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}}};
+// ── Suspensão dos T-scores ────────────────────────────────────────────────────
+// As tabelas NORMS abaixo não foram transcritas do manual: são interpolação
+// linear entre T=40 e T=90 (incrementos constantes ao longo de cada coluna de
+// idade). Enquanto NORMAS_VALIDADAS for false, nenhum T é apresentado, gravado
+// ou exportado. Os scores brutos continuam válidos e são calculados na mesma.
+// Para reactivar: transcrever as tabelas do Apêndice B para NORMS e pôr true.
+const NORMAS_VALIDADAS = false;
+const AVISO_T = 'T-scores suspensos: as tabelas normativas em uso não foram validadas contra o manual. Os scores brutos são válidos; a conversão para T deve ser feita no Apêndice B.';
+function tDe(s, code) {
+  if (!NORMAS_VALIDADAS) return null;
+  if (!s || !s.tscores) return null;
+  const v = s.tscores[code];
+  return (v === undefined || v === '' ) ? null : v;
+}
+const NORMS = {"T_IN": {"6": {"0": 40, "1": 40, "2": 40, "3": 40, "4": 51, "5": 57, "6": 63, "7": 69, "8": 75, "9": 81, "10": 87, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "7": {"0": 40, "1": 40, "2": 40, "3": 40, "4": 51, "5": 57, "6": 63, "7": 68, "8": 74, "9": 80, "10": 86, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "8": {"0": 40, "1": 40, "2": 40, "3": 48, "4": 53, "5": 59, "6": 64, "7": 70, "8": 76, "9": 81, "10": 87, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "9": {"0": 40, "1": 40, "2": 40, "3": 48, "4": 53, "5": 59, "6": 64, "7": 70, "8": 75, "9": 81, "10": 86, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "10": {"0": 40, "1": 40, "2": 46, "3": 51, "4": 57, "5": 62, "6": 68, "7": 73, "8": 79, "9": 84, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "11": {"0": 40, "1": 40, "2": 46, "3": 51, "4": 56, "5": 61, "6": 67, "7": 72, "8": 77, "9": 83, "10": 88, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "12": {"0": 40, "1": 44, "2": 49, "3": 54, "4": 59, "5": 64, "6": 70, "7": 75, "8": 80, "9": 85, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "13": {"0": 40, "1": 44, "2": 49, "3": 54, "4": 59, "5": 64, "6": 69, "7": 74, "8": 80, "9": 85, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "14": {"0": 40, "1": 45, "2": 50, "3": 56, "4": 61, "5": 66, "6": 71, "7": 77, "8": 82, "9": 87, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "15": {"0": 40, "1": 45, "2": 50, "3": 55, "4": 60, "5": 65, "6": 71, "7": 76, "8": 81, "9": 86, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "16": {"0": 40, "1": 46, "2": 51, "3": 56, "4": 62, "5": 67, "6": 72, "7": 77, "8": 82, "9": 88, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "17": {"0": 40, "1": 46, "2": 51, "3": 56, "4": 62, "5": 67, "6": 72, "7": 77, "8": 82, "9": 88, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}}, "T_HI": {"6": {"0": 40, "1": 40, "2": 40, "3": 40, "4": 40, "5": 40, "6": 56, "7": 63, "8": 69, "9": 75, "10": 82, "11": 88, "12": 90, "13": 90, "14": 90, "15": 90, "16": 90, "17": 90, "18": 90}, "7": {"0": 40, "1": 40, "2": 40, "3": 40, "4": 40, "5": 53, "6": 59, "7": 66, "8": 72, "9": 78, "10": 85, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90, "16": 90, "17": 90, "18": 90}, "8": {"0": 40, "1": 40, "2": 40, "3": 40, "4": 40, "5": 53, "6": 59, "7": 65, "8": 72, "9": 78, "10": 84, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90, "16": 90, "17": 90, "18": 90}, "9": {"0": 40, "1": 40, "2": 40, "3": 40, "4": 51, "5": 57, "6": 63, "7": 69, "8": 75, "9": 81, "10": 87, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90, "16": 90, "17": 90, "18": 90}, "10": {"0": 40, "1": 40, "2": 40, "3": 40, "4": 51, "5": 56, "6": 62, "7": 68, "8": 74, "9": 80, "10": 85, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90, "16": 90, "17": 90, "18": 90}, "11": {"0": 40, "1": 40, "2": 40, "3": 49, "4": 54, "5": 60, "6": 66, "7": 71, "8": 77, "9": 83, "10": 88, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90, "16": 90, "17": 90, "18": 90}, "12": {"0": 40, "1": 40, "2": 40, "3": 49, "4": 54, "5": 60, "6": 65, "7": 71, "8": 76, "9": 82, "10": 88, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90, "16": 90, "17": 90, "18": 90}, "13": {"0": 40, "1": 40, "2": 47, "3": 52, "4": 58, "5": 63, "6": 69, "7": 74, "8": 80, "9": 85, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90, "16": 90, "17": 90, "18": 90}, "14": {"0": 40, "1": 40, "2": 47, "3": 52, "4": 57, "5": 63, "6": 68, "7": 74, "8": 79, "9": 85, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90, "16": 90, "17": 90, "18": 90}, "15": {"0": 40, "1": 45, "2": 50, "3": 56, "4": 61, "5": 67, "6": 72, "7": 78, "8": 83, "9": 88, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90, "16": 90, "17": 90, "18": 90}, "16": {"0": 40, "1": 45, "2": 50, "3": 56, "4": 61, "5": 66, "6": 72, "7": 77, "8": 83, "9": 88, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90, "16": 90, "17": 90, "18": 90}, "17": {"0": 40, "1": 46, "2": 51, "3": 57, "4": 62, "5": 68, "6": 73, "7": 79, "8": 84, "9": 90, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90, "16": 90, "17": 90, "18": 90}}, "T_LPEF": {"6": {"0": 40, "1": 40, "2": 40, "3": 40, "4": 40, "5": 51, "6": 56, "7": 62, "8": 67, "9": 72, "10": 78, "11": 83, "12": 88, "13": 90, "14": 90, "15": 90, "16": 90, "17": 90, "18": 90}, "7": {"0": 40, "1": 40, "2": 40, "3": 40, "4": 40, "5": 51, "6": 56, "7": 61, "8": 66, "9": 72, "10": 77, "11": 82, "12": 87, "13": 90, "14": 90, "15": 90, "16": 90, "17": 90, "18": 90}, "8": {"0": 40, "1": 40, "2": 40, "3": 40, "4": 49, "5": 53, "6": 58, "7": 63, "8": 68, "9": 73, "10": 78, "11": 83, "12": 88, "13": 90, "14": 90, "15": 90, "16": 90, "17": 90, "18": 90}, "9": {"0": 40, "1": 40, "2": 40, "3": 40, "4": 49, "5": 53, "6": 58, "7": 63, "8": 68, "9": 73, "10": 78, "11": 83, "12": 88, "13": 90, "14": 90, "15": 90, "16": 90, "17": 90, "18": 90}, "10": {"0": 40, "1": 40, "2": 40, "3": 47, "4": 51, "5": 56, "6": 61, "7": 66, "8": 70, "9": 75, "10": 80, "11": 85, "12": 89, "13": 90, "14": 90, "15": 90, "16": 90, "17": 90, "18": 90}, "11": {"0": 40, "1": 40, "2": 40, "3": 47, "4": 51, "5": 55, "6": 60, "7": 65, "8": 69, "9": 74, "10": 79, "11": 83, "12": 88, "13": 90, "14": 90, "15": 90, "16": 90, "17": 90, "18": 90}, "12": {"0": 40, "1": 40, "2": 45, "3": 49, "4": 54, "5": 58, "6": 63, "7": 67, "8": 72, "9": 76, "10": 81, "11": 85, "12": 90, "13": 90, "14": 90, "15": 90, "16": 90, "17": 90, "18": 90}, "13": {"0": 40, "1": 40, "2": 45, "3": 49, "4": 53, "5": 58, "6": 62, "7": 67, "8": 71, "9": 76, "10": 80, "11": 85, "12": 89, "13": 90, "14": 90, "15": 90, "16": 90, "17": 90, "18": 90}, "14": {"0": 40, "1": 43, "2": 47, "3": 52, "4": 56, "5": 60, "6": 65, "7": 69, "8": 74, "9": 78, "10": 83, "11": 87, "12": 90, "13": 90, "14": 90, "15": 90, "16": 90, "17": 90, "18": 90}, "15": {"0": 40, "1": 43, "2": 47, "3": 52, "4": 56, "5": 60, "6": 65, "7": 69, "8": 73, "9": 78, "10": 82, "11": 87, "12": 90, "13": 90, "14": 90, "15": 90, "16": 90, "17": 90, "18": 90}, "16": {"0": 40, "1": 44, "2": 48, "3": 53, "4": 57, "5": 62, "6": 66, "7": 71, "8": 75, "9": 79, "10": 84, "11": 88, "12": 90, "13": 90, "14": 90, "15": 90, "16": 90, "17": 90, "18": 90}, "17": {"0": 40, "1": 44, "2": 48, "3": 53, "4": 57, "5": 62, "6": 66, "7": 70, "8": 75, "9": 79, "10": 84, "11": 88, "12": 90, "13": 90, "14": 90, "15": 90, "16": 90, "17": 90, "18": 90}}, "T_AG": {"6": {"0": 44, "1": 44, "2": 54, "3": 60, "4": 67, "5": 73, "6": 79, "7": 86, "8": 90, "9": 90, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "7": {"0": 44, "1": 44, "2": 54, "3": 60, "4": 66, "5": 72, "6": 78, "7": 84, "8": 90, "9": 90, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "8": {"0": 44, "1": 50, "2": 56, "3": 62, "4": 68, "5": 74, "6": 80, "7": 86, "8": 90, "9": 90, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "9": {"0": 44, "1": 50, "2": 56, "3": 61, "4": 67, "5": 73, "6": 79, "7": 85, "8": 90, "9": 90, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "10": {"0": 44, "1": 51, "2": 57, "3": 63, "4": 69, "5": 75, "6": 81, "7": 87, "8": 90, "9": 90, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "11": {"0": 44, "1": 51, "2": 57, "3": 63, "4": 68, "5": 74, "6": 80, "7": 86, "8": 90, "9": 90, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "12": {"0": 44, "1": 52, "2": 58, "3": 64, "4": 70, "5": 76, "6": 82, "7": 88, "8": 90, "9": 90, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "13": {"0": 44, "1": 52, "2": 58, "3": 64, "4": 70, "5": 76, "6": 82, "7": 88, "8": 90, "9": 90, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "14": {"0": 44, "1": 53, "2": 59, "3": 65, "4": 72, "5": 78, "6": 84, "7": 90, "8": 90, "9": 90, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "15": {"0": 44, "1": 53, "2": 59, "3": 65, "4": 71, "5": 78, "6": 84, "7": 90, "8": 90, "9": 90, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "16": {"0": 44, "1": 55, "2": 61, "3": 67, "4": 73, "5": 80, "6": 86, "7": 90, "8": 90, "9": 90, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "17": {"0": 44, "1": 55, "2": 61, "3": 67, "4": 73, "5": 79, "6": 86, "7": 90, "8": 90, "9": 90, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}}, "T_PR": {"6": {"0": 44, "1": 44, "2": 44, "3": 44, "4": 44, "5": 72, "6": 79, "7": 85, "8": 90, "9": 90, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "7": {"0": 44, "1": 44, "2": 44, "3": 44, "4": 67, "5": 74, "6": 81, "7": 88, "8": 90, "9": 90, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "8": {"0": 44, "1": 44, "2": 44, "3": 44, "4": 67, "5": 73, "6": 80, "7": 87, "8": 90, "9": 90, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "9": {"0": 44, "1": 44, "2": 44, "3": 63, "4": 69, "5": 76, "6": 82, "7": 89, "8": 90, "9": 90, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "10": {"0": 44, "1": 44, "2": 44, "3": 63, "4": 69, "5": 75, "6": 82, "7": 88, "8": 90, "9": 90, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "11": {"0": 44, "1": 44, "2": 59, "3": 65, "4": 72, "5": 78, "6": 85, "7": 90, "8": 90, "9": 90, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "12": {"0": 44, "1": 44, "2": 59, "3": 65, "4": 71, "5": 77, "6": 84, "7": 90, "8": 90, "9": 90, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "13": {"0": 44, "1": 55, "2": 61, "3": 68, "4": 74, "5": 81, "6": 87, "7": 90, "8": 90, "9": 90, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "14": {"0": 44, "1": 55, "2": 61, "3": 67, "4": 74, "5": 80, "6": 87, "7": 90, "8": 90, "9": 90, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "15": {"0": 44, "1": 56, "2": 63, "3": 69, "4": 76, "5": 82, "6": 89, "7": 90, "8": 90, "9": 90, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "16": {"0": 44, "1": 56, "2": 62, "3": 69, "4": 75, "5": 82, "6": 88, "7": 90, "8": 90, "9": 90, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}, "17": {"0": 44, "1": 57, "2": 64, "3": 71, "4": 77, "5": 84, "6": 90, "7": 90, "8": 90, "9": 90, "10": 90, "11": 90, "12": 90, "13": 90, "14": 90, "15": 90}}};
 const N_ITENS = 41;
-const ITEMS_TEXTO = ["Está constantemente em movimento", "Precisa de muito esforço para terminar tarefas difíceis", "Desatento(a); distrai-se facilmente", "Comete erros", "Intimidia, ameaça ou assusta os outros", "Não faz nada bem feito", "Está zangado(a) e ressentido(a)", "É excitavel e impulsivo(a)", "É agradável estar com ele(a)", "Tem dificuldade em manter a atenção no trabalho ou no jogo durante muito tempo", "Tem fracas competências sociais", "Recusa activamente fazer o que os adultos lhe dizem", "É feliz, alegre e tem uma atitude positiva", "Não consegue perceber aritmética", "Tenta vingar-se das pessoas", "Tem dificuldade em começar tarefas ou projectos", "Age de forma dissimulada ou manipuladora", "Não compreende o que le", "Diz sempre a verdade; nem diz 'mentiras inocentes'", "Parece não ser aceite pelo grupo", "É difícil de motivar (mesmo com recompensas muito desejadas)", "Inquieto(a) ou hiperactivo(a)", "É bom(boa) a planear com antecedência", "Mexe-se ou contorce-se na cadeira", "É paciente e tranquilo(a), mesmo quando espera numa fila", "Não prestá atenção aos pormenores; comete erros por descuido", "É um dos últimos a ser escolhido para equipas ou jogos", "Tem dificuldades com a ortografia", "Tem dificuldade em manter as amizades", "Levanta-se do lugar quando devia ficar sentado(a)", "Comporta-se como um anjo", "Fala sem esperar a sua vez", "É difícil de agradar ou divertir", "É perfeito(a) em tudo", "Esquece facilmente o que ja aprendeu", "Tem um período de atenção curto", "Não sabe como fazer amigos", "Não consigo perceber o que o(a) faz feliz", "Distrai-se facilmente", "Tem outras preocupações sobre este(a) aluno(a)?", "Quais são os pontos fortes ou capacidades deste(a) aluno(a)?"];
+const ITEMS_TEXTO = ["Está constantemente em movimento", "Precisa de muito esforço para terminar tarefas difíceis", "Desatento(a); distrai-se facilmente", "Comete erros", "Intimidia, ameaça ou assusta os outros", "Não faz nada bem feito", "Está zangado(a) e ressentido(a)", "É excitavel e impulsivo(a)", "É agradável estar com ele(a)", "Tem dificuldade em manter a atenção no trabalho ou no jogo durante muito tempo", "Tem fracas competências sociais", "Recusa activamente fazer o que os adultos lhe dizem", "É feliz, alegre e tem uma atitude positiva", "Não consegue perceber aritmética", "Tenta vingar-se das pessoas", "Tem dificuldade em começar tarefas ou projectos", "Age de forma dissimulada ou manipuladora", "Não compreende o que le", "Diz sempre a verdade; nem diz 'mentiras inocentes'", "Parece não ser aceite pelo grupo", "É difícil de motivar (mesmo com recompensas muito desejadas)", "Inquieto(a) ou hiperactivo(a)", "É bom(boa) a planear com antecedência", "Mexe-se ou contorce-se na cadeira", "É paciente e tranquilo(a), mesmo quando espera numa fila", "Não prestá atenção aos pormenores; comete erros por descuido", "É um dos últimos a ser escolhido para equipas ou jogos", "Tem dificuldades com a ortografia", "Tem dificuldade em manter as amizades", "Levanta-se do lugar quando devia ficar sentado(a)", "Comporta-se como um anjo", "Fala sem esperar a sua vez", "É difícil de agradar ou divertir", "É perfeito(a) em tudo", "Esquece facilmente o que ja aprendeu", "Tem um período de atenção curto", "Não sabe como fazer amigos", "É difícil de motivar (mesmo com recompensas como doces ou dinheiro)", "Distrai-se facilmente", "Tem outras preocupações sobre este(a) aluno(a)?", "Quais são os pontos fortes ou capacidades deste(a) aluno(a)?"];
 const IDADES_MAP = [6,7,8,9,10,11,12,13,14,15,16,17];
 
 let respostas = new Array(N_ITENS).fill(null);
@@ -915,37 +929,10 @@ function submeter() {
   const idadeEl = document.getElementById('idade-crianca');
   const idade = idadeEl ? parseInt(idadeEl.value)||0 : 0;
 
-  // Calcular scores brutos por escala
-  const scores = {};
-  for (const esc of ESCALAS) {
-    let total = 0;
-    for (const idx of esc.items) {
-      const r = respostas[idx];
-      if (r === null) continue;
-      const inv = esc.inv.includes(idx);
-      total += inv ? (3 - r) : r;
-    }
-    scores[esc.code] = total;
-  }
-
-  // Calcular T-scores
-  const tscores = {};
-  for (const esc of ESCALAS) {
-    const raw = scores[esc.code];
-    const tbl = NORMS[esc.nk];
-    if (!tbl) { tscores[esc.code] = null; continue; }
-    // Mapear idade para grupo
-    let grpKey = idade >= 17 ? '17' : idade >= 6 ? String(idade) : '6';
-    const grp = tbl[grpKey] || tbl['6'];
-    if (!grp) { tscores[esc.code] = null; continue; }
-    // Lookup: maior raw <= score
-    let bestRaw = -1, bestT = null;
-    for (const [r, t] of Object.entries(grp)) {
-      const ri = parseInt(r);
-      if (ri <= raw && ri > bestRaw) { bestRaw=ri; bestT=t; }
-    }
-    tscores[esc.code] = bestT;
-  }
+  // Cotação (regras da folha COTAÇÃO do Excel de origem)
+  const __cot = cotar(respostas, idade);
+  const scores  = __cot.scores;
+  const tscores = __cot.tscores;
 
   const sessao = {
     id: Date.now(),
@@ -975,11 +962,11 @@ function enviarAoSheet(s) {
       score_LPEF: s.scores['LPEF']??'',
       score_AG: s.scores['AG']??'',
       score_PR: s.scores['PR']??'',
-      t_IN: s.tscores['IN']??'',
-      t_HI: s.tscores['HI']??'',
-      t_LPEF: s.tscores['LPEF']??'',
-      t_AG: s.tscores['AG']??'',
-      t_PR: s.tscores['PR']??'',
+      t_IN: tDe(s,'IN')??'',
+      t_HI: tDe(s,'HI')??'',
+      t_LPEF: tDe(s,'LPEF')??'',
+      t_AG: tDe(s,'AG')??'',
+      t_PR: tDe(s,'PR')??'',
     respostas: JSON.stringify(s.respostas),
   };
   fetch('https://script.google.com/macros/s/AKfycbxX2_Ry7VRH6jr7eGBMmtmyZFXZc69blwdO5bqJK0j69HRSexpXXPuEfDC5OHQRMLLL/exec', {
@@ -987,6 +974,43 @@ function enviarAoSheet(s) {
     mode: 'no-cors',
     body: JSON.stringify(payload),
   }).catch(function(){});
+}
+
+
+// ══════════════════════════════════════════════════════════════════════════════
+// COTAÇÃO — réplica exacta das fórmulas da folha COTAÇÃO do Excel de origem
+//   · itens invertidos: valor cotado = 3 - resposta
+//   · escala incompleta (qualquer item em falta) → N/D, nunca soma parcial
+//   · lookup do T: MIN(bruto, max_raw) na tabela BASE_TÉCNICA
+//   · coluna de idade: >=17 → "17/18a" · <6 → "6a"
+// ══════════════════════════════════════════════════════════════════════════════
+function idadeColKey(idade) {
+  const n = Number(idade);
+  if (!isFinite(n) || n <= 0) return null;
+  if (n >= 17) return '17';
+  if (n >= 6)  return String(Math.floor(n));
+  return '6';
+}
+
+function cotar(resp, idade) {
+  const scores = {}, tscores = {};
+  const gk = idadeColKey(idade);
+  for (const esc of ESCALAS) {
+    let raw = 0, completo = true;
+    for (const idx of esc.items) {
+      const r = (resp && resp[idx] !== undefined) ? resp[idx] : null;
+      if (r === null || r === undefined || r === '') { completo = false; break; }
+      raw += (esc.inv.indexOf(idx) !== -1) ? (3 - Number(r)) : Number(r);
+    }
+    if (!completo) { scores[esc.code] = null; tscores[esc.code] = null; continue; }
+    scores[esc.code] = raw;
+    if (!NORMAS_VALIDADAS) { tscores[esc.code] = null; continue; }
+    const tbl = NORMS[esc.nk];
+    if (!tbl || !gk || !tbl[gk]) { tscores[esc.code] = null; continue; }
+    const t = tbl[gk][String(Math.min(raw, esc.max_raw))];
+    tscores[esc.code] = (t === undefined ? null : t);
+  }
+  return { scores: scores, tscores: tscores };
 }
 
 // ── Painel clínico ────────────────────────────────────────────────────────────
@@ -1030,7 +1054,7 @@ function verDetalhe(id) {
   html += '</tr></thead><tbody>';
   for (const esc of ESCALAS) {
     const raw = s.scores[esc.code]??'—';
-    const t = s.tscores[esc.code];
+    const t = tDe(s, esc.code);
     const zona = !t ? '—' : t>=70 ? 'Muito Elevado' : t>=65 ? 'Elevado' : t>=60 ? 'Médio-Elevado' : 'Normativa';
     const badgeCls = !t ? '' : t>=70 ? 'badge-clinical' : t>=65 ? 'badge-borderline' : t>=60 ? 'badge-elevated' : 'badge-normative';
     html += '<tr style="border-bottom:1px solid var(--gray-bdr)">';
@@ -1045,7 +1069,7 @@ function verDetalhe(id) {
   // Perfil visual
   html += '<div style="margin-top:20px"><div style="font-size:.85rem;font-weight:700;color:var(--blue);margin-bottom:12px">Perfil</div>';
   for (const esc of ESCALAS) {
-    const t = s.tscores[esc.code];
+    const t = tDe(s, esc.code);
     if (!t) continue;
     const pct = Math.min(Math.max((t-40)/50*100,0),100);
     const cor = t>=70 ? 'var(--red)' : t>=65 ? 'var(--orange)' : t>=60 ? 'var(--yellow)' : 'var(--blue-mid)';
@@ -1059,12 +1083,17 @@ function verDetalhe(id) {
   html += '<div style="font-size:.72rem;color:var(--text-light);margin-top:6px">● Vermelho: T≥70 (Clínica) · Laranja: T65–69 (Borderline) · Azul: T&lt;65 (Normativa)</div>';
   html += '</div>';
 
+  if (s.recalculado) {
+    html += '<div style="margin-top:16px;font-size:.75rem;color:var(--text-light);border-left:3px solid var(--blue-mid);padding:6px 10px">'+
+            'Scores recalculados a partir das respostas em bruto, com as tabelas normativas em vigor.</div>';
+  }
+
   // Interpretação clínica
   html += interpretacaoHTML(s, false);
 
   // Nota de rodapé
   html += '<div style="margin-top:20px;font-size:.72rem;color:var(--text-light);border-top:1px solid var(--gray-bdr);padding-top:10px">';
-  html += 'Normas: Appendix B Combined Gender — Conners 3rd Edition™, MHS Inc. © 2008/2009 · ';
+  html += '⚠ T-scores suspensos — tabelas normativas por validar. · ';
   html += 'T≥70 = Clinicamente significativo · T65–69 = Borderline · T&lt;65 = Normativo · ';
   html += 'Avaliação realizada por Ricardina Correia · Cédula 8233 · Psicologia Pediátrica';
   html += '</div>';
@@ -1102,7 +1131,7 @@ function exportarRelatorioPDF(sess) {
   tabelaEsc += '<thead><tr style="background:#D6E4F0"><th style="padding:6px 8px;text-align:left">Escala</th><th style="padding:6px 8px;text-align:center">Score Bruto</th><th style="padding:6px 8px;text-align:center">T-Score</th><th style="padding:6px 8px;text-align:center">Zona</th></tr></thead><tbody>';
   for (const esc of ESCALAS) {
     const raw = s.scores[esc.code] ?? '—';
-    const t = s.tscores[esc.code];
+    const t = tDe(s, esc.code);
     const zona = !t ? '—' : t>=70 ? 'Muito Elevado' : t>=65 ? 'Elevado' : t>=60 ? 'Médio-Elevado' : 'Normativa';
     const cor = !t ? '#555' : t>=70 ? '#c0392b' : t>=65 ? '#e67e22' : t>=60 ? '#f1c40f' : '#27AE60';
     tabelaEsc += '<tr style="border-bottom:1px solid #eee"><td style="padding:6px 8px"><strong>'+esc.code+'</strong> <span style="color:#888;font-size:11px">'+esc.label+'</span></td>';
@@ -1114,7 +1143,7 @@ function exportarRelatorioPDF(sess) {
 
   let perfil = '<div style="margin-bottom:20px">';
   for (const esc of ESCALAS) {
-    const t = s.tscores[esc.code];
+    const t = tDe(s, esc.code);
     if (!t) continue;
     const pct = Math.min(Math.max((t-40)/50*100,0),100);
     const cor = t>=70 ? '#c0392b' : t>=65 ? '#e67e22' : t>=60 ? '#f1c40f' : '#3B5A7A';
@@ -1159,7 +1188,7 @@ function exportarRelatorioPDF(sess) {
     '<h2>Perfil Visual</h2>'+perfil+
     interpretacaoHTML(s, true)+
     '<div style="font-size:10px;color:#888;border-top:1px solid #eee;padding-top:8px">'+
-    'Normas: Appendix B Combined Gender — Conners 3rd Edition™, MHS Inc. © 2008/2009 · '+
+    '⚠ T-scores suspensos — tabelas normativas por validar. · '+
     'T≥70 = Clinicamente significativo · T65–69 = Borderline · T&lt;65 = Normativo</div>'+
     respostasHtml+'</body></html>';
 
@@ -1204,7 +1233,7 @@ function exportarCSV() {
     const linha = [s.data, s.hora, s.code, s.nomeCrianca, s.nomeInf, s.relacao||RELACAO_DEF, s.idade||''];
     for (const c of esc_codes) {
       linha.push(s.scores && s.scores[c] !== null && s.scores[c] !== undefined ? s.scores[c] : '');
-      linha.push(s.tscores && s.tscores[c] !== null && s.tscores[c] !== undefined ? s.tscores[c] : '');
+      linha.push(tDe(s, c) !== null ? tDe(s, c) : '');
     }
     linha.push(JSON.stringify(respostasArray(s)));
     csv += linha.map(q).join(',') + '\r\n';
@@ -1289,15 +1318,30 @@ function parseSessao(row, idx) {
     try { const p = JSON.parse(rawResp); if (Array.isArray(p)) resp = p; } catch(e) { resp = []; }
   }
 
+  // Recalcular sempre a partir das respostas em bruto — os valores gravados no
+  // Sheet podem ter sido produzidos por uma versão anterior das tabelas normativas.
+  const idadeVal = (val('Idade') === '' ? '' : Number(val('Idade')));
+  let recalculado = false;
+  if (resp.length && idadeVal !== '' && idadeColKey(idadeVal)) {
+    const rc = cotar(resp, idadeVal);
+    let algum = false;
+    for (const esc of ESCALAS) if (rc.scores[esc.code] !== null) algum = true;
+    if (algum) {
+      for (const esc of ESCALAS) { scores[esc.code] = rc.scores[esc.code]; tscores[esc.code] = rc.tscores[esc.code]; }
+      recalculado = true;
+    }
+  }
+
   return {
     id: 900000000 + idx,
+    recalculado: recalculado,
     data: d,
     hora: '',
     code: String(val('Codigo') || val('Código') || '').trim().toUpperCase(),
     nomeCrianca: String(val('NomeCrianca')).trim(),
     nomeInf: String(val('NomeInformante')).trim(),
     relacao: String(val('Relação') || val('Relacao') || RELACAO_DEF).trim(),
-    idade: (val('Idade') === '' ? '' : Number(val('Idade'))),
+    idade: idadeVal,
     respostas: resp,
     scores: scores,
     tscores: tscores,
@@ -1356,9 +1400,12 @@ function gerarInterpretacao(s) {
   const linhas = [], elevadas = [];
 
   for (const esc of ESCALAS) {
-    const t = s.tscores[esc.code];
+    const t = tDe(s, esc.code);
+    const temRaw = !!(s.scores && Object.prototype.hasOwnProperty.call(s.scores, esc.code));
+    const raw = temRaw ? s.scores[esc.code] : undefined;
     let nivel, cls;
-    if (t === null || t === undefined || t === '' || isNaN(t)) { nivel = 'sem T-score disponível'; cls = 'nd'; }
+    if (temRaw && (raw === null || raw === '')) { nivel = 'não cotável — itens em falta nesta escala'; cls = 'nd'; }
+    else if (t === null || t === undefined || t === '' || isNaN(t)) { nivel = 'sem T-score disponível'; cls = 'nd'; }
     else if (t >= 70) { nivel = 'muito elevado, clinicamente significativo'; cls = 'clin'; }
     else if (t >= 65) { nivel = 'elevado'; cls = 'bord'; }
     else if (t >= 60) { nivel = 'médio-elevado, a monitorizar'; cls = 'elev'; }
@@ -1379,6 +1426,7 @@ function gerarInterpretacao(s) {
 
   // ── Validade do preenchimento ──
   const avisos = [];
+  if (!NORMAS_VALIDADAS) avisos.push(AVISO_T);
   const resp = respostasArray(s);
   if (!resp.length) {
     avisos.push('Respostas item-a-item indisponíveis para este registo; validade não verificável.');
@@ -1522,7 +1570,7 @@ function exportarPDF() {
          '<td style="padding:3px 8px">'+(s.nomeInf||'')+'</td>'+
          '<td style="padding:3px 8px;text-align:center">'+(s.idade||'—')+'</td>';
     for (const esc of ESCALAS) {
-      const v = s.tscores ? s.tscores[esc.code] : null;
+      const v = tDe(s, esc.code);
       const cor = (v >= 70) ? '#c0392b' : (v >= 65 ? '#e67e22' : (v >= 60 ? '#b8860b' : '#2C3E50'));
       t += '<td style="padding:3px 8px;text-align:center;font-weight:700;color:'+cor+'">'+
            (v !== null && v !== undefined && v !== '' && !isNaN(v) ? v : '—')+'</td>';
@@ -1532,7 +1580,7 @@ function exportarPDF() {
   t += '</tbody></table>'+
        '<div style="font-size:10px;color:#888;border-top:1px solid #eee;padding-top:8px;margin-top:12px">'+
        'T≥70 = Clinicamente significativo · T65–69 = Borderline · T&lt;65 = Normativo · '+
-       'Normas: Appendix B Combined Gender — Conners 3rd Edition™, MHS Inc. © 2008/2009 · '+
+       '⚠ T-scores suspensos — tabelas normativas por validar. · '+
        'Ricardina Correia · Cédula 8233 · Psicologia Pediátrica</div>';
 
   abrirJanelaImpressao(NOME_INSTR+' — Painel Clínico',
