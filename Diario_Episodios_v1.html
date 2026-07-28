@@ -405,6 +405,26 @@
 
   .clin-link { color: var(--muted); cursor: pointer; text-decoration: underline; text-underline-offset: 2px; }
 
+  /* ===== SISTEMA DE PÁGINAS + LANDING ===== */
+  .page { display: block; }
+  .home-wrap { max-width: 640px; margin: 0 auto; padding: 60px 22px 40px 22px; text-align: center; }
+  .home-eyebrow { font-size: 11px; color: var(--muted); letter-spacing: 0.14em; text-transform: uppercase; font-weight: 600; margin-bottom: 14px; }
+  .home-title { font-family: 'Lora', serif; font-size: 30px; color: var(--primary); font-weight: 600; margin-bottom: 6px; }
+  .home-sub { font-size: 15px; color: var(--text-soft); font-style: italic; margin: 0 0 34px 0; }
+  .home-cards { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+  .home-card {
+    background: var(--card); border: 1px solid var(--border-soft); border-radius: 12px;
+    padding: 28px 22px; cursor: pointer; text-align: center; font-family: inherit;
+    transition: all 200ms ease; box-shadow: 0 2px 12px rgba(44,74,107,.05);
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+  }
+  .home-card:hover { border-color: var(--accent-soft); box-shadow: 0 6px 20px rgba(44,74,107,.1); transform: translateY(-2px); }
+  .home-card:active { transform: scale(.99); }
+  .home-card-icon { font-size: 30px; }
+  .home-card-title { font-family: 'Lora', serif; font-size: 18px; color: var(--primary); font-weight: 600; }
+  .home-card-text { font-size: 12.5px; color: var(--text-soft); line-height: 1.5; }
+  @media (max-width: 560px) { .home-cards { grid-template-columns: 1fr; } }
+
   @media (max-width: 560px) {
     .id-grid { grid-template-columns: 1fr; max-width: none; }
   }
@@ -422,6 +442,30 @@
 </style>
 </head>
 <body>
+
+<!-- ===== PÁGINA INICIAL (dois painéis) ===== -->
+<div id="page-home" class="page">
+  <div class="home-wrap">
+    <div class="home-eyebrow">Ricardina Correia · Psicologia Pediátrica</div>
+    <div class="home-title">Diário de Episódios</div>
+    <p class="home-sub">Registo inter-sessões de episódios em casa</p>
+    <div class="home-cards">
+      <button class="home-card" id="go-paciente">
+        <div class="home-card-icon">📝</div>
+        <div class="home-card-title">Painel do Paciente</div>
+        <div class="home-card-text">Para pais e cuidadores registarem episódios à medida que acontecem.</div>
+      </button>
+      <button class="home-card" id="go-clinico">
+        <div class="home-card-icon">🔒</div>
+        <div class="home-card-title">Painel Clínico</div>
+        <div class="home-card-text">Acesso restrito · consulta dos episódios registados.</div>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== PAINEL DO PACIENTE (diário) ===== -->
+<div id="page-paciente" class="page" style="display:none">
 
 <header>
   <div class="h-eyebrow">Ricardina Correia · Diário de Episódios</div>
@@ -465,6 +509,7 @@
   </div>
 
   <div class="toolbar">
+    <button class="btn" id="home-btn">← Início</button>
     <button class="btn primary" id="add-btn">
       <span class="btn-icon">+</span>Novo episódio
     </button>
@@ -543,7 +588,7 @@
     <div class="empty-state-text">Quando acontecer algo que vos pareça relevante registar, toquem em "Novo episódio".</div>
   </div>
 
-</div>
+</div><!-- /page-paciente -->
 
 <div class="save-indicator" id="save-ind">guardado</div>
 
@@ -1163,13 +1208,36 @@
   document.getElementById('clin-sync-btn').addEventListener('click', carregarDados);
   clinFilter.addEventListener('input', renderClinico);
 
-  // auto-login via ?clinico=CNS2024 (aberto a partir do RC_Avaliacao_Pacientes)
-  if (params.get('clinico') === PASSWORD) {
-    abrirPainel();
+  // ----- navegação entre painéis -----
+  function showPage(id) {
+    document.querySelectorAll('.page').forEach(function(p){ p.style.display = 'none'; });
+    var el = document.getElementById(id);
+    if (el) el.style.display = 'block';
+    window.scrollTo(0, 0);
   }
+  function irParaPaciente() {
+    showPage('page-paciente');
+    setTimeout(function(){ if (!getCode()) codeInput.focus(); }, 60);
+  }
+  document.getElementById('go-paciente').addEventListener('click', irParaPaciente);
+  document.getElementById('go-clinico').addEventListener('click', abrirLogin);
+  document.getElementById('home-btn').addEventListener('click', function(){ showPage('page-home'); });
 
   load();
   render();
+
+  // ----- router de arranque -----
+  // ?clinico=CNS2024  → painel clínico direto (vindo do RC_Avaliacao_Pacientes)
+  // ?p=CÓDIGO         → painel do paciente direto (link enviado aos pais)
+  // sem parâmetros    → página inicial com os dois painéis
+  if (params.get('clinico') === PASSWORD) {
+    showPage('page-home');   // página por baixo do overlay ao fechar
+    abrirPainel();
+  } else if (initialCode) {
+    irParaPaciente();
+  } else {
+    showPage('page-home');
+  }
 })();
 </script>
 
