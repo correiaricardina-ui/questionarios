@@ -603,6 +603,13 @@ const RC_SHEET_URL = 'https://script.google.com/macros/s/AKfycbxX2_Ry7VRH6jr7eGB
 
 // Mapeamento: id do questionário → aba no Sheet central
 const QID_TO_ABA = {
+  // ── CBQ-SF · Children's Behavior Questionnaire, Forma Breve (v106) ──
+  'q_cbqsf':      'CBQ_SF',
+  // ── QCVE-P · Comportamento Verbal em Contexto Escolar — Professor (v105) ──
+  'q_qcvep_prof': 'QCVEP_PROF',
+  // ── SMQ · Questionário de Mutismo Seletivo (v104) ──
+  'q_smq_pais':   'SMQ_Pais',
+  'q_smq_prof':   'SMQ_Prof',
   'q_gad7':       'GAD7',
   'q_ais8':       'AIS_8',
   'q_sgrs':       'SGRS',
@@ -779,6 +786,13 @@ const QID_TO_ABA = {
 
 
 const SYNC_KEY_TO_ABA = {
+  // ── CBQ-SF · Children's Behavior Questionnaire, Forma Breve (v106) ──
+  'cbqsf':    'CBQ_SF',
+  // ── QCVE-P · Comportamento Verbal em Contexto Escolar — Professor (v105) ──
+  'qcvep_prof': 'QCVEP_PROF',
+  // ── SMQ · Questionário de Mutismo Seletivo (v104) ──
+  'smq_pais': 'SMQ_Pais',
+  'smq_prof': 'SMQ_Prof',
   'gad7':     'GAD7',
   'ais8':     'AIS_8',
   'sgrs':     'SGRS',
@@ -1312,6 +1326,21 @@ async function checkSheetForResponse(qid, patientCode) {
 function initCatalog() {
   const existing = store.get('catalog') || [];
   const defaults = [
+    // ── CBQ-SF · Children's Behavior Questionnaire — Forma Breve (v106) ──
+    // Putnam & Rothbart (2006); trad. PT Franklin, Soares, Sampaio, Santos & Veríssimo (2003).
+    // 94 itens · Likert 1–7 + NA · 15 escalas · 3 dimensões (Modelo A canónico) + Modelo B (PT).
+    // ⚠ SEM normas portuguesas: bandas DESCRITIVAS ancoradas na métrica (ponto neutro = 4),
+    //   nunca classificação clínica. Leitura preferencial = perfil ipsativo intraindividual.
+    { id:'q_cbqsf', name:'CBQ-SF — Children\u2019s Behavior Questionnaire (Forma Breve)', dest:['Mãe','Pai','Enc. Educação'], link:'https://correiaricardina-ui.github.io/questionarios/CBQ_SF_v1.html', syncKey:'cbqsf', area:'Regulação Emocional & Coping', ageRange:'3–7 anos', objective:'Avalia o temperamento infantil em 15 escalas e 3 dimensões, por hétero-relato do cuidador principal (94 itens, métrica 1–7 com opção NA)', domains:['Extroversão / Surgência','Afetividade Negativa','Controlo por Esforço','Nível de Atividade','Irritação / Frustração','Aproximação / Entusiasmo','Foco Atencional','Desconforto','Sensibilidade / Limiar de Resposta','Medo','Elevada Intensidade de Prazer','Impulsividade','Controlo Inibido','Baixa Intensidade de Prazer','Sensibilidade Percetiva','Tristeza','Timidez','Sorrisos / Gargalhadas'] , ageMin:36, ageMax:95},
+    // ── SMQ · Selective Mutism Questionnaire (Bergman et al., 2008) — v104 ──
+    // ⚠ Escala INVERSA: pontuações mais baixas = menos fala = maior gravidade.
+    { id:'q_smq_pais', name:'SMQ — Mutismo Seletivo (Pais)', dest:['Mãe','Pai','Enc. Educação'], link:'https://correiaricardina-ui.github.io/questionarios/SMQ_Pais_v1.html', syncKey:'smq_pais', area:'Ansiedade, Depressão & Internalização', ageRange:'3–17 anos', objective:'Quantifica a frequência de fala por contexto e a interferência funcional associada — versão pais (23 itens, escala inversa)', domains:['Escola','Casa/Família','Social','TOTAL SMQ','Escala de sintomas (soma 0–51)','Interferência funcional','Desconforto da criança','Desconforto do cuidador','IDC (discrepância contextual)','Concordância inter-informante'] , ageMin:36, ageMax:215},
+    { id:'q_smq_prof', name:'SMQ — Mutismo Seletivo (Professores)', dest:['Professor(a)','Educador(a)'], link:'https://correiaricardina-ui.github.io/questionarios/SMQ_Professores_v1.html', syncKey:'smq_prof', area:'Ansiedade, Depressão & Internalização', ageRange:'3–17 anos', objective:'Quantifica a frequência de fala em contexto escolar e a interferência percebida — versão professor (11 itens, escala inversa)', domains:['Escola (professor)','Interferência funcional percebida','Desconforto do aluno','Desconforto do professor','Concordância inter-informante'] , ageMin:36, ageMax:215},
+    // ── QCVE-P · Comportamento Verbal em Contexto Escolar — Professor (v105) ──
+    // Instrumento ORIGINAL de Ricardina Correia (Via B), inspirado no modelo estrutural
+    // do School Speech Questionnaire. NÃO é o SMQ nem com ele permutável.
+    // ⚠ ESCALA INVERSA na ECV: valores mais BAIXOS = menos fala = maior gravidade.
+    { id:'q_qcvep_prof', name:'QCVE-P — Comportamento Verbal em Contexto Escolar (Professor)', dest:['Professor(a)','Educador(a)','Diretor(a) de Turma'], link:'https://correiaricardina-ui.github.io/questionarios/QCVEP_Prof_v1.html', syncKey:'qcvep_prof', area:'Ansiedade, Depressão & Internalização', ageRange:'3–18 anos', objective:'Mede a frequência do comportamento verbal na escola por interlocutor e por grau de exposição, mais a comunicação não verbal e a interferência funcional — 20 itens, escala inversa na ECV', domains:['E1 — Comunicação verbal com pares','E2 — Comunicação verbal com adultos da escola','E3 — Comunicação verbal em situações de exposição','Total ECV (0–3)','IRV — Índice de Restrição Verbal','ICNV — Índice de Comunicação Não Verbal','IIF — Índice de Interferência Funcional'] , ageMin:36, ageMax:227},
     { id:'q_aceq_adol', name:'ACE-Q — Autorrelato (Adolescente)', dest:['Paciente'], link:'https://correiaricardina-ui.github.io/questionarios/ACE-Q_Adolescente.html', syncKey:'aceq_adol', area:'Trauma & Stress', ageRange:'12–18 anos', objective:'Rastreio de experiências adversas na infância — autorrelato do adolescente (18 itens, 0–2)', domains:['Relações familiares e ambiente emocional','Instabilidade familiar','Experiências de perda','Experiências de insegurança ou ameaça','Experiências sociais difíceis','Experiência emocional interna','Total'] , ageMin:144, ageMax:215},
     { id:'q_aceq_cuid', name:'ACE-Q — Cuidador', dest:['Mãe','Pai','Enc. Educação'], link:'https://correiaricardina-ui.github.io/questionarios/ACE-Q_Cuidador.html', syncKey:'aceq_cuid', area:'Trauma & Stress', ageRange:'0–18 anos', objective:'Rastreio de experiências adversas na infância — relato do cuidador (15 itens, 0–2)', domains:['Ambiente emocional familiar','Instabilidade familiar','Experiências de perda','Segurança e proteção','Experiências sociais difíceis','Eventos stressantes significativos','Total'] , ageMin:0, ageMax:215},
     { id:'q_gai', name:'GAI — Grelha de Automonitorização Interocetiva', dest:['Paciente'], link:'https://correiaricardina-ui.github.io/questionarios/GAI_Automonitorizacao_Interocetiva_v1.html', syncKey:'gai', area:'Risco & Sintomatologia Psicopatológica Geral', ageRange:'8–17 anos', objective:'Automonitorização interocetiva semanal — eixos somático-regulatório e apetitivo-corporal', domains:['Eixo Somático-Regulatório','Eixo Apetitivo-Corporal','Dimensões em alerta','Marcadores nutricionais'] , ageMin:96, ageMax:215},
@@ -2324,6 +2353,13 @@ function initCatalog() {
   } else {
     // Forçar links e syncKeys actualizados
     const META = {
+      // ── CBQ-SF · Children's Behavior Questionnaire, Forma Breve (v106) ──
+      'q_cbqsf':      { link:'https://correiaricardina-ui.github.io/questionarios/CBQ_SF_v1.html', syncKey:'cbqsf' },
+      // ── QCVE-P · Comportamento Verbal em Contexto Escolar — Professor (v105) ──
+      'q_qcvep_prof': { link:'https://correiaricardina-ui.github.io/questionarios/QCVEP_Prof_v1.html', syncKey:'qcvep_prof' },
+      // ── SMQ · Questionário de Mutismo Seletivo (v104) ──
+      'q_smq_pais':   { link:'https://correiaricardina-ui.github.io/questionarios/SMQ_Pais_v1.html', syncKey:'smq_pais' },
+      'q_smq_prof':   { link:'https://correiaricardina-ui.github.io/questionarios/SMQ_Professores_v1.html', syncKey:'smq_prof' },
       'q_gad7':       { link:'https://correiaricardina-ui.github.io/questionarios/GAD7_v1.html', syncKey:'gad7' },
       'q_ais8':       { link:'https://correiaricardina-ui.github.io/questionarios/AIS_8_v1.html', syncKey:'ais8' },
       'q_aceq_adol':  { link:'https://correiaricardina-ui.github.io/questionarios/ACE-Q_Adolescente.html', syncKey:'aceq_adol' },
@@ -3090,6 +3126,26 @@ function initCatalog() {
     if(!catalog.includes('q_gad7')) {
       const dGad7 = defaults.find(x => x.id === 'q_gad7');
       if(dGad7) { store.set('q_' + dGad7.id, dGad7); store.set(dGad7.id, dGad7); catalog.push('q_gad7'); store.set('catalog', catalog); }
+    }
+    // SMQ · Questionário de Mutismo Seletivo — Pais
+    if(!catalog.includes('q_smq_pais')) {
+      const dSmqP = defaults.find(x => x.id === 'q_smq_pais');
+      if(dSmqP) { store.set('q_' + dSmqP.id, dSmqP); store.set(dSmqP.id, dSmqP); catalog.push('q_smq_pais'); store.set('catalog', catalog); }
+    }
+    // SMQ · Questionário de Mutismo Seletivo — Professores
+    if(!catalog.includes('q_smq_prof')) {
+      const dSmqT = defaults.find(x => x.id === 'q_smq_prof');
+      if(dSmqT) { store.set('q_' + dSmqT.id, dSmqT); store.set(dSmqT.id, dSmqT); catalog.push('q_smq_prof'); store.set('catalog', catalog); }
+    }
+    // QCVE-P · Comportamento Verbal em Contexto Escolar — Professor (v105)
+    if(!catalog.includes('q_qcvep_prof')) {
+      const dQcveP = defaults.find(x => x.id === 'q_qcvep_prof');
+      if(dQcveP) { store.set('q_' + dQcveP.id, dQcveP); store.set(dQcveP.id, dQcveP); catalog.push('q_qcvep_prof'); store.set('catalog', catalog); }
+    }
+    // CBQ-SF · Children's Behavior Questionnaire — Forma Breve (v106)
+    if(!catalog.includes('q_cbqsf')) {
+      const dCbqSf = defaults.find(x => x.id === 'q_cbqsf');
+      if(dCbqSf) { store.set('q_' + dCbqSf.id, dCbqSf); store.set(dCbqSf.id, dCbqSf); catalog.push('q_cbqsf'); store.set('catalog', catalog); }
     }
     }
   }
@@ -3883,6 +3939,122 @@ function formatScoreSummary(scores, syncKey) {
       return '<span style="font-size:0.78rem;font-weight:' + pesoBE + ';color:' + corBE + '">'
            + totalBE + (partesBE.length ? ' · ' + partesBE.join(' ') : '') + '</span>';
     }
+  }
+  // ── SMQ · Questionário de Mutismo Seletivo (v104) ─────────────────
+  // Inserida ANTES do fallback genérico (que preempta qualquer branch colocada depois).
+  // ⚠ ESCALA INVERSA: valores mais BAIXOS = menos fala = maior gravidade.
+  // _numSMQ tolera decimais com vírgula e rejeita valores que o Sheet tenha
+  // coerçido para data em locale pt-PT (ex.: "2.20" → 20/02/2026).
+  if(syncKey === 'smq_pais' || syncKey === 'smq_prof') {
+    const _numSMQ = (x) => {
+      if(x === null || x === undefined || x === '') return null;
+      if(typeof x === 'number') return isNaN(x) ? null : x;
+      const t = String(x).trim();
+      if(t === '' || t === '—') return null;
+      if(t.indexOf('T') > -1 && t.indexOf('-') > -1) return null;
+      if(/^\d{1,2}\/\d{1,2}\/\d{2,4}$/.test(t)) return null;
+      const n = Number(t.replace(',', '.'));
+      return isNaN(n) ? null : n;
+    };
+    const _bandaSMQ = (m) => m >= 2.5 ? 'Fala consistente' : m >= 2.0 ? 'Fala frequente'
+                           : m >= 1.5 ? 'Fala inconsistente' : m >= 1.0 ? 'Fala reduzida'
+                           : m >= 0.5 ? 'Fala muito reduzida' : 'Fala ausente ou quase ausente';
+    if(syncKey === 'smq_pais') {
+      const mt = _numSMQ(scores['Media_Total'] ?? scores['media_total']);
+      const sm = _numSMQ(scores['Soma_Sintomas'] ?? scores['soma_sintomas']);
+      const idc = _numSMQ(scores['IDC'] ?? scores['idc']);
+      if(mt != null || sm != null) {
+        // Cores pelo rastreio (soma 0–51): <=14 especificidade máxima · <=38 positivo · >38 negativo
+        const cls = (sm != null && sm <= 14) ? 'color:#C0392B;font-weight:700;'
+                  : (sm != null && sm <= 38) ? 'color:#E67E22;font-weight:600;'
+                  : 'color:var(--green);font-weight:600;';
+        const rot = (sm != null && sm <= 14) ? 'rastreio + (esp. máx.)'
+                  : (sm != null && sm <= 38) ? 'rastreio +'
+                  : (sm != null) ? 'rastreio −' : '';
+        const mtTxt = mt != null ? String(mt.toFixed(2)).replace('.', ',') : '—';
+        const smTxt = sm != null ? String(sm.toFixed(1)).replace('.', ',') : '—';
+        const idcTxt = idc != null ? ' · IDC=' + String(idc.toFixed(2)).replace('.', ',') : '';
+        return '<span style="font-size:0.78rem;' + cls + '">SMQ Total = ' + mtTxt + '/3 · Soma = '
+             + smTxt + '/51' + (rot ? ' · ' + rot : '') + idcTxt + '</span>';
+      }
+    }
+    if(syncKey === 'smq_prof') {
+      const me = _numSMQ(scores['Media_Escola_Prof'] ?? scores['Media_Escola'] ?? scores['media_escola_prof']);
+      const se = _numSMQ(scores['Soma_Escola_Prof'] ?? scores['soma_escola_prof']);
+      if(me != null) {
+        // Referência de desenvolvimento típico: 2,50 (Oerbeck et al., 2020)
+        const cls = me >= 2.5 ? 'color:var(--green);font-weight:600;'
+                  : me >= 2.0 ? 'color:#E67E22;font-weight:600;'
+                  : 'color:#C0392B;font-weight:700;';
+        const meTxt = String(me.toFixed(2)).replace('.', ',');
+        const seTxt = se != null ? ' · Soma = ' + String(se.toFixed(1)).replace('.', ',') + '/18' : '';
+        return '<span style="font-size:0.78rem;' + cls + '">Escola (prof.) = ' + meTxt + '/3'
+             + seTxt + ' · ' + _bandaSMQ(me) + '</span>';
+      }
+    }
+  }
+  // ── QCVE-P · Comportamento Verbal em Contexto Escolar — Professor (v105) ──
+  // Inserida ANTES do fallback genérico (que preempta qualquer branch colocada depois).
+  // ⚠ ESCALA INVERSA na ECV: valores mais BAIXOS = menos fala = MAIOR gravidade.
+  //   Bandas do instrumento: <= 1,00 restrição marcada · < 2,50 parcial · >= 2,50 ajustado.
+  // _numQ tolera decimais com vírgula (o Sheet grava "0,08") e rejeita valores que a
+  // locale pt-PT tenha coerçido para data.
+  if(syncKey === 'qcvep_prof') {
+    const _numQ = (x) => {
+      if(x === null || x === undefined || x === '') return null;
+      if(typeof x === 'number') return isNaN(x) ? null : x;
+      const t = String(x).trim();
+      if(t === '' || t === '—') return null;
+      if(t.indexOf('T') > -1 && t.indexOf('-') > -1) return null;
+      if(/^\d{1,2}\/\d{1,2}\/\d{2,4}$/.test(t)) return null;
+      const n = Number(t.replace(',', '.'));
+      return isNaN(n) ? null : n;
+    };
+    const ecv  = _numQ(scores['ECV_Total']  ?? scores['ecv_total']);
+    const icnv = _numQ(scores['ICNV_Media'] ?? scores['icnv_media']);
+    const iif  = _numQ(scores['IIF_Media']  ?? scores['iif_media']);
+    if(ecv != null) {                     // ⚠ != null: ECV = 0,00 é o caso MAIS grave
+      const cls = ecv <= 1.00 ? 'color:#C0392B;font-weight:700;'
+                : ecv <  2.50 ? 'color:#E67E22;font-weight:600;'
+                :               'color:var(--green);font-weight:600;';
+      const fmtQ = (v) => String(v.toFixed(2)).replace('.', ',');
+      const extra = (icnv != null ? ' · ICNV=' + fmtQ(icnv) : '')
+                  + (iif  != null ? ' · IIF='  + fmtQ(iif)  : '');
+      return '<span style="font-size:0.78rem;' + cls + '">ECV = ' + fmtQ(ecv) + '/3'
+           + extra + '</span>';
+    }
+    return '<span style="font-size:0.78rem;color:var(--text-light)">QCVE-P · Total ECV não estimado</span>';
+  }
+  // ── CBQ-SF · Temperamento (v106) ────────────────────────────────
+  // Inserida ANTES do fallback genérico (que preempta qualquer branch colocada depois).
+  // ⚠ SEM pontos de corte: métrica 1–7 com ponto neutro 4. As cores NÃO são clínicas —
+  // assinalam apenas distância ao ponto neutro (âmbar acima, azul abaixo, neutro ao centro).
+  if(syncKey === 'cbqsf') {
+    const _numC = (x) => {
+      if(x === null || x === undefined || x === '') return null;
+      if(typeof x === 'number') return isNaN(x) ? null : x;
+      const t = String(x).trim();
+      if(t === '' || t === '—') return null;
+      if(t.indexOf('T') > -1 && t.indexOf('-') > -1) return null;   // corrompido em data pelo Sheets
+      if(/^\d{1,2}\/\d{1,2}\/\d{2,4}$/.test(t)) return null;
+      const n = Number(t.replace(',', '.'));
+      return isNaN(n) ? null : n;
+    };
+    const ext = _numC(scores['D_MA_EXT'] ?? scores['MA_EXT'] ?? scores['ext']);
+    const an  = _numC(scores['D_MA_AN']  ?? scores['MA_AN']  ?? scores['an']);
+    const ce  = _numC(scores['D_MA_CE']  ?? scores['MA_CE']  ?? scores['ce']);
+    const val = String(scores['ValidadeProtocolo'] ?? scores['validade'] ?? '');
+    if(ext != null || an != null || ce != null) {
+      const fmtC = (v) => v == null ? '–' : String(v.toFixed(2)).replace('.', ',');
+      const marca = val === 'Inválido' ? ' · ⚠ protocolo inválido'
+                  : val === 'Validade reduzida' ? ' · ⚠ validade reduzida' : '';
+      const cor = val === 'Inválido' ? 'color:#C0392B;font-weight:700;'
+                : val === 'Validade reduzida' ? 'color:#E67E22;font-weight:600;'
+                : 'color:var(--blue);font-weight:600;';
+      return '<span style="font-size:0.78rem;' + cor + '">EXT=' + fmtC(ext)
+           + ' · AN=' + fmtC(an) + ' · CE=' + fmtC(ce) + marca + '</span>';
+    }
+    return '<span style="font-size:0.78rem;color:var(--text-light)">CBQ-SF · dimensões não estimadas</span>';
   }
   // Genérico
   const entries = Object.entries(scores).filter(([,v]) => v != null).slice(0,3);
@@ -4860,6 +5032,13 @@ function renderAssignments(patientId) {
             // ── Verificação nome-primeiro, relação como fallback ──
             function matchRespondent(row, aba, recip) {
               const NC = {
+                // ── CBQ-SF · Temperamento (nome primeiro; tipo como fallback) ──
+                'CBQ_SF':['NomeInformante','Informante'],
+                // ── QCVE-P · Comportamento Verbal Escolar (nome primeiro; tipo como fallback) ──
+                'QCVEP_PROF':['NomeInformante','Informante'],
+                // ── SMQ · Mutismo Seletivo (nome primeiro; tipo/relação como fallback) ──
+                'SMQ_Pais':['NomeInformante','Relação','Informante'],
+                'SMQ_Prof':['NomeInformante','Relação','Informante'],
                 // ── GAD-7 · Escala de Ansiedade Generalizada (nome primeiro; tipo como fallback) ──
                 'GAD7':['NomeInformante','Informante'],
                 // ── AIS-8 · Escala de Insónia de Atenas (nome primeiro; tipo como fallback) ──
@@ -5328,6 +5507,11 @@ async function syncAndMark(patientId, idx) {
       const patUpper = String(patient.code).trim().toUpperCase();
       function matchResp2(row, aba2, recip) {
         const NC2 = {
+          // ── QCVE-P · Comportamento Verbal Escolar (nome primeiro; tipo como fallback) ──
+          'QCVEP_PROF':['NomeInformante','Informante'],
+          // ── SMQ · Mutismo Seletivo (nome primeiro; tipo/relação como fallback) ──
+          'SMQ_Pais':['NomeInformante','Relação','Informante'],
+          'SMQ_Prof':['NomeInformante','Relação','Informante'],
           // ── Diário de Episódios · Monitorização (nome primeiro, tipo como fallback) ──
           'DIARIO_EPISODIOS':['NomeInformante','Informante'],
           // ── Anamnese Parental Complementar · Anamnese (nome primeiro, tipo como fallback) ──
