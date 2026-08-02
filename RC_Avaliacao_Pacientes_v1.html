@@ -603,6 +603,10 @@ const RC_SHEET_URL = 'https://script.google.com/macros/s/AKfycbxX2_Ry7VRH6jr7eGB
 
 // Mapeamento: id do questionário → aba no Sheet central
 const QID_TO_ABA = {
+  // ── QCF-P · Questionário de Comportamento Fraterno, versão parental (v108) ──
+  'q_qcfp':       'QCFP',
+  // ── QRF-C · Questionário de Relação Fraterna, versão criança (v107) ──
+  'q_qrfc':       'QRFC',
   // ── CBQ-SF · Children's Behavior Questionnaire, Forma Breve (v106) ──
   'q_cbqsf':      'CBQ_SF',
   // ── QCVE-P · Comportamento Verbal em Contexto Escolar — Professor (v105) ──
@@ -786,6 +790,10 @@ const QID_TO_ABA = {
 
 
 const SYNC_KEY_TO_ABA = {
+  // ── QCF-P · Questionário de Comportamento Fraterno, versão parental (v108) ──
+  'qcfp':     'QCFP',
+  // ── QRF-C · Questionário de Relação Fraterna, versão criança (v107) ──
+  'qrfc':     'QRFC',
   // ── CBQ-SF · Children's Behavior Questionnaire, Forma Breve (v106) ──
   'cbqsf':    'CBQ_SF',
   // ── QCVE-P · Comportamento Verbal em Contexto Escolar — Professor (v105) ──
@@ -1326,6 +1334,32 @@ async function checkSheetForResponse(qid, patientCode) {
 function initCatalog() {
   const existing = store.get('catalog') || [];
   const defaults = [
+    // ── QCF-P · Questionário de Comportamento Fraterno — versão parental (v108) ──
+    // Ricardina Correia (2026). Instrumento ORIGINAL (Via B), inspirado na estrutura de
+    // seis fatores do Sibling Inventory of Behavior. NÃO é o SIB, não é tradução do SIB
+    // e não é equivalente ao SIB. Contrapartida parental do QRF-C.
+    // ⚠ SEM aferição portuguesa e SEM estudo psicométrico próprio: resultados DESCRITIVOS,
+    //   ancorados na métrica de frequência 1–5. Sem normas, percentis ou pontos de corte.
+    // ⚠ NENHUM VALOR DESCREVE A QUALIDADE DO EXERCÍCIO PARENTAL: descreve o comportamento
+    //   relatado dos filhos entre si e a estrutura da descrição feita por este informador.
+    // ⚠ 1 protocolo = 1 PROGENITOR × toda a fratria (29 itens por filho, até 4 filhos,
+    //   descritos lado a lado). Numa família com dois progenitores, uma ronda completa
+    //   são DOIS protocolos, preenchidos separadamente e sem consulta mútua.
+    // ⚠ «Rivalidade» aqui é comportamento rivalitário observado; no QRF-C é parcialidade
+    //   parental percebida. Constructos distintos, não intermutáveis (A-11).
+    { id:'q_qcfp', name:'QCF-P — Questionário de Comportamento Fraterno (Parental)', dest:['Mãe','Pai','Enc. Educação'], link:'https://correiaricardina-ui.github.io/questionarios/QCFP_v1.html', syncKey:'qcfp', area:'Família & Parentalidade', ageRange:'0–18 anos', objective:'Descreve o comportamento observável de cada filho em relação aos irmãos e o tratamento diferencial relatado pelo progenitor (29 itens por filho, até 4 filhos lado a lado). Sem normas portuguesas: leitura descritiva, por discrepância entre informadores e por simetria da descrição', domains:['Companheirismo','Empatia','Ensino / Tutoria','Rivalidade (comportamento rivalitário observado)','Agressão','Evitamento','Polo positivo (índice auxiliar)','Polo negativo (índice auxiliar)','Tratamento diferencial — direção e magnitude (atenção, carinho, permissividade)','Perceção estimada pelo progenitor','Legitimidade estimada pelo progenitor','Índice de simetria descritiva entre filhos','Coerência espelho da descrição','Perfil de fratria','Convergência com o QRF-C (triangulação relatado · percebido · estimado)'] , ageMin:0, ageMax:215},
+    // ── QRF-C · Questionário de Relação Fraterna — versão criança (v107) ──
+    // Ricardina Correia (2026). Instrumento ORIGINAL (Via B), inspirado no modelo
+    // estrutural de Furman & Buhrmester (1985). NÃO é o SRQ, não é tradução do SRQ
+    // e não é equivalente ao SRQ; não substitui qualquer versão validada.
+    // ⚠ SEM aferição portuguesa e SEM estudo psicométrico próprio: todos os resultados
+    //   são DESCRITIVOS, ancorados na métrica de resposta 1–5. Não existem normas,
+    //   percentis, pontuações T nem pontos de corte clínicos. Nenhuma banda é diagnóstico.
+    // ⚠ Uma aplicação = UMA DÍADE (um só irmão, nomeado). Não agregar irmãos:
+    //   se a criança tiver dois irmãos, atribuir e preencher dois protocolos.
+    // Leituras válidas: discrepância intradiádica, discrepância entre informadores
+    //   e medida repetida intraindividual. Nenhuma delas requer normas.
+    { id:'q_qrfc', name:'QRF-C — Questionário de Relação Fraterna (Criança)', dest:['Paciente'], link:'https://correiaricardina-ui.github.io/questionarios/QRFC_v1.html', syncKey:'qrfc', area:'Família & Parentalidade', ageRange:'8–16 anos', objective:'Descreve a perceção da criança sobre a relação com um irmão específico e sobre a parcialidade parental percebida (43 itens, autorrelato). Sem normas portuguesas: leitura descritiva, por discrepância intradiádica ou medida repetida', domains:['Calor / Proximidade (Companheirismo, Intimidade, Afeto e conduta prossocial, Admiração dirigida)','Conflito (Discussão, Antagonismo, Competição)','Estatuto / Poder relativo (diferencial: Cuidado prestado e Dominância exercida menos Cuidado recebido e Dominância sofrida)','Intensidade do estatuto','Rivalidade (parcialidade percebida — máximo das magnitudes)','Parcialidade percebida — Figura parental 1 (direção e magnitude)','Parcialidade percebida — Figura parental 2 (direção e magnitude)','Assimetria interparental','Legitimidade do tratamento diferencial — Figura 1','Legitimidade do tratamento diferencial — Figura 2','Satisfação com a relação fraterna','Importância atribuída à relação fraterna','Índices de controlo (invariância, variabilidade, tendência extrema, centralização)'] , ageMin:96, ageMax:203},
     // ── CBQ-SF · Children's Behavior Questionnaire — Forma Breve (v106) ──
     // Putnam & Rothbart (2006); trad. PT Franklin, Soares, Sampaio, Santos & Veríssimo (2003).
     // 94 itens · Likert 1–7 + NA · 15 escalas · 3 dimensões (Modelo A canónico) + Modelo B (PT).
@@ -2353,6 +2387,10 @@ function initCatalog() {
   } else {
     // Forçar links e syncKeys actualizados
     const META = {
+      // ── QCF-P · Questionário de Comportamento Fraterno, versão parental (v108) ──
+      'q_qcfp':       { link:'https://correiaricardina-ui.github.io/questionarios/QCFP_v1.html', syncKey:'qcfp' },
+      // ── QRF-C · Questionário de Relação Fraterna, versão criança (v107) ──
+      'q_qrfc':       { link:'https://correiaricardina-ui.github.io/questionarios/QRFC_v1.html', syncKey:'qrfc' },
       // ── CBQ-SF · Children's Behavior Questionnaire, Forma Breve (v106) ──
       'q_cbqsf':      { link:'https://correiaricardina-ui.github.io/questionarios/CBQ_SF_v1.html', syncKey:'cbqsf' },
       // ── QCVE-P · Comportamento Verbal em Contexto Escolar — Professor (v105) ──
@@ -3146,6 +3184,14 @@ function initCatalog() {
     if(!catalog.includes('q_cbqsf')) {
       const dCbqSf = defaults.find(x => x.id === 'q_cbqsf');
       if(dCbqSf) { store.set('q_' + dCbqSf.id, dCbqSf); store.set(dCbqSf.id, dCbqSf); catalog.push('q_cbqsf'); store.set('catalog', catalog); }
+    }
+    if(!catalog.includes('q_qrfc')) {
+      const dQrfc = defaults.find(x => x.id === 'q_qrfc');
+      if(dQrfc) { store.set('q_' + dQrfc.id, dQrfc); store.set(dQrfc.id, dQrfc); catalog.push('q_qrfc'); store.set('catalog', catalog); }
+    }
+    if(!catalog.includes('q_qcfp')) {
+      const dQcfp = defaults.find(x => x.id === 'q_qcfp');
+      if(dQcfp) { store.set('q_' + dQcfp.id, dQcfp); store.set(dQcfp.id, dQcfp); catalog.push('q_qcfp'); store.set('catalog', catalog); }
     }
     }
   }
@@ -4055,6 +4101,55 @@ function formatScoreSummary(scores, syncKey) {
            + ' · AN=' + fmtC(an) + ' · CE=' + fmtC(ce) + marca + '</span>';
     }
     return '<span style="font-size:0.78rem;color:var(--text-light)">CBQ-SF · dimensões não estimadas</span>';
+  }
+  // ── QCF-P · Comportamento Fraterno, parental (v108) ─────────
+  // ⚠ Instrumento SEM normas. Paleta NEUTRA (azul): nenhum valor é clínico e nenhum
+  //   descreve a qualidade do exercício parental. Vermelho reservado ao protocolo
+  //   NÃO INTERPRETÁVEL, que é de facto um alerta de validade.
+  // ⚠ Guardas != null: 0 é resultado legítimo em IndiceSimetria (descrição
+  //   indiferenciada entre os filhos) e em DesvioEspelho (coerência perfeita).
+  if(syncKey === 'qcfp') {
+    const val = scores['ValidadeProtocolo'] ?? scores['validadeProtocolo'] ?? scores['Validade'];
+    if(val && String(val).indexOf('NÃO INTERPRETÁVEL') === 0) {
+      return '<span style="font-size:0.78rem;color:#C0392B;font-weight:700;">QCF-P · protocolo não interpretável</span>';
+    }
+    const nf  = scores['NFilhos'] ?? scores['nFilhos'] ?? scores['ColunasAtivas'] ?? scores['colunasAtivas'];
+    const sim = scores['IndiceSimetria'] ?? scores['indiceSimetria'];
+    const perf = scores['PerfilFratria'] ?? scores['perfilFratria'] ?? '';
+    const fmtP = v => (v == null || v === 'n/c' || v === '—' || v === 'bloqueada') ? String(v ?? 'n/c')
+                   : (isNaN(parseFloat(v)) ? String(v) : parseFloat(v).toFixed(2).replace('.', ','));
+    if(nf != null || sim != null) {
+      const marca = (val && val !== 'VÁLIDO') ? ' · ⚠ ' + val : '';
+      const cor = (val && val !== 'VÁLIDO') ? 'color:#E67E22;font-weight:600;' : 'color:var(--blue);font-weight:600;';
+      const perfCurto = perf ? ' · ' + String(perf).split(' — ')[0] : '';
+      return '<span style="font-size:0.78rem;' + cor + '">' + (nf != null ? nf + ' filhos · ' : '')
+           + 'Simetria=' + fmtP(sim) + perfCurto + marca + '</span>';
+    }
+    return '<span style="font-size:0.78rem;color:var(--text-light)">QCF-P · índices de fratria não computados</span>';
+  }
+  // ── QRF-C · Relação Fraterna (v107) ─────────────────────────
+  // ⚠ Instrumento SEM normas: nenhum valor é clínico. Paleta deliberadamente NEUTRA
+  //   (azul), nunca verde/laranja/vermelho — pintar «Calor elevado» de vermelho ou
+  //   «Conflito reduzido» de verde atribuiria valência a bandas puramente descritivas.
+  //   O vermelho fica reservado ao protocolo NÃO INTERPRETÁVEL, que é de facto um alerta.
+  // ⚠ Guardas != null: 0 é resultado legítimo em ESTATUTO (simetria) e RIVALIDADE
+  //   (ausência de parcialidade percebida); (x||'') apagaria ambos.
+  if(syncKey === 'qrfc') {
+    const val = scores['VALIDADE'] ?? scores['Validade'] ?? scores['validade'];
+    if(val === 'NÃO INTERPRETÁVEL') {
+      return '<span style="font-size:0.78rem;color:#C0392B;font-weight:700;">QRF-C · protocolo não interpretável</span>';
+    }
+    const calor = scores['CALOR'] ?? scores['Calor'] ?? scores['calor'];
+    const confl = scores['CONFLITO'] ?? scores['Conflito'] ?? scores['conflito'];
+    const riv   = scores['RIVALIDADE'] ?? scores['Rivalidade'] ?? scores['rivalidade'];
+    const fmtQ = v => (v == null || v === 'n/c') ? 'n/c' : (isNaN(parseFloat(v)) ? String(v) : parseFloat(v).toFixed(2).replace('.', ','));
+    if(calor != null || confl != null || riv != null) {
+      const marca = (val && val !== 'VÁLIDO') ? ' · ⚠ ' + val : '';
+      const cor = (val && String(val).substring(0,6) !== 'VÁLIDO') ? 'color:#E67E22;font-weight:600;' : 'color:var(--blue);font-weight:600;';
+      return '<span style="font-size:0.78rem;' + cor + '">Calor=' + fmtQ(calor)
+           + ' · Conflito=' + fmtQ(confl) + ' · Rivalidade=' + fmtQ(riv) + marca + '</span>';
+    }
+    return '<span style="font-size:0.78rem;color:var(--text-light)">QRF-C · dimensões não computadas</span>';
   }
   // Genérico
   const entries = Object.entries(scores).filter(([,v]) => v != null).slice(0,3);
@@ -5032,6 +5127,10 @@ function renderAssignments(patientId) {
             // ── Verificação nome-primeiro, relação como fallback ──
             function matchRespondent(row, aba, recip) {
               const NC = {
+                // ── QCF-P · Comportamento Fraterno, parental (nome primeiro; tipo como fallback) ──
+                'QCFP':['NomeInformante','Informante'],
+                // ── QRF-C · Relação Fraterna (autorrelato: respondente = a própria criança) ──
+                'QRFC':['NomeInformante','NomeCriança','NomeCrianca'],
                 // ── CBQ-SF · Temperamento (nome primeiro; tipo como fallback) ──
                 'CBQ_SF':['NomeInformante','Informante'],
                 // ── QCVE-P · Comportamento Verbal Escolar (nome primeiro; tipo como fallback) ──
@@ -5507,6 +5606,10 @@ async function syncAndMark(patientId, idx) {
       const patUpper = String(patient.code).trim().toUpperCase();
       function matchResp2(row, aba2, recip) {
         const NC2 = {
+          // ── QCF-P · Comportamento Fraterno, parental (nome primeiro; tipo como fallback) ──
+          'QCFP':['NomeInformante','Informante'],
+          // ── QRF-C · Relação Fraterna (autorrelato: respondente = a própria criança) ──
+          'QRFC':['NomeInformante','NomeCriança','NomeCrianca'],
           // ── QCVE-P · Comportamento Verbal Escolar (nome primeiro; tipo como fallback) ──
           'QCVEP_PROF':['NomeInformante','Informante'],
           // ── SMQ · Mutismo Seletivo (nome primeiro; tipo/relação como fallback) ──
