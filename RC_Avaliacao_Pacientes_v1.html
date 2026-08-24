@@ -603,6 +603,12 @@ const RC_SHEET_URL = 'https://script.google.com/macros/s/AKfycbxX2_Ry7VRH6jr7eGB
 
 // Mapeamento: id do questionário → aba no Sheet central
 const QID_TO_ABA = {
+  // ── GCSA · Grelha de Caracterização da Seletividade Alimentar (v111) ──
+  'q_gcsa':        'GCSA',
+  'q_gcsa_diario': 'GCSA_Diario',
+  // ── CAPS · Escala de Perfecionismo de Crianças e Adolescentes (v109) ──
+  'q_caps22':     'CAPS22',
+  'q_caps_pr':    'CAPS_PR',
   // ── QCF-P · Questionário de Comportamento Fraterno, versão parental (v108) ──
   'q_qcfp':       'QCFP',
   // ── QRF-C · Questionário de Relação Fraterna, versão criança (v107) ──
@@ -615,6 +621,9 @@ const QID_TO_ABA = {
   'q_smq_pais':   'SMQ_Pais',
   'q_smq_prof':   'SMQ_Prof',
   'q_gad7':       'GAD7',
+  // ── PDRA-9 · Perfil Diferencial da Restrição Alimentar (v110) ──
+  'q_pdra9_c':    'PDRA9_C',
+  'q_pdra9_p':    'PDRA9_P',
   'q_ais8':       'AIS_8',
   'q_sgrs':       'SGRS',
   'q_aceq_adol':  'ACE_Q_ADOLESCENTE',
@@ -790,6 +799,17 @@ const QID_TO_ABA = {
 
 
 const SYNC_KEY_TO_ABA = {
+  // ── GCSA · Grelha de Caracterização da Seletividade Alimentar (v111) ──
+  'gcsa':          'GCSA',
+  'GCSA':          'GCSA',
+  'gcsa_diario':   'GCSA_Diario',
+  'GCSA_Diario':   'GCSA_Diario',
+  // ── CAPS · Escala de Perfecionismo de Crianças e Adolescentes (v109) ──
+  'caps22':   'CAPS22',
+  'CAPS22':   'CAPS22',
+  'caps_pr':  'CAPS_PR',
+  'CAPS_PR':  'CAPS_PR',
+  'CAPS-PR':  'CAPS_PR',
   // ── QCF-P · Questionário de Comportamento Fraterno, versão parental (v108) ──
   'qcfp':     'QCFP',
   // ── QRF-C · Questionário de Relação Fraterna, versão criança (v107) ──
@@ -802,6 +822,8 @@ const SYNC_KEY_TO_ABA = {
   'smq_pais': 'SMQ_Pais',
   'smq_prof': 'SMQ_Prof',
   'gad7':     'GAD7',
+  'pdra9_c':  'PDRA9_C',
+  'pdra9_p':  'PDRA9_P',
   'ais8':     'AIS_8',
   'sgrs':     'SGRS',
   'aceq_adol':'ACE_Q_ADOLESCENTE',
@@ -1334,6 +1356,67 @@ async function checkSheetForResponse(qid, patientCode) {
 function initCatalog() {
   const existing = store.get('catalog') || [];
   const defaults = [
+    // ── GCSA · Grelha de Caracterização da Seletividade Alimentar (v111) ──
+    // Ricardina Correia (2026). Instrumento de construção INTERNA (Via C): os itens dos seis
+    // blocos de observação foram redigidos de raiz em português europeu a partir dos domínios
+    // cobertos pela Escala de Avaliação do Comportamento Alimentar (LABIRINTO), sem reprodução
+    // literal de itens, instruções ou material protegido. O sistema de cotação, o modelo
+    // interpretativo e a estrutura dimensional são construções originais.
+    // ⚠ SEM aferição normativa, SEM pontuação clínica e SEM pontos de corte. As bandas do índice
+    //   de saliência (0–20 · 20–40 · 40–65 · 65–100) organizam a leitura e NÃO classificam
+    //   gravidade — usar sempre a paleta azul, nunca verde/laranja/vermelho.
+    // ⚠ Nenhum valor é devolvido à família (D-01): para quem preenche, a grelha mantém-se o
+    //   registo qualitativo que declara ser. O ficheiro de cálculo é uso interno da psicóloga.
+    // ⚠ SEM índice global: a média das 15 subdimensões achata perfis com elevação isolada
+    //   (anomalia A-02). A saída primária é a CONFIGURAÇÃO relativa entre domínios.
+    // ⚠ 6A (hiper-reatividade) e 6B (procura sensorial) são ortogonais (Dunn, 1997) e nunca
+    //   somadas. 3D (apetite preservado) e ACO-D (sobrecarga do cuidador) ficam FORA do perfil:
+    //   o apetite preservado não é indicador de menor gravidade e a sobrecarga do cuidador não
+    //   é indicador do quadro da criança.
+    // ⚠ Blocos 02 e 05 são de âmbito MÉDICO (D-05): contagem descritiva e sinalizadores, sem
+    //   índice e sem banda. Destinam-se à articulação com a Pediatria.
+    // ⚠ Dimensões com 2 ou 3 itens (3B, 4C, 6B, 7A, 7B) têm granularidade grosseira — um único
+    //   item desloca a banda. Ler sempre com a contagem absoluta de itens salientes.
+    // ⚠ Cada progenitor preenche um protocolo independente: a grelha convida ao registo de
+    //   leituras divergentes em vez do consenso prévio (D-07), e o painel do questionário
+    //   calcula o índice de divergência por subdimensão a partir das duas submissões.
+    { id:'q_gcsa', name:'GCSA — Grelha de Caracterização da Seletividade Alimentar', dest:['Mãe','Pai','Enc. Educação'], link:'https://correiaricardina-ui.github.io/questionarios/GCSA_v1.html', syncKey:'gcsa', area:'Alimentação & Imagem Corporal', ageRange:'3–17 anos', objective:'Documenta a fenomenologia da seletividade alimentar, o perfil sensorial extra-alimentar, o impacto participativo e a acomodação familiar (98 itens: 86 em escala de frequência 0–3 e 12 dicotómicos). Instrumento de construção interna (Via C), sem aferição normativa, sem pontuação clínica e sem pontos de corte. Cotação em dois descritores complementares por subdimensão, ambos 0–100: índice de densidade (intensidade média dos indicadores) e índice de saliência (proporção de indicadores estabelecidos como padrão, descritor primário). A saída interpretativa é a configuração relativa entre domínios, não o nível absoluto nem um índice global. Prorrateio de omissos até 20 % por subdimensão; acima do limiar a dimensão é devolvida como não interpretável', domains:['Exigência de propriedades sensoriais, 3A (marca, temperatura, cor, consistência, ponto de cozedura)','Aversão ao contacto e à mistura, 3B (alimentos que se tocam, texturas na mesma garfada)','Recusa por categoria e restrição de repertório, 3C (carne, peixe, fruta, legumes; categorias inteiras)','Rigidez ritualística, 4A (disposição no prato, lugar fixo, utensílios fixos)','Desregulação comportamental à mesa, 4B (cuspir, não permanecer sentado, irritabilidade)','Resposta aversiva física, 4C (vómito às refeições, enjoo ao ver comida diferente)','Hiper-reatividade e evitação sensorial, 6A (ruído, cheiro, toque, textura, luz — extra-alimentar)','Procura sensorial, 6B (mastigar objetos, movimento intenso, pressão profunda) — ortogonal a 6A, nunca somada','Dificuldade instrumental, 7A (talheres, entornar, necessidade de ajuda física)','Dependência regulatória, 7B (presença e atenção do adulto durante a refeição)','Restrição participativa, 8A (refeitório, visitas de estudo, festas, casa de outros, restaurantes, comida de terceiros, atividades abandonadas)','Acomodação — participação direta, ACO-P (refeição diferente, compra específica, remoção do prato, alimentação assistida)','Acomodação — modificação de rotinas, ACO-R (horários, ementa, compras, saídas e férias)','Acomodação — facilitação da evitação, ACO-E (supressão da oferta de alimentos novos, evitação de contextos)','Consequências da não acomodação, ACO-C (resposta da criança quando não há cedência, e cedência subsequente do adulto)','Marcadores de preservação, 3D (sabores intensos aceites, apetite e prazer no que aceita) — reportado em separado, indicador de recurso terapêutico','Impacto no cuidador, ACO-D (preocupação, tensão às refeições, discordância entre adultos) — reportado em separado, informação de planeamento da intervenção','Competência mastigatória, M-COMP e Segurança na deglutição, M-SEG (bloco 02) — relato médico, contagem descritiva sem índice','Sintomatologia digestiva funcional, D-FUNC e Diagnósticos estabelecidos, D-DIAG (bloco 05) — relato médico, contagem descritiva sem índice','Sinalizadores clínicos: segurança na deglutição, ingestão de não alimentos, crescimento e peso, preocupação com a imagem corporal, receio de consequências aversivas','Descritores de configuração do perfil: dimensões interpretáveis, dimensões na banda superior, dimensões sem indicadores salientes, índice de saliência máximo e mínimo, amplitude e dimensão predominante','Índice de divergência entre informantes, por subdimensão e por contagem de itens divergentes'] , ageMin:36, ageMax:215},
+    // ── GCSA · Diário de Alimentação de Sete Dias (v111) ──
+    // Módulo de diário da GCSA (bloco 10, decisão D-03). Preenche-se ao longo de uma semana,
+    // no próprio dia — é a fonte de informação quantitativa mais robusta do instrumento, por
+    // assentar em registo prospetivo e não em estimativa retrospetiva.
+    // ⚠ A literatura refere com frequência repertórios inferiores a 20 alimentos como marcador
+    //   de seletividade significativa. Esse valor NÃO é operacionalizado como limiar: não há
+    //   normas portuguesas para amplitude de repertório nesta faixa etária e a sua conversão em
+    //   ponto de corte contrariaria o estatuto declarado do instrumento. Os indicadores são
+    //   apresentados como contagens, para leitura clínica integrada.
+    // ⚠ Enviar SEMPRE em conjunto com a grelha principal e pedir que seja a última secção a
+    //   preencher. Incluir pelo menos um dia de fim de semana e, se possível, um dia com
+    //   refeição fora de casa.
+    { id:'q_gcsa_diario', name:'GCSA — Diário de Alimentação de Sete Dias', dest:['Mãe','Pai','Enc. Educação'], link:'https://correiaricardina-ui.github.io/questionarios/GCSA_Diario_v1.html', syncKey:'gcsa_diario', area:'Alimentação & Imagem Corporal', ageRange:'3–17 anos', objective:'Registo prospetivo de sete dias das refeições e do repertório alimentar aceite, preenchido no próprio dia (35 slots: 7 dias × 5 refeições, mais o repertório). Produz nove indicadores descritivos de amplitude e de concentração do repertório. Sem valores de referência e sem pontos de corte: os indicadores são contagens, não medidas de gravidade', domains:['Refeições com registo, de 35 possíveis','Refeições com recusa registada','Taxa de recusa, em percentagem das refeições com registo','Refeições fora de casa','Alimentos distintos aceites ao longo dos sete dias (amplitude do repertório)','Núcleo estável: alimentos presentes em quatro ou mais dias (componente rígida e previsível do repertório)','Proporção do repertório em núcleo estável (grau de concentração; proporção elevada com repertório reduzido caracteriza padrão de rotação fixa)','Média de alimentos distintos por dia com registo (variedade diária efetiva, distinta da amplitude acumulada)','Distribuição de alimentos distintos por dia, com distinção entre dia de escola e fim de semana'] , ageMin:36, ageMax:215},
+    // ── CAPS-22 · Escala de Perfecionismo de Crianças e Adolescentes — autorrelato (v109) ──
+    // Flett, Hewitt, Boucher, Davidson & Munro (1997/2001); Flett et al. (2016). Via A.
+    // Articulado em tradução técnica de trabalho a partir da versão oficial distribuída pelos
+    // autores (Perfectionism and Psychotherapy Lab, UBC). NÃO é a versão validada de
+    // Bento, Pereira, Saraiva & Macedo (2014) — essa abrangeu apenas 14–18 anos.
+    // ⚠ NÃO existem pontos de corte clínicos publicados, em nenhuma versão. NÃO existem normas
+    //   portuguesas para idade escolar. As bandas são DESCRITIVAS e derivam de norma comunitária
+    //   canadiana 6–12 anos, sem estudo de invariância de medida para a população portuguesa.
+    // ⚠ Administração assistida (leitura dos itens em voz alta). Confirmar a compreensão dos
+    //   itens invertidos 3, 9 e 18 por reformulação da criança.
+    // ⚠ Em idade escolar precoce, um SPP baixo ou médio NÃO permite excluir um sistema de
+    //   expectativas ativo: pode traduzir acesso metacognitivo ainda não consolidado.
+    { id:'q_caps22', name:'CAPS-22 — Escala de Perfecionismo de Crianças e Adolescentes (Autorrelato)', dest:['Paciente'], link:'https://correiaricardina-ui.github.io/questionarios/CAPS22_Crianca_v1.html', syncKey:'caps22', area:'Personalidade & Esquemas', ageRange:'6–18 anos', objective:'Avalia o perfecionismo auto-orientado e socialmente prescrito por autorrelato da criança ou adolescente (22 itens, escala 1–5, administração assistida). Sem pontos de corte clínicos publicados e sem normas portuguesas: leitura descritiva sobre norma comunitária canadiana, com norma primária por sexo e norma mista em paralelo', domains:['Perfecionismo auto-orientado (SOP)','Perfecionismo socialmente prescrito (SPP)','Total','SOP prorrateado','SPP prorrateado','SOP prorrateado excluindo o item 4','Forma curta SOP-SF','Forma curta SPP-SF','Índice R — discriminação entre resposta coerente e resposta literal aos itens invertidos','Verificações determinísticas de validade (resposta uniforme, resposta em extremos, omissões)','Configuração SOP × SPP'] , ageMin:72, ageMax:227},
+    // ── CAPS-PR · Perfecionismo da criança — heterorrelato parental (v109) ──
+    // Bento Teixeira, Pereira & Macedo (2025), Psychologica, 68, e068004 (acesso aberto). Via A.
+    // ⚠ A referência (M/DP) provém de uma subamostra de reteste de conveniência (n = 64, 83% mães,
+    //   duas escolas privadas de Coimbra) e NÃO constitui norma. As bandas NÃO são equiparáveis
+    //   às do CAPS-criança. Valores da tabela principal do artigo descartados por inconsistência de DP.
+    // ⚠ O SPP-PR NÃO é indicador do SPP da criança: correlaciona-se com o perfecionismo do próprio
+    //   informante (r = .472 com o seu SOP; r = .376 com o seu SPP) e não com o SPP autorrelatado
+    //   pela criança (r = .127, n.s.). Só o SOP-PR é lido como observação do comportamento da criança.
+    // ⚠ Cada progenitor preenche um protocolo INDEPENDENTE, sem consulta mútua. Tolerância zero a omissões.
+    { id:'q_caps_pr', name:'CAPS-PR — Perfecionismo da Criança (Heterorrelato Parental)', dest:['Mãe','Pai','Enc. Educação'], link:'https://correiaricardina-ui.github.io/questionarios/CAPS_PR_Pais_v1.html', syncKey:'caps_pr', area:'Personalidade & Esquemas', ageRange:'4–18 anos', objective:'Recolhe a descrição parental do perfecionismo da criança (9 itens, escala 1–5), com correspondência item a item à CAPS-22 para triangulação na métrica de resposta. Referência provisória não normativa (n = 64): leitura exclusivamente descritiva', domains:['Perfecionismo socialmente prescrito relatado pelo progenitor (SPP-PR) — indicador do informante, não da criança','Perfecionismo auto-orientado observado pelo progenitor (SOP-PR) — observação do comportamento da criança','Total (PR)','POMP por índice','Correspondência item a item com a CAPS-22 (itens 13, 15, 8, 21, 5, 1, 2, 7, 16)'] , ageMin:48, ageMax:227},
     // ── QCF-P · Questionário de Comportamento Fraterno — versão parental (v108) ──
     // Ricardina Correia (2026). Instrumento ORIGINAL (Via B), inspirado na estrutura de
     // seis fatores do Sibling Inventory of Behavior. NÃO é o SIB, não é tradução do SIB
@@ -2357,7 +2440,25 @@ function initCatalog() {
       syncKey:'gad7', area:'Ansiedade, Depressão & Internalização', ageRange:'≥ 12 anos',
       objective:'Rastreio da gravidade sintomática de ansiedade generalizada e monitorização da evolução — autorrelato, 7 itens, escala 0–3, período de referência: últimos 14 dias. Instrumento UNIDIMENSIONAL: não tem subescalas, não tem itens invertidos e não admite cotação por dimensão (ACP em Sousa et al., 2015; AFE em Leite & Faro, 2022, 62,8% de variância explicada). Total 0–21. Ponto de corte operacional ≥ 10 (Spitzer et al., 2006: sensibilidade 89%, especificidade 82%). Bandas de gravidade DESCRITIVA 0–4 mínima · 5–9 leve · 10–14 moderada · 15–21 grave — pontos de corte da amostra original norte-americana, replicados na literatura: NÃO SÃO NORMAS PORTUGUESAS e não são limiares diagnósticos. A validação portuguesa de referência (Sousa et al., 2015) foi conduzida em amostra clínica psiquiátrica adulta (78,8% mulheres, idade média 52,2 anos) — a generalização a contexto pediátrico exige prudência; Gonçalves (2019, 6–16 anos) reporta prevalência com base num valor superior a 11, não coincidente com o corte adulto de 10. Instrumento de RASTREIO: não constitui, por si, instrumento de diagnóstico. Um total elevado é inespecífico e sobrepõe-se a sintomatologia depressiva (r = 0,450 com a subescala de depressão da HADS); um total baixo não exclui perturbação de ansiedade. Regra de dados em falta (decisão interna documentada): prorata até 1 item em falta, invalidação a partir de 2. A versão fornecida omite o item 8 canónico (dificuldade funcional), que não é cotado.',
       domains:['Total GAD-7 (0–21)','Banda de gravidade descritiva (mínima · leve · moderada · grave)','Rastreio (ponto de corte ≥ 10)','Instrumento unidimensional — sem subescalas'],
-      ageMin:144, ageMax:null}
+      ageMin:144, ageMax:null},
+    // ── PDRA-9/C · Perfil Diferencial da Restrição Alimentar — autorrelato (v110) ──
+    // Ricardina Correia (2026). Instrumento ORIGINAL (Via B), inspirado na arquitetura
+    // tridimensional de rastreio da ARFID. NÃO é a NIAS nem tradução da NIAS.
+    { id:'q_pdra9_c', name:'PDRA-9/C — Perfil Diferencial da Restrição Alimentar (Criança)',
+      dest:['Paciente'],
+      link:'https://correiaricardina-ui.github.io/questionarios/PDRA9_C_v1.html',
+      syncKey:'pdra9_c', area:'Alimentação & Imagem Corporal', ageRange:'8–14 anos',
+      objective:'Perfil diferencial das tres apresentacoes da ARFID em autorrelato: evitacao por propriedades sensoriais, desinteresse/apetite reduzido e receio de consequencias aversivas. 9 itens, 3 por dimensao, escala 0-3. Instrumento ORIGINAL de construcao inspirada (Via B): NAO e a NIAS (Zickgraf & Ellis, 2018), nao e traducao da NIAS e os resultados NAO sao comparaveis com dados obtidos com a NIAS nem com as suas versoes validadas. Sem normas portuguesas e sem estudo psicometrico proprio. Cotacao em Indice de Endossamento (IE, 0-100 %), que torna as duas formas comparaveis apesar das metricas diferentes; a saida primaria e a CONFIGURACAO (quantas e quais dimensoes salientes), nao o nivel absoluto. Total calculado mas NAO interpretado como gravidade: a soma de tres dimensoes conceptualmente independentes nao e indice valido. Limiares racionais e exploratorios: saliencia IE >= 40 %, tendencia 12 pp, dominancia 23 pp, divergencia entre informantes 25 pp. Regra de precedencia: o indice de dominancia so tem estatuto de leitura diferencial com UMA unica dimensao saliente; com duas ou mais devolve predominio relativo dentro de configuracao mista. Sem prorrateio - um item omisso invalida a dimensao. ASSIMETRIA PROBATORIA: uma elevacao documenta endossamento; uma nao-elevacao documenta a nao-endossacao por aquele informante, NAO a ausencia do fenomeno. Sustenta o diferencial ENTRE apresentacoes da ARFID; NAO discrimina ARFID de outras perturbacoes alimentares. Aplicar SEMPRE antes da Forma P, para que o autorrelato nao seja contaminado pelo enquadramento parental.',
+      domains:['S — Seletividade sensorial (evitacao por propriedades sensoriais do alimento; neofobia)', 'A — Apetite e interesse pelo alimento (interesse reduzido, ausencia de sinal de fome, saciedade precoce)', 'R — Receio de consequencias aversivas (antecipacao de engasgamento, vomito ou desconforto gastrintestinal)', 'Indice de Endossamento (IE) por dimensao, 0-100 %', 'Banda descritiva do IE (minimo · ligeiro · moderado · acentuado · maximo)', 'Configuracao (sem dimensao saliente · isolada · mista) — saida primaria', 'Delta de dominancia = IE_S menos o maximo de IE_A e IE_R', 'Total (calculado, nao interpretado como gravidade)', 'Validade do protocolo (dimensoes invalidadas por omissao)'],
+      ageMin:96, ageMax:179},
+    // ── PDRA-9/P · Perfil Diferencial da Restrição Alimentar — parental (v110) ──
+    { id:'q_pdra9_p', name:'PDRA-9/P — Perfil Diferencial da Restrição Alimentar (Parental)',
+      dest:['Mãe','Pai','Enc. Educação'],
+      link:'https://correiaricardina-ui.github.io/questionarios/PDRA9_P_v1.html',
+      syncKey:'pdra9_p', area:'Alimentação & Imagem Corporal', ageRange:'6–14 anos',
+      objective:'Perfil diferencial das tres apresentacoes da ARFID em heterorrelato parental. 9 itens, 3 por dimensao, escala 0-5, periodo de referencia: ultimos 3 meses. Instrumento ORIGINAL de construcao inspirada (Via B): NAO e a NIAS (Zickgraf & Ellis, 2018), nao e traducao da NIAS e os resultados NAO sao comparaveis com dados obtidos com a NIAS. Sem normas portuguesas e sem estudo psicometrico proprio. Mesma arquitetura de cotacao da Forma C (IE 0-100 %, configuracao como saida primaria, regra de precedencia da configuracao sobre a dominancia, sem prorrateio). O par C+P produz o INDICE DE DIVERGENCIA por dimensao (limiar 25 pp), que e a informacao mais sensivel do instrumento: na dimensao R o conteudo antecipatorio e experiencia interna e o heterorrelato parental subestima-o de forma SISTEMATICA, pelo que a direcao crianca > progenitor e teoricamente esperada e constitui informacao clinica, nao erro de medida nem inconsistencia. ASSIMETRIA PROBATORIA maxima nesta forma na dimensao R: um R baixo em heterorrelato parental documenta a nao-observabilidade do receio pelo progenitor, NAO a sua ausencia. Sustenta o diferencial ENTRE apresentacoes da ARFID; NAO discrimina ARFID de outras perturbacoes alimentares.',
+      domains:['S — Seletividade sensorial (evitacao por propriedades sensoriais do alimento; neofobia)', 'A — Apetite e interesse pelo alimento (interesse reduzido, ausencia de sinal de fome, saciedade precoce)', 'R — Receio de consequencias aversivas (antecipacao de engasgamento, vomito ou desconforto gastrintestinal)', 'Indice de Endossamento (IE) por dimensao, 0-100 %', 'Banda descritiva do IE (minimo · ligeiro · moderado · acentuado · maximo)', 'Configuracao (sem dimensao saliente · isolada · mista) — saida primaria', 'Delta de dominancia = IE_S menos o maximo de IE_A e IE_R', 'Total (calculado, nao interpretado como gravidade)', 'Validade do protocolo (dimensoes invalidadas por omissao)', 'Indice de divergencia entre informantes (Forma P menos Forma C), por dimensao'],
+      ageMin:72, ageMax:179}
   ];
   // Garantir que TODOS os defaults estão no catálogo, sempre
   // (funciona em RC novos e em RC existentes — nunca perde questionários)
@@ -2387,6 +2488,12 @@ function initCatalog() {
   } else {
     // Forçar links e syncKeys actualizados
     const META = {
+      // ── GCSA · Grelha de Caracterização da Seletividade Alimentar (v111) ──
+      'q_gcsa':        { link:'https://correiaricardina-ui.github.io/questionarios/GCSA_v1.html', syncKey:'gcsa' },
+      'q_gcsa_diario': { link:'https://correiaricardina-ui.github.io/questionarios/GCSA_Diario_v1.html', syncKey:'gcsa_diario' },
+      // ── CAPS · Escala de Perfecionismo de Crianças e Adolescentes (v109) ──
+      'q_caps22':     { link:'https://correiaricardina-ui.github.io/questionarios/CAPS22_Crianca_v1.html', syncKey:'caps22' },
+      'q_caps_pr':    { link:'https://correiaricardina-ui.github.io/questionarios/CAPS_PR_Pais_v1.html', syncKey:'caps_pr' },
       // ── QCF-P · Questionário de Comportamento Fraterno, versão parental (v108) ──
       'q_qcfp':       { link:'https://correiaricardina-ui.github.io/questionarios/QCFP_v1.html', syncKey:'qcfp' },
       // ── QRF-C · Questionário de Relação Fraterna, versão criança (v107) ──
@@ -2399,6 +2506,9 @@ function initCatalog() {
       'q_smq_pais':   { link:'https://correiaricardina-ui.github.io/questionarios/SMQ_Pais_v1.html', syncKey:'smq_pais' },
       'q_smq_prof':   { link:'https://correiaricardina-ui.github.io/questionarios/SMQ_Professores_v1.html', syncKey:'smq_prof' },
       'q_gad7':       { link:'https://correiaricardina-ui.github.io/questionarios/GAD7_v1.html', syncKey:'gad7' },
+      // ── PDRA-9 (v110) ──
+      'q_pdra9_c':    { link:'https://correiaricardina-ui.github.io/questionarios/PDRA9_C_v1.html', syncKey:'pdra9_c' },
+      'q_pdra9_p':    { link:'https://correiaricardina-ui.github.io/questionarios/PDRA9_P_v1.html', syncKey:'pdra9_p' },
       'q_ais8':       { link:'https://correiaricardina-ui.github.io/questionarios/AIS_8_v1.html', syncKey:'ais8' },
       'q_aceq_adol':  { link:'https://correiaricardina-ui.github.io/questionarios/ACE-Q_Adolescente.html', syncKey:'aceq_adol' },
       'q_aceq_cuid':  { link:'https://correiaricardina-ui.github.io/questionarios/ACE-Q_Cuidador.html', syncKey:'aceq_cuid' },
@@ -3189,9 +3299,37 @@ function initCatalog() {
       const dQrfc = defaults.find(x => x.id === 'q_qrfc');
       if(dQrfc) { store.set('q_' + dQrfc.id, dQrfc); store.set(dQrfc.id, dQrfc); catalog.push('q_qrfc'); store.set('catalog', catalog); }
     }
+    // ── GCSA (v111) — semeadura no catálogo local ──
+    // Duplo store.set (id completo e id com prefixo) para retrocompatibilidade com
+    // getCatalog, que faz store.get(id) || store.get('q_' + id).
+    ['q_gcsa','q_gcsa_diario'].forEach(function(gid){
+      if(!catalog.includes(gid)) {
+        const dG = defaults.find(x => x.id === gid);
+        if(dG) { store.set('q_' + dG.id, dG); store.set(dG.id, dG);
+                 catalog.push(gid); store.set('catalog', catalog); }
+      }
+    });
+    // ── PDRA-9 (v110) — semeadura no catálogo local ──
+    ['q_pdra9_c','q_pdra9_p'].forEach(function(pid){
+      if(!catalog.includes(pid)) {
+        const dP9 = defaults.find(x => x.id === pid);
+        if(dP9) { store.set('q_' + dP9.id, dP9); store.set(dP9.id, dP9);
+                  catalog.push(pid); store.set('catalog', catalog); }
+      }
+    });
     if(!catalog.includes('q_qcfp')) {
       const dQcfp = defaults.find(x => x.id === 'q_qcfp');
       if(dQcfp) { store.set('q_' + dQcfp.id, dQcfp); store.set(dQcfp.id, dQcfp); catalog.push('q_qcfp'); store.set('catalog', catalog); }
+    }
+    // CAPS-22 · Perfecionismo — autorrelato da criança (v109)
+    if(!catalog.includes('q_caps22')) {
+      const dCaps22 = defaults.find(x => x.id === 'q_caps22');
+      if(dCaps22) { store.set('q_' + dCaps22.id, dCaps22); store.set(dCaps22.id, dCaps22); catalog.push('q_caps22'); store.set('catalog', catalog); }
+    }
+    // CAPS-PR · Perfecionismo da criança — heterorrelato parental (v109)
+    if(!catalog.includes('q_caps_pr')) {
+      const dCapsPr = defaults.find(x => x.id === 'q_caps_pr');
+      if(dCapsPr) { store.set('q_' + dCapsPr.id, dCapsPr); store.set(dCapsPr.id, dCapsPr); catalog.push('q_caps_pr'); store.set('catalog', catalog); }
     }
     }
   }
@@ -4108,6 +4246,36 @@ function formatScoreSummary(scores, syncKey) {
   //   NÃO INTERPRETÁVEL, que é de facto um alerta de validade.
   // ⚠ Guardas != null: 0 é resultado legítimo em IndiceSimetria (descrição
   //   indiferenciada entre os filhos) e em DesvioEspelho (coerência perfeita).
+  // ── PDRA-9 · ambas as formas (v110) ─────────────────────────
+  // ⚠ Paleta NEUTRA: instrumento SEM normas e SEM pontos de corte. Nenhum valor é
+  //   clínico. Vermelho reservado ao protocolo com dimensão invalidada (alerta de
+  //   validade), laranja à configuração mista.
+  // ⚠ Guarda != null: IE = 0 é endossamento nulo — resultado legítimo e informativo,
+  //   distinto de dimensão invalidada, que chega como '' (item omisso, sem prorrateio).
+  if(syncKey === 'pdra9_c' || syncKey === 'pdra9_p') {
+    const cfg = scores['Configuracao'] ?? scores['Configuração'] ?? scores['config'];
+    const val = scores['Validade'] ?? scores['validade'];
+    const dom = scores['Dominancia'] ?? scores['Dominância'] ?? '';
+    const ieS = scores['S_IE'] ?? scores['s_IE'];
+    const ieA = scores['A_IE'] ?? scores['a_IE'];
+    const ieR = scores['R_IE'] ?? scores['r_IE'];
+    const fmt9 = v => (v == null || v === '') ? '—'
+                    : (isNaN(parseFloat(v)) ? String(v) : parseFloat(v).toFixed(0));
+    if(val && String(val).indexOf('INCOMPLETO') === 0) {
+      return '<span style="font-size:0.78rem;color:#C0392B;font-weight:700;">'
+           + 'PDRA-9 · dimensão invalidada (omissão — sem prorrateio)</span>';
+    }
+    if(cfg != null || ieS != null) {
+      const mista = cfg && String(cfg).indexOf('mista') > -1;
+      const cor = mista ? 'color:#E67E22;font-weight:600;' : 'color:var(--blue);font-weight:600;';
+      const curto = cfg ? String(cfg).replace('Configuração ', '') : '';
+      const domCurto = dom ? ' · ' + String(dom).replace('Configuração mista ', '') : '';
+      return '<span style="font-size:0.78rem;' + cor + '">S/A/R = '
+           + fmt9(ieS) + '/' + fmt9(ieA) + '/' + fmt9(ieR) + '%  ·  ' + curto + domCurto
+           + '</span>';
+    }
+  }
+
   if(syncKey === 'qcfp') {
     const val = scores['ValidadeProtocolo'] ?? scores['validadeProtocolo'] ?? scores['Validade'];
     if(val && String(val).indexOf('NÃO INTERPRETÁVEL') === 0) {
@@ -4150,6 +4318,66 @@ function formatScoreSummary(scores, syncKey) {
            + ' · Conflito=' + fmtQ(confl) + ' · Rivalidade=' + fmtQ(riv) + marca + '</span>';
     }
     return '<span style="font-size:0.78rem;color:var(--text-light)">QRF-C · dimensões não computadas</span>';
+  }
+  // ── GCSA · Grelha de Caracterização da Seletividade Alimentar (v111) ──
+  // Instrumento SEM normas, SEM pontuação clínica e SEM pontos de corte: paleta azul
+  // sempre, nunca verde/laranja/vermelho, que implicariam juízo de gravidade.
+  // O resumo mostra a CONFIGURAÇÃO (dimensão predominante e quantas dimensões na banda
+  // superior), porque é essa a saída primária — não existe índice global (anomalia A-02).
+  // Os sinalizadores clínicos são a única marca a vermelho: não são medida de gravidade
+  // mas condições de articulação médica ou de diagnóstico diferencial.
+  if(syncKey === 'gcsa' || syncKey === 'GCSA') {
+    const pred   = scores['CFG_Predominante'] ?? scores['cfg_predominante'] ?? '';
+    const isMax  = scores['CFG_ISmax'] ?? scores['cfg_ismax'];
+    const sup    = scores['CFG_Superiores'] ?? scores['cfg_superiores'];
+    const interp = scores['CFG_Interpretaveis'] ?? scores['cfg_interpretaveis'];
+    const sinais = ['SIN_DEGL','SIN_PICA','SIN_CRESC','SIN_IMAGEM','SIN_AVERS']
+      .filter(k => String(scores[k] ?? '').toUpperCase() === 'ATIVO');
+    if(pred || isMax != null || sup != null) {
+      const marca = sinais.length
+        ? ` · <span style="color:#C0392B;font-weight:700;">⚠ ${sinais.length} sinalizador${sinais.length>1?'es':''}</span>`
+        : '';
+      const fmtIS = (isMax != null) ? String(isMax).replace('.', ',') : '–';
+      return `<span style="font-size:0.78rem;color:var(--blue);font-weight:600;">${pred || 'Sem predomínio'}${isMax != null ? ' (IS=' + fmtIS + ')' : ''}${sup != null ? ' · ' + sup + ' na banda superior' : ''}${interp != null ? ' de ' + interp + ' interpretáveis' : ''}${marca}</span>`;
+    }
+  }
+  // ── GCSA · Diário de Alimentação de Sete Dias (v111) ──
+  // Contagens descritivas, sem valores de referência: paleta azul sempre.
+  // O repertório inferior a 20 alimentos NÃO é ponto de corte e não é assinalado como tal.
+  if(syncKey === 'gcsa_diario' || syncKey === 'GCSA_Diario') {
+    const rep    = scores['AlimentosDistintos'] ?? scores['alimentosDistintos'];
+    const nucleo = scores['NucleoEstavel'] ?? scores['nucleoEstavel'];
+    const taxa   = scores['TaxaRecusa'] ?? scores['taxaRecusa'];
+    const regs   = scores['RefRegistadas'] ?? scores['refRegistadas'];
+    if(rep != null || regs != null) {
+      const fmtT = (taxa != null && taxa !== '') ? String(taxa).replace('.', ',') + ' %' : '–';
+      return `<span style="font-size:0.78rem;color:var(--blue);font-weight:600;">Repertório = ${rep ?? '–'} alimentos${nucleo != null ? ' · núcleo = ' + nucleo : ''} · recusa ${fmtT}${regs != null ? ' · ' + regs + '/35 refeições' : ''}</span>`;
+    }
+  }
+  // ── CAPS-22 · Perfecionismo, autorrelato (v109) ──
+  // Bandas DESCRITIVAS (norma comunitária canadiana). Sem pontos de corte clínicos:
+  // usar sempre a paleta azul, nunca verde/laranja/vermelho.
+  if(syncKey === 'caps22' || syncKey === 'CAPS22') {
+    const sop = scores['SOP'] ?? scores['sop'];
+    const spp = scores['SPP'] ?? scores['spp'];
+    const dSop = scores['SOP_Descritor'] ?? scores['SOP_Banda'] ?? '';
+    const dSpp = scores['SPP_Descritor'] ?? scores['SPP_Banda'] ?? '';
+    const val  = String(scores['Validade'] ?? '').toUpperCase();
+    if(sop != null || spp != null) {
+      const marca = (val === 'SINALIZADO') ? ' · ⚠ validade sinalizada' : '';
+      return `<span style=\"font-size:0.78rem;color:var(--blue);font-weight:600;\">SOP=${sop ?? '–'}${dSop ? ' ('+dSop+')' : ''} · SPP=${spp ?? '–'}${dSpp ? ' ('+dSpp+')' : ''}${marca}</span>`;
+    }
+  }
+  // ── CAPS-PR · Perfecionismo da criança, heterorrelato parental (v109) ──
+  // Referência provisória (n = 64), NÃO normativa. O SPP-PR informa sobre o informante,
+  // não sobre a criança: por isso é apresentado a seguir ao SOP-PR e assinalado.
+  if(syncKey === 'caps_pr' || syncKey === 'CAPS_PR') {
+    const sopPr = scores['SOP_PR'] ?? scores['sop_pr'];
+    const sppPr = scores['SPP_PR'] ?? scores['spp_pr'];
+    const totPr = scores['Total_PR'] ?? scores['TOT_PR'];
+    if(sopPr != null || sppPr != null) {
+      return `<span style=\"font-size:0.78rem;color:var(--blue);font-weight:600;\">SOP-PR=${sopPr ?? '–'}/20 · SPP-PR=${sppPr ?? '–'}/25 (informante)${totPr != null ? ' · Total='+totPr+'/45' : ''} · referência provisória</span>`;
+    }
   }
   // Genérico
   const entries = Object.entries(scores).filter(([,v]) => v != null).slice(0,3);
@@ -5127,6 +5355,22 @@ function renderAssignments(patientId) {
             // ── Verificação nome-primeiro, relação como fallback ──
             function matchRespondent(row, aba, recip) {
               const NC = {
+                // ── GCSA · Seletividade Alimentar (nome primeiro; tipo como fallback) ──
+                // Cada progenitor preenche um protocolo independente: sem o nome como
+                // primeiro discriminante, a segunda submissão do casal não seria reconhecida.
+                'GCSA':['NomeInformante','Informante'],
+                'GCSA_Diario':['NomeInformante','Informante'],
+                // ── CAPS-22 · autorrelato (respondente = a própria criança; nome primeiro) ──
+                'CAPS22':['NomeInformante','NomeCriança','NomeCrianca','Informante'],
+                // ── CAPS-PR · heterorrelato parental (nome primeiro; tipo como fallback) ──
+                'CAPS_PR':['NomeInformante','Informante'],
+                // ── PDRA-9/C · autorrelato (respondente = a própria criança; nome primeiro) ──
+                // Sem esta entrada o questionário nunca passa a «Preenchido ✓» (Secção 8/v24).
+                'PDRA9_C':['NomeInformante','NomeCriança','NomeCrianca','Informante'],
+                // ── PDRA-9/P · heterorrelato parental (nome primeiro; tipo como fallback) ──
+                // Mãe e pai podem preencher no mesmo dia para a mesma criança: o nome é o
+                // discriminante que preserva as duas linhas e o índice de divergência.
+                'PDRA9_P':['NomeInformante','Informante'],
                 // ── QCF-P · Comportamento Fraterno, parental (nome primeiro; tipo como fallback) ──
                 'QCFP':['NomeInformante','Informante'],
                 // ── QRF-C · Relação Fraterna (autorrelato: respondente = a própria criança) ──
@@ -5606,6 +5850,17 @@ async function syncAndMark(patientId, idx) {
       const patUpper = String(patient.code).trim().toUpperCase();
       function matchResp2(row, aba2, recip) {
         const NC2 = {
+          // ── GCSA · Seletividade Alimentar (nome primeiro; tipo como fallback) ──
+          'GCSA':['NomeInformante','Informante'],
+          'GCSA_Diario':['NomeInformante','Informante'],
+          // ── CAPS-22 · autorrelato (respondente = a própria criança; nome primeiro) ──
+          'CAPS22':['NomeInformante','NomeCriança','NomeCrianca','Informante'],
+          // ── CAPS-PR · heterorrelato parental (nome primeiro; tipo como fallback) ──
+          'CAPS_PR':['NomeInformante','Informante'],
+          // ── PDRA-9/C · autorrelato (respondente = a própria criança; nome primeiro) ──
+          'PDRA9_C':['NomeInformante','NomeCriança','NomeCrianca','Informante'],
+          // ── PDRA-9/P · heterorrelato parental (nome primeiro; tipo como fallback) ──
+          'PDRA9_P':['NomeInformante','Informante'],
           // ── QCF-P · Comportamento Fraterno, parental (nome primeiro; tipo como fallback) ──
           'QCFP':['NomeInformante','Informante'],
           // ── QRF-C · Relação Fraterna (autorrelato: respondente = a própria criança) ──
