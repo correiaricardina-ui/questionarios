@@ -215,7 +215,9 @@ body{font-family:'DM Sans',sans-serif;background:var(--gray);color:var(--text);m
     <div class="form-row">
       <label>Código do paciente <span style="font-weight:400;color:var(--text-light);font-size:0.82rem;">(fornecido pela psicóloga)</span></label>
       <input type="text" id="patient-code" class="form-input" placeholder="ex: MV14062013"
-             style="text-transform:uppercase" oninput="this.value=this.value.toUpperCase()">
+             maxlength="20" autocapitalize="characters" autocomplete="off"
+             autocorrect="off" spellcheck="false"
+             style="text-transform:uppercase">
       <div class="form-hint">Iniciais + data de nascimento (DDMMAAAA). Ex: <em>Maria Valente</em> nascida a 14/06/2013 → <strong>MV14062013</strong></div>
     </div>
     <div class="form-row">
@@ -287,7 +289,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--gray);color:var(--text);m
     <div style="text-align:center;padding:32px 0;">
       <div style="font-size:3rem;margin-bottom:16px;">✅</div>
       <div style="font-family:'DM Serif Display',serif;font-size:1.6rem;color:var(--blue);margin-bottom:12px;">Questionário submetido!</div>
-      <div style="color:var(--text-light);margin-bottom:24px;">Obrigado pelo preenchimento.<br>Os resultados foram registados com sucesso.</div>
+      <div style="color:var(--text-light);margin-bottom:24px;">As suas respostas foram registadas com sucesso.</div>
       <button class="btn btn-primary" onclick="showPage('page-home')">Voltar ao início</button>
     </div>
   </div>
@@ -450,12 +452,37 @@ function renderItens() {
 }
 
 // ── Validação ─────────────────────────────────────────────
+// Normalização do código de paciente:
+// tolera espaços (normais, inquebráveis, zero-width), minúsculas e separadores
+// habituais (- . / _ \) resultantes de cópia/colagem do e-mail ou de teclados móveis.
+function normalizarCodigo(v) {
+  if (v == null) return '';
+  return String(v)
+    .replace(/[\u00A0\u1680\u2000-\u200D\u202F\u205F\u3000\uFEFF]/g, '')
+    .replace(/\s+/g, '')
+    .replace(/[.\-\/_\\]/g, '')
+    .toUpperCase();
+}
+
+function aplicarNormalizacaoCodigo() {
+  var el = document.getElementById('patient-code');
+  if (!el) return '';
+  var norm = normalizarCodigo(el.value);
+  if (el.value !== norm) el.value = norm;
+  return norm;
+}
+
 function validarSecao(n) {
   if (n === 1) {
-    var codigo = (document.getElementById('patient-code')||{}).value || '';
+    var codigo = aplicarNormalizacaoCodigo();
     var relacao = (document.getElementById('relacao')||{}).value || '';
-    if (!codigo.match(/^[A-Z]{2,4}\d{8}$/)) {
-      alert('Por favor introduza um código de paciente válido (ex: AB01012015).');
+    if (!/^[A-Z]{2,4}\d{8}$/.test(codigo)) {
+      alert('O código introduzido não está no formato esperado.\n\n'
+          + 'Formato: 2 a 4 letras (iniciais) seguidas de 8 dígitos da data de nascimento (DDMMAAAA), sem espaços.\n'
+          + 'Exemplo: MV14062013\n\n'
+          + (codigo ? 'Introduziu: ' + codigo : 'O campo está vazio.'));
+      var elc = document.getElementById('patient-code');
+      if (elc) { try { elc.focus(); } catch(e){} }
       return false;
     }
     if (!relacao) { alert('Por favor indique a sua relação com a criança/jovem.'); return false; }
@@ -553,7 +580,7 @@ function submeterQuestionario() {
   var btnSubmit = document.querySelector('#section-3 .btn-primary');
   if (btnSubmit) { btnSubmit.disabled=true; btnSubmit.textContent='A enviar...'; }
 
-  var codigo     = (document.getElementById('patient-code')||{}).value || '';
+  var codigo     = normalizarCodigo((document.getElementById('patient-code')||{}).value || '');
   var relacao    = (document.getElementById('relacao')||{}).value || '';
   var nomeCrianca= (document.getElementById('nome-crianca')||{}).value || '';
   var nome       = (document.getElementById('nome_informante')||{}).value || '';
@@ -1231,7 +1258,10 @@ document.addEventListener('DOMContentLoaded', function() {
   if (dataInput) dataInput.value = new Date().toISOString().slice(0,10);
 
   var codigoInput = document.getElementById('patient-code');
-  if (codigoInput) codigoInput.addEventListener('input', function(){ this.value=this.value.toUpperCase(); });
+  if (codigoInput) {
+    codigoInput.addEventListener('blur',   aplicarNormalizacaoCodigo);
+    codigoInput.addEventListener('change', aplicarNormalizacaoCodigo);
+  }
 
   var pwInput = document.getElementById('login-pw');
   if (pwInput) pwInput.addEventListener('keydown', function(e){ if(e.key==='Enter') tentarLogin(); });
