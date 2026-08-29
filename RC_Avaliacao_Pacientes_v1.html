@@ -603,6 +603,31 @@ const RC_SHEET_URL = 'https://script.google.com/macros/s/AKfycbxX2_Ry7VRH6jr7eGB
 
 // Mapeamento: id do questionário → aba no Sheet central
 const QID_TO_ABA = {
+  // ── Família EIF · Escalas de Interferência Funcional (v121) ──
+  // Uma aba por instrumento: as duas formas de cada escala (autorrelato e
+  // heterorrelato) partilham a mesma aba e distinguem-se pela coluna 'Forma'.
+  'q_eifp':       'EIFP',
+  'q_eifa':       'EIFA',
+  'q_eifj':       'EIFJ',
+  // ── CAARS · Conners' Adult ADHD Rating Scales (v120) ──
+  // Duas ligações (auto-relato e heterorrelato) para DUAS abas: cada forma é um
+  // ficheiro próprio para que o respondente não tenha de escolher nada ao abrir o link.
+  'q_caars_sl':   'CAARS_SL',
+  'q_caars_ol':   'CAARS_OL',
+  // ── EII-PT · Escala de Intolerância à Incerteza (v119) ──
+  // Quatro ligações (2 versões × 2 formas) para DUAS abas: cada forma é um ficheiro
+  // próprio para que o respondente não tenha de escolher nada ao abrir o link.
+  'q_eii27_a':    'EII27',
+  'q_eii27_j':    'EII27',
+  'q_eii12_a':    'EII12',
+  'q_eii12_j':    'EII12',
+  // ── PSWQ · Penn State Worry Questionnaire (v115) ──
+  'q_pswq':       'PSWQ',
+  // ── Escalas de Beck · BAI e BDI-II (v114) ──
+  'q_bai':        'BAI',
+  'q_bdi2':       'BDI2',
+  // ── SIAS · SPS · Escalas de Ansiedade Social (v113) ──
+  'q_sias_sps':   'SIAS_SPS',
   // ── GCSA · Grelha de Caracterização da Seletividade Alimentar (v111) ──
   'q_gcsa':        'GCSA',
   'q_gcsa_diario': 'GCSA_Diario',
@@ -625,6 +650,10 @@ const QID_TO_ABA = {
   'q_pdra9_c':    'PDRA9_C',
   'q_pdra9_p':    'PDRA9_P',
   'q_ais8':       'AIS_8',
+  // ── ESS · Escala de Sonolência de Epworth (v117) ──
+  'q_ess':        'ESS_Epworth',
+  // ── STOP-BANG · Rastreio de risco de SAOS (v118) ──
+  'q_stopbang':   'STOPBANG',
   'q_sgrs':       'SGRS',
   'q_aceq_adol':  'ACE_Q_ADOLESCENTE',
   'q_aceq_cuid':  'ACE_Q_CUIDADOR',
@@ -649,6 +678,9 @@ const QID_TO_ABA = {
   'q_brief_pe_pais': 'BRIEF_PreEscolar_Pais',
   'q_brief_pe_prof': 'BRIEF_PreEscolar_Professores',
   'q_brief_auto':    'BRIEF_Autoavaliacao',
+  // ── BRIEF-A · versão adulta (v116) — só pontuações brutas ──
+  'q_brief_a_auto':  'BRIEF_A_AUTO',
+  'q_brief_a_inf':   'BRIEF_A_INF',
   'q_spas_pais': 'SPAS_Pais',
   'q_spas_prof': 'SPAS_Prof',
   'q_qedp': 'QEDP',
@@ -799,6 +831,50 @@ const QID_TO_ABA = {
 
 
 const SYNC_KEY_TO_ABA = {
+  // ── Família EIF · Escalas de Interferência Funcional (v121) ──
+  'eifp':          'EIFP',
+  'EIFP':          'EIFP',
+  'EIFP_C':        'EIFP',
+  'EIFP_P':        'EIFP',
+  'eifa':          'EIFA',
+  'EIFA':          'EIFA',
+  'EIFA_A':        'EIFA',
+  'EIFA_S':        'EIFA',
+  'eifj':          'EIFJ',
+  'EIFJ':          'EIFJ',
+  'EIFJ_J':        'EIFJ',
+  'EIFJ_S':        'EIFJ',
+  // ── CAARS · Conners' Adult ADHD Rating Scales (v120) ──
+  'caars_sl':      'CAARS_SL',
+  'CAARS_SL':      'CAARS_SL',
+  'CAARS-S:L':     'CAARS_SL',
+  'caars_ol':      'CAARS_OL',
+  'CAARS_OL':      'CAARS_OL',
+  'CAARS-O:L':     'CAARS_OL',
+  // ── EII-PT · Escala de Intolerância à Incerteza (v119) ──
+  'eii27_a':       'EII27',
+  'eii27_j':       'EII27',
+  'eii27':         'EII27',
+  'EII27':         'EII27',
+  'EII-27':        'EII27',
+  'eii12_a':       'EII12',
+  'eii12_j':       'EII12',
+  'eii12':         'EII12',
+  'EII12':         'EII12',
+  'EII-12':        'EII12',
+  // ── PSWQ · Penn State Worry Questionnaire (v115) ──
+  'pswq':          'PSWQ',
+  'PSWQ':          'PSWQ',
+  // ── Escalas de Beck · BAI e BDI-II (v114) ──
+  'bai':           'BAI',
+  'BAI':           'BAI',
+  'bdi2':          'BDI2',
+  'BDI2':          'BDI2',
+  'BDI-II':        'BDI2',
+  // ── SIAS · SPS · Escalas de Ansiedade Social (v113) ──
+  'sias_sps':      'SIAS_SPS',
+  'SIAS_SPS':      'SIAS_SPS',
+  'SIAS-SPS':      'SIAS_SPS',
   // ── GCSA · Grelha de Caracterização da Seletividade Alimentar (v111) ──
   'gcsa':          'GCSA',
   'GCSA':          'GCSA',
@@ -825,6 +901,15 @@ const SYNC_KEY_TO_ABA = {
   'pdra9_c':  'PDRA9_C',
   'pdra9_p':  'PDRA9_P',
   'ais8':     'AIS_8',
+  // ── ESS · Escala de Sonolência de Epworth (v117) ──
+  'ess':      'ESS_Epworth',
+  'ESS':      'ESS_Epworth',
+  'ESS_Epworth': 'ESS_Epworth',
+  // ── STOP-BANG · Rastreio de risco de SAOS (v118) ──
+  'stopbang': 'STOPBANG',
+  'STOPBANG': 'STOPBANG',
+  'STOP-BANG': 'STOPBANG',
+  'STOP_BANG': 'STOPBANG',
   'sgrs':     'SGRS',
   'aceq_adol':'ACE_Q_ADOLESCENTE',
   'aceq_cuid':'ACE_Q_CUIDADOR',
@@ -864,6 +949,9 @@ const SYNC_KEY_TO_ABA = {
   'brief_pe_pais': 'BRIEF_PreEscolar_Pais',
   'brief_pe_prof': 'BRIEF_PreEscolar_Professores',
   'brief_auto':    'BRIEF_Autoavaliacao',
+  // ── BRIEF-A · versão adulta (v116) ──
+  'brief_a_auto':  'BRIEF_A_AUTO',
+  'brief_a_inf':   'BRIEF_A_INF',
   'spas_pais': 'SPAS_Pais',
   'spas_prof': 'SPAS_Prof',
   'qedp': 'QEDP',
@@ -1356,6 +1444,105 @@ async function checkSheetForResponse(qid, patientCode) {
 function initCatalog() {
   const existing = store.get('catalog') || [];
   const defaults = [
+    // ── Família EIF · Escalas de Interferência Funcional (v121) ──
+    // Três instrumentos de geometria comum, cada um com duas formas na mesma aba.
+    // As pontuações NÃO são comparáveis entre eles: divergem a janela temporal
+    // (7 dias na EIFP e na EIFA; 30 dias na EIFJ), o referente e a população-alvo.
+    { id:'q_eifp', name:'EIFP — Escala de Interferência Funcional Pediátrica (Formas C e P)', dest:['Criança/Jovem','Mãe','Pai','Enc. Educação'], link:'https://correiaricardina-ui.github.io/questionarios/EIFP_v1.html', syncKey:'eifp', area:'Funcionamento & Interferência Funcional', ageRange:'7–18 anos', objective:'Mede a INTERFERÊNCIA FUNCIONAL atribuída ao problema-alvo em três domínios de vida da criança ou adolescente, na janela dos ÚLTIMOS 7 DIAS. Instrumento ORIGINAL em português europeu (adaptação inspirada, Via B), construído a partir do enquadramento conceptual e da estrutura psicométrica da Child Sheehan Disability Scale (CSDS/CSDS-P; Whiteside, 2009), SEM reprodução de itens, instruções ou ancoragens protegidas. Duas formas na mesma aba: EIFP-C, autorrelato a partir dos 7 anos, 3 itens 0–10 (total 0–30), e EIFP-P, heterorrelato do cuidador, 5 itens 0–10 (total 0–50) em duas subescalas — Subescala I, interferência na vida da criança (2 itens, 0–20), e Subescala II, interferência na vida do cuidador e da família (3 itens, 0–30). O domínio familiar aparece UMA só vez, referido ao agregado. A leitura primária é feita por DOMÍNIO, não pelo total: consideram-se assinalados os domínios com pontuação SUPERIOR a 5 (Williams, 2000), critério que NÃO deve ser confundido com o ponto de corte de Leon et al. (1997), que incide sobre o total e está documentado mas não é aplicado. Um total baixo pode coexistir com interferência extrema num único domínio (ex.: 10 / 0 / 0 = total 10), pelo que o total é sempre leitura secundária. ⚠ As bandas descritivas de intensidade média — Nula · Ligeira · Moderada · Marcada · Extrema — derivam das ancoragens verbais da própria escala de resposta e NÃO constituem pontos de corte clínicos. ⚠ O instrumento mede INTERFERÊNCIA FUNCIONAL atribuída pelo informante: não mede sintomatologia, gravidade sintomática nem etiologia, e discrepâncias entre sintomas e interferência são informação clínica e não erro de medida. ⚠ As pontuações NÃO são comparáveis entre instrumentos da família EIF, por divergirem as janelas temporais, os referentes e as populações-alvo. ⚠ Sem estudo psicométrico próprio e sem normas portuguesas. ⚠ As referências externas (valores z e limiar de mudança fiável) são da CSDS/CSDS-P, instrumento DISTINTO da EIFP, em amostra norte-americana predominantemente caucasiana e de escolaridade parental elevada; nas amostras comunitárias o desvio-padrão iguala ou excede a média, o que indica assimetria positiva severa e efeito de chão, pelo que os valores z NÃO são convertidos em percentis. ⚠ Whiteside não publicou α por subescala: o índice de mudança fiável só é calculável para os totais, e as subescalas ficam n.d. por construção, sem estimativa. ⚠ Os critérios grupais de Sheehan & Sheehan (2008) NÃO são aplicados nesta versão pediátrica, por derivarem de ensaios com adultos. ⚠ A concordância entre informantes é habitualmente modesta na avaliação pediátrica: divergências entre a Forma C e a Forma P são perspetivas distintas, não erro de medida', domains:['EIFP-C Total (3 itens, 0–30) — autorrelato da criança ou adolescente sobre escola, amigos e casa', 'EIFP-P Subescala I — interferência na vida da criança (2 itens, 0–20): escolaridade e vida social', 'EIFP-P Subescala II — interferência na vida do cuidador e da família (3 itens, 0–30): trabalho e vida social do cuidador, e vida familiar do agregado', 'EIFP-P Total (5 itens, 0–50)', 'Sinalização por domínio — assinalável se pontuação SUPERIOR a 5; é o critério primário de leitura e reporta-se domínio a domínio, nunca por agregação', 'Banda descritiva de intensidade média (média por domínio) — Nula (0) · Ligeira (≤3) · Moderada (≤6) · Marcada (≤9) · Extrema (>9); descreve INTENSIDADE MÉDIA declarada, nunca gravidade clínica nem posição normativa', 'Dispersão do perfil — perfil dissociado quando a amplitude entre domínios do autorrelato é ≥ 5 pontos, indicando que a leitura pelo total subestimaria o compromisso no domínio mais afetado', 'Bloco complementar de dias — indicador ecológico externo a QUALQUER total, sem entrar em nenhuma pontuação de escala', 'Regra de omissão sem imputação — o total de uma escala só é calculado se TODOS os seus itens estiverem respondidos; não há prorrateamento nem estimativa', 'Distribuição da carga percebida — se se concentra na vida da criança, na do cuidador e família, ou se se distribui de forma equilibrada', 'Convergência entre informantes — comparação entre a média por domínio do autorrelato e a da Subescala I do heterorrelato; divergências são perspetivas distintas, não erro de medida', 'Índice de mudança fiável individual (ICF; Jacobson & Truax, 1991) entre M1 e M2 — limiar 8,70 no total do autorrelato e 9,90 no total do heterorrelato; NÃO calculável nas subescalas, por ausência de α publicado', 'Posição face a referências externas (valores z face à amostra comunitária e à amostra clínica da CSDS/CSDS-P) — sem conversão percentílica, por invalidade estatística'] , ageMin:84, ageMax:227},
+    { id:'q_eifa', name:'EIFA — Escala de Interferência Funcional em Adultos (Formas A e S)', dest:['Próprio','Companheiro(a)','Familiar'], link:'https://correiaricardina-ui.github.io/questionarios/EIFA_v1.html', syncKey:'eifa', area:'Funcionamento & Interferência Funcional', ageRange:'18–99 anos', objective:'Mede a INTERFERÊNCIA FUNCIONAL atribuída ao problema-alvo em três domínios de vida do adulto, na janela dos ÚLTIMOS 7 DIAS. Duas formas na mesma aba: EIFA-A, autorrelato do próprio, 3 itens 0–10 (total 0–30), adaptação inspirada (Via B) da Sheehan Disability Scale (Sheehan, 1983) sem reprodução de conteúdo protegido; e EIFA-S, heterorrelato do companheiro ou outra pessoa significativa, 5 itens 0–10 (total 0–50) em duas subescalas — Subescala I, interferência na vida do próprio (2 itens, 0–20), e Subescala II, interferência na vida do informante e do agregado (3 itens, 0–30) —, esta construção DE RAIZ (Via C), seguindo a solução bifatorial validada por Whiteside (2009) no heterorrelato pediátrico. O domínio familiar aparece UMA só vez, referido ao agregado, porque o casal o partilha. A leitura primária é feita por DOMÍNIO, não pelo total: consideram-se assinalados os domínios com pontuação SUPERIOR a 5 (Williams, 2000), critério que NÃO deve ser confundido com o ponto de corte de Leon et al. (1997), que incide sobre o total e está documentado mas não é aplicado. Um total baixo pode coexistir com interferência extrema num único domínio (ex.: 10 / 0 / 0 = total 10), pelo que o total é sempre leitura secundária. ⚠ As bandas descritivas de intensidade média — Nula · Ligeira · Moderada · Marcada · Extrema — derivam das ancoragens verbais da própria escala de resposta e NÃO constituem pontos de corte clínicos. ⚠ O instrumento mede INTERFERÊNCIA FUNCIONAL atribuída pelo informante: não mede sintomatologia, gravidade sintomática nem etiologia, e discrepâncias entre sintomas e interferência são informação clínica e não erro de medida. ⚠ As pontuações NÃO são comparáveis entre instrumentos da família EIF, por divergirem as janelas temporais, os referentes e as populações-alvo. ⚠ Sem estudo psicométrico próprio e sem normas portuguesas. ⚠ As referências externas da Forma A provêm de um ensaio clínico em ADULTOS COM PHDA (Coles et al., 2014), com critérios de inclusão que restringiram a variância inicial: a média de referência de 20,5 é elevada e reflete uma amostra selecionada por gravidade, não a população geral. ⚠ A Forma S NÃO dispõe de qualquer referência publicada — não existe versão de informante validada da escala-fonte, nem normas, α, estrutura fatorial ou fidelidade conhecidos —, pelo que não são apresentados valores z nem limiar de mudança fiável e a leitura é exclusivamente por domínio e por comparação intra-sujeito entre momentos. ⚠ Os critérios de remissão (≤6), resposta (≤12) e melhoria (redução ≥4) de Sheehan & Sheehan (2008) são de nível GRUPAL, derivados de médias de ensaios clínicos e não específicos de perturbação: aplicam-se apenas ao total do autorrelato e NÃO substituem o índice de mudança fiável individual, substancialmente mais exigente', domains:['EIFA-A Total (3 itens, 0–30) — autorrelato sobre trabalho ou estudos, vida social e lazer, e vida familiar', 'EIFA-S Subescala I — interferência na vida do próprio (2 itens, 0–20), percebida pelo informante', 'EIFA-S Subescala II — interferência na vida do informante e do agregado (3 itens, 0–30)', 'EIFA-S Total (5 itens, 0–50)', 'Sinalização por domínio — assinalável se pontuação SUPERIOR a 5; é o critério primário de leitura e reporta-se domínio a domínio, nunca por agregação', 'Banda descritiva de intensidade média (média por domínio) — Nula (0) · Ligeira (≤3) · Moderada (≤6) · Marcada (≤9) · Extrema (>9); descreve INTENSIDADE MÉDIA declarada, nunca gravidade clínica nem posição normativa', 'Dispersão do perfil — perfil dissociado quando a amplitude entre domínios do autorrelato é ≥ 5 pontos, indicando que a leitura pelo total subestimaria o compromisso no domínio mais afetado', 'Bloco complementar de dias — indicador ecológico externo a QUALQUER total, sem entrar em nenhuma pontuação de escala', 'Regra de omissão sem imputação — o total de uma escala só é calculado se TODOS os seus itens estiverem respondidos; não há prorrateamento nem estimativa', 'Distribuição da carga percebida — se a interferência se concentra na vida do próprio, na do informante e agregado, ou se se distribui de forma equilibrada', 'Convergência entre informantes — comparação entre a média por domínio do autorrelato e a da Subescala I do heterorrelato', 'Índice de mudança fiável individual (ICF; Jacobson & Truax, 1991) entre M1 e M2 — limiar 6,99 no total do autorrelato; NÃO calculável na Forma S, por ausência de referências', 'Critérios de nível GRUPAL (Sheehan & Sheehan, 2008), apenas no total do autorrelato — remissão ≤6, resposta ≤12, melhoria com redução ≥4; apresentados em bloco separado do índice individual, que não substituem', 'Posição face a referências externas (valores z face à média clínica inicial e à pós-tratamento de Coles et al., 2014) — apenas na Forma A, sem conversão percentílica'] , ageMin:216, ageMax:1188},
+    { id:'q_eifj', name:'EIFJ — Escala de Interferência Funcional em Comportamentos de Jogo (Formas J e S)', dest:['Próprio','Companheiro(a)','Familiar'], link:'https://correiaricardina-ui.github.io/questionarios/EIFJ_v1.html', syncKey:'eifj', area:'Comportamentos Aditivos', ageRange:'12–99 anos', objective:'Mede a INTERFERÊNCIA FUNCIONAL atribuída ao comportamento de jogo em três domínios de vida, na janela do ÚLTIMO MÊS (30 dias) — que DIVERGE dos sete dias da EIFP e da EIFA. Duas formas na mesma aba: EIFJ-J, autorrelato, 3 itens 0–10 (total 0–30), adaptação inspirada (Via B) da SDS-G (Hodgins, 2013; Sheehan, 1983) sem reprodução de conteúdo protegido; e EIFJ-S, heterorrelato do companheiro ou outro significativo, 5 itens 0–10 (total 0–50) em duas subescalas, construção DE RAIZ (Via C). O REFERENTE é selecionado na administração — jogo a dinheiro (CID-11 6C50) ou jogo digital (CID-11 6C51), entidades DISTINTAS — e a FORMULAÇÃO usada («o seu jogo» se não reconhece o comportamento como problema, «o seu problema de jogo» se o reconhece) deve manter-se constante em todos os itens e momentos; ambas ficam registadas. A leitura primária é feita por DOMÍNIO, não pelo total: consideram-se assinalados os domínios com pontuação SUPERIOR a 5 (Williams, 2000), critério que NÃO deve ser confundido com o ponto de corte de Leon et al. (1997), que incide sobre o total e está documentado mas não é aplicado. Um total baixo pode coexistir com interferência extrema num único domínio (ex.: 10 / 0 / 0 = total 10), pelo que o total é sempre leitura secundária. ⚠ As bandas descritivas de intensidade média — Nula · Ligeira · Moderada · Marcada · Extrema — derivam das ancoragens verbais da própria escala de resposta e NÃO constituem pontos de corte clínicos. ⚠ O instrumento mede INTERFERÊNCIA FUNCIONAL atribuída pelo informante: não mede sintomatologia, gravidade sintomática nem etiologia, e discrepâncias entre sintomas e interferência são informação clínica e não erro de medida. ⚠ As pontuações NÃO são comparáveis entre instrumentos da família EIF, por divergirem as janelas temporais, os referentes e as populações-alvo. ⚠ Sem estudo psicométrico próprio e sem normas portuguesas. ⚠ A EIFJ mede interferência funcional, NÃO gravidade sintomática: a gravidade da Perturbação de Jogo no DSM-5-TR estabelece-se por CONTAGEM DE CRITÉRIOS, não por esta escala. ⚠ Em jogo, a MINIMIZAÇÃO e a OCULTAÇÃO são fenómenos clínicos frequentes: uma pontuação baixa no autorrelato NÃO exclui compromisso funcional objetivo e deve ser confrontada com a Forma S e com indicadores financeiros, escolares ou laborais — o painel sinaliza automaticamente as bandas Nula e Ligeira. ⚠ Em MENORES o acesso a jogo a dinheiro é ILEGAL em Portugal: a sua identificação obriga a ponderação de risco e do dever de proteção, independentemente da pontuação obtida, e o painel sinaliza-o automaticamente. ⚠ A Forma S não dispõe de qualquer referência publicada. ⚠ O α inicial reportado por Hodgins é de 0,56, abaixo do aceitável para decisão individual; adota-se α = 0,81 (12 meses), e com o α inicial o limiar de mudança fiável passaria de 9,7 para 14,7 pontos — diferença que deve constar de qualquer relatório que use o índice. ⚠ As médias de referência provêm de uma subamostra de cerca de 42 participantes seguidos nos três momentos, não de normas populacionais', domains:['EIFJ-J Total (3 itens, 0–30) — autorrelato sobre trabalho ou estudos, vida social e lazer, e vida familiar, no último mês', 'EIFJ-S Subescala I — interferência na vida do próprio (2 itens, 0–20), percebida pelo informante', 'EIFJ-S Subescala II — interferência na vida do informante e do agregado (3 itens, 0–30)', 'EIFJ-S Total (5 itens, 0–50)', 'Sinalização por domínio — assinalável se pontuação SUPERIOR a 5; é o critério primário de leitura e reporta-se domínio a domínio, nunca por agregação', 'Banda descritiva de intensidade média (média por domínio) — Nula (0) · Ligeira (≤3) · Moderada (≤6) · Marcada (≤9) · Extrema (>9); descreve INTENSIDADE MÉDIA declarada, nunca gravidade clínica nem posição normativa', 'Dispersão do perfil — perfil dissociado quando a amplitude entre domínios do autorrelato é ≥ 5 pontos, indicando que a leitura pelo total subestimaria o compromisso no domínio mais afetado', 'Bloco complementar de dias — indicador ecológico externo a QUALQUER total, sem entrar em nenhuma pontuação de escala', 'Regra de omissão sem imputação — o total de uma escala só é calculado se TODOS os seus itens estiverem respondidos; não há prorrateamento nem estimativa', 'Referente registado — jogo a dinheiro (CID-11 6C50) ou jogo digital (CID-11 6C51); entidades distintas, cuja escolha condiciona a interpretação e consta do relatório', 'Formulação registada — «o seu jogo» ou «o seu problema de jogo», mantida constante entre momentos e passada automaticamente à terceira pessoa no heterorrelato', 'Sinalizador de minimização — aviso automático sempre que o autorrelato cai nas bandas Nula ou Ligeira, por a pontuação baixa não ser, neste quadro, informação tranquilizadora', 'Sinalizador de menor com jogo a dinheiro — aviso automático em vermelho quando a idade é inferior a 18 anos e o referente é jogo a dinheiro, independentemente da pontuação obtida', 'Índice de mudança fiável individual (ICF; Jacobson & Truax, 1991) entre M1 e M2 — limiar 9,67 no total do autorrelato; NÃO calculável na Forma S, por ausência de referências', 'Critérios de nível GRUPAL (Sheehan & Sheehan, 2008), apenas no total do autorrelato — remissão ≤6, resposta ≤12, melhoria com redução ≥4; em bloco separado do índice individual', 'Posição face a referências externas (valores z face à avaliação inicial e ao seguimento aos 12 meses de Hodgins, 2013) — apenas na Forma J, sem conversão percentílica'] , ageMin:144, ageMax:1188},
+    // ── CAARS · Conners' Adult ADHD Rating Scales — formas longas (v120) ──
+    // Conners, Erhardt & Sparrow (1999) · Multi-Health Systems Inc.
+    // ⚠ DUAS ligações, uma por forma, para DUAS abas: cada ficheiro traz já a forma
+    //   correcta, para que não haja escolha possível no ecrã do respondente.
+    // ⚠ A chave de cotação é IDÊNTICA nas duas formas — o que muda é a redacção dos
+    //   itens (1.ª pessoa no auto-relato, 3.ª pessoa no heterorrelato). Os resultados
+    //   brutos são, por isso, directamente comparáveis entre as duas fontes.
+    // ⚠ TODOS os itens são directos — não existe um único item invertido.
+    // ⚠ SEM conversão automática RB → T: as tabelas normativas são propriedade da MHS.
+    //   O T lê-se nas folhas de perfil oficiais, pelo SEXO e IDADE DA PESSOA AVALIADA
+    //   (nunca do observador), e introduz-se à mão no painel clínico do questionário.
+    //   Sem T introduzido usar paleta AZUL — verde/laranja/vermelho comunicariam uma
+    //   gravidade que o resultado bruto, por si só, não mede.
+    // ⚠ O vermelho fica reservado ao único sinalizador binário do instrumento: o
+    //   Índice de Inconsistência ≥ 8.
+    // ⚠ Instrumento sob licença (MHS): utilização reservada a quem detenha protocolo
+    //   oficial e o respectivo manual.
+    { id:'q_caars_sl', name:'CAARS–S:L — Conners\u2019 Adult ADHD Rating Scales (forma longa, auto-relato)', dest:['Próprio'], link:'https://correiaricardina-ui.github.io/questionarios/CAARS_SL_v1.html', syncKey:'caars_sl', area:'Atenção, PHDA & Funções Executivas', ageRange:'18–99 anos', objective:'Avalia a sintomatologia de PERTURBAÇÃO DE HIPERATIVIDADE E DÉFICE DE ATENÇÃO NO ADULTO através da forma longa das Conners\u2019 Adult ADHD Rating Scales (Conners, Erhardt \u0026 Sparrow, 1999; Multi-Health Systems Inc.). 66 itens numa escala 0\u20133 (0 = nada, nunca \u2192 3 = muito, muito frequentemente), TODOS no sentido directo \u2014 não existe um único item invertido. Devolve oito resultados brutos: quatro escalas factoriais (A Problemas de Desatenção/Memória, B Hiperatividade/Inquietação, C Impulsividade/Labilidade Emocional, D Problemas com o Autoconceito), as duas listas de sintomas do DSM-IV (E Desatenção, F Hiperatividade-Impulsividade) e as suas derivadas (G Sintomas Totais de PHDA, H Índice de PHDA), mais o Índice de Inconsistência. \u26a0 A conversão de resultado bruto em T-score NÃO é feita pela plataforma: as tabelas normativas são propriedade do editor (MHS) e a leitura faz-se nas folhas de perfil oficiais, pelo SEXO e IDADE da PESSOA AVALIADA \u2014 nunca do observador. O T é depois introduzido manualmente no painel clínico do questionário, onde activa as bandas descritivas (45 \u00b7 56 \u00b7 60 \u00b7 65 \u00b7 70) e a interpretação. Enquanto não houver T introduzido, o painel apresenta apenas resultados brutos e percentagem do máximo, em paleta azul, sem qualquer juízo de gravidade. \u26a0 As bandas são convenções interpretativas, NÃO pontos de corte diagnósticos: um resultado elevado não constitui, isoladamente, diagnóstico. O DSM-5-TR exige início antes dos 12 anos, presença em pelo menos dois contextos e interferência funcional. \u26a0 Nenhuma das formas é padrão-ouro face à outra: a divergência entre auto-relato e heterorrelato é dado clínico a interpretar, não critério de validade. \u26a0 Índice de Inconsistência \u2265 8 (soma dos diferenciais absolutos em 8 pares de conteúdo equivalente) exige prudência interpretativa quanto à consistência do protocolo. \u26a0 Instrumento sob licença: destina-se a quem detenha protocolo oficial e o respectivo manual na forma de AUTO-RELATO: é a própria pessoa avaliada que descreve o seu funcionamento recente', domains:['A \u2014 Problemas de Desatenção/Memória (12 itens, RB 0\u201336): esquecimento, desorganização, dificuldade em iniciar e concluir tarefas, má estimativa do tempo','B \u2014 Hiperatividade/Inquietação (12 itens, RB 0\u201336): inquietação motora e interna, procura de estimulação, dificuldade em permanecer parado','C \u2014 Impulsividade/Labilidade Emocional (12 itens, RB 0\u201336): dizer e agir sem pensar, irritabilidade, oscilações de humor, baixa tolerância à frustração','D \u2014 Problemas com o Autoconceito (6 itens, RB 0\u201318): insegurança, baixa confiança nas próprias capacidades, peso dos fracassos anteriores','E \u2014 Sintomas de Desatenção do DSM-IV (9 itens, RB 0\u201327): correspondência item a item com o critério A1','F \u2014 Sintomas de Hiperatividade-Impulsividade do DSM-IV (9 itens, RB 0\u201327): correspondência item a item com o critério A2','G \u2014 Sintomas Totais de PHDA do DSM-IV (18 itens, RB 0\u201354): derivada por soma de E + F, não tem itens próprios','H \u2014 Índice de PHDA (12 itens, RB 0\u201336): os itens que melhor discriminam adultos com PHDA de adultos sem o diagnóstico; escala de rastreio','Índice de Inconsistência (0\u201324): soma dos diferenciais absolutos em 8 pares de itens de conteúdo equivalente (11-49, 40-44, 20-25, 13-27, 30-47, 19-23, 6-37, 26-63); \u2265 8 exige prudência interpretativa','Grupo normativo derivado da idade da pessoa avaliada \u2014 1: 18\u201329 \u00b7 2: 30\u201339 \u00b7 3: 40\u201349 \u00b7 4: \u2265 50 anos; as folhas de perfil são ainda separadas por sexo (M1\u2013M4 / F1\u2013F4)','Bandas descritivas por T-score, comuns às duas formas \u2014 Abaixo da média (< 45) \u00b7 Média (45\u201355) \u00b7 Ligeiramente atípico (56\u201359) \u00b7 Ligeiramente elevado (60\u201364) \u00b7 Elevado (65\u201369) \u00b7 Muito elevado (\u2265 70); convenções interpretativas, nunca pontos de corte diagnósticos','6 itens pertencem simultaneamente a duas escalas (19, 23, 26, 27, 40 e 63): 72 atribuições item\u2192escala para 66 itens \u2014 soma de controlo do protocolo de cotação'] , ageMin:216, ageMax:1188},
+    { id:'q_caars_ol', name:'CAARS–O:L — Conners\u2019 Adult ADHD Rating Scales (forma longa, heterorrelato)', dest:['Cônjuge/Parceiro(a)','Familiar','Mãe','Pai','Outro familiar'], link:'https://correiaricardina-ui.github.io/questionarios/CAARS_OL_v1.html', syncKey:'caars_ol', area:'Atenção, PHDA & Funções Executivas', ageRange:'18–99 anos', objective:'Avalia a sintomatologia de PERTURBAÇÃO DE HIPERATIVIDADE E DÉFICE DE ATENÇÃO NO ADULTO através da forma longa das Conners\u2019 Adult ADHD Rating Scales (Conners, Erhardt \u0026 Sparrow, 1999; Multi-Health Systems Inc.). 66 itens numa escala 0\u20133 (0 = nada, nunca \u2192 3 = muito, muito frequentemente), TODOS no sentido directo \u2014 não existe um único item invertido. Devolve oito resultados brutos: quatro escalas factoriais (A Problemas de Desatenção/Memória, B Hiperatividade/Inquietação, C Impulsividade/Labilidade Emocional, D Problemas com o Autoconceito), as duas listas de sintomas do DSM-IV (E Desatenção, F Hiperatividade-Impulsividade) e as suas derivadas (G Sintomas Totais de PHDA, H Índice de PHDA), mais o Índice de Inconsistência. \u26a0 A conversão de resultado bruto em T-score NÃO é feita pela plataforma: as tabelas normativas são propriedade do editor (MHS) e a leitura faz-se nas folhas de perfil oficiais, pelo SEXO e IDADE da PESSOA AVALIADA \u2014 nunca do observador. O T é depois introduzido manualmente no painel clínico do questionário, onde activa as bandas descritivas (45 \u00b7 56 \u00b7 60 \u00b7 65 \u00b7 70) e a interpretação. Enquanto não houver T introduzido, o painel apresenta apenas resultados brutos e percentagem do máximo, em paleta azul, sem qualquer juízo de gravidade. \u26a0 As bandas são convenções interpretativas, NÃO pontos de corte diagnósticos: um resultado elevado não constitui, isoladamente, diagnóstico. O DSM-5-TR exige início antes dos 12 anos, presença em pelo menos dois contextos e interferência funcional. \u26a0 Nenhuma das formas é padrão-ouro face à outra: a divergência entre auto-relato e heterorrelato é dado clínico a interpretar, não critério de validade. \u26a0 Índice de Inconsistência \u2265 8 (soma dos diferenciais absolutos em 8 pares de conteúdo equivalente) exige prudência interpretativa quanto à consistência do protocolo. \u26a0 Instrumento sob licença: destina-se a quem detenha protocolo oficial e o respectivo manual na forma de HETERORRELATO: quem responde é um observador que convive com a pessoa avaliada (cônjuge, progenitor, irmão(ã) ou outro). O tempo e a frequência de contacto são registados no próprio questionário porque um contacto limitado, ou restrito a um único contexto, reduz a validade do perfil. A idade e o sexo a usar nas normas continuam a ser os da PESSOA AVALIADA, nunca os do observador', domains:['A \u2014 Problemas de Desatenção/Memória (12 itens, RB 0\u201336): esquecimento, desorganização, dificuldade em iniciar e concluir tarefas, má estimativa do tempo','B \u2014 Hiperatividade/Inquietação (12 itens, RB 0\u201336): inquietação motora e interna, procura de estimulação, dificuldade em permanecer parado','C \u2014 Impulsividade/Labilidade Emocional (12 itens, RB 0\u201336): dizer e agir sem pensar, irritabilidade, oscilações de humor, baixa tolerância à frustração','D \u2014 Problemas com o Autoconceito (6 itens, RB 0\u201318): insegurança, baixa confiança nas próprias capacidades, peso dos fracassos anteriores','E \u2014 Sintomas de Desatenção do DSM-IV (9 itens, RB 0\u201327): correspondência item a item com o critério A1','F \u2014 Sintomas de Hiperatividade-Impulsividade do DSM-IV (9 itens, RB 0\u201327): correspondência item a item com o critério A2','G \u2014 Sintomas Totais de PHDA do DSM-IV (18 itens, RB 0\u201354): derivada por soma de E + F, não tem itens próprios','H \u2014 Índice de PHDA (12 itens, RB 0\u201336): os itens que melhor discriminam adultos com PHDA de adultos sem o diagnóstico; escala de rastreio','Índice de Inconsistência (0\u201324): soma dos diferenciais absolutos em 8 pares de itens de conteúdo equivalente (11-49, 40-44, 20-25, 13-27, 30-47, 19-23, 6-37, 26-63); \u2265 8 exige prudência interpretativa','Grupo normativo derivado da idade da pessoa avaliada \u2014 1: 18\u201329 \u00b7 2: 30\u201339 \u00b7 3: 40\u201349 \u00b7 4: \u2265 50 anos; as folhas de perfil são ainda separadas por sexo (M1\u2013M4 / F1\u2013F4)','Bandas descritivas por T-score, comuns às duas formas \u2014 Abaixo da média (< 45) \u00b7 Média (45\u201355) \u00b7 Ligeiramente atípico (56\u201359) \u00b7 Ligeiramente elevado (60\u201364) \u00b7 Elevado (65\u201369) \u00b7 Muito elevado (\u2265 70); convenções interpretativas, nunca pontos de corte diagnósticos','6 itens pertencem simultaneamente a duas escalas (19, 23, 26, 27, 40 e 63): 72 atribuições item\u2192escala para 66 itens \u2014 soma de controlo do protocolo de cotação'] , ageMin:216, ageMax:1188},
+    // ── EII-PT · Escala de Intolerância à Incerteza (v119) ──
+    // Freeston, Rhéaume, Letarte, Dugas & Ladouceur (1994), tradução inglesa de Buhr &
+    // Dugas (2002), estrutura bifatorial de Sexton & Dugas (2009) — versão de 27 itens.
+    // Carleton, Norton & Asmundson (2007) — versão de 12 itens.
+    // Tradução técnica de trabalho para português europeu (Via A), a partir de fontes de
+    // disponibilização pública (PhenX Toolkit, protocolo 650701; formulário de
+    // distribuição livre dos autores). NÃO é adaptação transcultural validada.
+    // ⚠ QUATRO ligações para DUAS abas: cada combinação versão × forma tem ficheiro
+    //   próprio, para que o link enviado ao respondente já traga a forma correcta e
+    //   não haja escolha possível no ecrã. As Formas A e J partilham a aba da
+    //   respectiva versão e distinguem-se pela coluna 'Forma'.
+    // ⚠ TODOS os itens são directos — não existe um único item invertido em nenhuma
+    //   das versões. Uma inversão introduzida por engano corromperia todas as escalas.
+    // ⚠ SEM normas portuguesas e SEM pontos de corte: toda a saída é POMP e bandas
+    //   descritivas por quintis da amplitude teórica. Usar paleta AZUL em todas as
+    //   bandas e blocos — verde/laranja/vermelho comunicariam uma gravidade que o
+    //   instrumento não mede. O vermelho fica reservado ao único sinalizador binário:
+    //   o padrão de resposta invariante (desvio-padrão nulo).
+    // ⚠ As pontuações das Formas A e J NÃO são comparáveis entre si (a Forma J é
+    //   adaptação de registo linguístico, sem estudo de equivalência de medida):
+    //   manter a mesma forma ao longo do acompanhamento do mesmo caso.
+    // ⚠ A EII-12 derivada da EII-27 pode diferir da EII-12 administrada isoladamente,
+    //   por efeito de contexto de resposta — não alternar entre vias em monitorização.
+    { id:'q_eii27_a', name:'EII-27 · Forma A — Escala de Intolerância à Incerteza (versão longa, adultos)', dest:['Próprio','Mãe','Pai'], link:'https://correiaricardina-ui.github.io/questionarios/EII27_A_v1.html', syncKey:'eii27_a', area:'Ansiedade, Depressão & Internalização', ageRange:'18–99 anos', objective:'Mede a INTOLERÂNCIA À INCERTEZA — o conjunto de crenças negativas segundo as quais a ambiguidade é inaceitável, ameaçadora e geradora de sofrimento, independentemente da probabilidade objetiva de um desfecho negativo. Autorrelato de 27 itens numa escala 1–5 (1 = nada característico de mim → 5 = totalmente característico de mim), TODOS no sentido directo: não existe um único item invertido. Total 27–135, com estrutura bifatorial de Sexton & Dugas (2009) — F1 «a incerteza tem implicações negativas comportamentais e auto-referentes» (15 itens, 15–75) e F2 «a incerteza é injusta e estraga tudo» (12 itens, 12–60). Sendo a versão de 12 itens um subconjunto ESTRITO desta (itens 7, 8, 9, 10, 11, 12, 15, 18, 19, 20, 21 e 25), uma só administração devolve também as três escalas curtas derivadas — EII-12 Total, Ansiedade Prospetiva e Ansiedade Inibitória. Construto TRANSDIAGNÓSTICO, central no modelo cognitivo da ansiedade generalizada de Dugas e Ladouceur e associado à perturbação obsessivo-compulsiva, à ansiedade social, ao pânico, à ansiedade de doença, às perturbações do comportamento alimentar e à sintomatologia depressiva; não constitui, em si, critério de diagnóstico de qualquer entidade do DSM-5-TR ou da CID-11. ⚠ Tradução técnica de trabalho para português europeu (Via A), SEM retroversão independente, SEM painel de peritos, SEM pré-teste cognitivo e SEM estudo psicométrico em amostra nacional: fidelidade, validade e estrutura fatorial não estão verificadas nesta versão. ⚠ NÃO existem normas portuguesas e NÃO são aplicados pontos de corte — toda a leitura é feita em POMP, percentagem da amplitude teórica, com bandas descritivas por quintis que situam a pontuação no intervalo possível do instrumento e NÃO medem gravidade clínica. ⚠ Instrumento desenvolvido e normalizado em população ADULTA: a Forma J é adaptação de registo linguístico para os 12–17 anos, sem estudo de equivalência de medida, pelo que as pontuações das duas formas não são comparáveis entre si e a forma deve manter-se constante ao longo do acompanhamento do mesmo caso', domains:['Total EII-27 (27–135) — pontuação global de intolerância à incerteza; reportada em POMP e banda descritiva, sem norma e sem ponto de corte','Fator 1 — a incerteza tem implicações negativas comportamentais e auto-referentes (15 itens, 15–75; itens 1, 2, 3, 9, 12, 13, 14, 15, 16, 17, 20, 22, 23, 24, 25); inclui o eixo auto-referente (competência pessoal, comparação social, confiança em si) que NÃO está representado na versão curta','Fator 2 — a incerteza é injusta e estraga tudo (12 itens, 12–60; itens 4, 5, 6, 7, 8, 10, 11, 18, 19, 21, 26, 27)','EII-12 Total derivada (12–60) — calculada automaticamente a partir dos itens 7, 8, 9, 10, 11, 12, 15, 18, 19, 20, 21 e 25 da versão longa','Ansiedade Prospetiva derivada (7 itens, 7–35) — orientação apreensiva para o futuro: necessidade de antecipação, de previsibilidade e de informação completa','Ansiedade Inibitória derivada (5 itens, 5–25) — paralisação da ação, adiamento e evitamento perante a ambiguidade','POMP por escala (0–100) — (pontuação − mínimo) ÷ (máximo − mínimo) × 100; métrica comum que permite comparar escalas de amplitudes diferentes, transformação linear e integralmente reversível, sem qualquer pressuposto normativo','Banda descritiva por quintis da amplitude teórica — Muito baixa (0–20) · Baixa (20–40) · Moderada (40–60) · Elevada (60–80) · Muito elevada (80–100); descreve POSIÇÃO no intervalo possível, nunca gravidade clínica','Diferenciação intra-individual Δ POMP entre Ansiedade Prospetiva e Inibitória — Perfil equilibrado (0–10) · Diferenciação ligeira (10–20) · Diferenciação marcada (≥ 20), com identificação do polo relativamente mais elevado; convenção descritiva sem suporte empírico publicado, exclusivamente intra-individual e NUNCA comparativa entre sujeitos','Tratamento de omissões por prorrateamento — máximo de 2 omissões no total da EII-27, 1 em F1, F2, EII-12 Total e Ansiedade Prospetiva, e 0 na Ansiedade Inibitória (escala demasiado curta para imputação); dentro do limite a pontuação é prorrateada pela média dos itens respondidos da própria escala, acima do limite a escala é declarada NÃO COTÁVEL sem qualquer estimativa, escala a escala','Controlo de qualidade do protocolo — desvio-padrão dos itens cotados, com sinalizador de padrão de resposta invariante (desvio-padrão nulo) que exige ponderar a validade do protocolo antes de qualquer leitura','Tabela de normas parametrizável — a partir do momento em que sejam introduzidas médias e desvios-padrão de referência aplicáveis, o sistema passa a calcular scores z e percentis estimados; até lá essas saídas permanecem vazias por construção, em vez de apresentarem valores sem fundamento'] , ageMin:216, ageMax:1188},
+    { id:'q_eii27_j', name:'EII-27 · Forma J — Escala de Intolerância à Incerteza (versão longa, adolescentes)', dest:['Próprio'], link:'https://correiaricardina-ui.github.io/questionarios/EII27_J_v1.html', syncKey:'eii27_j', area:'Ansiedade, Depressão & Internalização', ageRange:'12–17 anos', objective:'Mede a INTOLERÂNCIA À INCERTEZA — o conjunto de crenças negativas segundo as quais a ambiguidade é inaceitável, ameaçadora e geradora de sofrimento, independentemente da probabilidade objetiva de um desfecho negativo. Autorrelato de 27 itens numa escala 1–5 (1 = nada característico de mim → 5 = totalmente característico de mim), TODOS no sentido directo: não existe um único item invertido. Total 27–135, com estrutura bifatorial de Sexton & Dugas (2009) — F1 «a incerteza tem implicações negativas comportamentais e auto-referentes» (15 itens, 15–75) e F2 «a incerteza é injusta e estraga tudo» (12 itens, 12–60). Sendo a versão de 12 itens um subconjunto ESTRITO desta (itens 7, 8, 9, 10, 11, 12, 15, 18, 19, 20, 21 e 25), uma só administração devolve também as três escalas curtas derivadas — EII-12 Total, Ansiedade Prospetiva e Ansiedade Inibitória. Construto TRANSDIAGNÓSTICO, central no modelo cognitivo da ansiedade generalizada de Dugas e Ladouceur e associado à perturbação obsessivo-compulsiva, à ansiedade social, ao pânico, à ansiedade de doença, às perturbações do comportamento alimentar e à sintomatologia depressiva; não constitui, em si, critério de diagnóstico de qualquer entidade do DSM-5-TR ou da CID-11. ⚠ Tradução técnica de trabalho para português europeu (Via A), SEM retroversão independente, SEM painel de peritos, SEM pré-teste cognitivo e SEM estudo psicométrico em amostra nacional: fidelidade, validade e estrutura fatorial não estão verificadas nesta versão. ⚠ NÃO existem normas portuguesas e NÃO são aplicados pontos de corte — toda a leitura é feita em POMP, percentagem da amplitude teórica, com bandas descritivas por quintis que situam a pontuação no intervalo possível do instrumento e NÃO medem gravidade clínica. ⚠ Instrumento desenvolvido e normalizado em população ADULTA: a Forma J é adaptação de registo linguístico para os 12–17 anos, sem estudo de equivalência de medida, pelo que as pontuações das duas formas não são comparáveis entre si e a forma deve manter-se constante ao longo do acompanhamento do mesmo caso', domains:['Total EII-27 (27–135) — pontuação global de intolerância à incerteza; reportada em POMP e banda descritiva, sem norma e sem ponto de corte','Fator 1 — a incerteza tem implicações negativas comportamentais e auto-referentes (15 itens, 15–75; itens 1, 2, 3, 9, 12, 13, 14, 15, 16, 17, 20, 22, 23, 24, 25); inclui o eixo auto-referente (competência pessoal, comparação social, confiança em si) que NÃO está representado na versão curta','Fator 2 — a incerteza é injusta e estraga tudo (12 itens, 12–60; itens 4, 5, 6, 7, 8, 10, 11, 18, 19, 21, 26, 27)','EII-12 Total derivada (12–60) — calculada automaticamente a partir dos itens 7, 8, 9, 10, 11, 12, 15, 18, 19, 20, 21 e 25 da versão longa','Ansiedade Prospetiva derivada (7 itens, 7–35) — orientação apreensiva para o futuro: necessidade de antecipação, de previsibilidade e de informação completa','Ansiedade Inibitória derivada (5 itens, 5–25) — paralisação da ação, adiamento e evitamento perante a ambiguidade','POMP por escala (0–100) — (pontuação − mínimo) ÷ (máximo − mínimo) × 100; métrica comum que permite comparar escalas de amplitudes diferentes, transformação linear e integralmente reversível, sem qualquer pressuposto normativo','Banda descritiva por quintis da amplitude teórica — Muito baixa (0–20) · Baixa (20–40) · Moderada (40–60) · Elevada (60–80) · Muito elevada (80–100); descreve POSIÇÃO no intervalo possível, nunca gravidade clínica','Diferenciação intra-individual Δ POMP entre Ansiedade Prospetiva e Inibitória — Perfil equilibrado (0–10) · Diferenciação ligeira (10–20) · Diferenciação marcada (≥ 20), com identificação do polo relativamente mais elevado; convenção descritiva sem suporte empírico publicado, exclusivamente intra-individual e NUNCA comparativa entre sujeitos','Tratamento de omissões por prorrateamento — máximo de 2 omissões no total da EII-27, 1 em F1, F2, EII-12 Total e Ansiedade Prospetiva, e 0 na Ansiedade Inibitória (escala demasiado curta para imputação); dentro do limite a pontuação é prorrateada pela média dos itens respondidos da própria escala, acima do limite a escala é declarada NÃO COTÁVEL sem qualquer estimativa, escala a escala','Controlo de qualidade do protocolo — desvio-padrão dos itens cotados, com sinalizador de padrão de resposta invariante (desvio-padrão nulo) que exige ponderar a validade do protocolo antes de qualquer leitura','Tabela de normas parametrizável — a partir do momento em que sejam introduzidas médias e desvios-padrão de referência aplicáveis, o sistema passa a calcular scores z e percentis estimados; até lá essas saídas permanecem vazias por construção, em vez de apresentarem valores sem fundamento'] , ageMin:144, ageMax:215},
+    { id:'q_eii12_a', name:'EII-12 · Forma A — Escala de Intolerância à Incerteza (versão curta, adultos)', dest:['Próprio','Mãe','Pai'], link:'https://correiaricardina-ui.github.io/questionarios/EII12_A_v1.html', syncKey:'eii12_a', area:'Ansiedade, Depressão & Internalização', ageRange:'18–99 anos', objective:'Versão curta da Escala de Intolerância à Incerteza (Carleton, Norton & Asmundson, 2007), destinada a rastreio, a monitorização repetida ao longo do acompanhamento e a protocolos extensos ou com adolescentes, em que a carga de resposta é uma preocupação. Autorrelato de 12 itens numa escala 1–5, TODOS no sentido directo — não existe um único item invertido. Total 12–60, com duas subescalas: Ansiedade Prospetiva (7 itens, 7–35), que descreve a orientação apreensiva para o futuro e a necessidade de antecipação, de previsibilidade e de informação completa, e Ansiedade Inibitória (5 itens, 5–25), que descreve a paralisação da ação, o adiamento e o evitamento perante a ambiguidade. Parte da literatura recomenda a leitura PREFERENCIAL do total, sustentando a existência de um fator geral robusto, pelo que a leitura por subescalas deve ser tomada como complementar e intra-individual. Tempo de aplicação de 3 a 5 minutos. ⚠ Tradução técnica de trabalho para português europeu (Via A), SEM retroversão independente e SEM estudo psicométrico em amostra nacional. ⚠ NÃO existem normas portuguesas e NÃO são aplicados pontos de corte — toda a leitura é feita em POMP e bandas descritivas por quintis da amplitude teórica, que situam a pontuação no intervalo possível do instrumento e NÃO medem gravidade clínica. ⚠ Desenvolvida e normalizada em população ADULTA: a Forma J é adaptação de registo linguístico para os 12–17 anos, sem estudo de equivalência de medida, e as pontuações das duas formas não são comparáveis entre si. ⚠ Administrada isoladamente, esta versão pode apresentar propriedades distintas das obtidas quando derivada da EII-27, por efeito de contexto de resposta: em monitorização longitudinal, manter sempre a mesma via de obtenção e não alternar entre a versão curta e a longa a meio do acompanhamento', domains:['Total EII-12 (12–60) — saída principal, com leitura preferencial sobre as subescalas; reportado em POMP e banda descritiva, sem norma e sem ponto de corte','Ansiedade Prospetiva (7 itens, 7–35) — orientação apreensiva para o futuro: necessidade de antecipação, de previsibilidade e de informação completa; procura de informação, planeamento e verificação','Ansiedade Inibitória (5 itens, 5–25) — paralisação da ação, adiamento e evitamento perante a ambiguidade','POMP por escala (0–100) — (pontuação − mínimo) ÷ (máximo − mínimo) × 100; métrica comum que permite comparar escalas de amplitudes diferentes, sem qualquer pressuposto normativo','Banda descritiva por quintis da amplitude teórica — Muito baixa (0–20) · Baixa (20–40) · Moderada (40–60) · Elevada (60–80) · Muito elevada (80–100); descreve POSIÇÃO no intervalo possível, nunca gravidade clínica','Diferenciação intra-individual Δ POMP entre Ansiedade Prospetiva e Inibitória — Perfil equilibrado (0–10) · Diferenciação ligeira (10–20) · Diferenciação marcada (≥ 20), com identificação do polo relativamente mais elevado; convenção descritiva sem suporte empírico publicado, exclusivamente intra-individual','Tratamento de omissões por prorrateamento — máximo de 1 omissão no total e na Ansiedade Prospetiva e 0 na Ansiedade Inibitória; acima do limite a escala é declarada NÃO COTÁVEL, sem qualquer estimativa','Controlo de qualidade do protocolo — desvio-padrão dos itens cotados, com sinalizador de padrão de resposta invariante'] , ageMin:216, ageMax:1188},
+    { id:'q_eii12_j', name:'EII-12 · Forma J — Escala de Intolerância à Incerteza (versão curta, adolescentes)', dest:['Próprio'], link:'https://correiaricardina-ui.github.io/questionarios/EII12_J_v1.html', syncKey:'eii12_j', area:'Ansiedade, Depressão & Internalização', ageRange:'12–17 anos', objective:'Versão curta da Escala de Intolerância à Incerteza (Carleton, Norton & Asmundson, 2007), destinada a rastreio, a monitorização repetida ao longo do acompanhamento e a protocolos extensos ou com adolescentes, em que a carga de resposta é uma preocupação. Autorrelato de 12 itens numa escala 1–5, TODOS no sentido directo — não existe um único item invertido. Total 12–60, com duas subescalas: Ansiedade Prospetiva (7 itens, 7–35), que descreve a orientação apreensiva para o futuro e a necessidade de antecipação, de previsibilidade e de informação completa, e Ansiedade Inibitória (5 itens, 5–25), que descreve a paralisação da ação, o adiamento e o evitamento perante a ambiguidade. Parte da literatura recomenda a leitura PREFERENCIAL do total, sustentando a existência de um fator geral robusto, pelo que a leitura por subescalas deve ser tomada como complementar e intra-individual. Tempo de aplicação de 3 a 5 minutos. ⚠ Tradução técnica de trabalho para português europeu (Via A), SEM retroversão independente e SEM estudo psicométrico em amostra nacional. ⚠ NÃO existem normas portuguesas e NÃO são aplicados pontos de corte — toda a leitura é feita em POMP e bandas descritivas por quintis da amplitude teórica, que situam a pontuação no intervalo possível do instrumento e NÃO medem gravidade clínica. ⚠ Desenvolvida e normalizada em população ADULTA: a Forma J é adaptação de registo linguístico para os 12–17 anos, sem estudo de equivalência de medida, e as pontuações das duas formas não são comparáveis entre si. ⚠ Administrada isoladamente, esta versão pode apresentar propriedades distintas das obtidas quando derivada da EII-27, por efeito de contexto de resposta: em monitorização longitudinal, manter sempre a mesma via de obtenção e não alternar entre a versão curta e a longa a meio do acompanhamento', domains:['Total EII-12 (12–60) — saída principal, com leitura preferencial sobre as subescalas; reportado em POMP e banda descritiva, sem norma e sem ponto de corte','Ansiedade Prospetiva (7 itens, 7–35) — orientação apreensiva para o futuro: necessidade de antecipação, de previsibilidade e de informação completa; procura de informação, planeamento e verificação','Ansiedade Inibitória (5 itens, 5–25) — paralisação da ação, adiamento e evitamento perante a ambiguidade','POMP por escala (0–100) — (pontuação − mínimo) ÷ (máximo − mínimo) × 100; métrica comum que permite comparar escalas de amplitudes diferentes, sem qualquer pressuposto normativo','Banda descritiva por quintis da amplitude teórica — Muito baixa (0–20) · Baixa (20–40) · Moderada (40–60) · Elevada (60–80) · Muito elevada (80–100); descreve POSIÇÃO no intervalo possível, nunca gravidade clínica','Diferenciação intra-individual Δ POMP entre Ansiedade Prospetiva e Inibitória — Perfil equilibrado (0–10) · Diferenciação ligeira (10–20) · Diferenciação marcada (≥ 20), com identificação do polo relativamente mais elevado; convenção descritiva sem suporte empírico publicado, exclusivamente intra-individual','Tratamento de omissões por prorrateamento — máximo de 1 omissão no total e na Ansiedade Prospetiva e 0 na Ansiedade Inibitória; acima do limite a escala é declarada NÃO COTÁVEL, sem qualquer estimativa','Controlo de qualidade do protocolo — desvio-padrão dos itens cotados, com sinalizador de padrão de resposta invariante'] , ageMin:144, ageMax:215},
+    // ── PSWQ · Penn State Worry Questionnaire (v115) ──
+    // Meyer, Miller, Metzger & Borkovec (1990); normas portuguesas de Oliveira et al.
+    // (2021). Instrumento de circulação livre (Via A, sem editor comercial).
+    // ⚠ Mede o estado de QUEM PREENCHE, não o da criança. Aplicado a um progenitor, o
+    //   resultado descreve o progenitor. O código do paciente identifica o PROCESSO,
+    //   não o sujeito da medida.
+    // ⚠ Itens INVERTIDOS: 1, 3, 8, 10, 11. Mínimo empírico do total = 36, máximo = 60.
+    //   Um total de 36 é ausência de preocupação, nunca um protocolo por preencher.
+    // ⚠ Todas as saídas são DESCRITIVAS (posicionamento normativo), não medidas de
+    //   gravidade: usar paleta AZUL nas bandas e nos blocos. O vermelho fica reservado
+    //   aos dois sinalizadores binários — critério c (≥ 58) e alerta etário (< 18 anos).
+    // ⚠ Os cortes internacionais 45/62/65 NÃO são critério de classificação: a média
+    //   comunitária portuguesa excede em ~9 pontos a das amostras anglo-americanas.
+    // ⚠ Ancoragem MISTA: o total assenta em Oliveira et al. (2021) e as subescalas em
+    //   Freitas (2017), que não são directamente comparáveis entre si.
+    { id:'q_pswq', name:'PSWQ — Questionário de Preocupação do Estado da Pensilvânia', dest:['Próprio','Mãe','Pai'], link:'https://correiaricardina-ui.github.io/questionarios/PSWQ_v1.html', syncKey:'pswq', area:'Ansiedade, Depressão & Internalização', ageRange:'18–99 anos', objective:'Mede a PREOCUPAÇÃO ENQUANTO TRAÇO — a sua intensidade, generalização e incontrolabilidade — em autorrelato de 16 itens numa escala 1–5 (1 = não me adequo; 2 = adequo-me pouco; 3 = adequado; 4 = muito adequado; 5 = extremamente adequado). Não avalia o CONTEÚDO temático da preocupação, apenas o seu processo. Total 16–80, com os itens 1, 3, 8, 10 e 11 invertidos (valor cotado = 6 − resposta): por efeito da inversão, o mínimo empírico é 36 e o máximo empírico é 60, pelo que um total de 36 é ausência de preocupação e não um protocolo por preencher. A âncora normativa primária é a amostra comunitária portuguesa de Oliveira et al. (2021), n = 256, M = 50,91, DP = 9,86, e o resultado é reportado em z e percentil face a essa distribuição, com bandas descritivas de posicionamento (não de gravidade). O critério c de significância clínica de Jacobson & Truax é 57,40, operacionalizado como 58: totais iguais ou superiores situam-se mais próximo da distribuição clínica portuguesa do que da comunitária. Os cortes internacionais de 45, 62 e 65 são apresentados apenas como marcadores comparativos e NUNCA como critério de classificação, porque a média comunitária portuguesa excede em cerca de 9 pontos a das amostras anglo-americanas em que foram estabelecidos. Entre aplicações, apenas diferenças iguais ou superiores a 8 pontos constituem mudança fiável (RCI 95% = 7,93); variações menores situam-se dentro do erro de medida. É de autopreenchimento e mede a preocupação de QUEM PREENCHE: aplicado a um progenitor, o resultado descreve o progenitor e não a criança. Validado para ADULTOS (≥ 18 anos) — em população pediátrica o instrumento indicado é o PSWQ-C (Chorpita et al., 1997)', domains:['Total PSWQ (16–80; mínimo empírico 36, máximo empírico 60) — única saída com cotação normativa; z e percentil face à comunidade portuguesa de Oliveira et al. (2021), n = 256, M = 50,91, DP = 9,86','Banda descritiva de posicionamento normativo — marcadamente abaixo (z < −1), abaixo (−1 a −0,5), dentro do intervalo médio comunitário (−0,5 a 0,5), acima (0,5 a 1), marcadamente acima (z ≥ 1) da média comunitária','Escala Positiva PSWQ-11, 11 itens diretos (11–55) — valores mais elevados indicam maior presença de preocupação; norma de Freitas (2017), n = 90, M = 34,79, DP = 8,74','Bloco de itens invertidos em métrica bruta, F2b, 5 itens (5–25) — valores mais BAIXOS associam-se a maior preocupação; identificado como fator de método na validação portuguesa; norma de Freitas (2017), M = 12,06, DP = 4,11','Bloco de itens invertidos em métrica cotada, F2c (5–25) — 30 − F2b; apresentado apenas para conferência da soma total, sem norma própria','Média por item (1,00–5,00) — total a dividir por 16','Posicionamento comparativo noutras distribuições de referência — clínica portuguesa (Oliveira et al., 2021, M = 63,91, DP = 9,89), comunidade portuguesa secundária (Freitas, 2017, M = 52,59, DP = 10,53), não clínica dos EUA (Gillis et al., 1995, M = 42,20, DP = 11,50) e Perturbação de Ansiedade Generalizada agregada (M = 67,45, DP = 7,99)','Sinalizador clínico — critério c de Jacobson & Truax (57,40 → 58): total igual ou superior sugere níveis elevados e disfuncionais de preocupação, segundo os autores da validação portuguesa','Sinalizador de aplicabilidade — alerta automático quando a idade de quem responde é inferior a 18 anos, por as normas assentarem numa amostra comunitária com idade mínima de 18 anos','Indicador exploratório de coerência entre blocos, |z(F1) + z(F2b)|, limiar de referência 2,00 — os dois blocos não se correlacionam na amostra portuguesa (r = −0,12; n.s.), pelo que a divergência é frequente e NÃO constitui indicador de invalidade de resposta','Monitorização longitudinal pelo índice de mudança fiável (Δ ≥ 8 pontos; RCI 95% = 7,93; fidelidade teste-reteste a 4 semanas r = 0,76)'] , ageMin:216, ageMax:1188},
+    // ── Escalas de Beck · BAI e BDI-II (v114) ──
+    // Instrumentos proprietários (© Beck / Pearson) de AUTORRELATO, 21 itens 0–3, total 0–63.
+    // ⚠ Ambos medem o estado de QUEM PREENCHE, não o da criança. Quando aplicados a um
+    //   progenitor, o resultado descreve o progenitor — é essa a leitura correcta, e é
+    //   frequentemente a mais útil (parentalidade, comorbilidade familiar, adesão).
+    //   O código do paciente identifica o PROCESSO, não o sujeito da medida.
+    // ⚠ As subescalas de ambos são DESCRITIVAS e não têm cotação normativa própria: no BAI
+    //   os 4 agrupamentos são exploratórios (a versão PT é unidimensional) e no BDI-II a
+    //   estrutura bifatorial tem modelos alternativos. Usar sempre paleta azul nestas
+    //   dimensões, nunca verde/laranja/vermelho. Só o total é classificado por bandas.
+    // ⚠ BDI-II item 9 (ideação suicida): sinalizador clínico independente do total.
+    { id:'q_bai', name:'BAI — Inventário de Ansiedade de Beck', dest:['Próprio','Mãe','Pai'], link:'https://correiaricardina-ui.github.io/questionarios/BAI_v1.html', syncKey:'bai', area:'Ansiedade, Depressão & Internalização', ageRange:'13–99 anos', objective:'Mede a intensidade dos sintomas de ansiedade sentidos durante a última semana, incluindo o dia de hoje, em autorrelato de 21 itens numa escala 0–3 (0 = absolutamente não; 1 = levemente, não me incomodou muito; 2 = moderadamente, foi muito desagradável mas pude suportar; 3 = gravemente, dificilmente pude suportar). Total 0–63, com limiares de Beck & Steer (1990/1993): 0–7 mínima, 8–15 ligeira, 16–25 moderada, 26–63 grave. A validação portuguesa (Quintão, Delgado & Prieto, 2013) confirma estrutura UNIDIMENSIONAL, pelo que apenas o total tem cotação normativa. O instrumento sobrerrepresenta deliberadamente a componente SOMÁTICA da ansiedade, o que o torna útil para discriminar ansiedade de depressão mas insuficiente como medida isolada de ansiedade cognitiva ou de preocupação. É de autopreenchimento e mede a ansiedade de QUEM PREENCHE: quando aplicado a um progenitor, o resultado descreve o progenitor e não a criança. Entre aplicações, apenas diferenças iguais ou superiores a 7 pontos constituem mudança fiável (RCI, Seggar et al., 2002); variações menores situam-se dentro do erro de medida', domains:['Total BAI (0–63) — única saída com cotação normativa; limiares 0–7 mínima, 8–15 ligeira, 16–25 moderada, 26–63 grave','Agrupamento subjetivo, 7 itens (0–21) — incapaz de relaxar, medo que aconteça o pior, aterrorizado, nervoso, medo de perder o controlo, medo de morrer, assustado','Agrupamento neurofisiológico, 6 itens (0–18) — tremores nas pernas e nas mãos, trémulo, sem equilíbrio, sensação de sufocação, dificuldade de respirar','Agrupamento autonómico, 4 itens (0–12) — palpitação, sensação de calor, indigestão ou desconforto abdominal, rosto afogueado','Agrupamento de pânico, 4 itens (0–12) — dormência ou formigamento, atordoamento, sensação de desmaio, suor não devido ao calor','Comparação longitudinal pelo índice de mudança fiável (Δ ≥ 7 pontos)'] , ageMin:156, ageMax:1188},
+    { id:'q_bdi2', name:'BDI-II — Inventário de Depressão de Beck II', dest:['Próprio','Mãe','Pai'], link:'https://correiaricardina-ui.github.io/questionarios/BDI2_v1.html', syncKey:'bdi2', area:'Ansiedade, Depressão & Internalização', ageRange:'13–99 anos', objective:'Mede a gravidade dos sintomas depressivos sentidos durante as duas últimas semanas, incluindo o dia de hoje, em autorrelato de 21 grupos de afirmações cotados 0–3. Total 0–63, com limiares de Beck, Steer & Brown (1996): 0–13 mínima, 14–19 ligeira, 20–28 moderada, 29–63 grave. Versão portuguesa de Quelhas Martins & Coelho (FMUP, 2000). Numa amostra comunitária portuguesa a média foi 11,01 (DP 9,15; N = 2401; Oliveira-Brochado, Simões & Paúl, 2014): referência DESCRITIVA de enquadramento, nunca convertida em percentil ou score padronizado. O ITEM 9 (pensamentos ou desejos suicidas) constitui sinalizador clínico próprio: qualquer cotação igual ou superior a 1 exige avaliação directa de ideação e risco, independentemente do total, e é registada em coluna separada no Sheet para permitir filtragem. Os grupos 16 (sono) e 18 (apetite) têm 7 opções cotadas 0-1-1-2-2-3-3, em que aumento e diminuição pontuam igual mas são clinicamente opostos: o sistema guarda a opção assinalada e não apenas a pontuação. Assume o formulário BDI-II, cujos itens e ordem diferem do BDI original. É de autopreenchimento e mede a depressão de QUEM PREENCHE', domains:['Total BDI-II (0–63) — única saída com cotação normativa; limiares 0–13 mínima, 14–19 ligeira, 20–28 moderada, 29–63 grave','Dimensão cognitivo-afetiva, itens 1 a 13 (0–39) — tristeza, pessimismo, fracassos passados, perda de prazer, culpa, punição, autodepreciação, autocriticismo, ideação suicida, choro, agitação, perda de interesse, indecisão','Dimensão somática, itens 14 a 21 (0–24) — inutilidade, perda de energia, alterações do sono, irritabilidade, alterações do apetite, dificuldades de concentração, cansaço ou fadiga, perda de interesse sexual','Predomínio relativo entre as duas dimensões (cognitivo-afetivo, somático ou equilibrado) — descritor de configuração, sem cotação normativa própria','Sinalizador clínico — item 9, pensamentos ou desejos suicidas: qualquer cotação ≥ 1 exige avaliação directa de ideação e risco, independentemente do total','Referência comunitária portuguesa para enquadramento descritivo: média 11,01, DP 9,15 (Oliveira-Brochado, Simões & Paúl, 2014)'] , ageMin:156, ageMax:1188},
+    // ── SIAS · SPS · Escalas de Ansiedade Social (v113) ──
+    // Mattick & Clarke (1998); versão portuguesa de Pinto-Gouveia & Salvador (2001).
+    // Autorrelato, 39 itens em escala 0–4. As duas escalas são sempre aplicadas em
+    // conjunto e partilham uma só aba do Sheet, porque o resultado principal é o
+    // CONTRASTE entre elas.
+    // ⚠ SEM normas portuguesas e SEM pontos de corte nacionais — usar sempre a paleta
+    //   azul, nunca verde/laranja/vermelho. Os marcadores internacionais (SIAS 34 e 43;
+    //   SPS 24 e 27) derivam de amostras ADULTAS e NÃO são interpretáveis abaixo dos
+    //   18 anos; abaixo dos 14 anos estas escalas não são o instrumento indicado.
+    // ⚠ A leitura privilegia a MÉDIA POR ITEM (0–4), independente do número de itens:
+    //   a SIAS circula em versões de 19 e de 20 itens, com amplitudes diferentes, e os
+    //   totais publicados não são directamente comparáveis entre si. Os totais são
+    //   secundários.
+    // ⚠ A atribuição de um padrão de leitura ao contraste é CLÍNICA e não está
+    //   automatizada em nenhum ponto do sistema — o painel apresenta a grelha dos
+    //   quatro padrões como apoio, nunca escolhe um.
+    { id:'q_sias_sps', name:'SIAS · SPS — Escalas de Ansiedade Social', dest:['Próprio'], link:'https://correiaricardina-ui.github.io/questionarios/SIAS_SPS_v1.html', syncKey:'sias_sps', area:'Ansiedade, Depressão & Internalização', ageRange:'14–99 anos', objective:'Distingue a ansiedade de INTERAÇÃO social (SIAS, 19 itens, 0–76; itens 8 e 10 invertidos) da ansiedade de ESCRUTÍNIO ou desempenho (SPS, 20 itens, 0–80; nenhum item invertido), em autorrelato numa escala 0–4. O resultado principal é a média por item de cada escala e o contraste entre ambas (SPS menos SIAS, −4 a +4), que documenta a dissociação intraindividual entre os dois eixos. Sem normas portuguesas e sem pontos de corte nacionais: os marcadores internacionais são indicativos, derivam de amostras adultas e não são interpretáveis abaixo dos 18 anos. Limite de 2 omissos por escala (convenção operacional); acima do limite a média e o contraste são devolvidos como não interpretáveis. Todo o apuramento é descritivo', domains:['Ansiedade em situações de interação social, SIAS (média por item 0–4; total 0–76) — falar com figuras de autoridade, contacto visual, conversa com desconhecidos, discordar, interação em grupo','Ansiedade de escrutínio ou fobia social, SPS (média por item 0–4; total 0–80) — ser observado a escrever, comer, beber, andar na rua, corar, tremer, falar em público','Contraste entre médias por item (SPS menos SIAS, −4 a +4) — saída primária, documenta a dissociação entre os dois eixos','Estado do protocolo por escala (completo · omissos dentro do limite de 2 · omissos acima do limite, não interpretável)','Posição descritiva face aos marcadores internacionais — SIAS 34 (Brown et al., 1997) e 43; SPS 24 (Heimberg et al., 1992) e 27 (Peters, 2000)','Grelha de leitura do contraste (escrutínio circunscrito · ansiedade social generalizada · ansiedade não organizada no eixo social · padrão atípico a reavaliar) — leitura clínica, NÃO automatizada'] , ageMin:168, ageMax:1188},
     // ── GCSA · Grelha de Caracterização da Seletividade Alimentar (v111) ──
     // Ricardina Correia (2026). Instrumento de construção INTERNA (Via C): os itens dos seis
     // blocos de observação foram redigidos de raiz em português europeu a partir dos domínios
@@ -1467,6 +1654,10 @@ function initCatalog() {
     { id:'q_brief_pe_pais', name:'BRIEF Pré-Escolar — Pais', dest:['Mãe','Pai','Enc. Educação'], link:'https://correiaricardina-ui.github.io/questionarios/BRIEF_PreEscolar_Pais_v2.html', syncKey:'brief_pe_pais', area:'Atenção, PHDA & Funções Executivas', ageRange:'2–5 anos', objective:'Avalia funções executivas em contexto pré-escolar — versão pais', domains:['INHIB','SHIFT','ECON','WM','PO','ISCI','FI','EMI','GEF'] , ageMin:24, ageMax:71},
     { id:'q_brief_pe_prof', name:'BRIEF Pré-Escolar — Professores', dest:['Professor(a)','Educador(a)'], link:'https://correiaricardina-ui.github.io/questionarios/BRIEF_PreEscolar_Professores_v2.html', syncKey:'brief_pe_prof', area:'Atenção, PHDA & Funções Executivas', ageRange:'2–5 anos', objective:'Avalia funções executivas em contexto pré-escolar — versão professor/educador', domains:['INHIB','SHIFT','ECON','WM','PO','ISCI','FI','EMI','GEF'] , ageMin:24, ageMax:71},
     { id:'q_brief_auto', name:'BRIEF — Auto-questionário', dest:['Paciente'], link:'https://correiaricardina-ui.github.io/questionarios/BRIEF_Autoavaliacao_v2.html', syncKey:'brief_auto', area:'Atenção, PHDA & Funções Executivas', ageRange:'11–18 anos', objective:'Avalia funções executivas — versão auto-relato para adolescentes', domains:['INHIB','SHIFT','EC','MON','WM','PO','OM','TC','IRC','IM','GEF'] , ageMin:132, ageMax:215},
+    // ── BRIEF-A · versão adulta (v116) — recolha de pontuações BRUTAS apenas ──
+    // A conversão para T-score e percentil fica sujeita a validação manual da clínica.
+    { id:'q_brief_a_auto', name:'BRIEF-A — Autorrelato', dest:['Paciente'], link:'https://correiaricardina-ui.github.io/questionarios/BRIEF_A_Autorrelato_v1.html', syncKey:'brief_a_auto', area:'Atenção, PHDA & Funções Executivas', ageRange:'18–90 anos', objective:'Avalia o funcionamento executivo no quotidiano do adulto, por autorrelato (75 itens, escala Nunca / Às vezes / Frequentemente = 1–3). Recolhe EXCLUSIVAMENTE pontuações brutas, por item e por escala: nove escalas clínicas, os índices BRI, MI e GEC, e as duas escalas de validade. Não converte para T-scores nem percentis — a leitura normativa (por idade e sexo) é feita manualmente nas tabelas do manual, a partir da folha de cotação exportada em PDF, que traz as colunas T e Percentil em branco. Os itens 10, 27, 38, 48 e 59 pertencem à escala de Infrequência e não entram em nenhuma escala clínica', domains:['Inibição','Flexibilidade','Controlo Emocional','Automonitorização','Iniciativa','Memória de Trabalho','Planificação/Organização','Monitorização da Tarefa','Organização de Materiais','BRI — Índice de Regulação Comportamental (30 itens, 30–90)','MI — Índice de Metacognição (40 itens, 40–120)','GEC — Composto Executivo Global (70 itens, 70–210)','Infrequência — escala de validade (0–5; ≥3 sinaliza padrão infrequente)','Inconsistência — escala de validade (0–20; ≥8 sinaliza inconsistência)'] , ageMin:216, ageMax:1080},
+    { id:'q_brief_a_inf', name:'BRIEF-A — Informante', dest:['Mãe','Pai','outro'], link:'https://correiaricardina-ui.github.io/questionarios/BRIEF_A_Informante_v1.html', syncKey:'brief_a_inf', area:'Atenção, PHDA & Funções Executivas', ageRange:'18–90 anos', objective:'Avalia o funcionamento executivo no quotidiano do adulto, por relato de um informante que o conhece bem (75 itens, escala Nunca / Às vezes / Frequentemente = 1–3). Versão paralela ao autorrelato, item a item, para triangulação entre a descrição do próprio e a do informante. Recolhe EXCLUSIVAMENTE pontuações brutas, por item e por escala: nove escalas clínicas, os índices BRI, MI e GEC, e as duas escalas de validade. Não converte para T-scores nem percentis — a leitura normativa (por idade e sexo da pessoa avaliada) é feita manualmente nas tabelas do manual. Os itens 10, 27, 38, 48 e 59 pertencem à escala de Infrequência e não entram em nenhuma escala clínica', domains:['Inibição','Flexibilidade','Controlo Emocional','Automonitorização','Iniciativa','Memória de Trabalho','Planificação/Organização','Monitorização da Tarefa','Organização de Materiais','BRI — Índice de Regulação Comportamental (30 itens, 30–90)','MI — Índice de Metacognição (40 itens, 40–120)','GEC — Composto Executivo Global (70 itens, 70–210)','Infrequência — escala de validade (0–5; ≥3 sinaliza padrão infrequente)','Inconsistência — escala de validade (0–20; ≥8 sinaliza inconsistência)'] , ageMin:216, ageMax:1080},
     { id:'q_srs2_pais', name:'SRS-2 — Pais/Cuid.', dest:['Mãe','Pai','Enc. Educação'], link:'https://correiaricardina-ui.github.io/questionarios/SRS2_IE_Pais_v1.html', syncKey:'srs2_pais', area:'Neurodesenvolvimento', ageRange:'4–18 anos', objective:'Avalia responsividade social — versão pais/cuidadores', domains:['PERC','COG','COM','MOT','PRR','CIS','Total'] , ageMin:48, ageMax:215},
     { id:'q_srs2_prof', name:'SRS-2 — Professor', dest:['Professor(a)'], link:'https://correiaricardina-ui.github.io/questionarios/SRS2_IE_Prof_v1.html', syncKey:'srs2_prof', area:'Neurodesenvolvimento', ageRange:'4–18 anos', objective:'Avalia responsividade social — versão professor', domains:['PERC','COG','COM','MOT','PRR','CIS','Total'] , ageMin:48, ageMax:215},
     { id:'q_raadsr', name:'RAADS-R', dest:['Paciente'], link:'https://correiaricardina-ui.github.io/questionarios/RAADS_R_v1.html', syncKey:'raadsr', area:'Neurodesenvolvimento', ageRange:'Adultos (≥16 anos)', objective:'Avalia sintomas de PEA em adultos — auto-relato (Ritvo et al., 2011)', domains:['Social','Linguagem','Sensoriomotora','Circunscrita','Total'], ageMin:192, ageMax:null},
@@ -1602,7 +1793,11 @@ function initCatalog() {
       domains:['Não-Aceitação','Objetivos','Impulsos','Consciência','Estratégias','Clareza','Total'],
       ageMin:168, ageMax:null },
     { id:'q_diva5', name:'DIVA-5',
-      dest:['Clínico'],
+      // dest actualizado (v112.0): o DIVA-5 é aqui aplicado a TRÊS informadores
+      // que preenchem em separado com o MESMO código — o próprio (ambas as
+      // colunas), o parceiro (só adultez) e os pais (só infância). 'Clínico'
+      // sozinho descrevia mal o circuito e escondia a quem se atribui.
+      dest:['Paciente','Cônjuge/Parceiro(a)','Mãe','Pai','Enc. Educação','Clínico'],
       link:'https://correiaricardina-ui.github.io/questionarios/DIVA5_v1.html',
       syncKey:'diva5', area:'Atenção, PHDA & Funções Executivas', ageRange:'5 anos+',
       objective:'Entrevista diagnóstica para PHDA — adultos, jovens e DI (DSM-5)',
@@ -2433,6 +2628,38 @@ function initCatalog() {
       objective:'Rastreio de insónia clinicamente significativa e monitorização da evolução — autorrelato, 8 itens, escala 0–3, período de referência: último mês. Estrutura em dois blocos: itens 1–5 sono noturno (AIS-5, 0–15) e itens 6–8 consequências diurnas (0–9); total 0–24, todos os itens directos, sem inversões nem ponderações. Ponto de corte total ≥ 6 (Soldatos et al., 2003: sensibilidade 93%, especificidade 85%, 90% de classificação correta), derivado de amostra clínica adulta grega com critério CID-10 — NÃO validado em adolescentes. Bandas descritivas 0–5 ausência · 6–9 ligeira · 10–15 moderada · 16–24 grave (Okajima et al., 2020, critério ISI, amostra comunitária adulta japonesa) — estatuto descritivo/exploratório. NÃO existem normas portuguesas e a formulação PT-PT dos itens não corresponde a versão portuguesa validada. Instrumento de rastreio e monitorização: não estabelece diagnóstico isoladamente — um resultado abaixo do ponto de corte não exclui perturbação do sono, e um resultado acima não a confirma. Em adolescentes, integrar sempre com hábitos e rotinas de sono, ansiedade e ruminação pré-sono, impacto escolar e emocional, e discrepâncias pais ↔ autorrelato.',
       domains:['Índice noturno — AIS-5 (itens 1–5, 0–15)','Índice diurno (itens 6–8, 0–9)','Total AIS-8 (0–24)','Banda descritiva de gravidade','Rastreio (ponto de corte ≥ 6)'],
       ageMin:144, ageMax:null},
+    // ── ESS · Escala de Sonolência de Epworth (Johns, 1991; versão portuguesa CEISUC/LEPS, 2001) (v117) ──
+    // ⚠ Instrumento de ADULTO e de autopreenchimento: mede o estado de QUEM PREENCHE, não o da
+    //   criança. O código do paciente identifica o PROCESSO, não o sujeito da medida.
+    // ⚠ Unidimensional. Os agrupamentos G1/G2 são descritivos (R7) e não são subescalas.
+    // ⚠ Sem normas portuguesas: nenhum percentil ou T-score é gerado (anomalia A-04).
+    // ⚠ Três sistemas interpretativos coexistem; divergem apenas na pontuação 10 (anomalia A-01).
+    { id:'q_ess', name:'ESS — Escala de Sonolência de Epworth',
+      dest:['Próprio','Mãe','Pai'],
+      link:'https://correiaricardina-ui.github.io/questionarios/ESS_Epworth_v1.html',
+      syncKey:'ess', area:'Sono', ageRange:'18–99 anos',
+      objective:'Rastreio da SONOLÊNCIA DIURNA EXCESSIVA por autorrelato — 8 itens, escala 0–3, total 0–24 (soma simples, sem itens invertidos e sem ponderações). Mede a propensão média para ADORMECER em situações quotidianas de baixa e média ativação, tomando como referência o modo de vida habitual no período recente: não mede fadiga, cansaço subjetivo nem sonolência momentânea no ato de resposta, e não avalia a qualidade do sono. Três sistemas interpretativos coexistem e nenhum foi suprimido: o Sistema A é a referência primária (0–7 sonolência normal · 8–10 sonolência média · 11–15 sonolência excessiva moderada · 16–24 sonolência excessiva grave); o critério dicotómico impresso no formulário da versão portuguesa é total ≥ 10; as bandas de Johns são 0–5 / 6–10 / 11–12 / 13–15 / 16–24. Os dois primeiros divergem EXCLUSIVAMENTE na pontuação 10, em que o Sistema A mantém «Sonolência média» e o critério português é positivo — divergência assinalada automaticamente e não resolvida pelo sistema: a escolha da referência a reportar é clínica. NÃO existem normas portuguesas por idade e sexo: não são gerados percentis nem T-scores, e a classificação assenta apenas em pontos de corte publicados. ⚠ Validada para ADULTOS (≥ 18 anos) — abaixo dos 18 o instrumento indicado é a ESS-CHAD (Janssen et al., 2017), com reformulação de itens e ancoragens; o painel emite alerta etário automático. ⚠ É de autopreenchimento e mede a sonolência de QUEM PREENCHE: aplicada a um progenitor, descreve o progenitor e não a criança — o código do paciente identifica o processo, não o sujeito da medida. Regras de completude: protocolo válido exige 8/8 itens (R3); com 6 ou 7 itens é gerada estimativa pró-rateada [(soma / n) × 8, arredondada], assinalada como exploratória e não comparável a normas (R4); abaixo de 6 itens não é produzida pontuação (R5). O item 8 (ao volante) pressupõe a condição de condutor: em não condutores fica em branco, aplica-se o pró-rateio e a comparabilidade normativa passa a «Limitada» (R6). Medida de RASTREIO — não diagnostica apneia obstrutiva do sono, narcolepsia, hipersonolência idiopática nem privação crónica de sono, não substitui a avaliação médica do sono nem o estudo polissonográfico: uma pontuação baixa não exclui patologia do sono e uma pontuação elevada não estabelece a sua etiologia',
+      domains:['Pontuação total ESS (0–24) — única saída com cotação; instrumento UNIDIMENSIONAL, sem subescalas','Classificação pelo Sistema A, referência primária (0–7 sonolência normal · 8–10 sonolência média · 11–15 sonolência excessiva moderada · 16–24 sonolência excessiva grave)','Critério dicotómico da versão portuguesa CEISUC/LEPS (2001), coincidente com o critério original de Johns (1991) — total ≥ 10 indica sonolência diurna excessiva','Bandas de referência de Johns, Sistema C (0–5 normal baixa · 6–10 normal elevada · 11–12 excessiva ligeira · 13–15 excessiva moderada · 16–24 excessiva grave) — reportadas em paralelo para rastreabilidade bibliográfica','Concordância entre sistemas — assinala a divergência única na pontuação 10 (anomalia A-01), sem a resolver automaticamente','Natureza da pontuação — distinção obrigatória entre valor observado (8/8 itens) e estimativa pró-rateada (6–7 itens), esta última não comparável a normas','Validade do protocolo — regras R3 (8/8 válido), R4 (6–7 itens, pró-rateio), R5 (< 6 itens, sem pontuação) e R6 (item 8 não aplicável a não condutores)','Comparabilidade normativa — «Aplicável» apenas com protocolo completo e item 8 aplicável; caso contrário «Limitada» ou «Não aplicável»','Agrupamento descritivo exploratório G1, situações de baixa ativação (itens 1–5; 0–15) — ESTRITAMENTE descritivo, sem normas nem pontos de corte (R7); não reportar como subescala','Agrupamento descritivo exploratório G2, situações de ativação intermédia a elevada (itens 6–8; 0–9) — ESTRITAMENTE descritivo, sem normas nem pontos de corte (R7); não reportar como subescala','Diferencial G2 − G1 (médias por item) — valor positivo indica propensão a adormecer também em situações de maior ativação; indicador descritivo, sem ponto de corte','Indicadores de padrão — pontuação máxima num item, número de itens cotados em 3, em ≥ 2 e em 0','Sinalizador descritivo — contexto de veículo (soma dos itens 4 e 8 ≥ 4, de um máximo de 6): orienta a entrevista quanto a segurança rodoviária e NÃO constitui juízo sobre aptidão para conduzir','Sinalizador de aplicabilidade etária — alerta automático quando a idade de quem responde é inferior a 18 anos (usar ESS-CHAD)'],
+      ageMin:216, ageMax:1188},
+    // ── STOP-BANG · Rastreio de risco de SAOS (Chung et al., 2008; critérios da versão
+    //   portuguesa de Reis et al., 2015) (v118) ──
+    // ⚠ Instrumento PROPRIETÁRIO (Frances Chung · University Health Network, Toronto).
+    //   Construção em VIA A-RESTRITA: designações de domínio e critérios operacionais
+    //   objetivos apenas — os ENUNCIADOS DOS ITENS não são reproduzidos em lado nenhum.
+    // ⚠ NÃO é um formulário auto-administrado: é uma ficha de COTAÇÃO preenchida pelo
+    //   profissional, em complemento do formulário original em uso no serviço.
+    // ⚠ Instrumento de ADULTO (≥ 18 anos): o HTML bloqueia idades inferiores.
+    // ⚠ Índice FORMATIVO, não escala reflexiva — sem subescalas e sem alfa de Cronbach.
+    // ⚠ RASTREIO, nunca diagnóstico: especificidade baixa, falsos positivos frequentes.
+    // ⚠ Divergência entre os dois critérios de perímetro cervical é ASSINALADA e nunca
+    //   resolvida automaticamente: a escolha do critério a reportar é clínica.
+    { id:'q_stopbang', name:'STOP-BANG — Rastreio de Risco de Apneia Obstrutiva do Sono',
+      dest:['Próprio','Mãe','Pai'],
+      link:'https://correiaricardina-ui.github.io/questionarios/STOPBANG_v1.html',
+      syncKey:'stopbang', area:'Sono', ageRange:'18–99 anos',
+      objective:'Rastreio do RISCO de síndrome de apneia obstrutiva do sono por acumulação de oito fatores binários — quatro sintomáticos (bloco STOP: ressonar, cansaço ou sonolência diurna, apneias observadas, hipertensão arterial) e quatro objetivos (bloco BANG: índice de massa corporal, idade, perímetro cervical, sexo). Total 0–8, soma simples e sem ponderações. NÃO é um formulário auto-administrado: o STOP-BANG é um instrumento proprietário (Frances Chung e University Health Network, Toronto; www.stopbang.ca) e esta ficha foi construída em VIA A-RESTRITA — reproduz apenas as designações dos domínios do acrónimo e os critérios operacionais objetivos, que constituem factos clínicos e não expressão protegida, e NÃO reproduz os enunciados dos itens. Opera em complemento do formulário original em uso no serviço, do qual se transcrevem as quatro respostas do bloco STOP; os quatro indicadores do bloco BANG são derivados automaticamente dos dados clínicos brutos (idade, sexo, peso, altura, perímetro cervical). Os critérios objetivos são: IMC superior a 35 kg/m², idade superior a 50 anos, perímetro cervical acima do limiar e sexo masculino. O perímetro cervical é cotado por DOIS critérios em paralelo — o critério português, superior a 40 cm e indiferenciado por sexo (Reis et al., 2015, e versão original de 2008), que constitui a pontuação PRINCIPAL, e o critério da versão atual do detentor, masculino ≥ 43 cm e feminino ≥ 41 cm, que funciona como verificação de concordância. Uma divergência entre os dois totais é assinalada e NÃO é resolvida automaticamente: a escolha do critério a reportar é clínica. A classificação é feita em dois níveis: as bandas do documento-fonte (0–2 risco baixo · 3–4 risco intermédio · ≥ 5 risco elevado) e, sobre estas, o refinamento da faixa intermédia de Chung, Abdullah & Liao (Chest, 2016), que reclassifica como risco elevado as pontuações 3–4 com STOP ≥ 2 e pelo menos um de IMC, perímetro cervical ou sexo masculino positivos. As probabilidades previstas de SAOS provêm de regressão logística numa amostra portuguesa de clínica do sono (Reis et al., 2015) e existem publicadas apenas para as pontuações 3 a 6 (qualquer grau) e 6 a 8 (forma grave); as restantes apresentam «n.d.», sem qualquer interpolação. Essa amostra tem prevalência de base elevada: a transposição destes valores para rastreio comunitário ou cuidados de saúde primários SOBRESTIMA o risco. ⚠ Validado exclusivamente em população ADULTA (≥ 18 anos) — os critérios «idade > 50» e «IMC > 35» carecem de significado em idade pediátrica, onde os preditores de apneia obstrutiva são distintos (hipertrofia adenoamigdalina como fator dominante); o ficheiro bloqueia a introdução de idades inferiores a 18 anos. ⚠ Índice FORMATIVO de acumulação de fatores de risco e não escala reflexiva de um construto latente: os oito indicadores são causas do estatuto de risco, não manifestações de uma dimensão comum, pelo que os coeficientes de consistência interna (alfa, ómega) e a análise fatorial dos itens são metodologicamente inaplicáveis, e não existem subescalas — STOP e BANG são blocos de contagem. ⚠ Instrumento de RASTREIO: sensibilidade elevada (93,4% para IAH ≥ 5 no ponto de corte ≥ 3) e especificidade baixa (48,9% no mesmo corte), pelo que se destina a EXCLUIR com segurança e não a confirmar; uma classificação de risco elevado indica probabilidade acrescida e justifica referenciação para avaliação especializada, não estabelecendo por si o diagnóstico, que exige estudo do sono',
+      domains:['Pontuação total pelo critério português (0–8) — saída principal; soma dos oito indicadores binários, sem ponderações','Subtotal do bloco STOP, itens 1–4, indicadores sintomáticos (0–4) — bloco de contagem, NÃO subescala','Subtotal do bloco BANG, itens 5–8, indicadores objetivos (0–4) — bloco de contagem, NÃO subescala','Cotação item a item — Ressonar (S), Cansaço ou sonolência diurna (T), Apneias observadas (O), Hipertensão arterial (P), Índice de massa corporal (B), Idade (A), Perímetro cervical (N), Sexo (G)','Índice de massa corporal derivado automaticamente do peso e da altura (kg/m²), com o critério operacional > 35','Cotação paralela do perímetro cervical — critério português > 40 cm, indiferenciado por sexo (principal), e critério da University Health Network, masculino ≥ 43 cm e feminino ≥ 41 cm (verificação)','Pontuação total pelo critério UHN (0–8) — cálculo paralelo, exclusivamente para verificação de concordância','Concordância entre critérios de perímetro cervical — assinala a divergência quando os dois totais diferem, sem a resolver automaticamente','Nível 1 · Banda de risco do documento-fonte (0–2 risco baixo · 3–4 risco intermédio · ≥ 5 risco elevado)','Nível 2 · Classificação final com refinamento da faixa intermédia (Chung, Abdullah & Liao, 2016) — pontuação 3–4 com STOP ≥ 2 e IMC, perímetro cervical ou sexo masculino positivos passa a «Risco elevado (reclassificado)»','Classificação paralela pelo critério UHN — mesmas bandas aplicadas ao total do critério diferenciado por sexo','Probabilidade prevista de SAOS de qualquer grau (Reis et al., 2015) — publicada apenas para as pontuações 3 a 6 (64%, 80%, 90%, 95%); restantes «n.d.», sem interpolação','Probabilidade prevista de SAOS grave, IAH ≥ 30 (Reis et al., 2015) — publicada apenas para as pontuações 6 a 8 (46%, 61%, 73%); restantes «n.d.», sem interpolação','Elegibilidade etária — sinalizador de bloqueio automático abaixo dos 18 anos, por o instrumento não estar validado em idade pediátrica','Estado do protocolo — a cotação só é produzida com a totalidade dos dados clínicos objetivos e das quatro respostas do bloco STOP'],
+      ageMin:216, ageMax:1188},
     // ── GAD-7 · Escala de Ansiedade Generalizada (Spitzer, Kroenke, Williams & Löwe, 2006) ──
     { id:'q_gad7', name:'GAD-7 — Escala de Ansiedade Generalizada',
       dest:['Paciente'],
@@ -2488,6 +2715,25 @@ function initCatalog() {
   } else {
     // Forçar links e syncKeys actualizados
     const META = {
+      // ── Família EIF · Escalas de Interferência Funcional (v121) ──
+      'q_eifp':       { link:'https://correiaricardina-ui.github.io/questionarios/EIFP_v1.html', syncKey:'eifp' },
+      'q_eifa':       { link:'https://correiaricardina-ui.github.io/questionarios/EIFA_v1.html', syncKey:'eifa' },
+      'q_eifj':       { link:'https://correiaricardina-ui.github.io/questionarios/EIFJ_v1.html', syncKey:'eifj' },
+      // ── CAARS · Conners' Adult ADHD Rating Scales (v120) ──
+      'q_caars_sl':   { link:'https://correiaricardina-ui.github.io/questionarios/CAARS_SL_v1.html', syncKey:'caars_sl' },
+      'q_caars_ol':   { link:'https://correiaricardina-ui.github.io/questionarios/CAARS_OL_v1.html', syncKey:'caars_ol' },
+      // ── EII-PT · Escala de Intolerância à Incerteza (v119) ──
+      'q_eii27_a':    { link:'https://correiaricardina-ui.github.io/questionarios/EII27_A_v1.html', syncKey:'eii27_a' },
+      'q_eii27_j':    { link:'https://correiaricardina-ui.github.io/questionarios/EII27_J_v1.html', syncKey:'eii27_j' },
+      'q_eii12_a':    { link:'https://correiaricardina-ui.github.io/questionarios/EII12_A_v1.html', syncKey:'eii12_a' },
+      'q_eii12_j':    { link:'https://correiaricardina-ui.github.io/questionarios/EII12_J_v1.html', syncKey:'eii12_j' },
+      // ── PSWQ · Penn State Worry Questionnaire (v115) ──
+      'q_pswq':       { link:'https://correiaricardina-ui.github.io/questionarios/PSWQ_v1.html', syncKey:'pswq' },
+      // ── Escalas de Beck · BAI e BDI-II (v114) ──
+      'q_bai':        { link:'https://correiaricardina-ui.github.io/questionarios/BAI_v1.html', syncKey:'bai' },
+      'q_bdi2':       { link:'https://correiaricardina-ui.github.io/questionarios/BDI2_v1.html', syncKey:'bdi2' },
+      // ── SIAS · SPS · Escalas de Ansiedade Social (v113) ──
+      'q_sias_sps':   { link:'https://correiaricardina-ui.github.io/questionarios/SIAS_SPS_v1.html', syncKey:'sias_sps' },
       // ── GCSA · Grelha de Caracterização da Seletividade Alimentar (v111) ──
       'q_gcsa':        { link:'https://correiaricardina-ui.github.io/questionarios/GCSA_v1.html', syncKey:'gcsa' },
       'q_gcsa_diario': { link:'https://correiaricardina-ui.github.io/questionarios/GCSA_Diario_v1.html', syncKey:'gcsa_diario' },
@@ -2510,6 +2756,10 @@ function initCatalog() {
       'q_pdra9_c':    { link:'https://correiaricardina-ui.github.io/questionarios/PDRA9_C_v1.html', syncKey:'pdra9_c' },
       'q_pdra9_p':    { link:'https://correiaricardina-ui.github.io/questionarios/PDRA9_P_v1.html', syncKey:'pdra9_p' },
       'q_ais8':       { link:'https://correiaricardina-ui.github.io/questionarios/AIS_8_v1.html', syncKey:'ais8' },
+      // ── ESS · Escala de Sonolência de Epworth (v117) ──
+      'q_ess':        { link:'https://correiaricardina-ui.github.io/questionarios/ESS_Epworth_v1.html', syncKey:'ess' },
+      // ── STOP-BANG · Rastreio de risco de SAOS (v118) ──
+      'q_stopbang':   { link:'https://correiaricardina-ui.github.io/questionarios/STOPBANG_v1.html', syncKey:'stopbang' },
       'q_aceq_adol':  { link:'https://correiaricardina-ui.github.io/questionarios/ACE-Q_Adolescente.html', syncKey:'aceq_adol' },
       'q_aceq_cuid':  { link:'https://correiaricardina-ui.github.io/questionarios/ACE-Q_Cuidador.html', syncKey:'aceq_cuid' },
       'q_gai':        { link:'https://correiaricardina-ui.github.io/questionarios/GAI_Automonitorizacao_Interocetiva_v1.html', syncKey:'gai' },
@@ -2542,6 +2792,9 @@ function initCatalog() {
       'q_brief_pe_pais': { link:'https://correiaricardina-ui.github.io/questionarios/BRIEF_PreEscolar_Pais_v2.html', syncKey:'brief_pe_pais' },
       'q_brief_pe_prof': { link:'https://correiaricardina-ui.github.io/questionarios/BRIEF_PreEscolar_Professores_v2.html', syncKey:'brief_pe_prof' },
       'q_brief_auto':    { link:'https://correiaricardina-ui.github.io/questionarios/BRIEF_Autoavaliacao_v2.html', syncKey:'brief_auto' },
+      // ── BRIEF-A · versão adulta (v116) ──
+      'q_brief_a_auto':  { link:'https://correiaricardina-ui.github.io/questionarios/BRIEF_A_Autorrelato_v1.html', syncKey:'brief_a_auto' },
+      'q_brief_a_inf':   { link:'https://correiaricardina-ui.github.io/questionarios/BRIEF_A_Informante_v1.html', syncKey:'brief_a_inf' },
       'q_srs2_pais': { link:'https://correiaricardina-ui.github.io/questionarios/SRS2_IE_Pais_v1.html', syncKey:'srs2_pais' },
       'q_srs2_prof': { link:'https://correiaricardina-ui.github.io/questionarios/SRS2_IE_Prof_v1.html', syncKey:'srs2_prof' },
       'q_raadsr':    { link:'https://correiaricardina-ui.github.io/questionarios/RAADS_R_v1.html', syncKey:'raadsr' },
@@ -2737,6 +2990,69 @@ function initCatalog() {
     });
     // Adicionar q_cbcl_15 ao catálogo se ainda não existir
     const catalog = store.get('catalog') || [];
+    // ── EII-PT · Escala de Intolerância à Incerteza (v119) ──
+    // Garante o aparecimento das quatro ligações em instâncias do RC já instaladas.
+    ['q_eii27_a','q_eii27_j','q_eii12_a','q_eii12_j'].forEach(function(_eid){
+      if(!catalog.includes(_eid)) {
+        const _ed = defaults.find(d => d.id === _eid);
+        if(_ed) {
+          store.set(_eid, _ed);
+          store.set('q_' + _eid, _ed);
+          catalog.push(_eid);
+          store.set('catalog', catalog);
+        }
+      }
+    });
+    // ── CAARS · Conners' Adult ADHD Rating Scales (v120) ──
+    // Garante o aparecimento das duas ligações em instâncias do RC já instaladas.
+    ['q_caars_sl','q_caars_ol'].forEach(function(_cid){
+      if(!catalog.includes(_cid)) {
+        const _cd = defaults.find(d => d.id === _cid);
+        if(_cd) {
+          store.set(_cid, _cd);
+          store.set('q_' + _cid, _cd);
+          catalog.push(_cid);
+          store.set('catalog', catalog);
+        }
+      }
+    });
+    // ── Família EIF · Escalas de Interferência Funcional (v121) ──
+    // Garante o aparecimento das três ligações em instâncias do RC já instaladas.
+    ['q_eifp','q_eifa','q_eifj'].forEach(function(_fid){
+      if(!catalog.includes(_fid)) {
+        const _fd = defaults.find(d => d.id === _fid);
+        if(_fd) {
+          store.set(_fid, _fd);
+          store.set('q_' + _fid, _fd);
+          catalog.push(_fid);
+          store.set('catalog', catalog);
+        }
+      }
+    });
+    if(!catalog.includes('q_pswq')) {
+      const pswqDefault = defaults.find(d => d.id === 'q_pswq');
+      if(pswqDefault) {
+        store.set('q_' + pswqDefault.id, pswqDefault);
+        catalog.push('q_pswq');
+        store.set('catalog', catalog);
+      }
+    }
+    if(!catalog.includes('q_bai')) {
+      const baiDefault = defaults.find(d => d.id === 'q_bai');
+      if(baiDefault) {
+        store.set('q_' + baiDefault.id, baiDefault);
+        catalog.push('q_bai');
+        store.set('catalog', catalog);
+      }
+    }
+    if(!catalog.includes('q_bdi2')) {
+      const bdi2Default = defaults.find(d => d.id === 'q_bdi2');
+      if(bdi2Default) {
+        store.set('q_' + bdi2Default.id, bdi2Default);
+        catalog.push('q_bdi2');
+        store.set('catalog', catalog);
+      }
+    }
     if(!catalog.includes('q_aceq_adol')) {
       const aceqAdolDefault = defaults.find(d => d.id === 'q_aceq_adol');
       if(aceqAdolDefault) {
@@ -3270,6 +3586,16 @@ function initCatalog() {
       const dAis8 = defaults.find(x => x.id === 'q_ais8');
       if(dAis8) { store.set('q_' + dAis8.id, dAis8); store.set(dAis8.id, dAis8); catalog.push('q_ais8'); store.set('catalog', catalog); }
     }
+    // ESS · Escala de Sonolência de Epworth
+    if(!catalog.includes('q_ess')) {
+      const dEss = defaults.find(x => x.id === 'q_ess');
+      if(dEss) { store.set('q_' + dEss.id, dEss); store.set(dEss.id, dEss); catalog.push('q_ess'); store.set('catalog', catalog); }
+    }
+    // STOP-BANG · Rastreio de risco de apneia obstrutiva do sono
+    if(!catalog.includes('q_stopbang')) {
+      const dSb = defaults.find(x => x.id === 'q_stopbang');
+      if(dSb) { store.set('q_' + dSb.id, dSb); store.set(dSb.id, dSb); catalog.push('q_stopbang'); store.set('catalog', catalog); }
+    }
     // GAD-7 · Escala de Ansiedade Generalizada
     if(!catalog.includes('q_gad7')) {
       const dGad7 = defaults.find(x => x.id === 'q_gad7');
@@ -3298,6 +3624,14 @@ function initCatalog() {
     if(!catalog.includes('q_qrfc')) {
       const dQrfc = defaults.find(x => x.id === 'q_qrfc');
       if(dQrfc) { store.set('q_' + dQrfc.id, dQrfc); store.set(dQrfc.id, dQrfc); catalog.push('q_qrfc'); store.set('catalog', catalog); }
+    }
+    // ── SIAS · SPS (v113) — semeadura no catálogo local ──
+    // Duplo store.set (id completo e id com prefixo) para retrocompatibilidade com
+    // getCatalog, que faz store.get(id) || store.get('q_' + id).
+    if(!catalog.includes('q_sias_sps')) {
+      const dSiasSps = defaults.find(x => x.id === 'q_sias_sps');
+      if(dSiasSps) { store.set('q_' + dSiasSps.id, dSiasSps); store.set(dSiasSps.id, dSiasSps);
+                     catalog.push('q_sias_sps'); store.set('catalog', catalog); }
     }
     // ── GCSA (v111) — semeadura no catálogo local ──
     // Duplo store.set (id completo e id com prefixo) para retrocompatibilidade com
@@ -3331,6 +3665,16 @@ function initCatalog() {
       const dCapsPr = defaults.find(x => x.id === 'q_caps_pr');
       if(dCapsPr) { store.set('q_' + dCapsPr.id, dCapsPr); store.set(dCapsPr.id, dCapsPr); catalog.push('q_caps_pr'); store.set('catalog', catalog); }
     }
+    // BRIEF-A · Autorrelato e Informante — versão adulta (v116)
+    // Duplo store.set (id completo e id com prefixo) para retrocompatibilidade com
+    // getCatalog, que faz store.get(id) || store.get('q_' + id).
+    ['q_brief_a_auto','q_brief_a_inf'].forEach(function(bid){
+      if(!catalog.includes(bid)) {
+        const dB = defaults.find(x => x.id === bid);
+        if(dB) { store.set('q_' + dB.id, dB); store.set(dB.id, dB);
+                 catalog.push(bid); store.set('catalog', catalog); }
+      }
+    });
     }
   }
 }
@@ -3497,6 +3841,122 @@ function getResultSummary(qid, patientCode) {
 
 function formatScoreSummary(scores, syncKey) {
   if(!scores) return null;
+  // ── Família EIF · EIFP, EIFA e EIFJ ───────────────────────────────
+  // Inserida ANTES do fallback genérico (que preempta qualquer branch posterior).
+  // Guardas `!= null` (nunca `||`): o ZERO é resultado legítimo e clinicamente
+  // informativo — total 0 significa ausência declarada de interferência, e
+  // 0 domínios assinalados é o resultado esperado num caso sem compromisso.
+  // ⚠ Paleta AZUL no total e na banda: as bandas derivam das ancoragens verbais da
+  //   escala e NÃO são pontos de corte clínicos; colori-las por gravidade
+  //   comunicaria um juízo que o instrumento não suporta. O VERMELHO fica reservado
+  //   ao único sinalizador binário — existir pelo menos um domínio assinalado (>5),
+  //   que é uma condição, não uma medida de intensidade.
+  if(syncKey === 'eifp' || syncKey === 'eifa' || syncKey === 'eifj') {
+    const _auto = syncKey === 'eifp' ? 'C_TOTAL' : 'A_TOTAL';
+    const _het  = syncKey === 'eifp' ? 'P_TOTAL' : 'S_TOTAL';
+    const _tA   = scores[_auto] ?? scores[_auto.toLowerCase()];
+    const _tH   = scores[_het]  ?? scores[_het.toLowerCase()];
+    const _nA   = scores['N_ASSIN_' + (syncKey === 'eifp' ? 'C' : 'A')];
+    const _nH   = scores['N_ASSIN_' + (syncKey === 'eifp' ? 'P' : 'S')];
+    const _partes = [];
+    if(_tA != null) {
+      const _c = (_nA != null && _nA > 0) ? 'color:#C0392B;font-weight:700;' : 'color:var(--blue);font-weight:600;';
+      _partes.push('<span style="font-size:0.78rem;' + _c + '">Autorrelato = ' + _tA + '/30' +
+                   (_nA != null ? ' · ' + _nA + '/3 dom.' : '') + '</span>');
+    }
+    if(_tH != null) {
+      const _c = (_nH != null && _nH > 0) ? 'color:#C0392B;font-weight:700;' : 'color:var(--blue);font-weight:600;';
+      _partes.push('<span style="font-size:0.78rem;' + _c + '">Heterorrelato = ' + _tH + '/50' +
+                   (_nH != null ? ' · ' + _nH + '/5 dom.' : '') + '</span>');
+    }
+    if(_partes.length) return _partes.join(' &nbsp;·&nbsp; ');
+  }
+  // ── CAARS · Conners' Adult ADHD Rating Scales, S:L e O:L ──────────
+  // Inserida ANTES do fallback genérico (que preempta qualquer branch colocada depois).
+  // Guardas `!= null` (nunca `||`) — o RB 0 é resultado válido (nenhum sintoma
+  // referenciado na escala) e a Inconsistência 0 é concordância perfeita nos 8 pares.
+  // ⚠ Paleta AZUL nos resultados brutos: o painel central mostra RB, não T-scores. A
+  //   conversão RB → T faz-se nas folhas de perfil oficiais (MHS), pelo sexo e idade da
+  //   pessoa avaliada, e é introduzida manualmente no painel clínico do questionário.
+  //   Colorir o RB por gravidade comunicaria um juízo que o resultado bruto não suporta.
+  //   O vermelho fica reservado ao único sinalizador binário do instrumento — o Índice
+  //   de Inconsistência ≥ 8, que sinaliza prudência quanto à consistência do protocolo.
+  if(syncKey === 'caars_sl' || syncKey === 'caars_ol') {
+    const g   = scores['RB_G'] ?? scores['rb_g'] ?? scores['G'];
+    const h   = scores['RB_H'] ?? scores['rb_h'] ?? scores['H'];
+    const inc = scores['Inconsistencia'] ?? scores['inconsistencia'];
+    const partes = [];
+    if(g   != null && g   !== '') partes.push('Sint. Totais ' + g + '/54');
+    if(h   != null && h   !== '') partes.push('Índ. PHDA ' + h + '/36');
+    if(partes.length > 0) {
+      const flag = (inc != null && inc !== '' && Number(inc) >= 8)
+        ? ' · <span style="color:#C0392B;font-weight:700;">\u2691 inconsistência ' + inc + '</span>' : '';
+      return '<span style="font-size:0.78rem;color:var(--blue);font-weight:600;">'
+           + 'CAARS RB ' + partes.join(' · ') + ' · T por ler na folha de perfil</span>' + flag;
+    }
+  }
+  // ── PSWQ — Questionário de Preocupação do Estado da Pensilvânia ──
+  // Inserida ANTES do fallback genérico (que preempta qualquer branch colocada depois).
+  // Guardas `!= null` (nunca `||`) — o z 0 é resultado válido (exactamente na média
+  // comunitária) e os z negativos são a norma em protocolos comunitários.
+  // ⚠ Paleta AZUL no total e no percentil: o PSWQ devolve POSICIONAMENTO normativo,
+  //   não gravidade clínica. O vermelho fica reservado ao único sinalizador binário
+  //   do instrumento — o critério c de Jacobson & Truax (total ≥ 58).
+  if(syncKey === 'pswq') {
+    const tot = scores['PSWQ_Total'] ?? scores['pswq_total'] ?? scores['Total'];
+    const pct = scores['PSWQ_Pct_Com'] ?? scores['pswq_pct_com'] ?? scores['Pct_Com'];
+    const bnd = scores['PSWQ_Banda'] ?? scores['pswq_banda'] ?? scores['Banda'] ?? '';
+    if(tot != null && tot !== '') {
+      const v = Number(tot);
+      const critC = v >= 58;
+      const est = critC ? 'color:#C0392B;font-weight:700;' : 'color:var(--blue);font-weight:600;';
+      const p = (pct != null && pct !== '') ? String(pct).replace('.', ',') : null;
+      return '<span style="font-size:0.78rem;' + est + '">PSWQ = ' + v + '/80'
+           + (p ? ' · percentil ' + p : '')
+           + (critC ? ' · \u2691 critério c' : '')
+           + (bnd ? ' · ' + bnd : '') + '</span>';
+    }
+  }
+  // ── BAI — Inventário de Ansiedade de Beck ────────────────────────
+  // Inserida ANTES do fallback genérico (que preempta qualquer branch colocada depois).
+  // Guardas `!= null` (nunca `||`) — o total 0 é resultado válido (ansiedade mínima).
+  if(syncKey === 'bai') {
+    const tot = scores['BAI_Total'] ?? scores['bai_total'] ?? scores['Total'];
+    const cls = scores['BAI_Class'] ?? scores['bai_class'] ?? '';
+    if(tot != null && tot !== '') {
+      const v = Number(tot);
+      // Cores pelas bandas de Beck & Steer: ≥26 grave · 16–25 moderada · 8–15 ligeira · <8 mínima
+      const est = v >= 26 ? 'color:#8E2A20;font-weight:700;'
+                : v >= 16 ? 'color:#C0392B;font-weight:700;'
+                : v >= 8  ? 'color:#E67E22;font-weight:600;'
+                          : 'color:var(--green);font-weight:600;';
+      return '<span style="font-size:0.78rem;' + est + '">BAI = ' + v + '/63'
+           + (cls ? ' · ' + cls : '') + '</span>';
+    }
+  }
+  // ── BDI-II — Inventário de Depressão de Beck II ──────────────────
+  // Inserida ANTES do fallback genérico (que preempta qualquer branch colocada depois).
+  // Guardas `!= null` (nunca `||`) — total 0 é resultado válido e item 9 = 0 é informação
+  // clínica (ausência de ideação), não ausência de dado.
+  if(syncKey === 'bdi2') {
+    const tot = scores['BDI_Total'] ?? scores['bdi_total'] ?? scores['Total'];
+    const cls = scores['BDI_Class'] ?? scores['bdi_class'] ?? '';
+    const i9  = scores['BDI_Item9'] ?? scores['bdi_item9'];
+    if(tot != null && tot !== '') {
+      const v = Number(tot);
+      // Cores pelas bandas de Beck, Steer & Brown: ≥29 grave · 20–28 moderada · 14–19 ligeira
+      const est = v >= 29 ? 'color:#8E2A20;font-weight:700;'
+                : v >= 20 ? 'color:#C0392B;font-weight:700;'
+                : v >= 14 ? 'color:#E67E22;font-weight:600;'
+                          : 'color:var(--green);font-weight:600;';
+      // Sinalizador do item 9 mostrado SEMPRE que ≥ 1, mesmo com total na banda mínima
+      const flag = (i9 != null && i9 !== '' && Number(i9) >= 1)
+        ? ' <span style="color:#C0392B;font-weight:700">&#9888; item 9 = ' + Number(i9) + '</span>'
+        : '';
+      return '<span style="font-size:0.78rem;' + est + '">BDI-II = ' + v + '/63'
+           + (cls ? ' · ' + cls : '') + '</span>' + flag;
+    }
+  }
   if(syncKey === 'aceq_adol' || syncKey === 'aceq_cuid') {
     const total = scores['Total'] ?? scores['total'] ?? scores['Pontuação Total'];
     const classif = scores['Classificação'] ?? scores['classificacao'] ?? scores['Classificacao'] ?? '';
@@ -3594,16 +4054,43 @@ function formatScoreSummary(scores, syncKey) {
     const diag    = scores['Diagnóstico'] ?? scores['diagnostico'] ?? scores['diag'] ?? '';
     const dA      = scores['Desatenção_Adultez']  ?? scores['desatAdult'] ?? '';
     const hA      = scores['HI_Adultez']          ?? scores['hiAdult']   ?? '';
+    const dI      = scores['Desatenção_Infância'] ?? scores['desatInf']  ?? '';
+    const hI      = scores['HI_Infância']         ?? scores['hiInf']     ?? '';
+    // ── v112.1 · contagens do período NÃO AVALIADO não podem ser mostradas ──
+    // O DIVA-5 é preenchido por três informadores com âmbito bloqueado: o
+    // parceiro só responde à adultez, os pais só à infância. A coluna que não
+    // lhes compete chega ao Sheet a 0 — e 0 aqui significa «não avaliada»,
+    // não «zero sintomas». Mostrar «Des=0 H/I=0» na linha da mãe apresentava
+    // ausência de dado como medição.
+    // RespAdultez/RespInfancia contam os itens efectivamente respondidos e são
+    // o que distingue os dois casos. Quando ausentes (registos antigos, antes
+    // das 4 colunas novas), mantém-se o comportamento anterior.
+    const respA = scores['RespAdultez']  ?? scores['respAdu'];
+    const respI = scores['RespInfancia'] ?? scores['respInf'];
+    const nA = (respA === undefined || respA === null || respA === '') ? null : Number(respA);
+    const nI = (respI === undefined || respI === null || respI === '') ? null : Number(respI);
+    let cont = '';
+    if(nA === null && nI === null) {
+      cont = `${dA !== '' ? ' · Des='+dA : ''}${hA !== '' ? ' H/I='+hA : ''}`;
+    } else if(nA > 0) {
+      cont = `${dA !== '' ? ' · Adultez: Des='+dA : ''}${hA !== '' ? ' H/I='+hA : ''}`;
+    } else if(nI > 0) {
+      cont = `${dI !== '' ? ' · Infância: Des='+dI : ''}${hI !== '' ? ' H/I='+hI : ''}`;
+    }
     const versao  = scores['Versão'] ?? scores['versao'] ?? '';
     const versLabel = versao === 'young' ? 'Young' : versao === 'id' ? 'ID' : 'Adultos';
+    const isIndet = String(diag).includes('INDETERMINADO');
     const isComb  = String(diag).includes('Combinado');
     const isDes   = String(diag).includes('Desatento');
     const isHI    = String(diag).includes('H/I');
-    const cls = (isComb || isDes || isHI)
-      ? (isComb ? 'color:#C0392B;font-weight:700;' : 'color:#E67E22;font-weight:600;')
-      : 'color:var(--green);font-weight:600;';
-    return `<span style="font-size:0.78rem;${cls}">${versLabel} · ${diag || '—'}` +
-      `${dA !== '' ? ' · Des='+dA : ''}${hA !== '' ? ' H/I='+hA : ''}</span>`;
+    // INDETERMINADO é neutro — nunca verde. Verde é a cor de «não preenche
+    // critérios», que é uma conclusão; «não avaliado» não é conclusão nenhuma.
+    const cls = isIndet
+      ? 'color:var(--text-light);font-weight:600;'
+      : (isComb || isDes || isHI)
+        ? (isComb ? 'color:#C0392B;font-weight:700;' : 'color:#E67E22;font-weight:600;')
+        : 'color:var(--green);font-weight:600;';
+    return `<span style="font-size:0.78rem;${cls}">${versLabel} · ${diag || '—'}${cont}</span>`;
   }
   if(syncKey === 'map_parental' || syncKey === 'map_pi' ||
      syncKey === 'map_1214'    || syncKey === 'map_1518') {
@@ -4377,6 +4864,137 @@ function formatScoreSummary(scores, syncKey) {
     const totPr = scores['Total_PR'] ?? scores['TOT_PR'];
     if(sopPr != null || sppPr != null) {
       return `<span style=\"font-size:0.78rem;color:var(--blue);font-weight:600;\">SOP-PR=${sopPr ?? '–'}/20 · SPP-PR=${sppPr ?? '–'}/25 (informante)${totPr != null ? ' · Total='+totPr+'/45' : ''} · referência provisória</span>`;
+    }
+  }
+  // ── SIAS · SPS · Escalas de Ansiedade Social (v113) ──
+  // Resumo em MÉDIAS POR ITEM (0–4) e no contraste — nunca nos totais, que dependem
+  // do número de itens da versão. Paleta azul apenas: o instrumento não tem normas
+  // portuguesas nem pontos de corte, pelo que qualquer codificação de gravidade por
+  // cor seria um juízo que o instrumento não autoriza.
+  // ⚠ Guarda != null OBRIGATÓRIA: média 0 e contraste 0 ou negativo são resultados
+  //   legítimos. Escala não interpretável (mais de 2 omissos) chega como 'n.i.'.
+  if(syncKey === 'sias_sps' || syncKey === 'SIAS_SPS') {
+    const mS = scores['SIAS_Media'] ?? scores['sias_media'] ?? scores['SIAS_Média'];
+    const mP = scores['SPS_Media']  ?? scores['sps_media']  ?? scores['SPS_Média'];
+    const ct = scores['Contraste']  ?? scores['contraste'];
+    if(mS != null || mP != null) {
+      // Só o separador decimal de NÚMEROS é convertido: 'n.i.' (escala não
+      // interpretável) tem de chegar intacto e não pode virar 'n,i.'.
+      const f = v => (v == null || v === '') ? '–' : (typeof v === 'number' ? String(v).replace('.', ',') : String(v));
+      const sinal = (typeof ct === 'number' && ct > 0) ? '+' : '';
+      return '<span style="font-size:0.78rem;color:var(--blue);font-weight:600;">Interação (SIAS) = ' + f(mS) +
+             ' · Escrutínio (SPS) = ' + f(mP) +
+             (ct != null && ct !== '' ? ' · contraste ' + sinal + f(ct) : '') + '</span>';
+    }
+  }
+  // ── BRIEF-A · Autorrelato e Informante (v116) ──
+  // Inserida ANTES do fallback genérico (que preempta qualquer branch colocada depois).
+  // ⚠ Paleta AZUL apenas nas escalas e índices: o instrumento, tal como está
+  //   implementado, devolve exclusivamente pontuações BRUTAS e não converte para
+  //   T-score nem percentil. Codificar cor por gravidade seria emitir um juízo
+  //   normativo que estes valores não autorizam. O vermelho fica reservado aos dois
+  //   sinalizadores binários de validade (Infrequência ≥ 3 · Inconsistência ≥ 8).
+  // ⚠ Guarda != null OBRIGATÓRIA (nunca ||): Infrequência = 0 e Inconsistência = 0
+  //   são resultados legítimos — protocolo válido — e não ausência de dados.
+  if(syncKey === 'brief_a_auto' || syncKey === 'brief_a_inf') {
+    const gecA = scores['GEC'] ?? scores['gec'];
+    const briA = scores['BRI'] ?? scores['bri'];
+    const miA  = scores['MI']  ?? scores['mi'];
+    const infA = scores['INFREQ'] ?? scores['infreq'] ?? scores['Infrequência'];
+    const incA = scores['INCONS'] ?? scores['incons'] ?? scores['Inconsistência'];
+    if(gecA != null || briA != null || miA != null) {
+      const flagsA = [];
+      if(infA != null && Number(infA) >= 3) flagsA.push('Infreq.');
+      if(incA != null && Number(incA) >= 8) flagsA.push('Incons.');
+      const avisoA = flagsA.length
+        ? ' · <span style="color:#C0392B;font-weight:700;">' + flagsA.join(' / ') + '</span>'
+        : '';
+      const partesA = [];
+      if(briA != null) partesA.push('BRI ' + briA + '/90');
+      if(miA  != null) partesA.push('MI ' + miA + '/120');
+      if(gecA != null) partesA.push('GEC ' + gecA + '/210');
+      return '<span style="font-size:0.78rem;color:var(--blue);font-weight:600;">' +
+             partesA.join(' · ') + ' (brutos, sem conversão normativa)' + avisoA + '</span>';
+    }
+  }
+  // ── ESS — Escala de Sonolência de Epworth ────────────────────────
+  // Inserida ANTES do fallback genérico (que preempta qualquer branch colocada depois).
+  // Guardas `!= null` (nunca `||`) — o total 0 é um resultado válido e informativo
+  // («Sonolência normal»: a menor propensão possível para adormecer).
+  // Cores pelas bandas do Sistema A, que são explicitamente de gravidade nos pontos de
+  // corte publicados; o vermelho escuro fica reservado à banda 16–24.
+  if(syncKey === 'ess') {
+    const tot  = scores['Total'] ?? scores['total'] ?? scores['Total ESS'];
+    const sisA = scores['Sistema_A'] ?? scores['sistema_a'] ?? scores['Sistema A'] ?? '';
+    const nat  = scores['Natureza'] ?? scores['natureza'] ?? '';
+    const conc = scores['Concordancia'] ?? scores['concordancia'] ?? '';
+    if(tot != null && tot !== '') {
+      const v = Number(tot);
+      const cls = v >= 16 ? 'color:#8E2A20;font-weight:700;'
+                : v >= 11 ? 'color:#C0392B;font-weight:700;'
+                : v >= 8  ? 'color:#E67E22;font-weight:600;'
+                          : 'color:var(--green);font-weight:600;';
+      // Estimativa pró-rateada (6–7 itens, R4) — não comparável a normas: assinalar sempre.
+      const estim = String(nat).indexOf('Estimativa') === 0
+        ? ' · <span style="color:#E67E22;font-weight:600;">estimativa pró-rateada</span>' : '';
+      // Divergência A-01 (pontuação 10): sinalizador binário, único elemento a vermelho aqui.
+      const diverg = String(conc).indexOf('DIVERG') === 0
+        ? ' · <span style="color:#C0392B;font-weight:700;">divergência A-01</span>' : '';
+      return '<span style="font-size:0.78rem;' + cls + '">ESS = ' + v + '/24'
+           + (sisA ? ' · ' + sisA : '') + '</span>' + estim + diverg;
+    }
+  }
+  // ── STOP-BANG — Rastreio de risco de apneia obstrutiva do sono ───
+  // Inserida ANTES do fallback genérico (que preempta qualquer branch colocada depois).
+  // Guardas `!= null` (nunca `||`) — o total 0 é um resultado válido e informativo
+  // («Risco baixo»: a menor acumulação possível de fatores de risco).
+  // Cores pelas bandas do documento-fonte, que são explicitamente de RISCO nos pontos
+  // de corte publicados; o vermelho fica reservado às classificações de risco elevado.
+  // A divergência entre critérios de perímetro cervical é um sinalizador BINÁRIO,
+  // não uma medida de gravidade — assinalada a vermelho, sem alterar a banda.
+  if(syncKey === 'stopbang') {
+    const tot  = scores['TotalPT'] ?? scores['totalPT'] ?? scores['Total'];
+    const cls  = scores['ClassificacaoFinal'] ?? scores['classificacaoFinal'] ?? '';
+    const conc = scores['Concordancia'] ?? scores['concordancia'] ?? '';
+    const pq   = scores['ProbabilidadeSAOS'] ?? scores['probabilidadeSAOS'] ?? '';
+    if(tot != null && tot !== '') {
+      const v = Number(tot);
+      const est = String(cls).indexOf('elevado') !== -1 ? 'color:#C0392B;font-weight:700;'
+                : String(cls).indexOf('intermédio') !== -1 ? 'color:#E67E22;font-weight:600;'
+                : 'color:var(--green);font-weight:600;';
+      const diverg = String(conc).indexOf('DIVERG') === 0
+        ? ' · <span style="color:#C0392B;font-weight:700;">divergência PT/UHN</span>' : '';
+      const prob = (pq && pq !== 'n.d.') ? ' · p(SAOS) ' + pq : '';
+      return '<span style="font-size:0.78rem;' + est + '">STOP-BANG = ' + v + '/8'
+           + (cls ? ' · ' + cls : '') + prob + '</span>' + diverg;
+    }
+  }
+  // ── EII-PT · Escala de Intolerância à Incerteza (v119) ──────────────
+  // Inserida ANTES do fallback genérico (que preempta qualquer branch colocada depois).
+  // Guardas `!= null` (nunca `||`) — o POMP 0 é resultado válido (pontuação no mínimo
+  // da amplitude teórica) e desapareceria com `||`.
+  // ⚠ Paleta AZUL em todo o resumo: o instrumento devolve POSIÇÃO na amplitude
+  //   teórica, não gravidade. Não tem pontos de corte nem normas portuguesas, pelo que
+  //   nenhuma banda pode ser pintada de laranja ou de vermelho. O vermelho fica
+  //   reservado ao único sinalizador binário — o padrão de resposta invariante.
+  if(syncKey === 'eii27_a' || syncKey === 'eii27_j' ||
+     syncKey === 'eii12_a' || syncKey === 'eii12_j') {
+    const _e27 = (syncKey === 'eii27_a' || syncKey === 'eii27_j');
+    const _ek  = _e27 ? 'EII27_TOTAL' : 'EII12_TOTAL';
+    const _rot = _e27 ? 'EII-27' : 'EII-12';
+    const _amp = _e27 ? '/135' : '/60';
+    const tot  = scores[_ek] ?? scores[_ek.toLowerCase()] ?? scores['Total'];
+    const pmp  = scores[_ek + '_POMP'] ?? scores[_ek.toLowerCase() + '_pomp'];
+    const bnd  = scores[_ek + '_Banda'] ?? scores[_ek.toLowerCase() + '_banda'] ?? '';
+    const dpi  = scores['DP_Itens'] ?? scores['dp_itens'];
+    if(tot != null && tot !== '') {
+      const p = (pmp != null && pmp !== '') ? String(pmp).replace('.', ',') : null;
+      const inv = (dpi != null && dpi !== '' && Number(dpi) === 0)
+        ? ' · <span style="color:#C0392B;font-weight:700;">\u2691 resposta invariante</span>' : '';
+      return '<span style="font-size:0.78rem;color:var(--blue);font-weight:600;">'
+           + _rot + ' = ' + String(tot).replace('.', ',') + _amp
+           + (p ? ' · POMP ' + p : '')
+           + (bnd ? ' · ' + bnd : '') + '</span>' + inv;
     }
   }
   // Genérico
@@ -5355,6 +5973,52 @@ function renderAssignments(patientId) {
             // ── Verificação nome-primeiro, relação como fallback ──
             function matchRespondent(row, aba, recip) {
               const NC = {
+                // ── Família EIF · as duas formas partilham a aba (nome primeiro) ──
+                // O tipo de respondente repete-se entre linhas legítimas (dois
+                // cuidadores no mesmo dia), pelo que o discriminante efectivo é o NOME.
+                'EIFP':['NomeInformante','NomeCriança','Informante'],
+                'EIFA':['NomeInformante','NomeUtente','Informante'],
+                'EIFJ':['NomeInformante','NomeUtente','Informante'],
+                // ── CAARS · S:L e O:L (nome primeiro; tipo como fallback) ──
+                // Na forma O:L o campo de tipo guarda a RELAÇÃO com a pessoa avaliada e
+                // pode repetir-se em duas linhas legítimas (dois familiares a descrever
+                // a mesma pessoa no mesmo dia), pelo que o discriminante efectivo é o
+                // NOME e vem primeiro. Na S:L o tipo é sempre 'Auto-relato'.
+                'CAARS_SL':['NomeInformante','NomeAvaliado','Informante'],
+                'CAARS_OL':['NomeInformante','Informante'],
+                // ── EII-PT · autorrelato, Formas A e J na mesma aba (nome primeiro) ──
+                // Um progenitor (Forma A) e o jovem (Forma J) podem submeter no mesmo
+                // dia sob o MESMO código: o discriminante efectivo é o NOME e vem
+                // primeiro; 'NomeUtente' cobre os protocolos em que o respondente se
+                // identifica apenas no campo do avaliado.
+                'EII27':['NomeInformante','NomeUtente','Informante'],
+                'EII12':['NomeInformante','NomeUtente','Informante'],
+                // ── PSWQ · autorrelato (nome primeiro; tipo como fallback) ──
+                // O tipo de respondente pode repetir-se em duas linhas legítimas
+                // (jovem e mãe podem ambos registar-se como 'Próprio/a'), pelo que
+                // o discriminante efectivo é o NOME e vem primeiro.
+                'PSWQ':['NomeInformante','Informante'],
+                // ── STOP-BANG · ficha de cotação clínica (nome primeiro; tipo como fallback) ──
+                // O mesmo utente pode ser reavaliado no mesmo dia por profissionais
+                // diferentes: o discriminante efectivo é o NOME e vem primeiro.
+                'STOPBANG':['NomeInformante','Informante'],
+                // ── BAI e BDI-II · autorrelato (nome primeiro; tipo como fallback) ──
+                // O tipo de respondente pode ser o mesmo em duas linhas legítimas
+                // (jovem e mãe podem ambos registar-se como 'Outro'), pelo que o
+                // discriminante efectivo é o NOME e vem primeiro.
+                'BAI':['NomeInformante','Informante'],
+                'BDI2':['NomeInformante','Informante'],
+                // ── SIAS · SPS · Ansiedade Social (autorrelato; nome primeiro) ──
+                // O tipo de respondente é sempre o próprio, com ou sem apoio de um
+                // adulto: o discriminante efectivo é o nome, por isso vem primeiro.
+                'SIAS_SPS':['NomeInformante','NomeAvaliado','Informante'],
+                // ── DIVA-5 · entrevista com três informadores (v112.0) ──
+                // A coluna do NOME do respondente chama-se 'Respondente' (não
+                // 'NomeInformante'): sem esta entrada o instrumento nunca passa
+                // a «Preenchido ✓». O nome vem primeiro porque o próprio, o
+                // parceiro e os pais submetem com o MESMO código, muitas vezes
+                // no mesmo dia — só o nome os distingue.
+                'DIVA5':['Respondente','Relação'],
                 // ── GCSA · Seletividade Alimentar (nome primeiro; tipo como fallback) ──
                 // Cada progenitor preenche um protocolo independente: sem o nome como
                 // primeiro discriminante, a segunda submissão do casal não seria reconhecida.
@@ -5386,6 +6050,8 @@ function renderAssignments(patientId) {
                 'GAD7':['NomeInformante','Informante'],
                 // ── AIS-8 · Escala de Insónia de Atenas (nome primeiro; tipo como fallback) ──
                 'AIS_8':['NomeInformante','Informante'],
+                // ── ESS · Escala de Sonolência de Epworth (autorrelato; nome primeiro, tipo como fallback) ──
+                'ESS_Epworth':['NomeInformante','Informante'],
                 // ── ACE-Q · Experiências Adversas (nome primeiro; tipo/relação como fallback) ──
                 'ACE_Q_ADOLESCENTE':['NomeInformante','Informante'],
                 'ACE_Q_CUIDADOR':['NomeInformante','Relação','Informante'],
@@ -5850,6 +6516,31 @@ async function syncAndMark(patientId, idx) {
       const patUpper = String(patient.code).trim().toUpperCase();
       function matchResp2(row, aba2, recip) {
         const NC2 = {
+          // ── Família EIF · as duas formas partilham a aba (nome primeiro) ──
+          'EIFP':['NomeInformante','NomeCriança','Informante'],
+          'EIFA':['NomeInformante','NomeUtente','Informante'],
+          'EIFJ':['NomeInformante','NomeUtente','Informante'],
+          // ── EII-PT · autorrelato, Formas A e J na mesma aba (nome primeiro) ──
+          'EII27':['NomeInformante','NomeUtente','Informante'],
+          'EII12':['NomeInformante','NomeUtente','Informante'],
+          // ── PSWQ · autorrelato (nome primeiro; tipo como fallback) ──
+          'PSWQ':['NomeInformante','Informante'],
+          // ── ESS · Escala de Sonolência de Epworth (autorrelato; nome primeiro, tipo como fallback) ──
+          'ESS_Epworth':['NomeInformante','Informante'],
+          // ── STOP-BANG · ficha de cotação clínica (nome primeiro; tipo como fallback) ──
+          'STOPBANG':['NomeInformante','Informante'],
+          // ── BAI e BDI-II · autorrelato (nome primeiro; tipo como fallback) ──
+          'BAI':['NomeInformante','Informante'],
+          'BDI2':['NomeInformante','Informante'],
+          // ── SIAS · SPS · Ansiedade Social (autorrelato; nome primeiro) ──
+          'SIAS_SPS':['NomeInformante','NomeAvaliado','Informante'],
+          // ── DIVA-5 · entrevista com três informadores (v112.0) ──
+          // A coluna do NOME do respondente chama-se 'Respondente' (não
+          // 'NomeInformante'): sem esta entrada o instrumento nunca passa
+          // a «Preenchido ✓». O nome vem primeiro porque o próprio, o
+          // parceiro e os pais submetem com o MESMO código, muitas vezes
+          // no mesmo dia — só o nome os distingue.
+          'DIVA5':['Respondente','Relação'],
           // ── GCSA · Seletividade Alimentar (nome primeiro; tipo como fallback) ──
           'GCSA':['NomeInformante','Informante'],
           'GCSA_Diario':['NomeInformante','Informante'],

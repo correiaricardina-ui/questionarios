@@ -111,11 +111,14 @@ select.login-input{background:white}
         🟣 <strong>DIVA-5 ID</strong> — Pessoas com Deficiência Intelectual<br><br>
         <em>Seleccionar a versão pretendida no formulário de preenchimento.</em>
       </div>
+      <div style="background:#FFF8EC;border-left:4px solid #D68910;border-radius:8px;padding:12px 16px;margin-bottom:24px;text-align:left;font-size:.82rem;color:var(--text-light);line-height:1.6">
+        <strong style="color:#D68910">Estatuto deste registo.</strong> A DIVA-5 é uma <strong>entrevista clínica semiestruturada</strong>. Este formulário é um <strong>registo estruturado de preparação</strong>: organiza a informação antes da consulta, mas <strong>não substitui a entrevista</strong> nem produz cotação ou conclusão diagnóstica por si só. Cada critério será retomado em consulta, com pedido de exemplos concretos.
+      </div>
       <div class="landing-btns">
         <div class="landing-btn" onclick="iniciarQuestionario()">
           <div class="landing-btn-icon">📋</div>
-          <div class="landing-btn-title">Preencher Entrevista</div>
-          <div class="landing-btn-sub">Para o clínico administrar</div>
+          <div class="landing-btn-title">Preencher Registo</div>
+          <div class="landing-btn-sub">Registo estruturado pré-entrevista</div>
         </div>
         <div class="landing-btn" onclick="showClinico()">
           <div class="landing-btn-icon">🔒</div>
@@ -229,7 +232,7 @@ select.login-input{background:white}
         <div style="flex:1;height:2px;background:var(--blue)"></div>
         <div style="display:flex;align-items:center;gap:6px">
           <div style="width:28px;height:28px;border-radius:50%;background:var(--blue);color:white;display:flex;align-items:center;justify-content:center;font-size:.82rem;font-weight:700">2</div>
-          <span style="font-size:.82rem;font-weight:600;color:var(--blue)">Entrevista (18 critérios)</span>
+          <span style="font-size:.82rem;font-weight:600;color:var(--blue)">Registo (18 critérios)</span>
         </div>
       </div>
 
@@ -242,6 +245,8 @@ select.login-input{background:white}
 
       <div id="versao-badge-container" style="margin-bottom:8px"></div>
 
+      <div id="orientacao-informador" style="display:none;border-left:4px solid var(--blue);background:#fff;border-radius:8px;padding:12px 16px;margin-bottom:16px;font-size:.86rem;line-height:1.6"></div>
+
       <div style="background:var(--blue-xpale);border-radius:10px;padding:12px 16px;margin-bottom:20px;font-size:.84rem;color:var(--text-light);line-height:1.6">
         <strong style="color:var(--blue)">Instruções de cotação:</strong>
         Para cada critério, marcar <strong>Presente</strong> se o comportamento ocorre com maior frequência ou severidade do que em pares de mesma idade/QI, E está associado a comprometimento funcional.
@@ -252,7 +257,7 @@ select.login-input{background:white}
 
       <div style="display:flex;justify-content:space-between;margin-top:20px;gap:12px" class="no-print">
         <button class="btn btn-secondary" onclick="voltarParaIdentificacao()">← Identificação</button>
-        <button class="btn btn-primary" onclick="submeter()">Submeter Entrevista →</button>
+        <button class="btn btn-primary" onclick="submeter()">Submeter Registo →</button>
       </div>
     </div>
 
@@ -264,10 +269,11 @@ select.login-input{background:white}
   <div style="padding:16px">
     <div class="card" style="max-width:600px;margin:60px auto;text-align:center">
       <div style="font-size:3rem;margin-bottom:16px">✅</div>
-      <div style="font-family:'DM Serif Display',serif;font-size:1.8rem;color:var(--blue);margin-bottom:12px">Entrevista registada!</div>
-      <div style="color:var(--text-light);line-height:1.6">
-        Os dados foram guardados com sucesso.<br>
-        A Dra. Ricardina Correia analisará os resultados e entrará em contacto.
+      <div style="font-family:'DM Serif Display',serif;font-size:1.8rem;color:var(--blue);margin-bottom:12px">Registo submetido</div>
+      <div style="color:var(--text-light);line-height:1.6;text-align:left">
+        <p style="margin:0 0 12px">Obrigada pelo tempo dedicado a este preenchimento.</p>
+        <p style="margin:0 0 12px">Este registo é um <strong>apoio à preparação da entrevista clínica</strong>. Não produz, por si só, qualquer resultado ou conclusão: as respostas serão retomadas em consulta, uma a uma, com pedido de exemplos concretos.</p>
+        <p style="margin:0">Por esse motivo <strong>não é apresentado aqui nenhum resultado</strong>. A Dra. Ricardina Correia entrará em contacto para agendar a sessão.</p>
       </div>
       <div style="margin-top:28px">
         <button class="btn btn-secondary" onclick="showPage('page-home');window.scrollTo(0,0)">← Página inicial</button>
@@ -363,7 +369,7 @@ select.login-input{background:white}
   if(location.protocol==='file:'){
     var banner=document.createElement('div');
     banner.style.cssText='background:#C0392B;color:white;text-align:center;padding:10px 20px;font-size:.85rem;font-family:DM Sans,sans-serif;font-weight:600;position:sticky;top:0;z-index:9999;';
-    banner.innerHTML='&#9888; Ficheiro aberto localmente — os dados NÃO serão enviados para o servidor.';
+    banner.innerHTML='&#9888; Ficheiro aberto localmente — os dados N\u00c3O ser\u00e3o enviados automaticamente. No fim, ser\u00e1 descarregado um ficheiro CSV: envie-o \u00e0 Dra. Ricardina Correia.';
     document.body.insertBefore(banner,document.body.firstChild);
   }
 })();
@@ -551,7 +557,32 @@ function voltarParaIdentificacao(){
 }
 
 // ── RENDER ENTREVISTA ─────────────────────────────────────────
+function orientarInformador(){
+  var rel=(document.getElementById('relacao')||{}).value||'';
+  var box=document.getElementById('orientacao-informador');
+  if(!box) return;
+  var t='';
+  if(rel==='O próprio paciente'){
+    t='<strong style="color:var(--blue)">Preencha as duas colunas.</strong><br>'+
+      '<em>Adultez</em> — como é hoje, nos últimos 6 meses. <em>Infância</em> — como era entre os 5 e os 12 anos.'+
+      '<br>Responda a partir da sua experiência, sem tentar antecipar o que seria "a resposta certa". Onde não tiver a certeza, marque <strong>?</strong> — é uma resposta legítima e útil.';
+  } else if(rel==='Parceiro(a)'){
+    t='<strong style="color:var(--blue)">Preencha apenas a coluna <em>Adultez</em>.</strong><br>'+
+      'Responda ao que <strong>observa</strong> no dia a dia, não ao que lhe foi descrito. Na coluna <em>Infância</em>, marque <strong>?</strong> em todos os itens — esse período será respondido por quem o acompanhou.'+
+      '<br>Preencha <strong>sozinho(a)</strong>, sem consultar ou comparar respostas com ninguém.';
+  } else if(rel==='Mãe'||rel==='Pai'||rel==='Encarregado de Educação'||rel==='Outro familiar'){
+    t='<strong style="color:var(--blue)">Preencha apenas a coluna <em>Infância</em> (5–12 anos).</strong><br>'+
+      'Responda ao que recorda desse período. Na coluna <em>Adultez</em>, marque <strong>?</strong> em todos os itens.'+
+      '<br>Se tiver cadernos, cadernetas ou fichas dessa altura, consulte-os enquanto responde — ajudam mais do que a memória.'+
+      '<br>Preencha <strong>sem a presença da pessoa avaliada</strong> e sem consultar as respostas de outros informadores.';
+  } else if(rel){
+    t='<strong style="color:var(--blue)">Preencha as colunas sobre as quais tem conhecimento direto.</strong><br>Nas restantes, marque <strong>?</strong>.';
+  }
+  if(t){ box.innerHTML=t; box.style.display='block'; } else { box.style.display='none'; }
+}
+
 function renderEntrevista(){
+  orientarInformador();
   var v=document.getElementById('versao').value;
   var badgeMap={adultos:'versao-adultos',young:'versao-young',id:'versao-id'};
   var badgeTxt={adultos:'🔵 DIVA-5 Adultos',young:'🟦 Young DIVA-5',id:'🟣 DIVA-5 ID'};
@@ -680,14 +711,61 @@ function cotar(){
     scores={desatAdult:desatAdult,desatInf:desatInf,hiAdult:hiAdult,hiInf:hiInf,thr:thr,versao:v};
   }
 
-  // Diagnóstico
-  var desatOk=(v==='young')?(desatJ>=thr||desatP>=thr):(desatAdult>=thr);
-  var hiOk=(v==='young')?(hiJ>=thr||hiP>=thr):(hiAdult>=thr);
-  var diag='Não preenche critérios';
-  if(desatOk&&hiOk) diag='Combinado';
-  else if(desatOk) diag='Predominantemente Desatento';
-  else if(hiOk) diag='Predominantemente H/I';
-  scores.diag=diag;
+  // ── CRITÉRIO A (período actual) ──────────────────────────────
+  var desatOkA=(v==='young')?(desatJ>=thr||desatP>=thr):(desatAdult>=thr);
+  var hiOkA=(v==='young')?(hiJ>=thr||hiP>=thr):(hiAdult>=thr);
+
+  if(v==='young'){
+    // Young DIVA-5 mantém a lógica original (jovem OU pais)
+    var diagY='Não preenche critérios';
+    if(desatOkA&&hiOkA) diagY='Combinado';
+    else if(desatOkA) diagY='Predominantemente Desatento';
+    else if(hiOkA) diagY='Predominantemente H/I';
+    scores.diag=diagY;
+    scores.critB='n/a';
+    return scores;
+  }
+
+  // ── CRITÉRIO B (infância 5–12 anos) — DSM-5-TR ───────────────
+  // O Critério B é condição NECESSÁRIA. Contam-se as respostas dadas
+  // na coluna Infância para distinguir "ausente" de "não avaliado".
+  var respInf=0;
+  CRITERIOS.forEach(function(c){
+    var r=respostas[c.cod+'_I'];
+    if(r==='Sim'||r==='Não') respInf++;
+  });
+
+  var THR_B_DSM=2;      // DSM-5-TR: "vários sintomas antes dos 12 anos"
+  var THR_B_DIVA=thr;   // DIVA-5 formal: mesmo limiar em ambos os períodos
+
+  var desatOkB_dsm=(desatInf>=THR_B_DSM), hiOkB_dsm=(hiInf>=THR_B_DSM);
+  var desatOkB_diva=(desatInf>=THR_B_DIVA), hiOkB_diva=(hiInf>=THR_B_DIVA);
+
+  // Estado do Critério B
+  var critB;
+  if(respInf===0) critB='NÃO AVALIADO — coluna Infância por preencher';
+  else if(respInf<9) critB='PARCIALMENTE AVALIADO ('+respInf+'/18 itens)';
+  else if(desatOkB_diva||hiOkB_diva) critB='PREENCHIDO — limiar DIVA-5 (\u2265'+THR_B_DIVA+')';
+  else if(desatOkB_dsm||hiOkB_dsm) critB='PREENCHIDO — DSM-5-TR "vários" (\u2265'+THR_B_DSM+'), abaixo do limiar DIVA-5';
+  else critB='NÃO PREENCHIDO — sintomatologia de infância abaixo de '+THR_B_DSM;
+  scores.critB=critB;
+  scores.respInf=respInf;
+
+  // ── APRESENTAÇÃO — exige A **e** B ───────────────────────────
+  function apres(dOk,hOk){
+    if(dOk&&hOk) return 'Combinado';
+    if(dOk) return 'Predominantemente Desatento';
+    if(hOk) return 'Predominantemente H/I';
+    return 'Não preenche critérios';
+  }
+  scores.diagDSM  = (respInf===0) ? 'INDETERMINADO — Critério B não avaliado'
+                                  : apres(desatOkA&&desatOkB_dsm,  hiOkA&&hiOkB_dsm);
+  scores.diagDIVA = (respInf===0) ? 'INDETERMINADO — Critério B não avaliado'
+                                  : apres(desatOkA&&desatOkB_diva, hiOkA&&hiOkB_diva);
+
+  // Campo legado: leitura mais conservadora (regra DSM-5-TR), sempre provisória
+  scores.diag = scores.diagDSM + ' \u00b7 PROVISÓRIO';
+  scores.criteriosPorVerificar='C (\u22652 contextos) \u00b7 D (interferência) \u00b7 E (exclusão de outro quadro) — não recolhidos por este registo';
   return scores;
 }
 
@@ -748,7 +826,7 @@ function submeter(){
       var linhas=[
         ['Data','Código','NomeCriança','Respondente','Relação','Versão','DesatAdult','HI_Adult','Diagnóstico'].join(';'),
         [new Date().toLocaleDateString('pt-PT'),code,nomeCrianca,nomeInf,rel,v,
-         scores.desatAdult||scores.desatJ||0,scores.hiAdult||scores.hiJ||0,scores.diag]
+         'Registo pré-entrevista submetido — cotação reservada ao painel clínico']
           .map(function(val){return '"'+(val+'').replace(/"/g,'""')+'"';}).join(';')
       ];
       var blob=new Blob([bom+linhas.join('\r\n')],{type:'text/csv;charset=utf-8;'});
@@ -974,9 +1052,9 @@ function verDetalhe(sid){
     html+=linhaScore('Hiperatividade/Impulsividade (B) — Pais/EE',sc.hiP||0,thr);
   } else {
     html+=linhaScore('Desatenção (A) — Adultez',sc.desatAdult||0,thr);
-    html+=linhaScore('Desatenção (A) — Infância (5–12a)',sc.desatInf||0,6);
+    html+=linhaScore('Desatenção (A) — Infância (5–12a)',sc.desatInf||0,thr);
     html+=linhaScore('H/I (B) — Adultez',sc.hiAdult||0,thr);
-    html+=linhaScore('H/I (B) — Infância (5–12a)',sc.hiInf||0,6);
+    html+=linhaScore('H/I (B) — Infância (5–12a)',sc.hiInf||0,thr);
   }
   html+='</tbody></table></div>';
 
@@ -985,9 +1063,30 @@ function verDetalhe(sid){
   var diagCls=diag.includes('Combinado')?'badge-clinical':
     (diag.includes('threshold')||diag.includes('Não')?'badge-normative':'badge-borderline');
   html+='<div style="background:var(--blue-xpale);border-radius:10px;padding:14px 18px;margin-bottom:16px">';
-  html+='<div style="font-size:.8rem;color:var(--text-light);margin-bottom:4px">Apresentação Diagnóstica</div>';
+  html+='<div style="font-size:.8rem;color:var(--text-light);margin-bottom:4px">Apresentação Diagnóstica <span style="font-weight:600;color:#D68910">· PROVISÓRIA</span></div>';
   html+='<div style="font-size:1.05rem;font-weight:700;color:var(--blue)">'+diag+'</div>';
+  if(v!=='young'){
+    html+='<div style="margin-top:10px;font-size:.82rem;line-height:1.6;color:var(--text-light)">'+
+      '<div>Regra DSM-5-TR (B \u2265 2): <strong>'+(sc.diagDSM||'—')+'</strong></div>'+
+      '<div>Regra DIVA-5 formal (B \u2265 '+(sc.thr||5)+'): <strong>'+(sc.diagDIVA||'—')+'</strong></div>'+
+      '</div>';
+  }
   html+='</div>';
+
+  // ── Critério B — pervasividade desenvolvimental ──
+  if(v!=='young'){
+    var cb=sc.critB||'—';
+    var cbCor=(cb.indexOf('NÃO AVALIADO')===0||cb.indexOf('PARCIAL')===0)?'#D68910':
+              (cb.indexOf('NÃO PREENCHIDO')===0?'#E0422B':'#3B5A7A');
+    html+='<div style="border-left:4px solid '+cbCor+';background:#fff;border-radius:8px;padding:12px 16px;margin-bottom:16px">';
+    html+='<div style="font-size:.78rem;color:var(--text-light);margin-bottom:4px">Critério B — sintomas antes dos 12 anos <em>(condição necessária)</em></div>';
+    html+='<div style="font-size:.92rem;font-weight:700;color:'+cbCor+'">'+cb+'</div>';
+    html+='<div style="margin-top:8px;font-size:.78rem;color:var(--text-light);line-height:1.6">'+
+      'Critérios <strong>não recolhidos</strong> por este registo e a verificar em entrevista: '+
+      (sc.criteriosPorVerificar||'C (\u22652 contextos) \u00b7 D (interferência) \u00b7 E (exclusão de outro quadro)')+'.'+
+      '</div>';
+    html+='</div>';
+  }
 
   // ── Interpretação ──
   html+='<div style="margin-top:4px">';
