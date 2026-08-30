@@ -6556,6 +6556,10 @@ async function syncAndMark(patientId, idx) {
           'QCFP':['NomeInformante','Informante'],
           // ── QRF-C · Relação Fraterna (autorrelato: respondente = a própria criança) ──
           'QRFC':['NomeInformante','NomeCriança','NomeCrianca'],
+          // ── CBQ-SF · Temperamento (nome primeiro; tipo como fallback) ──
+          // Mãe e pai podem preencher no mesmo dia para a mesma criança: sem o nome
+          // como primeiro discriminante, a segunda submissão não é reconhecida.
+          'CBQ_SF':['NomeInformante','Informante'],
           // ── QCVE-P · Comportamento Verbal Escolar (nome primeiro; tipo como fallback) ──
           'QCVEP_PROF':['NomeInformante','Informante'],
           // ── SMQ · Mutismo Seletivo (nome primeiro; tipo/relação como fallback) ──
