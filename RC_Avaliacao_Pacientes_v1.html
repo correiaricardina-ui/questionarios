@@ -4189,8 +4189,20 @@ function formatScoreSummary(scores, syncKey) {
     const cc  = scores['CC']  ?? scores['cc'];
     const sc  = scores['SC']  ?? scores['sc'];
     const pc  = scores['PC']  ?? scores['pc'];
-    if(gac != null) {
-      const cls = gac >= 90 ? 'color:var(--green);font-weight:600;' : gac >= 80 ? 'color:#E67E22;font-weight:600;' : 'color:#C0392B;font-weight:700;';
+    // O ABAS3_Pais_v2 deixou de produzir conversão normativa (sem tabelas oficiais
+    // por idade) e envia 'n.i.' em CAG/CC/SC/PC. Sem esta guarda, 'n.i.' >= 90 é
+    // false e a linha aparecia a vermelho, sugerindo falsamente défice grave.
+    const gacNum = (gac !== null && gac !== undefined && gac !== '' && isFinite(Number(gac))) ? Number(gac) : null;
+    if(gacNum === null && gac != null && gac !== '') {
+      const codsSB = ['COM','CU','FA','HL','HS','LE','SD','SO','WK'];
+      const nBrutos = codsSB.filter(function(c){
+        const v = scores[c+'_SB'];
+        return v !== null && v !== undefined && v !== '' && isFinite(Number(v));
+      }).length;
+      return '<span style="font-size:0.78rem;color:var(--blue)">Brutos registados (' + nBrutos + '/9 dom&iacute;nios) &middot; sem convers&atilde;o normativa</span>';
+    }
+    if(gacNum != null) {
+      const cls = gacNum >= 90 ? 'color:var(--green);font-weight:600;' : gacNum >= 80 ? 'color:#E67E22;font-weight:600;' : 'color:#C0392B;font-weight:700;';
       return `<span style="font-size:0.78rem;${cls}">CAG = ${gac}${cc!=null?' · CC='+cc:''}${sc!=null?' SC='+sc:''}${pc!=null?' PC='+pc:''}</span>`;
     }
   }

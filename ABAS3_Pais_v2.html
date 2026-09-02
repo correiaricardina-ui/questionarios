@@ -1,4 +1,24 @@
 <!DOCTYPE html>
+<!-- ABAS-3 Pais/Cuidadores (>6) v2.4 — correcção de bug de submissão + verificação de idade.
+     v2.4:
+       • Verificação de idade obrigatória antes de iniciar: campo numérico 1–25 anos,
+         cruzado com a data de nascimento embutida no código do paciente (aviso se
+         divergir mais de 2 anos) e aviso quando a idade é inferior a 6 anos.
+       • A regra NA_IDADE (itens estruturalmente inaplicáveis à faixa pré-escolar)
+         deixa de ser aplicada incondicionalmente: só actua abaixo dos 6 anos. Acima
+         disso não há pré-marcação — antes, uma criança de 7 anos ficava com 72 dos
+         147 itens marcados N/A e com Habilidades Académicas e Trabalho por cotar.
+       • A etiqueta "n/aplic. à idade" nos itens só aparece quando a regra está activa.
+     v2.3 (bug fix, sem mudança de nome de ficheiro):
+       • submeter() alinhado com o modelo de cotação do PATCH v3 (brutos administrados
+         + saturação). A versão anterior lia res.ss/res.cag, que o PATCH v3 já não
+         devolve → TypeError não capturado → o botão "Submeter" não fazia nada.
+       • saltarDominio(): marca N/A (não 0) e submete quando a secção opcional é a última;
+         antes ficava em ciclo fechado no último domínio, sem submeter.
+       • navDomain(): restaurados updateSteps() e scrollTo(0,0).
+       • Rótulos dos botões deixam de mostrar entidades HTML em bruto.
+       • CSV de salvaguarda reescrito para brutos/saturação/leitura.
+     NÃO renomear este ficheiro — ver Secção 32 do SKILL. -->
 <html lang="pt">
 <head>
 <meta charset="UTF-8">
@@ -182,7 +202,7 @@ input[type=text]:focus,select:focus{border-color:var(--blue-mid)}
     <input type="text" id="nome-informante" placeholder="ex: Ana Valente">
   </div>
   <div style="margin-bottom:24px">
-    <label class="field-label">Idade da crian&ccedil;a (em anos)</label>
+    <label class="field-label">Idade da crian&ccedil;a (em anos) <span style="color:var(--blue)">*</span></label>
     <input type="text" id="idade-crianca" placeholder="ex: 8">
   </div>
   <div style="background:var(--blue-xpale);border-radius:10px;padding:16px;margin-bottom:24px;font-size:.85rem;line-height:1.7">
@@ -271,9 +291,7 @@ input[type=text]:focus,select:focus{border-color:var(--blue-mid)}
       <button class="btn btn-secondary" style="padding:6px 14px;font-size:.8rem" onclick="importarCSV()">&#8679; Importar</button>
       <button class="btn btn-secondary" style="padding:6px 14px;font-size:.8rem" onclick="exportarCSV()">&#8681; Exportar CSV</button>
       <button class="btn btn-secondary" style="padding:6px 14px;font-size:.8rem" onclick="exportarPDF()">&#128196; Exportar PDF</button>
-      <button class="btn btn-secondary" style="padding:6px 14px;font-size:.8rem" onclick="exportarRespostasPDF(sessaoActual)">&#128203; Respostas PDF</button>
       <button class="btn btn-secondary" style="padding:6px 14px;font-size:.8rem" onclick="window.print()">&#128424; Imprimir</button>
-      <button class="btn btn-secondary" style="padding:6px 14px;font-size:.8rem;background:var(--blue-pale);color:var(--blue);font-weight:600" onclick="exportarRelatorioCompleto(sessaoActual)">&#128202; Relat&oacute;rio Completo</button>
       <input type="file" id="import-file-input" accept=".csv" style="display:none" onchange="processarFicheiroImportado(this)">
     </div>
     <div id="import-feedback" style="margin-bottom:10px;display:none"></div>
@@ -1348,12 +1366,52 @@ function exportarRelatorioCompleto(sessao) {
   }
 
   // ── 5. Limiares de refer\u00eancia ──
-  var limiaresHtml =
+  // Sess\u00f5es antigas (com SS/CAG gravados) mant\u00eam os limiares normativos.
+  // Sess\u00f5es do modelo v3 n\u00e3o t\u00eam convers\u00e3o normativa: mostra-se a tabela de
+  // brutos administrados + satura\u00e7\u00e3o + leitura, que \u00e9 o que de facto foi cotado.
+  var temNormativoV3 = !!(sessao.cag || (sessao.ss && Object.keys(sessao.ss).length > 0));
+  var limiaresHtml;
+  if (temNormativoV3) {
+  limiaresHtml =
     '<div style="background:#f8f9fa;border-radius:4px;padding:10px 12px;font-size:10px;color:#6B7A8D;margin-bottom:18px;">' +
     '<strong>Limiares de refer\u00eancia:</strong> ' +
     'SS \u2265 8 = Normativo \u00b7 SS 6\u20137 = Borderline \u00b7 SS \u2264 5 = Cl\u00ednico &nbsp;|&nbsp; ' +
     'CAG \u2265 90 = Normativo \u00b7 CAG 80\u201389 = Borderline \u00b7 CAG \u2264 79 = Cl\u00ednico' +
     '</div>';
+  } else {
+    var _ansV3 = typeof sessao.answers === 'string' ? sessao.answers.split('|') : (sessao.answers || []);
+    var _resV3 = calcularResultados(_ansV3);
+    var _nomeV3 = {COM:'Comunica\u00e7\u00e3o', CU:'Recursos Comunit\u00e1rios/Escolares', FA:'Habilidades Acad\u00e9micas',
+                   HL:'Vida no Lar/Sala', HS:'Sa\u00fade e Seguran\u00e7a', LE:'Lazer',
+                   SD:'Autonomia Pessoal', SO:'Socializa\u00e7\u00e3o', WK:'Trabalho'};
+    limiaresHtml =
+      '<h2>Scores por Dom\u00ednio</h2>' +
+      '<table><thead><tr><th>Dom\u00ednio</th><th>Bruto administrado</th><th>Itens respondidos</th>' +
+      '<th>Satura\u00e7\u00e3o</th><th>Leitura</th></tr></thead><tbody>';
+    DOMAINS.forEach(function(d) {
+      var x = _resV3.dom[d.code];
+      var cor = x.leitura === 'Reservada' ? '#B8860B' : (x.leitura === '\u2014' ? '#999' : '#3B5A7A');
+      limiaresHtml +=
+        '<tr><td>' + (_nomeV3[d.code] || d.code) + '</td>' +
+        '<td style="text-align:center">' + ((x.adm > 0 && x.sb != null) ? x.sb : 'n.i.') + '</td>' +
+        '<td style="text-align:center">' + x.adm + '/' + x.tot + '</td>' +
+        '<td style="text-align:center">' + Math.round(x.sat * 100) + '%</td>' +
+        '<td style="text-align:center;color:' + cor + ';font-weight:600">' + x.leitura + '</td></tr>';
+    });
+    limiaresHtml += '</tbody></table>';
+    if (typeof sinteseABAS === 'function') {
+      limiaresHtml += '<h2>S\u00edntese interpretativa</h2>' +
+        '<div style="font-size:12px;line-height:1.6;margin-bottom:12px">' + sinteseABAS(_resV3) + '</div>';
+    }
+    limiaresHtml +=
+      '<div style="background:#FCF3E2;border-left:4px solid #D68910;border-radius:4px;padding:10px 12px;' +
+      'font-size:10px;color:#7A5B12;margin-bottom:18px;">' +
+      '<strong>Registo sem convers\u00e3o normativa.</strong> N\u00e3o s\u00e3o apresentados scores padronizados (SS), ' +
+      '\u00edndices compostos (CC/SC/PC/CAG) nem percentis: a convers\u00e3o normativa do ABAS-3 \u00e9 espec\u00edfica por idade ' +
+      'e faz-se com as tabelas oficiais do manual. Dom\u00ednios com satura\u00e7\u00e3o inferior a 80\u00a0% t\u00eam leitura ' +
+      'reservada \u2014 o bruto reflete sobretudo aus\u00eancia de oportunidade, n\u00e3o compet\u00eancia.' +
+      '</div>';
+  }
 
   // ── 6. Respostas item a item ──
   var respostasHtml = '';
@@ -1566,6 +1624,35 @@ function exportarInterpretacaoPDF(sessao) {
   "use strict";
   var NA_IDADE = {"COM": [1, 2, 4, 7, 8, 15, 17, 19], "CU": [0, 1, 2, 3, 4, 7, 9, 10, 12, 13, 16], "FA": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13], "HL": [1, 2, 3, 4, 6, 9, 13, 14, 16], "HS": [0, 1, 2, 6, 9, 10, 11, 15], "LE": [6], "SD": [5, 10, 12], "SO": [17], "WK": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]};          // {DOM:[idx,...]}
   var SAT_MIN = 0.80;                   // saturação mínima para leitura válida
+  var IDADE_LIMITE_PRE_ESCOLAR = 6;     // anos: abaixo disto aplica-se a regra N/A pré-escolar
+  var regraNAactiva = false;            // só fica verdadeira quando a idade a justifica
+
+  // idade em anos derivada da data de nascimento embutida no código do paciente
+  // (2–3 iniciais + DDMMAAAA). Devolve null se o código não for interpretável.
+  function idadeDoCodigo(code){
+    var m = /^[A-Z]{2,3}(\d{2})(\d{2})(\d{4})$/.exec((code||'').toUpperCase());
+    if(!m) return null;
+    var dia=+m[1], mes=+m[2], ano=+m[3];
+    var nasc=new Date(ano, mes-1, dia);
+    if(isNaN(nasc.getTime()) || nasc.getDate()!==dia || nasc.getMonth()!==(mes-1)) return null;
+    var hoje=new Date();
+    var a=hoje.getFullYear()-ano;
+    var dm=hoje.getMonth()-(mes-1);
+    if(dm<0 || (dm===0 && hoje.getDate()<dia)) a--;
+    return (a>=0 && a<=120) ? a : null;
+  }
+
+  // idade declarada pelo informante; se ausente ou implausível, cai na do código
+  function idadeDeclarada(txt){
+    var m = /-?\d+(?:[.,]\d+)?/.exec(String(txt==null?'':txt).replace(',','.'));
+    var n = m ? parseFloat(m[0].replace(',','.')) : NaN;
+    return (!isNaN(n) && n>0 && n<=25) ? n : null;
+  }
+  window.idadeAnos = function(){
+    var d = idadeDeclarada(patientInfo && patientInfo.idade);
+    if(d != null) return d;
+    return idadeDoCodigo(patientInfo && patientInfo.code);
+  };
 
   // offset global do 1.º item de cada domínio
   function domOffsets(){
@@ -1573,10 +1660,16 @@ function exportarInterpretacaoPDF(sessao) {
     DOMAINS.forEach(function(d){ off[d.code]=acc; acc+=d.items.length; });
     return off;
   }
-  function isNArule(code,i){ return (NA_IDADE[code]||[]).indexOf(i)>=0; }
+  function isNArule(code,i){ return regraNAactiva && (NA_IDADE[code]||[]).indexOf(i)>=0; }
 
-  // pré-marcar respostas segundo a regra (não sobrepõe respostas já dadas)
+  // pré-marcar respostas segundo a regra (não sobrepõe respostas já dadas).
+  // A regra descreve itens estruturalmente inaplicáveis à faixa PRÉ-ESCOLAR, pelo que
+  // só se aplica abaixo dos 6 anos. Acima disso não há pré-marcação: o informante
+  // marca N/A item a item, com o botão que já existe em cada item.
   window.aplicarRegraNA = function(){
+    var idade = idadeAnos();
+    regraNAactiva = (idade != null && idade < IDADE_LIMITE_PRE_ESCOLAR);
+    if(!regraNAactiva) return;
     var off=domOffsets();
     DOMAINS.forEach(function(d){
       (NA_IDADE[d.code]||[]).forEach(function(i){
@@ -1620,14 +1713,15 @@ function exportarInterpretacaoPDF(sessao) {
       html+='</div></div>';
     });
     html+='</div></div>';
+    var isLast=idx===DOMAINS.length-1;
     if(d.optional){
-      html='<div style="text-align:right;margin-bottom:8px"><button class="btn btn-secondary" onclick="saltarDominio()" style="font-size:.82rem;padding:6px 16px">Saltar sec&ccedil;&atilde;o &rarr;</button></div>'+html;
+      var lblSaltar=isLast?'Não se aplica — submeter &#10003;':'Saltar sec&ccedil;&atilde;o &rarr;';
+      html='<div style="text-align:right;margin-bottom:8px"><button class="btn btn-secondary" onclick="saltarDominio()" style="font-size:.82rem;padding:6px 16px">'+lblSaltar+'</button></div>'+html;
     }
     document.getElementById('domain-container').innerHTML=html;
     updateProgress(idx);
     document.getElementById('btn-prev').style.display=idx===0?'none':'';
-    var isLast=idx===DOMAINS.length-1;
-    document.getElementById('btn-next').textContent=isLast?'Submeter &#10003;':'Próximo →';
+    document.getElementById('btn-next').innerHTML=isLast?'Submeter &#10003;':'Pr&oacute;ximo &rarr;';
     document.getElementById('btn-next').onclick=isLast?function(){submeter();}:function(){navDomain(1);};
   };
 
@@ -1647,6 +1741,118 @@ function exportarInterpretacaoPDF(sessao) {
     if(currentDomain<0)currentDomain=0;
     if(currentDomain>=DOMAINS.length)currentDomain=DOMAINS.length-1;
     renderDomain(currentDomain);
+    if(typeof updateSteps==='function') updateSteps(currentDomain);
+    try{ window.scrollTo(0,0); }catch(e){}
+  };
+
+  // ——— saltar secção opcional: marca N/A (não 0) e submete se for a última ———
+  // A versão anterior escrevia '0' em todos os itens (contaminava o bruto com zeros
+  // administrados) e, no último domínio, o navDomain(1) era travado pelo clamp,
+  // deixando o informante em ciclo fechado sem nunca submeter.
+  window.saltarDominio=function(){
+    var d=DOMAINS[currentDomain], o=domOffsets()[d.code];
+    d.items.forEach(function(_,i){ answers[o+i]='NA'; });
+    if(currentDomain===DOMAINS.length-1){ submeter(); return; }
+    navDomain(1);
+  };
+
+  // ——— submissão alinhada com o modelo de cotação v3 ———
+  // calcularResultados() devolve {dom, sb, sat} — NÃO devolve ss/cc/sc/pc/cag.
+  // A submeter() original lia res.ss.COM → TypeError → o botão não fazia nada.
+  var NI='n.i.';   // não interpretável: sem tabelas normativas oficiais do ABAS-3
+  window.submeter=function(){
+    // 1. Validar TODOS os domínios obrigatórios ('NA' conta como resposta válida)
+    var off=domOffsets(), falta=-1;
+    for(var k=0;k<DOMAINS.length;k++){
+      var dk=DOMAINS[k];
+      if(dk.optional) continue;
+      var ok=off[dk.code];
+      for(var i=0;i<dk.items.length;i++){
+        var a=answers[ok+i];
+        if(a===undefined||a===null||a===''){ falta=k; break; }
+      }
+      if(falta>=0) break;
+    }
+    if(falta>=0){
+      var tmp=document.createElement('div'); tmp.innerHTML=DOMAINS[falta].name;
+      alert('Faltam respostas na secção "'+(tmp.textContent||DOMAINS[falta].code)+'".\n\nResponda a todos os itens dessa secção (ou marque N/A) antes de submeter.');
+      currentDomain=falta;
+      renderDomain(falta);
+      if(typeof updateSteps==='function') updateSteps(falta);
+      try{ window.scrollTo(0,0); }catch(e){}
+      return;
+    }
+
+    var res=calcularResultados(answers);
+    var now=new Date();
+
+    // 2. Payload — mantém os nomes de campo já lidos pelo Apps Script.
+    //    Brutos administrados em *_SB (o zero é clinicamente significativo e é
+    //    preservado); *_SS e índices compostos ficam 'n.i.' porque a conversão
+    //    normativa do ABAS-3 exige as tabelas oficiais por idade.
+    var payload={
+      instrumento:'ABAS3_PAIS',
+      patientCode:patientInfo.code,
+      date:now.toISOString(),
+      nomeCrianca:patientInfo.nomeCrianca||'',
+      nomeInformante:patientInfo.nomeInformante||'',
+      parentesco:patientInfo.parentesco||'',
+      idade:patientInfo.idade||'',
+      answers:answers.map(function(a){ return (a===undefined||a===null)?'':a; }).join('|'),
+      CAG:NI, CC:NI, SC:NI, PC:NI
+    };
+    DOMAINS.forEach(function(d){
+      var x=res.dom[d.code];
+      payload[d.code+'_SB']=(x && x.adm>0 && x.sb!=null) ? x.sb : NI;
+      payload[d.code+'_SS']=NI;
+    });
+
+    // 3. CSV de salvaguarda (ficheiro local / sem ligação)
+    try{
+      if(location.protocol==='file:' || !navigator.onLine){
+        var bom='\uFEFF';
+        var linhas=[['Data','C\u00f3digo','NomeCrian\u00e7a','NomeInformante','Parentesco','Idade',
+                     'Dom\u00ednio','Bruto','ItensRespondidos','TotalItens','Satura\u00e7\u00e3o','Leitura'].join(';')];
+        DOMAINS.forEach(function(d){
+          var x=res.dom[d.code];
+          linhas.push([now.toLocaleDateString('pt-PT'), patientInfo.code,
+            patientInfo.nomeCrianca||'', patientInfo.nomeInformante||'',
+            patientInfo.parentesco||'', patientInfo.idade||'',
+            d.code, (x.adm>0 && x.sb!=null)?x.sb:NI, x.adm, x.tot,
+            Math.round(x.sat*100)+'%', x.leitura
+          ].map(function(v){ return '"'+(v+'').replace(/"/g,'""')+'"'; }).join(';'));
+        });
+        var blob=new Blob([bom+linhas.join('\r\n')],{type:'text/csv;charset=utf-8;'});
+        var a=document.createElement('a');
+        a.href=URL.createObjectURL(blob);
+        a.download='ABAS3_'+patientInfo.code+'_'+now.toISOString().slice(0,10)+'.csv';
+        document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      }
+    }catch(e){}
+
+    // 4. Enviar ao Sheet central
+    try{
+      var _p=fetch(SCRIPT_URL,{ method:'POST', mode:'no-cors',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify(payload) });
+      if(_p && _p.catch) _p.catch(function(){});
+    }catch(e){}
+
+    // 5. Guardar em memória para o painel clínico desta sessão
+    if(!window._clinico_sessions) window._clinico_sessions=[];
+    window._clinico_sessions.unshift({
+      patientCode:patientInfo.code,
+      date:now.toISOString(),
+      nomeCrianca:patientInfo.nomeCrianca||'',
+      nomeInformante:patientInfo.nomeInformante||'',
+      parentesco:patientInfo.parentesco||'',
+      idade:patientInfo.idade||'',
+      answers:payload.answers,
+      dom:res.dom, sb:res.sb, sat:res.sat
+    });
+
+    showPage('page-obrigado');
+    try{ window.scrollTo(0,0); }catch(e){}
   };
 
   // ——— cotação: brutos administrados, saturação, leitura ———
@@ -1728,13 +1934,137 @@ function exportarInterpretacaoPDF(sessao) {
   var _ini = window.iniciarQuestionario;
   if(typeof _ini==='function'){
     window.iniciarQuestionario=function(){
+      // ── Verificação de idade ──────────────────────────────────────────
+      // Deixa o _ini original alertar primeiro sobre código e nomes, para não
+      // alterar a ordem das mensagens já conhecida pelos informantes.
+      var elC=document.getElementById('patient-code');
+      var elN=document.getElementById('nome-crianca');
+      var elI=document.getElementById('nome-informante');
+      var elIdade=document.getElementById('idade-crianca');
+      var code=elC?elC.value.trim().toUpperCase():'';
+      var nomeC=elN?elN.value.trim():'';
+      var nomeI=elI?elI.value.trim():'';
+      if(!/^[A-Z]{2,3}\d{8}$/.test(code) || !nomeC || !nomeI){
+        return _ini.apply(this,arguments);
+      }
+      var bruto=elIdade?elIdade.value.trim():'';
+      var idadeDecl=idadeDeclarada(bruto);
+      if(!bruto){
+        alert('Por favor indique a idade da criança em anos.\n\nExemplo: 8');
+        if(elIdade) elIdade.focus();
+        return;
+      }
+      if(idadeDecl===null){
+        alert('Idade inválida.\n\nIndique a idade da criança em anos, entre 1 e 25.\nExemplo: 8');
+        if(elIdade) elIdade.focus();
+        return;
+      }
+      var idadeCod=idadeDoCodigo(code);
+      if(idadeCod!==null && Math.abs(idadeCod-idadeDecl)>2){
+        if(!confirm('A idade indicada ('+idadeDecl+' anos) não corresponde à data de nascimento do código do paciente ('+idadeCod+' anos).\n\nVerifique os dados. Deseja continuar mesmo assim?')) {
+          if(elIdade) elIdade.focus();
+          return;
+        }
+      }
+      if(idadeDecl<IDADE_LIMITE_PRE_ESCOLAR){
+        if(!confirm('Esta versão do ABAS-3 destina-se dos 6 aos 21 anos.\n\nPara idades inferiores existe a versão pré-escolar, que é a indicada.\n\nSe continuar, será aplicada a regra de itens não aplicáveis à faixa pré-escolar.\n\nDeseja continuar mesmo assim?')) {
+          if(elIdade) elIdade.focus();
+          return;
+        }
+      }
       var r=_ini.apply(this,arguments);
-      try{ aplicarRegraNA(); if(typeof currentDomain==='number') renderDomain(currentDomain); }catch(e){}
+      try{
+        var pq=document.getElementById('page-questionario');
+        if(pq && pq.style.display!=='none'){
+          aplicarRegraNA();
+          if(typeof currentDomain==='number') renderDomain(currentDomain);
+        }
+      }catch(e){}
       return r;
     };
   }
 })();
 
+
+/* --- exportarCSV / exportarPDF (sobreposição v3): brutos + saturação + leitura --- */
+/* As versões originais liam s.ss / s.cag, que o modelo v3 já não produz.
+   exportarCSV rebentava com TypeError; exportarPDF imprimia "undefined". */
+(function(){
+  "use strict";
+  var NOMES = {COM:'Comunica\u00e7\u00e3o', CU:'Recursos Comunit\u00e1rios/Escolares', FA:'Habilidades Acad\u00e9micas',
+               HL:'Vida no Lar/Sala', HS:'Sa\u00fade e Seguran\u00e7a', LE:'Lazer',
+               SD:'Autonomia Pessoal', SO:'Socializa\u00e7\u00e3o', WK:'Trabalho'};
+
+  function resDe(s){
+    var a = (typeof s.answers === 'string') ? s.answers.split('|') : (s.answers || []);
+    return calcularResultados(a);
+  }
+
+  window.exportarCSV = function(){
+    var bom = '\uFEFF';
+    var cols = ['Data','C\u00f3digo','NomeCrian\u00e7a','NomeInformante','Parentesco','Idade',
+                'Dom\u00ednio','Bruto','ItensRespondidos','TotalItens','Satura\u00e7\u00e3o','Leitura'];
+    var linhas = [cols.join(';')];
+    (sessoes || []).forEach(function(s){
+      var dt = s.date ? new Date(s.date).toLocaleDateString('pt-PT') : '';
+      var res = resDe(s);
+      DOMAINS.forEach(function(d){
+        var x = res.dom[d.code];
+        linhas.push([dt, s.patientCode || '', s.nomeCrianca || '', s.nomeInformante || '',
+          s.parentesco || '', s.idade || '', NOMES[d.code] || d.code,
+          (x.adm > 0 && x.sb != null) ? x.sb : 'n.i.',
+          x.adm, x.tot, Math.round(x.sat * 100) + '%', x.leitura
+        ].map(function(v){ return '"' + (v + '').replace(/"/g, '""') + '"'; }).join(';'));
+      });
+    });
+    var blob = new Blob([bom + linhas.join('\r\n')], {type:'text/csv;charset=utf-8;'});
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'ABAS3_' + new Date().toISOString().slice(0,10) + '.csv';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    try { URL.revokeObjectURL(a.href); } catch(e) {}
+  };
+
+  window.exportarPDF = function(){
+    var html = '<html><head><meta charset="UTF-8"><title>ABAS-3 &mdash; Resultados</title>';
+    html += '<style>body{font-family:sans-serif;font-size:12px;color:#2C3E50;padding:20px}';
+    html += 'h2{color:#3B5A7A;font-size:15px} h3{color:#3B5A7A;font-size:12px;margin:14px 0 4px}';
+    html += 'table{width:100%;border-collapse:collapse;margin-bottom:16px}';
+    html += 'th{background:#3B5A7A;color:white;padding:6px 8px;text-align:left;font-size:11px}';
+    html += 'td{padding:5px 8px;border-bottom:1px solid #DDE3EA}';
+    html += '.no-print{margin-bottom:16px}</style></head><body>';
+    html += '<div class="no-print"><button onclick="window.print()">&#128424; Imprimir / PDF</button></div>';
+    html += '<h2>ABAS-3 &mdash; Adaptive Behavior Assessment System</h2>';
+    html += '<p>Ricardina Correia &middot; C&eacute;dula n.&ordm; 8233 &middot; Psicologia Pedi&aacute;trica &middot; Exportado em: ' +
+            new Date().toLocaleString('pt-PT') + '</p>';
+    html += '<div style="background:#FCF3E2;border-left:4px solid #D68910;padding:10px 12px;font-size:11px;color:#7A5B12;margin-bottom:18px">' +
+            '<strong>Registo sem convers&atilde;o normativa.</strong> Apresentam-se brutos administrados e satura&ccedil;&atilde;o de resposta. ' +
+            'Dom&iacute;nios com satura&ccedil;&atilde;o inferior a 80&nbsp;% t&ecirc;m leitura reservada.</div>';
+    (sessoes || []).forEach(function(s){
+      var dt = s.date ? new Date(s.date).toLocaleDateString('pt-PT') : '';
+      var res = resDe(s);
+      html += '<h3>' + (s.patientCode || '\u2014') + ' &middot; ' + dt +
+              (s.nomeCrianca ? ' &middot; ' + s.nomeCrianca : '') +
+              (s.parentesco ? ' &middot; ' + s.parentesco : '') +
+              (s.idade ? ' &middot; Idade: ' + s.idade : '') + '</h3>';
+      html += '<table><thead><tr><th>Dom&iacute;nio</th><th>Bruto</th><th>Itens resp.</th><th>Satura&ccedil;&atilde;o</th><th>Leitura</th></tr></thead><tbody>';
+      DOMAINS.forEach(function(d){
+        var x = res.dom[d.code];
+        var cor = x.leitura === 'Reservada' ? '#B8860B' : (x.leitura === '\u2014' ? '#999' : '#3B5A7A');
+        html += '<tr><td>' + (NOMES[d.code] || d.code) + '</td>' +
+                '<td style="text-align:center">' + ((x.adm > 0 && x.sb != null) ? x.sb : 'n.i.') + '</td>' +
+                '<td style="text-align:center">' + x.adm + '/' + x.tot + '</td>' +
+                '<td style="text-align:center">' + Math.round(x.sat * 100) + '%</td>' +
+                '<td style="text-align:center;color:' + cor + ';font-weight:600">' + x.leitura + '</td></tr>';
+      });
+      html += '</tbody></table>';
+    });
+    html += '</body></html>';
+    var w = window.open('', '_blank');
+    if (!w) { alert('Pop-up bloqueado. Permite pop-ups para este site.'); return; }
+    w.document.write(html); w.document.close();
+  };
+})();
 
 /* --- renderTabela (sobreposição): sem SS/CAG, mostra domínios válidos --- */
 window.renderTabela=function(){
