@@ -603,6 +603,8 @@ const RC_SHEET_URL = 'https://script.google.com/macros/s/AKfycbxX2_Ry7VRH6jr7eGB
 
 // Mapeamento: id do questionário → aba no Sheet central
 const QID_TO_ABA = {
+  // ── AASP · Perfil Sensorial Adolescente e Adulto (v122) ──
+  'q_aasp':       'AASP',
   // ── Família EIF · Escalas de Interferência Funcional (v121) ──
   // Uma aba por instrumento: as duas formas de cada escala (autorrelato e
   // heterorrelato) partilham a mesma aba e distinguem-se pela coluna 'Forma'.
@@ -831,6 +833,9 @@ const QID_TO_ABA = {
 
 
 const SYNC_KEY_TO_ABA = {
+  // ── AASP · Perfil Sensorial Adolescente e Adulto (v122) ──
+  'aasp':          'AASP',
+  'AASP':          'AASP',
   // ── Família EIF · Escalas de Interferência Funcional (v121) ──
   'eifp':          'EIFP',
   'EIFP':          'EIFP',
@@ -1444,6 +1449,16 @@ async function checkSheetForResponse(qid, patientCode) {
 function initCatalog() {
   const existing = store.get('catalog') || [];
   const defaults = [
+    // ── AASP · Perfil Sensorial Adolescente e Adulto (v122) ──
+    // Brown & Dunn (2002) · Pearson/PsychCorp. Contraparte adolescente/adulta do
+    // Perfil Sensorial 2 (PS2), já catalogado — daí a mesma área clínica.
+    // ⚠ Classificação DESCRITIVA (posição face à maioria), nunca gravidade: paleta
+    //   AZUL em todos os quadrantes. O VERMELHO fica reservado ao único sinalizador
+    //   binário do instrumento — quadrante sem cotação válida (não cotável ou
+    //   incompleto), que é uma condição de validade e não uma medida.
+    // ⚠ Leitura contra-intuitiva do Baixo Registo: «−−» é MAIOR detecção, não défice.
+    // ⚠ Sem normas portuguesas; cortes do quadro normativo original (EUA).
+    { id:'q_aasp', name:'AASP — Perfil Sensorial Adolescente e Adulto', dest:['Próprio','Criança/Jovem'], link:'https://correiaricardina-ui.github.io/questionarios/AASP_v1.html', syncKey:'aasp', area:'Neurodesenvolvimento', ageRange:'11–99 anos', objective:'Caracteriza o PADRÃO DE PROCESSAMENTO SENSORIAL segundo o modelo de Dunn (limiar neurológico × estratégia de autorregulação), através do Adolescent/Adult Sensory Profile (Brown \u0026 Dunn, 2002; Pearson/PsychCorp). Autorrelato de 60 itens numa escala 1\u20135 (1 Quase nunca \u2248 5% das vezes \u2192 5 Quase sempre \u2248 85% ou mais), TODOS no sentido directo \u2014 não existe um único item invertido. Cada item pode ainda ser marcado NA quando não houve oportunidade de experimentar a situação. Devolve quatro totais brutos de quadrante (amplitude 15\u201375 cada) e seis totais de secção sensorial. \u26a0 A classificação é DESCRITIVA e não uma medida de gravidade: situa o total de cada quadrante face à distribuição do grupo normativo em cinco posições \u2014 \u2212\u2212 muito menos \u00b7 \u2212 menos \u00b7 = semelhante \u00b7 + mais \u00b7 ++ muito mais que a maioria das pessoas. Por isso o painel usa PALETA AZUL: verde/laranja/vermelho comunicariam uma gravidade que o instrumento não mede. \u26a0 LEITURA CONTRA-INTUITIVA do quadrante Baixo Registo: \u2212\u2212 ou \u2212 significam MENOS comportamentos de baixo registo, isto é MAIOR detecção de estímulos \u2014 não um défice. A direcção clínica de cada quadrante lê-se à luz do modelo de Dunn, nunca por analogia com escalas de sintomas. \u26a0 NÃO existem normas portuguesas de validação: os pontos de corte são os do quadro normativo ORIGINAL (amostra norte-americana), aplicados por faixa etária \u2014 11\u201317, 18\u201364 e 65 ou mais anos. Abaixo dos 11 anos o instrumento não é aplicável (considerar o Perfil Sensorial 2, versão criança) e a classificação fica suspensa. \u26a0 REGRA DE OMISSÕES: 0 NA num quadrante \u2192 soma directa; 1 a 2 NA \u2192 total prorrateado [(soma dos respondidos \u00f7 n.\u00ba de respondidos) \u00d7 15], arredondado à unidade e assinalado como ESTIMATIVA, com a classificação a ser lida com reserva; 3 ou mais NA \u2192 quadrante NÃO COTÁVEL, sem classificação. O prorrateamento é uma opção operacional desta plataforma e NÃO consta do manual original. Item por responder é distinto de NA e impede a cotação do quadrante. \u26a0 As seis secções sensoriais (A a F) NÃO têm quadro normativo publicado em nenhuma das fontes disponíveis: os seus totais e médias por item servem apenas para localizar, de forma descritiva, os domínios com maior densidade de respostas. \u26a0 Instrumento comercial protegido por direitos de autor: a administração deve fazer-se com o protocolo licenciado adoptado pelo serviço. \u26a0 A cotação foi validada contra o livro de cotação de referência (0 divergências em 22 casos) e os pontos de corte verificados exaustivamente nas 732 combinações faixa \u00d7 quadrante \u00d7 total (0 erros)', domains:['Quadrante 1 \u2014 Baixo Registo (15 itens, total 15\u201375): limiar neurológico alto com estratégia passiva; a pessoa deteta menos estímulos do que a maioria e pode requerer maior intensidade ou saliência para responder','Quadrante 2 \u2014 Procura de Sensação (15 itens, 15\u201375): limiar alto com estratégia activa; a pessoa cria ou procura activamente estimulação sensorial adicional nas suas rotinas','Quadrante 3 \u2014 Sensibilidade Sensorial (15 itens, 15\u201375): limiar baixo com estratégia passiva; a pessoa deteta e reage a estímulos de baixa intensidade que outros filtram, com maior distratibilidade ou desconforto','Quadrante 4 \u2014 Evitamento Sensorial (15 itens, 15\u201375): limiar baixo com estratégia activa; a pessoa restringe ou controla activamente a exposição sensorial','Classificação normativa por quadrante \u2014 cinco posições descritivas (\u2212\u2212 \u00b7 \u2212 \u00b7 = \u00b7 + \u00b7 ++) face à faixa etária aplicável; posição face à maioria das pessoas, NUNCA medida de gravidade','Faixa normativa aplicada \u2014 11\u201317, 18\u201364 ou 65+ anos, determinada automaticamente pela idade; abaixo dos 11 anos a classificação fica suspensa por o instrumento estar fora de âmbito','Estado de cotação por quadrante \u2014 Completo \u00b7 Prorrateado (estimativa, 1 a 2 NA) \u00b7 Não cotável (3 ou mais NA) \u00b7 Incompleto (item por responder); é um resultado de validade e condiciona toda a leitura do quadrante','Secção A \u2014 Processamento olfativo/gustativo (8 itens): soma e média por item, leitura estritamente descritiva','Secção B \u2014 Processamento do movimento (8 itens): soma e média por item, leitura estritamente descritiva','Secção C \u2014 Processamento visual (10 itens): soma e média por item, leitura estritamente descritiva','Secção D \u2014 Processamento tátil (13 itens): soma e média por item, leitura estritamente descritiva','Secção E \u2014 Nível de atividade (10 itens): soma e média por item, leitura estritamente descritiva','Secção F \u2014 Processamento auditivo (11 itens): soma e média por item, leitura estritamente descritiva','Distribuição do perfil pelos quatro quadrantes \u2014 quantos se afastam do intervalo esperado, em que direcção, e quais se mantêm semelhantes à maioria; é a leitura primária do instrumento','Registo de omissões (NA) \u2014 total de itens sem oportunidade de observação, com sinalização automática dos quadrantes prorrateados e dos não cotáveis'] , ageMin:132, ageMax:1188},
     // ── Família EIF · Escalas de Interferência Funcional (v121) ──
     // Três instrumentos de geometria comum, cada um com duas formas na mesma aba.
     // As pontuações NÃO são comparáveis entre eles: divergem a janela temporal
@@ -2715,6 +2730,8 @@ function initCatalog() {
   } else {
     // Forçar links e syncKeys actualizados
     const META = {
+      // ── AASP · Perfil Sensorial Adolescente e Adulto (v122) ──
+      'q_aasp':       { link:'https://correiaricardina-ui.github.io/questionarios/AASP_v1.html', syncKey:'aasp' },
       // ── Família EIF · Escalas de Interferência Funcional (v121) ──
       'q_eifp':       { link:'https://correiaricardina-ui.github.io/questionarios/EIFP_v1.html', syncKey:'eifp' },
       'q_eifa':       { link:'https://correiaricardina-ui.github.io/questionarios/EIFA_v1.html', syncKey:'eifa' },
@@ -3016,6 +3033,17 @@ function initCatalog() {
         }
       }
     });
+    // ── AASP · Perfil Sensorial Adolescente e Adulto (v122) ──
+    // Garante o aparecimento da ligação em instâncias do RC já instaladas.
+    if(!catalog.includes('q_aasp')) {
+      const _aaspDefault = defaults.find(d => d.id === 'q_aasp');
+      if(_aaspDefault) {
+        store.set('q_aasp', _aaspDefault);
+        store.set('q_' + 'q_aasp', _aaspDefault);
+        catalog.push('q_aasp');
+        store.set('catalog', catalog);
+      }
+    }
     // ── Família EIF · Escalas de Interferência Funcional (v121) ──
     // Garante o aparecimento das três ligações em instâncias do RC já instaladas.
     ['q_eifp','q_eifa','q_eifj'].forEach(function(_fid){
@@ -5009,6 +5037,46 @@ function formatScoreSummary(scores, syncKey) {
            + (bnd ? ' · ' + bnd : '') + '</span>' + inv;
     }
   }
+  // ── AASP · Perfil Sensorial Adolescente e Adulto ──────────────────
+  // Inserida ANTES do fallback genérico (que preempta qualquer branch posterior).
+  // Guardas `!= null` (nunca `||`): neste instrumento o vazio e o zero significam
+  // coisas diferentes — total vazio é quadrante NÃO COTÁVEL (resultado de
+  // validade) e NA_Total = 0 é o protocolo íntegro, o caso mais informativo.
+  // ⚠ Paleta AZUL em todos os quadrantes: a classificação é DESCRITIVA (posição
+  //   face à maioria das pessoas) e não uma medida de gravidade — no Baixo
+  //   Registo, «−−» indica MAIOR detecção de estímulos, não um défice. O VERMELHO
+  //   fica reservado ao único sinalizador binário: quadrante sem cotação válida.
+  if(syncKey === 'aasp') {
+    const _rot = { Q1:'BR', Q2:'PS', Q3:'SS', Q4:'ES' };
+    const _partes = [];
+    let _semCot = 0, _estim = 0;
+    ['Q1','Q2','Q3','Q4'].forEach(function(_q){
+      const _t = scores[_q + '_Total'] ?? scores[_q.toLowerCase() + '_total'];
+      const _c = scores[_q + '_Classe'] ?? scores[_q.toLowerCase() + '_classe'] ?? '';
+      const _e = scores[_q + '_Estado'] ?? scores[_q.toLowerCase() + '_estado'] ?? '';
+      if(_e === 'Prorrateado (estimativa)') _estim++;
+      if(_t == null || _t === '') { _semCot++; return; }
+      const _cl = String(_c).replace(/ /g, '');
+      _partes.push(_rot[_q] + ' ' + _t + (_cl ? ' ' + _cl : '') + (_e === 'Prorrateado (estimativa)' ? '~' : ''));
+    });
+    const _faixa = scores['Faixa'] ?? scores['faixa'] ?? '';
+    if(_partes.length > 0 || _semCot > 0) {
+      let _html = '';
+      if(_partes.length > 0) {
+        _html += '<span style=\"font-size:0.78rem;color:var(--blue);font-weight:600;\">'
+              + _partes.join(' · ') + (_faixa ? ' · ' + _faixa : '') + '</span>';
+      }
+      if(_semCot > 0) {
+        _html += '<span style=\"font-size:0.78rem;color:#C0392B;font-weight:700;\"> · '
+              + _semCot + ' quadrante(s) sem cota\u00e7\u00e3o v\u00e1lida</span>';
+      }
+      if(_estim > 0) {
+        _html += '<span style=\"font-size:0.72rem;color:var(--blue-mid);\"> · '
+              + _estim + ' prorrateado(s)</span>';
+      }
+      return _html;
+    }
+  }
   // Genérico
   const entries = Object.entries(scores).filter(([,v]) => v != null).slice(0,3);
   if(entries.length > 0) return `<span style="font-size:0.78rem;color:var(--blue-dark);">${entries.map(([k,v])=>k+'='+v).join(' · ')}</span>`;
@@ -5985,6 +6053,10 @@ function renderAssignments(patientId) {
             // ── Verificação nome-primeiro, relação como fallback ──
             function matchRespondent(row, aba, recip) {
               const NC = {
+                // ── AASP · autorrelato (nome primeiro; tipo como fallback) ──
+                // O tipo é quase sempre 'O próprio' e repete-se entre linhas
+                // legítimas, pelo que o discriminante efectivo é o NOME.
+                'AASP':['NomeInformante','NomeUtente','Informante'],
                 // ── Família EIF · as duas formas partilham a aba (nome primeiro) ──
                 // O tipo de respondente repete-se entre linhas legítimas (dois
                 // cuidadores no mesmo dia), pelo que o discriminante efectivo é o NOME.
@@ -6528,6 +6600,8 @@ async function syncAndMark(patientId, idx) {
       const patUpper = String(patient.code).trim().toUpperCase();
       function matchResp2(row, aba2, recip) {
         const NC2 = {
+          // ── AASP · autorrelato (nome primeiro; tipo como fallback) ──
+          'AASP':['NomeInformante','NomeUtente','Informante'],
           // ── Família EIF · as duas formas partilham a aba (nome primeiro) ──
           'EIFP':['NomeInformante','NomeCriança','Informante'],
           'EIFA':['NomeInformante','NomeUtente','Informante'],
