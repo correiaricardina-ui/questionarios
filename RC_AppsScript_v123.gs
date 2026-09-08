@@ -4,6 +4,46 @@
 // Versão 72.0 — maio 2026
 //
 // ═══════════════════════════════════════════════════════════════════════════
+// ALTERAÇÕES v122.0 — AASP · Perfil Sensorial Adolescente e Adulto
+//   (Brown & Dunn, 2002; Pearson/PsychCorp). 60 itens, escala 1–5, quatro
+//   quadrantes de 15 itens cada (Baixo Registo, Procura de Sensação,
+//   Sensibilidade Sensorial, Evitamento Sensorial) e seis secções sensoriais.
+//
+// Integração ADITIVA. Nenhuma linha das versões anteriores foi removida ou
+// alterada; todas as entradas novas foram inseridas no topo das estruturas
+// existentes, sem tocar nas restantes.
+//
+//   · HEADERS['AASP'] (36 colunas) — UMA aba. Autorrelato a partir dos 11 anos.
+//   · ABA — aliases 'AASP', 'aasp', 'AASP_v1'.
+//   · DEDUPE_KEYS['AASP'] — chave de QUATRO elementos (Secção 33): Código +
+//     Data + tipo de respondente + nome. As colunas chamam-se 'Informante' e
+//     'NomeInformante' e resolvem pelos DEDUPE_ALIASES já existentes
+//     ('PreenchidoPor' → 'Informante' · 'NomePreenche' → 'NomeInformante').
+//     NENHUM alias foi criado ou alterado. O nome é o discriminante efectivo:
+//     o tipo é quase sempre 'O próprio', pelo que sem o nome duas reaplicações
+//     no mesmo dia, ou dois protocolos do mesmo agregado submetidos sob o mesmo
+//     código, seriam descartados em silêncio.
+//   · buildRow — um ramo novo, inserido no topo da função.
+//
+// ⚠ Guarda != null OBRIGATÓRIA em toda a linha: neste instrumento os campos de
+//   resultado podem ser legitimamente VAZIOS (quadrante não cotável, por 3 ou
+//   mais omissões NA) e o zero é legítimo em NA_Total — zero omissões é o caso
+//   normal. (x||'') apagaria a distinção entre «não cotável» e «zero omissões».
+//
+// ⚠ As colunas SecA_Media … SecF_Media guardam DECIMAIS. Formatar como Texto
+//   simples no Sheet ANTES da primeira submissão: em pt-PT o Google Sheets coage
+//   decimais com vírgula a datas. O painel clínico recalcula sempre a partir de
+//   'Respostas' (JSON), pelo que estas colunas nunca são fonte de cotação.
+//
+// ⚠ SEM normas portuguesas. Os pontos de corte são os do quadro normativo
+//   original (amostra norte-americana), por faixas 11–17, 18–64 e 65+ anos, e a
+//   coluna 'Faixa' regista a faixa aplicada. A classificação é DESCRITIVA
+//   (−− · − · = · + · ++, posição face à maioria das pessoas) e NÃO é uma medida
+//   de gravidade: no quadrante Baixo Registo, «−−» indica MAIOR detecção de
+//   estímulos, não um défice.
+//
+// ⚠ Todos os outros instrumentos (HEADERS, ABA, buildRow, DEDUPE_KEYS) intactos.
+//
 // ALTERAÇÕES v121.0 — família EIF · Escalas de Interferência Funcional
 //   (EIFP pediátrica · EIFA adultos · EIFJ comportamentos de jogo)
 //
@@ -1584,6 +1624,29 @@
 
 // ── CABEÇALHOS POR INSTRUMENTO ──────────────────────────────
 var HEADERS = {
+  // ── AASP · Perfil Sensorial Adolescente e Adulto (v122.0) ──────────────
+  //   Brown & Dunn (2002). 60 itens, escala 1–5, sem itens invertidos.
+  //   Quatro quadrantes de 15 itens (amplitude 15–75 cada) e seis secções
+  //   sensoriais (A a F), estas SEM quadro normativo publicado — os totais e
+  //   médias por secção são leitura estritamente descritiva.
+  //   Qx_Estado regista a regra de omissões aplicada ao quadrante: 'Completo',
+  //   'Prorrateado (estimativa)' (1 a 2 NA), 'Não cotável' (3 ou mais NA) ou
+  //   'Incompleto' (item por responder). Qx_Total e Qx_Classe ficam VAZIOS nos
+  //   dois últimos casos — vazio é resultado, não dado em falta.
+  //   ⚠ Guarda != null obrigatória: NA_Total = 0 é o caso normal e informativo.
+  //   ⚠ SecA_Media … SecF_Media guardam decimais — formatar a coluna como Texto
+  //     simples ANTES da primeira submissão (pt-PT coage decimais a datas).
+  AASP: ['Data', 'Código', 'NomeUtente', 'DataNasc', 'Idade', 'Sexo', 'Faixa',
+         'Informante', 'NomeInformante',
+         'Q1_Total', 'Q1_Classe', 'Q1_Estado',
+         'Q2_Total', 'Q2_Classe', 'Q2_Estado',
+         'Q3_Total', 'Q3_Classe', 'Q3_Estado',
+         'Q4_Total', 'Q4_Classe', 'Q4_Estado',
+         'SecA_Soma', 'SecA_Media', 'SecB_Soma', 'SecB_Media',
+         'SecC_Soma', 'SecC_Media', 'SecD_Soma', 'SecD_Media',
+         'SecE_Soma', 'SecE_Media', 'SecF_Soma', 'SecF_Media',
+         'NA_Total', 'Observacoes', 'Respostas'],
+
   // ── Família EIF · Escalas de Interferência Funcional (v121.0) ──────────
   //   Geometria comum: autorrelato de 3 itens (0–30) e heterorrelato de 5 itens
   //   (0–50) em duas subescalas. Escala de resposta 0–10 em todos os itens.
@@ -2143,7 +2206,15 @@ var HEADERS = {
     // v96 — brutos. NO FIM de propósito: inserir antes desalinharia as linhas históricas.
     'Raw_INT', 'Raw_EXT', 'Raw_TOT',
     'Raw_I', 'Raw_II', 'Raw_III', 'Raw_IV', 'Raw_V', 'Raw_VI', 'Raw_VII', 'Raw_VIII',
-    'Raw_Desatencao', 'Raw_HiperImp'
+    'Raw_Desatencao', 'Raw_HiperImp',
+    // v123.0 — nome do professor. NO FIM de propósito: inserir antes desalinharia
+    // as linhas históricas. Sem esta coluna a chave de dedupe degenerava para três
+    // elementos (o quarto, 'PreenchidoPor', é sempre a constante 'Professor(a)'),
+    // e dois professores da mesma criança no mesmo dia colapsavam numa só linha.
+    // O nome 'NomePreenche' é deliberado: é o que o painel RC já procura na aba
+    // TRF_618, pelo que o painel passa a distinguir os dois professores sem
+    // qualquer alteração. Resolve também por DEDUPE_ALIASES['NomePreenche'].
+    'NomePreenche'
   ],
 
   YSR_1118: [
@@ -3880,6 +3951,11 @@ var HEADERS = {
 
 // ── MAPEAMENTO: instrumento → aba ────────────────────────────
 var ABA = {
+  // ── AASP · Perfil Sensorial Adolescente e Adulto (v122.0) ──
+  'AASP':              'AASP',
+  'aasp':              'AASP',
+  'AASP_v1':           'AASP',
+  'PerfilSensorial_AASP': 'AASP',
   // ── Família EIF · Escalas de Interferência Funcional (v121.0) ──
   'EIFP':              'EIFP',
   'eifp':              'EIFP',
@@ -4893,6 +4969,31 @@ function parseData(raw) {
 // Só afeta os instrumentos listados — todos os restantes continuam a fazer
 // appendRow exatamente como antes (diff estritamente aditivo).
 var DEDUPE_KEYS = {
+  // TRF_618 (v123.0) — dedupe de 4 elementos (Secção 33): código + data + tipo
+  // de respondente + nome. Até aqui o TRF não constava desta tabela e caía no
+  // appendRow: cada sincronização do painel do instrumento reenviava TODAS as
+  // sessões locais e a aba acumulava duplicados. O quarto elemento é
+  // indispensável — 'PreenchidoPor' é sempre a constante 'Professor(a)', pelo
+  // que sem o NOME dois professores da mesma criança no mesmo dia colapsariam
+  // numa só linha, que é precisamente o contraste clínico que o TRF procura.
+  // 'NomePreenche' resolve pelos DEDUPE_ALIASES já existentes; nenhum alias foi
+  // criado ou alterado. A chave é idempotente em re-sincronizações e preserva
+  // reaplicações em datas distintas.
+  // ⚠ As linhas históricas têm esta célula VAZIA. O upsertRow ignora colunas-
+  // chave sem valor na linha nova, mas compara-as quando a linha nova as tem:
+  // uma re-submissão com nome NÃO reescreve a linha antiga sem nome, cria uma
+  // linha nova. É o comportamento correcto — a linha antiga não identifica o
+  // professor e não deve ser sobreposta às cegas.
+  'TRF_618':           ['Código', 'Data', 'PreenchidoPor', 'NomePreenche'],
+  // AASP (v122.0) — dedupe de 4 elementos (Secção 33): código + data + tipo de
+  // respondente + nome. As colunas chamam-se 'Informante' e 'NomeInformante' e
+  // resolvem pelos DEDUPE_ALIASES já existentes ('PreenchidoPor' → 'Informante' ·
+  // 'NomePreenche' → 'NomeInformante'). Nenhum alias foi criado ou alterado.
+  // O NOME é o discriminante efectivo: o tipo é quase sempre 'O próprio', pelo
+  // que sem ele duas submissões legítimas do mesmo agregado no mesmo dia sob o
+  // mesmo código seriam descartadas em silêncio. A chave mantém-se idempotente
+  // em re-sincronizações e preserva reaplicações em datas distintas.
+  'AASP':              ['Código', 'Data', 'PreenchidoPor', 'NomePreenche'],
   // Família EIF (v121.0) — chave de SEIS elementos: os quatro da Secção 33
   // (Código + Data + tipo de respondente + nome) MAIS Forma e Momento.
   // Sem 'Momento', um M2 submetido no mesmo dia do M1 pelo mesmo respondente
@@ -5261,6 +5362,56 @@ function buildRow(abaNome, d) {
   var hoje = parseData(d.data || d.date || d.Data);
   var cod  = d.patientCode || d.CodigoPaciente || d.codigo || d.Código || '';
   var nome = d.nomeCrianca || d.NomeCrianca || d.childName || d.nome || '';
+
+  // ── AASP · Perfil Sensorial Adolescente e Adulto (v122.0) ──────────────
+  // Ordem das colunas idêntica à de HEADERS['AASP'] (36) — validada por posição.
+  // ⚠ Guarda != null OBRIGATÓRIA: neste instrumento o VAZIO e o ZERO significam
+  //   coisas diferentes e ambas são resultado —
+  //     Qx_Total / Qx_Classe vazios → quadrante NÃO COTÁVEL (3 ou mais omissões
+  //       NA) ou INCOMPLETO; é um resultado de validade, não um dado em falta;
+  //     NA_Total = 0 → nenhuma omissão, isto é, o protocolo completo, que é o
+  //       caso normal e o mais informativo de todos.
+  //   (x||'') converteria o zero de NA_Total em célula vazia e tornaria
+  //   indistinguível um protocolo íntegro de um protocolo por verificar.
+  if (abaNome === 'AASP') {
+    return [
+      hoje, cod,
+      nome || d.nomeUtente || d.NomeUtente || '',
+      d.dob         != null ? d.dob         : (d.dataNasc != null ? d.dataNasc : ''),
+      d.idade       != null ? d.idade       : '',
+      d.sexo        != null ? d.sexo        : '',
+      d.faixa       != null ? d.faixa       : '',
+      d.informante  != null ? d.informante  : '',
+      d.nome_informante != null ? d.nome_informante : (d.nomeInformante || ''),
+      d.Q1_Total    != null ? d.Q1_Total    : '',
+      d.Q1_Classe   != null ? d.Q1_Classe   : '',
+      d.Q1_Estado   != null ? d.Q1_Estado   : '',
+      d.Q2_Total    != null ? d.Q2_Total    : '',
+      d.Q2_Classe   != null ? d.Q2_Classe   : '',
+      d.Q2_Estado   != null ? d.Q2_Estado   : '',
+      d.Q3_Total    != null ? d.Q3_Total    : '',
+      d.Q3_Classe   != null ? d.Q3_Classe   : '',
+      d.Q3_Estado   != null ? d.Q3_Estado   : '',
+      d.Q4_Total    != null ? d.Q4_Total    : '',
+      d.Q4_Classe   != null ? d.Q4_Classe   : '',
+      d.Q4_Estado   != null ? d.Q4_Estado   : '',
+      d.SecA_Soma   != null ? d.SecA_Soma   : '',
+      d.SecA_Media  != null ? d.SecA_Media  : '',
+      d.SecB_Soma   != null ? d.SecB_Soma   : '',
+      d.SecB_Media  != null ? d.SecB_Media  : '',
+      d.SecC_Soma   != null ? d.SecC_Soma   : '',
+      d.SecC_Media  != null ? d.SecC_Media  : '',
+      d.SecD_Soma   != null ? d.SecD_Soma   : '',
+      d.SecD_Media  != null ? d.SecD_Media  : '',
+      d.SecE_Soma   != null ? d.SecE_Soma   : '',
+      d.SecE_Media  != null ? d.SecE_Media  : '',
+      d.SecF_Soma   != null ? d.SecF_Soma   : '',
+      d.SecF_Media  != null ? d.SecF_Media  : '',
+      d.NA_Total    != null ? d.NA_Total    : '',
+      d.observacoes != null ? d.observacoes : '',
+      d.Respostas   != null ? d.Respostas   : (d.answers != null ? d.answers : '')
+    ];
+  }
 
   // ── Família EIF · EIFP, EIFA e EIFJ (v121.0) ────────────────────────────
   // Ordem das colunas idêntica à de HEADERS['EIFP'] (23), ['EIFA'] (24) e
@@ -6017,7 +6168,12 @@ function buildRow(abaNome, d) {
              _rwT(d.rawV,   _sr.V),   _rwT(d.rawVI,  _sr.VI),
              _rwT(d.rawVII, _sr.VII), _rwT(d.rawVIII,_sr.VIII),
              _rwT(d.rawDesatencao,     sc.desatRaw),
-             _rwT(d.rawHiperatividade, sc.hiRaw) ];
+             _rwT(d.rawHiperatividade, sc.hiRaw),
+             // v123.0 — nome do professor, na ÚLTIMA posição (a ordem segue
+             // HEADERS['TRF_618']). Aceita as várias grafias com que o campo
+             // pode chegar do HTML, do painel ou de uma reimportação.
+             d.nome_informante || d.nomeInformante || d.NomeInformante ||
+             d.nome_preenche   || d.nomePreenche   || d.NomePreenche   || '' ];
   }
 
   if (abaNome === 'YSR_1118') {
@@ -11893,3 +12049,57 @@ function repararConnersShortV103(confirmacao) {
 
 
 // ═════════════════════════════════════════════════════════════
+
+// ═════════════════════════════════════════════════════════════
+// v123.0 — MIGRAÇÃO: coluna do nome do professor na aba TRF_618
+// Mesmo padrão do v94/v95/v96: getOrCreateSheet só escreve cabeçalhos em abas
+// vazias, pelo que a aba já existente precisa desta migração. Só acrescenta ao
+// FIM e só o que faltar — nunca reordena, nunca apaga, nunca toca em dados.
+// Correr primeiro:  acrescentarColunaNomeProfessorTRF(true)   [simulação]
+// Depois:           acrescentarColunaNomeProfessorTRF(false)  [aplica]
+// ─────────────────────────────────────────────────────────────
+function acrescentarColunaNomeProfessorTRF(dryRun) {
+  if (dryRun === undefined) dryRun = true;
+
+  var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('TRF_618');
+  if (!sh) { var m0 = 'Aba TRF_618 inexistente — nada a fazer.'; Logger.log(m0); return m0; }
+
+  var novas = ['NomePreenche'];
+
+  var lastCol = Math.max(sh.getLastColumn(), 1);
+  var headers = sh.getRange(1, 1, 1, lastCol).getValues()[0];
+
+  // 'NomeInformante' é alias de 'NomePreenche': se algum já lá estiver, não se
+  // acrescenta nada — a migração é idempotente.
+  var jaTem = headers.indexOf('NomePreenche') !== -1 || headers.indexOf('NomeInformante') !== -1;
+  var emFalta = jaTem ? [] : novas;
+
+  var rel = [
+    'TRF_618 — coluna do nome do professor' + (dryRun ? '  [SIMULAÇÃO]' : '  [APLICADO]'),
+    '• Cabeçalho actual: ' + lastCol + ' colunas',
+    '• Já presente: ' + (jaTem ? 'sim (NomePreenche ou NomeInformante)' : 'não'),
+    '• A acrescentar: ' + (emFalta.length ? emFalta.join(', ') : 'nenhuma')
+  ];
+
+  if (emFalta.length && !dryRun) {
+    sh.getRange(1, lastCol + 1, 1, emFalta.length)
+      .setValues([emFalta])
+      .setBackground('#3B5A7A')
+      .setFontColor('white')
+      .setFontWeight('bold');
+    rel.push('• Escrita na coluna ' + (lastCol + 1));
+    rel.push('→ Linhas históricas ficam com esta célula vazia: não identificam o');
+    rel.push('  professor e, por isso, NÃO são sobrepostas por submissões novas.');
+    rel.push('→ A partir daqui, dois professores da mesma criança no mesmo dia');
+    rel.push('  passam a ocupar DUAS linhas distintas, como deve ser.');
+    rel.push('⚠ Lembrete: os T_* históricos desta aba vieram de normas fabricadas — não usar.');
+  } else if (emFalta.length) {
+    rel.push('→ Simulação. Para aplicar: correr acrescentarColunaNomeProfessorTRF(false).');
+  } else {
+    rel.push('→ Nada a fazer.');
+  }
+
+  var txt = rel.join('\n');
+  Logger.log(txt);
+  return txt;
+}

@@ -291,6 +291,59 @@ body { font-family: 'DM Sans', sans-serif; background: var(--gray-bg); color: va
   background: white; border: 1px solid var(--blue-light);
   border-radius: 8px; color: var(--blue);
 }
+
+/* ══ PROCURA NO CATÁLOGO ══════════════════════════════════ */
+.rc-cat-search-wrap { margin-bottom: 18px; }
+.rc-cat-search-box { position: relative; }
+.rc-cat-search-box .rc-cat-search-icon {
+  position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+  font-size: 0.95rem; color: var(--gray-mid); pointer-events: none;
+}
+#rc-cat-search {
+  width: 100%; padding: 11px 40px 11px 40px;
+  border: 1.5px solid var(--gray-bdr); border-radius: 8px;
+  font-family: 'DM Sans'; font-size: 0.9rem; color: var(--text);
+  background: white; outline: none; transition: border-color 0.2s;
+}
+#rc-cat-search:focus { border-color: var(--blue-mid); }
+.rc-cat-search-clear {
+  position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
+  background: var(--gray-bg); border: none; border-radius: 50%;
+  width: 24px; height: 24px; line-height: 1; cursor: pointer;
+  color: var(--text-light); font-size: 0.85rem; display: none;
+}
+.rc-cat-search-clear:hover { background: var(--blue-light); color: var(--blue); }
+.rc-cat-count {
+  margin-top: 7px; font-size: 0.78rem; color: var(--text-light);
+}
+.rc-cat-count strong { color: var(--blue); font-weight: 700; }
+.rc-cat-hint { font-size: 0.75rem; color: var(--gray-mid); margin-top: 3px; }
+
+.rc-cat-none {
+  background: white; border: 1.5px solid var(--blue-light);
+  border-radius: 12px; padding: 26px 24px; text-align: center;
+}
+.rc-cat-none-icon { font-size: 2rem; margin-bottom: 10px; }
+.rc-cat-none-title { font-size: 1rem; font-weight: 700; color: var(--blue); margin-bottom: 6px; }
+.rc-cat-none-sub { font-size: 0.85rem; color: var(--text-light); line-height: 1.6; }
+.rc-cat-none-term {
+  display: inline-block; padding: 1px 8px; border-radius: 6px;
+  background: var(--blue-pale); color: var(--blue); font-weight: 600;
+}
+.rc-cat-sugg { margin-top: 18px; text-align: left; }
+.rc-cat-sugg-label {
+  font-size: 0.7rem; font-weight: 700; color: var(--blue-mid);
+  text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 8px;
+}
+.rc-cat-sugg-item {
+  display: block; width: 100%; text-align: left; cursor: pointer;
+  background: var(--blue-pale); border: 1px solid var(--blue-light);
+  border-radius: 8px; padding: 8px 12px; margin-bottom: 6px;
+  font-family: 'DM Sans'; font-size: 0.84rem; color: var(--text);
+}
+.rc-cat-sugg-item:hover { background: var(--blue-light); }
+.rc-cat-sugg-item .rc-sugg-area { font-size: 0.72rem; color: var(--text-light); display: block; margin-top: 2px; }
+.rc-cat-hit { background: #FFF3B0; border-radius: 3px; padding: 0 1px; }
 </style>
 </head>
 <body>
@@ -378,6 +431,16 @@ body { font-family: 'DM Sans', sans-serif; background: var(--gray-bg); color: va
         <button class="btn btn-primary" id="btn-new-questionnaire">+ Adicionar Questionário</button>
       </div>
       <p style="font-size:0.85rem;color:var(--text-light);margin-bottom:18px;">Lista de todos os questionários disponíveis para atribuir a pacientes.</p>
+      <div class="rc-cat-search-wrap">
+        <div class="rc-cat-search-box">
+          <span class="rc-cat-search-icon">🔍</span>
+          <input type="text" id="rc-cat-search" autocomplete="off" spellcheck="false"
+                 placeholder="Procurar por instrumento, sigla ou o que quer avaliar…">
+          <button type="button" class="rc-cat-search-clear" id="rc-cat-search-clear" title="Limpar (Esc)">✕</button>
+        </div>
+        <div class="rc-cat-count" id="rc-cat-count"></div>
+        <div class="rc-cat-hint">Procura no nome, sigla, área, objetivo, domínios, destinatários e faixa etária. Ignora acentos e maiúsculas. Vários termos afinam o resultado.</div>
+      </div>
       <div class="catalog-list" id="catalog-list"></div>
     </div>
 
@@ -438,20 +501,7 @@ body { font-family: 'DM Sans', sans-serif; background: var(--gray-bg); color: va
 
     <div class="form-group">
       <label>Área de avaliação</label>
-      <select id="nq-area">
-        <option value="">— seleccione ou escreva abaixo —</option>
-        <option value="Anamnese & História Clínica">Anamnese & História Clínica</option>
-        <option value="Neurodesenvolvimento">Neurodesenvolvimento</option>
-        <option value="Internalização & Risco">Internalização & Risco</option>
-        <option value="Externalização & Comportamento">Externalização & Comportamento</option>
-        <option value="Regulação Emocional & Coping">Regulação Emocional & Coping</option>
-        <option value="Alimentação & Imagem Corporal">Alimentação & Imagem Corporal</option>
-        <option value="Família & Parentalidade">Família & Parentalidade</option>
-        <option value="Escola · Aprendizagem · Motivação">Escola · Aprendizagem · Motivação</option>
-        <option value="Personalidade & Esquemas">Personalidade & Esquemas</option>
-        <option value="Competências Sociais & Performance">Competências Sociais & Performance</option>
-        <option value="Outro">Outro</option>
-      </select>
+      <select id="nq-area"><!-- preenchido por rcPreencherSelectAreas() --></select>
       <input type="text" id="nq-area-custom" placeholder="Ou escreve uma área nova…" style="margin-top:6px;">
     </div>
 
@@ -725,9 +775,9 @@ const QID_TO_ABA = {
   'q_anamnese_hp':         'ANAMNESE_HP',
   // ── ISC-24 — Inventário de Somatização para Crianças (Ferreira et al., 2014) ──
   'q_isc24':               'ISC24',
-  // ── EMP-H&F — Perfeccionismo Multidimensional (Hewitt & Flett, 1991) ──
+  // ── EMP-H&F — Perfecionismo Multidimensional (Hewitt & Flett, 1991) ──
   'q_emp_hf':              'EMP_HF',
-  // ── EMP-F — Perfeccionismo Multidimensional (Frost et al., 1990) ──
+  // ── EMP-F — Perfecionismo Multidimensional (Frost et al., 1990) ──
   'q_emp_f':               'EMP_F',
   // ── OCI-CV-R — Inventário Obsessivo-Compulsivo Revisto para Crianças (Abramovitch et al., 2022) ──
   'q_ocicvr':              'OCI_CV_R',
@@ -1062,12 +1112,12 @@ const SYNC_KEY_TO_ABA = {
   // ── QEA — Questionário de Esquemas para Adolescentes (Santos, Rijo & Pinto-Gouveia, 2009) ──
   'qea':               'QEA',
   'QEA':               'QEA',
-  // ── EMP-H&F — Perfeccionismo Multidimensional (Hewitt & Flett, 1991) ─────
+  // ── EMP-H&F — Perfecionismo Multidimensional (Hewitt & Flett, 1991) ─────
   'emp_hf':            'EMP_HF',
   'EMP_HF':            'EMP_HF',
   'EMP-HF':            'EMP_HF',
   'EMP-H&F':           'EMP_HF',
-  // ── EMP-F — Perfeccionismo Multidimensional (Frost et al., 1990) ─────────
+  // ── EMP-F — Perfecionismo Multidimensional (Frost et al., 1990) ─────────
   'emp_f':             'EMP_F',
   'EMP_F':             'EMP_F',
   'EMP-F':             'EMP_F',
@@ -1662,7 +1712,7 @@ function initCatalog() {
     { id:'q_qcvep_prof', name:'QCVE-P — Comportamento Verbal em Contexto Escolar (Professor)', dest:['Professor(a)','Educador(a)','Diretor(a) de Turma'], link:'https://correiaricardina-ui.github.io/questionarios/QCVEP_Prof_v1.html', syncKey:'qcvep_prof', area:'Ansiedade, Depressão & Internalização', ageRange:'3–18 anos', objective:'Mede a frequência do comportamento verbal na escola por interlocutor e por grau de exposição, mais a comunicação não verbal e a interferência funcional — 20 itens, escala inversa na ECV', domains:['E1 — Comunicação verbal com pares','E2 — Comunicação verbal com adultos da escola','E3 — Comunicação verbal em situações de exposição','Total ECV (0–3)','IRV — Índice de Restrição Verbal','ICNV — Índice de Comunicação Não Verbal','IIF — Índice de Interferência Funcional'] , ageMin:36, ageMax:227},
     { id:'q_aceq_adol', name:'ACE-Q — Autorrelato (Adolescente)', dest:['Paciente'], link:'https://correiaricardina-ui.github.io/questionarios/ACE-Q_Adolescente.html', syncKey:'aceq_adol', area:'Trauma & Stress', ageRange:'12–18 anos', objective:'Rastreio de experiências adversas na infância — autorrelato do adolescente (18 itens, 0–2)', domains:['Relações familiares e ambiente emocional','Instabilidade familiar','Experiências de perda','Experiências de insegurança ou ameaça','Experiências sociais difíceis','Experiência emocional interna','Total'] , ageMin:144, ageMax:215},
     { id:'q_aceq_cuid', name:'ACE-Q — Cuidador', dest:['Mãe','Pai','Enc. Educação'], link:'https://correiaricardina-ui.github.io/questionarios/ACE-Q_Cuidador.html', syncKey:'aceq_cuid', area:'Trauma & Stress', ageRange:'0–18 anos', objective:'Rastreio de experiências adversas na infância — relato do cuidador (15 itens, 0–2)', domains:['Ambiente emocional familiar','Instabilidade familiar','Experiências de perda','Segurança e proteção','Experiências sociais difíceis','Eventos stressantes significativos','Total'] , ageMin:0, ageMax:215},
-    { id:'q_gai', name:'GAI — Grelha de Automonitorização Interocetiva', dest:['Paciente'], link:'https://correiaricardina-ui.github.io/questionarios/GAI_Automonitorizacao_Interocetiva_v1.html', syncKey:'gai', area:'Risco & Sintomatologia Psicopatológica Geral', ageRange:'8–17 anos', objective:'Automonitorização interocetiva semanal — eixos somático-regulatório e apetitivo-corporal', domains:['Eixo Somático-Regulatório','Eixo Apetitivo-Corporal','Dimensões em alerta','Marcadores nutricionais'] , ageMin:96, ageMax:215},
+    { id:'q_gai', name:'GAI — Grelha de Automonitorização Interocetiva', dest:['Paciente'], link:'https://correiaricardina-ui.github.io/questionarios/GAI_Automonitorizacao_Interocetiva_v1.html', syncKey:'gai', area:'Risco, Autolesão & Psicopatologia Geral', ageRange:'8–17 anos', objective:'Automonitorização interocetiva semanal — eixos somático-regulatório e apetitivo-corporal', domains:['Eixo Somático-Regulatório','Eixo Apetitivo-Corporal','Dimensões em alerta','Marcadores nutricionais'] , ageMin:96, ageMax:215},
     { id:'q_ctrf_15', name:'CTRF-15', dest:['Professor(a)','Educador(a)'], link:'https://correiaricardina-ui.github.io/questionarios/CTRF_15_v2.html', syncKey:'ctrf15', area:'Externalização & Comportamento', ageRange:'1½–5 anos', objective:'Avalia comportamento em contexto pré-escolar — versão educador', domains:['Score Total'] , ageMin:18, ageMax:71},
     { id:'q_brief_prof', name:'BRIEF — Professores', dest:['Professor(a)'], link:'https://correiaricardina-ui.github.io/questionarios/BRIEF_Professores_v3.html', syncKey:'brief_professores', area:'Atenção, PHDA & Funções Executivas', ageRange:'5–18 anos', objective:'Avalia funções executivas em contexto escolar — versão professor', domains:['INHIB','SHIFT','ECON','WM','PO','ISCI','FI','EMI','GEF'] , ageMin:60, ageMax:215},
     { id:'q_brief_pais', name:'BRIEF — Pais', dest:['Mãe','Pai','Enc. Educação'], link:'https://correiaricardina-ui.github.io/questionarios/BRIEF_Pais_v5.html', syncKey:'brief_pais', area:'Atenção, PHDA & Funções Executivas', ageRange:'5–18 anos', objective:'Avalia funções executivas em casa — versão pais/cuidadores', domains:['INHIB','SHIFT','ECON','WM','PO','ISCI','FI','EMI','GEF'] , ageMin:60, ageMax:215},
@@ -1688,8 +1738,8 @@ function initCatalog() {
     { id:'q_aseba_cbcl', name:'ASEBA — CBCL 6-18',   dest:['Pais','Mãe','Pai','Enc. Educação'], link:'https://correiaricardina-ui.github.io/questionarios/CBCL_618_v1.html',  syncKey:'cbcl',  area:'Externalização & Comportamento', ageRange:'6–18 anos', objective:'Avaliar problemas emocionais e comportamentais', domains:['Internalizante','Externalizante','Total','Ansiedade/Depressão','Queixas Somáticas','Isolamento','Problemas Sociais','Problemas de Atenção','Comportamento Agressivo','Comportamento de Quebra de Regras'] , ageMin:72, ageMax:215},
     { id:'q_aseba_trf',  name:'ASEBA — TRF 6-18',    dest:['Professor(a)'],              link:'https://correiaricardina-ui.github.io/questionarios/TRF_618_v1.html',   syncKey:'trf',   area:'Externalização & Comportamento', ageRange:'6–18 anos', objective:'Avaliar comportamento em contexto escolar (versão professor)', domains:['Internalizante','Externalizante','Total','Problemas de Atenção','Comportamento Agressivo'] , ageMin:72, ageMax:215},
     { id:'q_aseba_ysr',  name:'ASEBA — YSR 11-18',   dest:['Paciente'],                  link:'https://correiaricardina-ui.github.io/questionarios/YSR_1118_v2.html',  syncKey:'ysr',   area:'Externalização & Comportamento', ageRange:'11–18 anos', objective:'Auto-avaliação de problemas emocionais e comportamentais', domains:['Internalizante','Externalizante','Total','Ansiedade/Depressão','Isolamento','Queixas Somáticas','Problemas Sociais','Problemas de Atenção','Comportamento Agressivo'] , ageMin:132, ageMax:215},
-    { id:'q_qee_escola', name:'QEE — Questionário Ecológico Escolar',  dest:['Professor(a)','Diretor(a) de Turma'], link:'https://correiaricardina-ui.github.io/questionarios/QEE_Escola_v1.html', syncKey:'qeeescola', area:'Externalização & Comportamento', ageRange:'6–18 anos', objective:'Caracterização clínica multi-informador do funcionamento emocional, social e adaptativo em contexto escolar (versão clínica revista, enquadramento bioecológico de Bronfenbrenner + lógica ASEBA). 40 itens fechados + 4 qualitativos.', domains:['Integração e Pertença Social (IPS)','Sensibilidade Relacional (SR)','Sintomas Internalizantes (SI)','Reatividade Comportamental (RC)','Pressão de Desempenho e Perfeccionismo (PDP)','Funcionamento Académico Adaptativo (FAA)','Autorregulação e Coping Adaptativo (ACA)','Fatores Protetores Contextuais (FPC)','Índice Global de Preocupação Clínica (IGPC)'], ageMin:72, ageMax:215},
-    { id:'q_qep_pais',   name:'QEP — Questionário Ecológico Parental', dest:['Mãe','Pai','Enc. Educação'],          link:'https://correiaricardina-ui.github.io/questionarios/QEP_Pais_v1.html',   syncKey:'qeppais',   area:'Externalização & Comportamento', ageRange:'6–18 anos', objective:'Caracterização clínica multi-informador do funcionamento emocional, social e adaptativo (versão clínica revista, paralela ao QEE — enquadramento bioecológico + lógica ASEBA). 40 itens fechados + 4 qualitativos.', domains:['Integração Social e Pertença (IPS)','Sensibilidade Relacional (SR)','Sintomas Internalizantes (SI)','Reatividade Comportamental (RC)','Pressão de Desempenho e Perfeccionismo (PDP)','Funcionamento Adaptativo Geral (FAG)','Autorregulação e Coping Adaptativo (ACA)','Fatores Protetores Familiares (FPF)','Índice Global de Preocupação Clínica (IGPC)'], ageMin:72, ageMax:215},
+    { id:'q_qee_escola', name:'QEE — Questionário Ecológico Escolar',  dest:['Professor(a)','Diretor(a) de Turma'], link:'https://correiaricardina-ui.github.io/questionarios/QEE_Escola_v1.html', syncKey:'qeeescola', area:'Externalização & Comportamento', ageRange:'6–18 anos', objective:'Caracterização clínica multi-informador do funcionamento emocional, social e adaptativo em contexto escolar (versão clínica revista, enquadramento bioecológico de Bronfenbrenner + lógica ASEBA). 40 itens fechados + 4 qualitativos.', domains:['Integração e Pertença Social (IPS)','Sensibilidade Relacional (SR)','Sintomas Internalizantes (SI)','Reatividade Comportamental (RC)','Pressão de Desempenho e Perfecionismo (PDP)','Funcionamento Académico Adaptativo (FAA)','Autorregulação e Coping Adaptativo (ACA)','Fatores Protetores Contextuais (FPC)','Índice Global de Preocupação Clínica (IGPC)'], ageMin:72, ageMax:215},
+    { id:'q_qep_pais',   name:'QEP — Questionário Ecológico Parental', dest:['Mãe','Pai','Enc. Educação'],          link:'https://correiaricardina-ui.github.io/questionarios/QEP_Pais_v1.html',   syncKey:'qeppais',   area:'Externalização & Comportamento', ageRange:'6–18 anos', objective:'Caracterização clínica multi-informador do funcionamento emocional, social e adaptativo (versão clínica revista, paralela ao QEE — enquadramento bioecológico + lógica ASEBA). 40 itens fechados + 4 qualitativos.', domains:['Integração Social e Pertença (IPS)','Sensibilidade Relacional (SR)','Sintomas Internalizantes (SI)','Reatividade Comportamental (RC)','Pressão de Desempenho e Perfecionismo (PDP)','Funcionamento Adaptativo Geral (FAG)','Autorregulação e Coping Adaptativo (ACA)','Fatores Protetores Familiares (FPF)','Índice Global de Preocupação Clínica (IGPC)'], ageMin:72, ageMax:215},
     { id:'q_cbcl_15',    name:'ASEBA — CBCL 1½-5',   dest:['Pais','Mãe','Pai','Enc. Educação'], link:'https://correiaricardina-ui.github.io/questionarios/CBCL_15_v5.html',   syncKey:'cbcl15', area:'Externalização & Comportamento', ageRange:'1½–5 anos', objective:'Avaliar problemas emocionais e comportamentais em idade pré-escolar', domains:['Internalizante','Externalizante','Total','Reatividade Emocional','Ansiedade','Queixas Somáticas','Retraimento','Problemas de Sono','Problemas de Atenção','Comportamento Agressivo'] , ageMin:18, ageMax:71},
     // ── STAXI-NA — Inventário de Expressão de Raiva Estado-Traço (Del Barrio, Aluja & Spielberger, 2004) ──
     { id:'q_staxi_na',   name:'STAXI-NA — Inventário de Expressão de Raiva Estado-Traço (Crianças e Adolescentes)', dest:['Paciente'], link:'https://correiaricardina-ui.github.io/questionarios/STAXI_NA_v1.html', syncKey:'staxina', area:'Externalização & Comportamento', ageRange:'9–18 anos', objective:'Auto-relato (32 itens, ~8-12 min) das dimensões emocional e expressiva da raiva (Del Barrio, Aluja & Spielberger, 2004; tradução PT Ana Nunes — sem validação psicométrica formal). 8 subescalas em 4 escalas globais: Estado de Raiva, Raiva-Traço, Expressão da Raiva, Controlo da Raiva (adaptativa). Estrutura paginada em 3 partes com escalas de resposta distintas (Estado actual / Habitual / Quando-zangado). Normativos brasileiros (Costa & Frizzo, 2012) — referência aproximativa. Tipologia clínica diferencial {Adaptativo, Risco Global, Externalização, Traço Contido, Défice de Controlo, Típico}.', domains:['Sentimentos de Raiva (SR)','Raiva Física e Verbal (RFV)','Temperamento de Raiva (TR)','Raiva Reativa (RR)','Expressão da Raiva — Out (EROUT)','Expressão da Raiva — In (ERIN)','Controlo da Raiva — Out (CROUT)','Controlo da Raiva — In (CRIN)','Estado de Raiva (Global)','Raiva-Traço (Global)','Expressão da Raiva (Global)','Controlo da Raiva (Global)'], ageMin:108, ageMax:228},
@@ -1697,7 +1747,7 @@ function initCatalog() {
     { id:'q_bas3', name:'BAS-3 — Bateria de Socialização',
       dest:['Paciente'],
       link:'https://correiaricardina-ui.github.io/questionarios/BAS3_v1.html',
-      syncKey:'bas3', area:'Competências Sociais & Performance', ageRange:'11–18 anos',
+      syncKey:'bas3', area:'Competências Sociais & Assertividade', ageRange:'11–18 anos',
       objective:'Avaliar competências sociais — auto-avaliação (Silva Moreno & Martorell Pallás, 1989/1995; adapt. CEGOC-TEA, 2005)',
       domains:['Consideração pelos outros (Co)','Auto-controlo nas relações sociais (Ac)','Isolamento social (Is)','Ansiedade social/Timidez (At)','Liderança (Li)','Sinceridade (S)'],
       ageMin:132, ageMax:215 },
@@ -1705,7 +1755,7 @@ function initCatalog() {
     { id:'q_qacse_r', name:'QACSE-R — Competências Socioemocionais (reduzida)',
       dest:['Paciente'],
       link:'https://correiaricardina-ui.github.io/questionarios/QACSE_R_v1.html',
-      syncKey:'qacse_r', area:'Competências Sociais & Performance', ageRange:'10–16 anos',
+      syncKey:'qacse_r', area:'Competências Sociais & Assertividade', ageRange:'10–16 anos',
       objective:'Avaliar competências socioemocionais — auto-relato, versão reduzida (Coelho & Sousa, 2020)',
       domains:['Autocontrolo (AC)','Competências Relacionais (CR)','Isolamento Social (IS)','Ansiedade Social (AS)'],
       ageMin:120, ageMax:191 },
@@ -1713,7 +1763,7 @@ function initCatalog() {
     { id:'q_qacse_c', name:'QACSE-C — Competências Socioemocionais (Complementar à BAS-3)',
       dest:['Paciente'],
       link:'https://correiaricardina-ui.github.io/questionarios/QACSE_C_v1.html',
-      syncKey:'qacse_c', area:'Competências Sociais & Performance', ageRange:'10–17 anos',
+      syncKey:'qacse_c', area:'Competências Sociais & Assertividade', ageRange:'10–17 anos',
       objective:'Cobrir as cinco dimensões CASEL ausentes da BAS-3 — auto-relato, complementar (Coelho & Sousa, 2016)',
       domains:['Autoconsciência Emocional (ACE)','Regulação Emocional (RE)','Tomada de Perspetiva (TP)','Resolução Assertiva de Conflitos (RAC)','Tomada de Decisão Responsável (TDR)'],
       ageMin:120, ageMax:215 },
@@ -2052,7 +2102,7 @@ function initCatalog() {
       dest:['Mãe','Pai','Enc. Educação'],
       link:'https://correiaricardina-ui.github.io/questionarios/Anamnese_complementar_v2.html',
       syncKey:'anamnese_complementar',
-      area:'Anamnese & História Clínica',
+      area:'Anamnese, História & Monitorização',
       ageRange:'0–18 anos',
       objective:'Recolher história clínica, desenvolvimento e funcionamento quotidiano',
       domains:['História Clínica','Desenvolvimento Precoce','Funcionamento Executivo','Regulação Emocional'],
@@ -2061,7 +2111,7 @@ function initCatalog() {
       dest:['Mãe','Pai','Enc. Educação'],
       link:'https://correiaricardina-ui.github.io/questionarios/Anamnese_HP_v1.html',
       syncKey:'anamnese_hp',
-      area:'Anamnese & História Clínica',
+      area:'Anamnese, História & Monitorização',
       ageRange:'0–18 anos',
       objective:'Recolha qualitativa de história clínica, desenvolvimento, familiar, escolar e relacional prévia à consulta',
       domains:['História Clínica','Desenvolvimento','Estrutura Familiar','História Escolar','Relacionamentos'],
@@ -2085,7 +2135,7 @@ function initCatalog() {
     { id:'q_cssrs', name:'C-SSRS — Columbia-Suicide Severity Rating Scale',
       dest:['Clínico'],
       link:'https://correiaricardina-ui.github.io/questionarios/CSSRS_v1.html',
-      syncKey:'cssrs', area:'Risco & Sintomatologia Psicopatológica Geral', ageRange:'Crianças / Adolescentes / Adultos',
+      syncKey:'cssrs', area:'Risco, Autolesão & Psicopatologia Geral', ageRange:'Crianças / Adolescentes / Adultos',
       objective:'Avaliação clínica estruturada de ideação e comportamentos suicidas (Posner et al. 2008) — versões Crianças e Adolescentes/JA',
       domains:['Ideação (Tipo 1–5)','Tentativa Real','Tentativa Interrompida','Tentativa Abortada','Actos Preparatórios','Nível de Risco'],
       ageMin:null, ageMax:null },
@@ -2093,7 +2143,7 @@ function initCatalog() {
     { id:'q_bsi', name:'BSI — Inventário de Sintomas Psicopatológicos',
       dest:['Próprio/a','Familiar','Técnico/a'],
       link:'https://correiaricardina-ui.github.io/questionarios/BSI_v1.html',
-      syncKey:'bsi', area:'Risco & Sintomatologia Psicopatológica Geral', ageRange:'≥ 13 anos',
+      syncKey:'bsi', area:'Risco, Autolesão & Psicopatologia Geral', ageRange:'≥ 13 anos',
       objective:'Rastreio de sintomatologia psicopatológica em 9 dimensões e 3 índices globais (Derogatis 1982; Canavarro 1999)',
       domains:['Somatização','Obsessões-Compulsões','Sensibilidade Interpessoal','Depressão','Ansiedade','Hostilidade','Ansiedade Fóbica','Ideação Paranóide','Psicoticismo','IGS','TSP','ISP'],
       ageMin:13, ageMax:null },
@@ -2125,7 +2175,7 @@ function initCatalog() {
     { id:'q_ppgrj', name:'PPGR-J — Pressão Percebida em Guarda-Redes Jovens',
       dest:['Atleta','Jovem avaliado','Paciente'],
       link:'https://correiaricardina-ui.github.io/questionarios/PPGRJ_v1.html',
-      syncKey:'ppgrj', area:'Competências Sociais & Performance', ageRange:'≥ 12 anos (guarda-redes)',
+      syncKey:'ppgrj', area:'Ansiedade, Depressão & Internalização', ageRange:'≥ 12 anos (guarda-redes)',
       objective:'Avalia a vivência multidimensional da pressão de desempenho em guarda-redes jovens (Correia, 2026 — clínico-exploratório, sem validação psicométrica formal)',
       domains:['AAC — Ativação Ansiogénica','MEF — Medo do Erro','PFE — Pressão Externa','APP — Autoexigência','EEIP — Exposição/Identidade','RPRM — Recuperação Pós-Erro','TOTAL','Normalizado 0-100'],
       ageMin:144, ageMax:null },
@@ -2169,20 +2219,20 @@ function initCatalog() {
       objective:'Avalia 18 esquemas precoces mal-adaptativos em adolescentes — auto-relato (Santos, Rijo & Pinto-Gouveia, 2009); ponto de corte clínico: média ≥ 3,5',
       domains:['IS','EMA','PER','PE','AB','AP','AS','VUL','DA','IEMOC','SUB','GR','FR','DEP','DF','REC','AI','PESS','MVD','LEV','AE','Média Global'],
       ageMin:120, ageMax:299 },
-    // ── EMP-H&F — Escala Multidimensional de Perfeccionismo (Hewitt & Flett, 1991) v1.0 ──
-    { id:'q_emp_hf', name:'EMP-H&F — Perfeccionismo (Hewitt & Flett)',
+    // ── EMP-H&F — Escala Multidimensional de Perfecionismo (Hewitt & Flett, 1991) v1.0 ──
+    { id:'q_emp_hf', name:'EMP-H&F — Perfecionismo (Hewitt & Flett)',
       dest:['Paciente','Jovem avaliado'],
       link:'https://correiaricardina-ui.github.io/questionarios/EMP_HF_v1.html',
       syncKey:'emp_hf', area:'Personalidade & Esquemas', ageRange:'Adolescentes / Adultos (≥ 12 anos)',
-      objective:'Avalia perfeccionismo em três dimensões — auto-orientado (PAO), socialmente prescrito (PSP) e orientado para os outros (POO); versão reduzida de 32 itens (Hewitt & Flett, 1991)',
+      objective:'Avalia perfecionismo em três dimensões — auto-orientado (PAO), socialmente prescrito (PSP) e orientado para os outros (POO); versão reduzida de 32 itens (Hewitt & Flett, 1991)',
       domains:['PAO — Auto-Orientado','PSP — Socialmente Prescrito','POO — Orientado para Outros','Total EMP-H&F'],
       ageMin:144, ageMax:null },
-    // ── EMP-F — Escala Multidimensional de Perfeccionismo (Frost et al., 1990) v1.0 ──
-    { id:'q_emp_f', name:'EMP-F — Perfeccionismo (Frost)',
+    // ── EMP-F — Escala Multidimensional de Perfecionismo (Frost et al., 1990) v1.0 ──
+    { id:'q_emp_f', name:'EMP-F — Perfecionismo (Frost)',
       dest:['Paciente','Jovem avaliado'],
       link:'https://correiaricardina-ui.github.io/questionarios/EMP_F_v1.html',
       syncKey:'emp_f', area:'Personalidade & Esquemas', ageRange:'Adolescentes / Adultos (≥ 12 anos)',
-      objective:'Avalia perfeccionismo em seis dimensões (Frost et al., 1990) — preocupação com erros, dúvidas sobre ações, expectativas parentais, críticas parentais, padrões pessoais e organização; versão reduzida de 24 itens',
+      objective:'Avalia perfecionismo em seis dimensões (Frost et al., 1990) — preocupação com erros, dúvidas sobre ações, expectativas parentais, críticas parentais, padrões pessoais e organização; versão reduzida de 24 itens',
       domains:['CM — Preocupações com Erros','DA — Dúvidas sobre Ações','PE — Expectativas Parentais','PC — Críticas Parentais','PS — Padrões Pessoais','O — Organização'],
       ageMin:144, ageMax:null },
     // ── OCI-CV-R — Inventário Obsessivo-Compulsivo Revisto para Crianças (Abramovitch et al., 2022) v1.0 ──
@@ -2215,7 +2265,7 @@ function initCatalog() {
       dest:['Paciente'],
       link:'https://correiaricardina-ui.github.io/questionarios/MDQ_v1.html',
       syncKey:'mdq',
-      area:'Risco & Sintomatologia Psicopatológica Geral',
+      area:'Risco, Autolesão & Psicopatologia Geral',
       ageRange:'Adultos (≥18 anos)',
       objective:'Auto-relato breve (15 itens, ~3-5 min) para rastreio de perturbações do espectro bipolar (Hirschfeld et al., 2000; validação PT-BR Gurgel et al., 2012). 13 itens de sintomas maníacos/hipomaníacos + 1 item de co-ocorrência temporal + 1 item de impacto funcional. Classificação principal em 4 níveis (Rastreio Positivo, Sintomatologia Bipolar Incompleta, Zona Subclínica, Rastreio Negativo) e 4 alertas diferenciais (TDAH adulto, Borderline/Cluster B, Características Mistas, Confounding por Substâncias). NUNCA constitui diagnóstico — instrumento de rastreio. Os domínios não são visíveis ao paciente durante o preenchimento.',
       domains:['Soma P1 (sintomas)','Co-ocorrência (P2)','Impacto funcional (P3)','Activação somática','Cognição acelerada','Expansividade hedónica','Pressão comunicacional','Disforia/Irritabilidade','Desregulação comportamental','Classificação','Alertas Diferenciais'],
@@ -2259,7 +2309,7 @@ function initCatalog() {
       dest:['Aplicador clínico'],
       link:'https://correiaricardina-ui.github.io/questionarios/C-SSRS-P_Pediatrica_v1.html',
       syncKey:'c_ssrs_p',
-      area:'Risco suicidário',
+      area:'Risco, Autolesão & Psicopatologia Geral',
       ageRange:'6–11 anos',
       objective:'Avaliação dimensional do risco suicidário em crianças (Ricardina Correia, 2026 · construção original PT-PT inspirada em Posner et al., 2011). Aplicação por entrevistador clínico · 17 itens × 2 janelas (Vida + Últimos 3 meses). Autoavaliação + Heteroavaliação por cuidador (integração final pelo critério mais grave — princípio conservador). Bloco A (ideação) níveis ordinais 1-5; Bloco B (intensidade) 5 itens escala 0-2 (soma 0-10, cortes Baixa 0-3/Média 4-6/Alta 7-10); Bloco C (comportamento) Sim/Não; Bloco D (letalidade) 0-5. Classificação hierárquica: Mínimo → Baixo → Moderado → Elevado → Crítico. Não substitui juízo clínico nem versão validada para uso normativo.',
       domains:['Ideação (Bloco A)','Intensidade (Bloco B)','Comportamento (Bloco C)','Letalidade (Bloco D)','Classificação integrada Auto+Hetero'],
@@ -2270,7 +2320,7 @@ function initCatalog() {
       dest:['Paciente'],
       link:'https://correiaricardina-ui.github.io/questionarios/C-SSRS-A_Adolescente_v1.html',
       syncKey:'c_ssrs_a',
-      area:'Risco suicidário',
+      area:'Risco, Autolesão & Psicopatologia Geral',
       ageRange:'12–18 anos',
       objective:'Avaliação dimensional do risco suicidário em adolescentes (Ricardina Correia, 2026 · construção original PT-PT inspirada em Posner et al., 2011). Auto-administrada com supervisão clínica · SÓ Autoavaliação (sem heteroavaliação). 17 itens × 2 janelas (Vida + Últimos 3 meses). Bloco A (ideação) níveis ordinais 1-5; Bloco B (intensidade) 5 itens escala 1-5 (soma 5-25, cortes Baixa 5-10/Média 11-17/Alta 18-25); Bloco C (comportamento) Sim/Não; Bloco D (letalidade) 0-5. Classificação hierárquica: Mínimo → Baixo → Moderado → Elevado → Crítico. Não substitui juízo clínico nem versão validada para uso normativo.',
       domains:['Ideação (Bloco A)','Intensidade (Bloco B)','Comportamento (Bloco C)','Letalidade (Bloco D)','Classificação (3 meses + Vida)'],
@@ -2281,7 +2331,7 @@ function initCatalog() {
       dest:['Aplicador clínico'],
       link:'https://correiaricardina-ui.github.io/questionarios/C-SSRS-DC_DeficeCognitivo_v1.html',
       syncKey:'c_ssrs_dc',
-      area:'Risco suicidário',
+      area:'Risco, Autolesão & Psicopatologia Geral',
       ageRange:'Qualquer idade',
       objective:'Avaliação dimensional do risco suicidário em pessoas com limitação de auto-relato (perturbação do neurodesenvolvimento, demência, lesão cerebral, dificuldade comunicacional). Ricardina Correia (2026) · construção original PT-PT inspirada em Posner et al. (2011). Aplicação por entrevistador com suportes visuais (pictogramas, escala visual de intensidade), linguagem simplificada. Auto + Heteroavaliação por cuidador habitual (heteroavaliação preponderante quando auto-relato não fiável). INOVAÇÃO: Bloco A inclui opção "Não compreende" (regista indeterminação clínica formal — não conta como Sim nem como Não). Bloco B REDUZIDO a 3 itens (Frequência, Controlabilidade, Razões para viver) escala 0-2, soma 0-6 (cortes Baixa 0-2/Média 3-4/Alta 5-6). Classificação hierárquica: Mínimo → Baixo → Moderado → Elevado → Crítico.',
       domains:['Ideação (Bloco A, c/ "Não compreende")','Intensidade (Bloco B, 3 itens)','Comportamento (Bloco C)','Letalidade (Bloco D)','Classificação integrada Auto+Hetero'],
@@ -2292,7 +2342,7 @@ function initCatalog() {
       dest:['Paciente'],
       link:'https://correiaricardina-ui.github.io/questionarios/M-CHAT-R-F_v1.html',
       syncKey:'m_chat_r_f',
-      area:'Despiste neurodesenvolvimento',
+      area:'Neurodesenvolvimento',
       ageRange:'16–30 meses',
       objective:'Despiste precoce de Perturbação do Espetro do Autismo (PEA) em crianças entre 16 e 30 meses. Modified Checklist for Autism in Toddlers, Revised, with Follow-Up (© 2009 Diana Robins, Deborah Fein, & Marianne Barton) · Tradução PT-PT: Carla Cintrão Almeida · www.mchatscreen.com. Instrumento de 2 etapas preenchido pelos pais com supervisão clínica: Etapa 1 (20 itens Sim/Não) com algoritmo de cotação dirigido por item — items 2/5/12 "Sim"=Falha, restantes "Não"=Falha; categorias Baixo 0-2 / Moderado 3-7 / Alto 8-20. Etapa 2 condicional (só se score 3-7) com entrevista de seguimento estruturada item-a-item; clínico regista Esclarecido (Passa) / Confirmado (Falha) por item; ≥2 confirmados = rastreio positivo. Categorias finais: Baixo · Moderado—Negativo · Moderado—Positivo · Alto. Aviso: instrumento de despiste, NÃO de diagnóstico — qualquer criança com resultado positivo deve ser referenciada para avaliação de diagnóstico e possível sinalização para intervenção precoce (SNIPI, Pediatria do Desenvolvimento, Pedopsiquiatria, HP Coimbra).',
       domains:['Etapa 1 (20 itens · score 0-20)','Etapa 2 condicional (entrevista de seguimento)','Comunicação social','Linguagem','Brincadeira simbólica','Comportamentos sensoriais','Comportamentos repetitivos'],
@@ -2303,7 +2353,7 @@ function initCatalog() {
       dest:['Aplicador clínico'],
       link:'https://correiaricardina-ui.github.io/questionarios/CARS2-HP_v1.html',
       syncKey:'cars2_hp',
-      area:'Despiste neurodesenvolvimento',
+      area:'Neurodesenvolvimento',
       ageRange:'≥6 anos · QI≥80 · verbal funcional',
       objective:'Avaliação clínica integrativa da severidade de sinais compatíveis com Perturbação do Espetro do Autismo (PEA) em crianças, adolescentes e adultos com funcionamento elevado: idade cronológica ≥6 anos, estimativa de QI ≥80 e comunicação verbal funcional. Adaptação inspirada (Via B) na CARS2-HF (Schopler, Van Bourgondien, Wellman & Love, 2010, Western Psychological Services), com formulação clínica original em português europeu — conteúdo literário do instrumento de referência NÃO reproduzido. Cotação clínica integrativa por psicólogo após observação directa + anamnese + integração de fontes (parental, educativa). 15 domínios com escala 1.0–4.0 (passos 0.5); soma 15.0–60.0. Pontos de corte (Vaughan, 2011; Dawkins, Meyer & Van Bourgondien, 2016): Mínimo 15-27.5 / Ligeiro a moderado 28-33.5 / Severo 34-60. Sinalização adicional: domínios com cotação ≥3.0 configuram atipicidade clinicamente relevante. Não existem normas portuguesas validadas; finalidade clínica complementar — não substitui avaliação clínica integrada nem instrumentos como ADOS-2, ADI-R, Vineland-3.',
       domains:['Compreensão socioemocional','Expressão e regulação emocional','Relação com os outros','Uso do corpo','Uso de objetos no jogo e atividade','Adaptação à mudança e interesses restritos','Resposta visual','Resposta auditiva','Resposta gustativa/olfativa/tátil','Medo ou ansiedade','Comunicação verbal','Comunicação não-verbal','Capacidade de pensamento e integração cognitiva','Nível de atividade','Nível e consistência da resposta intelectual'],
@@ -2314,7 +2364,7 @@ function initCatalog() {
       dest:['Mãe','Pai','Encarregado de Educação'],
       link:'https://correiaricardina-ui.github.io/questionarios/CARS2-QPC_v1.html',
       syncKey:'cars2_qpc',
-      area:'Despiste neurodesenvolvimento',
+      area:'Neurodesenvolvimento',
       ageRange:'Crianças/Adolescentes',
       objective:'Questionário parental para avaliação integrativa do Espetro do Autismo (PEA), preenchido por pais/cuidadores principais sobre o comportamento habitual da criança ou adolescente. Adaptação inspirada (Via B) na CARS-2 QPC (Schopler, Van Bourgondien, Wellman & Love, 2010, WPS), com formulação clínica original em PT-PT — conteúdo literário do instrumento de referência NÃO reproduzido. 81 itens distribuídos por 15 domínios; escala Likert 0-4 (Nunca/Raramente/Por vezes/Frequentemente/Sempre) + opção N/A (não aplicável/não observado). Lógica de cotação direccional: 33 itens descrevem comportamento típico esperado (0-1 = preocupante); 48 itens descrevem comportamento atípico (3-4 = preocupante); resposta 2 nunca preocupante; N/A não conta. Saída qualitativa: percentagem de itens preocupantes por domínio (sinalizado ≥50%) + contagem de domínios sinalizados + categoria clínica (≤3 mínima/ligeira · 4-7 moderada · ≥8 marcada). Pais e mãe podem submeter em separado (dedupe por nome_informante). Tempo: 25-40 min. Indicador qualitativo; não substitui observação clínica directa (CARS2-HP/ST) nem instrumentos como ADI-R, ADOS-2.',
       domains:['Relação com pessoas (6 itens)','Imitação (5)','Resposta emocional (6)','Uso do corpo (5)','Uso de objetos (6)','Adaptação à mudança (5)','Resposta visual (5)','Resposta auditiva (5)','Resposta gust./olf./tátil (6)','Medo ou nervosismo (5)','Comunicação verbal (6)','Comunicação não-verbal (5)','Nível de atividade (5)','Resposta intelectual (5)','Impressões clínicas globais (6)'],
@@ -2325,7 +2375,7 @@ function initCatalog() {
       dest:['Aplicador clínico'],
       link:'https://correiaricardina-ui.github.io/questionarios/CARS2-ST_v1.html',
       syncKey:'cars2_st',
-      area:'Despiste neurodesenvolvimento',
+      area:'Neurodesenvolvimento',
       ageRange:'<6 anos OU QI≤79 OU verbal limitada/ausente',
       objective:'Avaliação clínica integrativa da severidade de sinais compatíveis com Perturbação do Espetro do Autismo (PEA) em crianças mais novas ou com maior compromisso funcional: idade cronológica <6 anos, OU estimativa de QI ≤79, OU comunicação verbal limitada/ausente. Adaptação inspirada (Via B) na CARS-2 Standard Form (Schopler, Van Bourgondien, Wellman & Love, 2010, WPS), com formulação clínica original em PT-PT — conteúdo literário do instrumento de referência NÃO reproduzido. Calibrada para valorizar manifestações comportamentais observáveis (motoras, sensoriais, comportamentais), com menor exigência de inferência sobre processos mentais subtis. Inclui dois domínios próprios da versão Standard: Imitação (item 2) e Impressões Clínicas Globais (item 15). Cotação clínica integrativa por psicólogo. 15 domínios com escala 1.0–4.0 (passos 0.5); soma 15.0–60.0. Pontos de corte (Schopler et al., 1980; Chlebowski, Green, Barton & Fein, 2010; Schopler et al., 2010): Mínimo 15-29.5 / Ligeiro a moderado 30-36.5 / Severo 37-60 (cortes mais altos que a CARS2-HP). Sinalização adicional: domínios com cotação ≥3.0 configuram atipicidade clinicamente relevante. Identificação inclui QI estimado e nível de comunicação verbal. Não existem normas portuguesas validadas; finalidade clínica complementar — não substitui avaliação clínica integrada nem instrumentos como ADOS-2 (Toddler/M1/M2), ADI-R, Bayley-III/WPPSI-IV/Leiter-3, Vineland-3.',
       domains:['Relação com pessoas','Imitação','Resposta emocional','Uso do corpo','Uso de objetos','Adaptação à mudança','Resposta visual','Resposta auditiva','Resposta gustativa/olfativa/tátil','Medo ou nervosismo','Comunicação verbal','Comunicação não-verbal','Nível de atividade','Nível e consistência da resposta intelectual','Impressões clínicas globais'],
@@ -2374,7 +2424,7 @@ function initCatalog() {
       dest:['Paciente/Adolescente','Adulto'],
       link:'https://correiaricardina-ui.github.io/questionarios/ISAS_v1.html',
       syncKey:'isas',
-      area:'Comportamento / Autolesão (NSSI)',
+      area:'Risco, Autolesão & Psicopatologia Geral',
       ageRange:'12–25 anos',
       objective:'Auto-resposta · Klonsky & Glenn (2009). Caracterização de comportamentos de autolesão não suicida (Secção I — 12 comportamentos + 7 questões contextuais) e identificação funcional das 13 funções subjacentes (Secção II — 39 itens Likert 0-2 organizados em 6 funções intrapessoais e 7 interpessoais). Score por função 0-6 (Baixa 0-2 / Média 3-4 / Alta 5-6). Domínios: Intrapessoal 0-36 (Reg. afecto, Anti-dissociação, Anti-suicídio, Marcar sofrimento, Auto-punição, Endurecimento) e Interpessoal 0-42 (Autonomia, Limites interpessoais, Influência, Vinculação a pares, Vingança, Auto-cuidado, Procura de sensações). TOTAL 0-78 com bandas: Sem investimento 0 / Baixo 1-26 / Moderado 27-52 / Elevado 53-78. Perfis funcionais: Baixo investimento funcional, Intrapessoal predominante, Interpessoal predominante, Misto. Alertas críticos: Anti-suicídio ≥4 (articular com EADRS-A e pedopsiquiatria), Auto-punição ≥4 (trabalho sobre auto-conceito e auto-crítica), Influência interpessoal ≥4 (dinâmica familiar e sinalização).',
       domains:['Caracterização (Sec. I)','13 funções (Sec. II)','Intrapessoal (0-36)','Interpessoal (0-42)','TOTAL (0-78)','Perfil funcional','Top 3 funções','Alertas críticos (AS/AP/IN)'],
@@ -2387,7 +2437,7 @@ function initCatalog() {
       dest:['Mãe','Pai','Enc. Educação'],
       link:'https://correiaricardina-ui.github.io/questionarios/FASA_Parental.html',
       syncKey:'fasa_parental',
-      area:'Funcionamento familiar / Ansiedade pediátrica',
+      area:'Família & Parentalidade',
       ageRange:'2–18 anos',
       objective:'Versão Parental · Lebowitz et al. (adaptação Via B PT-EU). Avalia o envolvimento dos pais/cuidadores na acomodação familiar aos sintomas ansiosos da criança/adolescente, ao longo do último mês. 13 itens em 4 subescalas: PAR (Participação directa, itens 1-4, 0-16); MOD (Modificação de rotinas, itens 5-9, 0-20); SOF (Sofrimento parental, item 10, 0-4); CON (Consequências da não-acomodação, itens 11-13, 0-4). Acomodação Total 0-36 com bandas: Mínima (0-8), Ligeira/Moderada (9-17), Acentuada (18-26), Severa (27-36). Indicadores complementares: RC (Reatividade, média 11-13) e CMO (Consequência Máxima Observada). Alerta CMO ≥ 3 sinaliza risco de escalada perante não-acomodação. Orienta para intervenção SPACE ou equivalente.',
       domains:['PAR (0-16)','MOD (0-20)','Acomodação Total (0-36)','SOF (item 10)','RC (média 11-13)','CMO (máx 11-13)'],
@@ -2397,7 +2447,7 @@ function initCatalog() {
       dest:['Paciente'],
       link:'https://correiaricardina-ui.github.io/questionarios/FASA_CR_Infancia.html',
       syncKey:'fasa_cr_infancia',
-      area:'Funcionamento familiar / Ansiedade pediátrica',
+      area:'Família & Parentalidade',
       ageRange:'7–10 anos',
       objective:'Autorrelato Infância (7-10 anos) · Lebowitz et al. (adaptação Via B PT-EU). Linguagem infantil — a criança avalia o envolvimento dos pais nas suas preocupações ansiosas. 16 itens: PAR (1-4, 0-16), MOD (5-9, 0-20), SOF (item 10), CON (11-13), Bloco D — Crenças: UP (Utilidade Percebida, item 14), DC (Desejo de Continuidade, item 15), AENA (Autoeficácia para Não-Acomodação, item 16, direção inversa). Acomodação Total 0-36 (mesmas bandas que Parental). IRC = UP + DC + (4 − AENA), 0-12: Baixa (0-4) / Moderada (5-8) / Elevada (9-12 ⚠). Alertas: CMO ≥ 3, IRC ≥ 9 (dependência cognitiva da acomodação).',
       domains:['PAR (0-16)','MOD (0-20)','Acomodação Total (0-36)','SOF, RC, CMO','UP / DC / AENA','IRC (0-12)'],
@@ -2407,7 +2457,7 @@ function initCatalog() {
       dest:['Paciente'],
       link:'https://correiaricardina-ui.github.io/questionarios/FASA_CR_Adolescencia.html',
       syncKey:'fasa_cr_adolescencia',
-      area:'Funcionamento familiar / Ansiedade',
+      area:'Família & Parentalidade',
       ageRange:'11–17 anos',
       objective:'Autorrelato Adolescência (11-17 anos) · Lebowitz et al. (adaptação Via B PT-EU). Linguagem adolescente formal — o(a) jovem avalia o envolvimento dos pais nas suas preocupações ansiosas. 16 itens idênticos em estrutura à versão Infância (PAR, MOD, SOF, CON, Bloco D — UP/DC/AENA). Acomodação Total 0-36. IRC 0-12. Alertas CMO ≥ 3 e IRC ≥ 9. Útil para articular percepções da díade pais-adolescente (comparar com versão Parental quando disponível).',
       domains:['PAR (0-16)','MOD (0-20)','Acomodação Total (0-36)','SOF, RC, CMO','UP / DC / AENA','IRC (0-12)'],
@@ -2419,7 +2469,7 @@ function initCatalog() {
       dest:['Mãe','Pai','Enc. Educação'],
       link:'https://correiaricardina-ui.github.io/questionarios/FAS_Parental.html',
       syncKey:'fas_parental',
-      area:'Funcionamento familiar / TOC pediátrico',
+      area:'Família & Parentalidade',
       ageRange:'7–18 anos',
       objective:'Versão Parental · Calvocoressi/Flessner (adaptação Via B PT-EU). Avalia a acomodação familiar aos sintomas obsessivo-compulsivos do(a) filho(a). Bloco A — Checklist sintomático (16 categorias dicotómicas: 8 Obsessões + 8 Compulsões); Bloco B — Acomodação (PAR 5 itens 0-20 + MOD 4 itens 0-16); Bloco C — Sofrimento/Consequências. Indicadores derivados: Obs/Comp (0-8 cada), DS (Diversidade Sintomática 0-16: Focal/Moderada/Alargada/Difusa), DOC (Diferencial Obs−Comp −8 a +8: Pred. Compulsivo/Equilibrado/Pred. Obsessivo), Acomodação Total 0-36, RAS (Razão Acomodação/Sintoma = Total ÷ DS: Dispersa <2.5 / Distribuída ≤5 / Concentrada ≤8 / Hiperconcentrada >8 ⚠). Alertas: CMO ≥ 3, RAS > 8 (perfil "muita acomodação para pouco sintoma", típico de TOC focal). Orienta diagnóstico diferencial e plano terapêutico (ERP com envolvimento parental).',
       domains:['Obs / Comp (0-8 cada)','DS (0-16) / DOC (-8 a +8)','PAR (0-20) / MOD (0-16)','Acomodação Total (0-36)','SOF, RC, CMO','RAS (Total/DS)','Categorias presentes'],
@@ -2429,7 +2479,7 @@ function initCatalog() {
       dest:['Paciente'],
       link:'https://correiaricardina-ui.github.io/questionarios/FAS_CR_Infancia.html',
       syncKey:'fas_cr_infancia',
-      area:'Funcionamento familiar / TOC pediátrico',
+      area:'Família & Parentalidade',
       ageRange:'7–10 anos',
       objective:'Autorrelato Infância (7-10 anos) · Calvocoressi/Flessner (adaptação Via B PT-EU). Linguagem infantil — a criança avalia as suas preocupações/rituais e a acomodação dos pais. Bloco A — Checklist (16 cat. TOC com linguagem infantil); Bloco B+C (PAR 5 + MOD 4 + SOF + CON); Bloco D — Crenças: UP (item 14), DC (item 15), AENA (item 16). Todos os indicadores TOC: Obs/Comp, DS, DOC, RAS. Adicionalmente IRC (0-12). Alertas: CMO ≥ 3, RAS > 8, IRC ≥ 9 (a criança dá utilidade percebida alta + quer continuidade + baixa autoeficácia para lidar sozinha — dependência cognitiva relativamente à acomodação).',
       domains:['Obs / Comp / DS / DOC','PAR (0-20) / MOD (0-16)','Acomodação Total (0-36)','SOF, RC, CMO, RAS','UP / DC / AENA','IRC (0-12)'],
@@ -2439,7 +2489,7 @@ function initCatalog() {
       dest:['Paciente'],
       link:'https://correiaricardina-ui.github.io/questionarios/FAS_CR_Adolescencia.html',
       syncKey:'fas_cr_adolescencia',
-      area:'Funcionamento familiar / TOC pediátrico',
+      area:'Família & Parentalidade',
       ageRange:'11–17 anos',
       objective:'Autorrelato Adolescência (11-17 anos) · Calvocoressi/Flessner (adaptação Via B PT-EU). Linguagem adolescente formal — o(a) jovem avalia os seus sintomas TOC e a acomodação dos pais. Estrutura completa: Bloco A (16 cat.), Bloco B+C (PAR 5 + MOD 4 + SOF + CON), Bloco D (UP/DC/AENA). Todos os indicadores: Obs/Comp, DS, DOC, PAR, MOD, Total, RAS, IRC. Mesmos alertas (CMO ≥ 3, RAS > 8, IRC ≥ 9). Excepcionalmente útil para articulação com a versão Parental: divergências sistemáticas pais-adolescente sinalizam discordâncias sobre a natureza dos rituais ou sobre o nível de acomodação efectivamente prestada.',
       domains:['Obs / Comp / DS / DOC','PAR (0-20) / MOD (0-16)','Acomodação Total (0-36)','SOF, RC, CMO, RAS','UP / DC / AENA','IRC (0-12)'],
@@ -2464,7 +2514,7 @@ function initCatalog() {
     { id:'q_psi4adap', name:'PSI-4 adap — Escala de Avaliação do Stress Parental',
       dest:['Mãe','Pai','Enc. Educação','Cuidador'],
       link:'https://correiaricardina-ui.github.io/questionarios/PSI4_adap.html',
-      syncKey:'psi4adap', area:'Parentalidade & Stress Parental', ageRange:'Pais/cuidadores de crianças 0–~12 anos',
+      syncKey:'psi4adap', area:'Família & Parentalidade', ageRange:'Pais/cuidadores de crianças 0–~12 anos',
       objective:'Despiste exploratório do stress parental por autorrelato do cuidador (36 itens, escala 1-5) em 3 domínios: Mal-estar Parental, Interação Disfuncional Pais-Criança e Criança Difícil. Adaptação inspirada (Via B) no modelo de Abidin (1990/1995/2012) — NÃO reproduz o PSI-4-SF (PAR, 2012) nem as suas normas/cut-offs. Sem normas portuguesas: resultados descritivos por POMP % e bandas (referenciadas à amplitude teórica), com Índice RD de validade e itens sentinela. A interpretação clínica é da responsabilidade do psicólogo.',
       domains:['Mal-estar Parental (MP)','Interação Disfuncional Pais-Criança (ID)','Criança Difícil (CD)','Stress Total'],
       ageMin:0, ageMax:156 },
@@ -2473,7 +2523,7 @@ function initCatalog() {
     { id:'q_facesivadap', name:'FACES-IV adap — Coesão e Flexibilidade Familiar',
       dest:['Mãe','Pai','Filho(a)','Cuidador(a)','Outro familiar'],
       link:'https://correiaricardina-ui.github.io/questionarios/FACES_IV_adap.html',
-      syncKey:'faces_iv_adap', area:'Funcionamento familiar / sistémico', ageRange:'≥12 anos',
+      syncKey:'faces_iv_adap', area:'Família & Parentalidade', ageRange:'≥12 anos',
       objective:'Avaliação exploratória do funcionamento familiar por autorrelato (42 itens, escala 1-5) em 6 escalas: 2 equilibradas (Coesão Equilibrada, Flexibilidade Equilibrada) e 4 desequilibradas (Desagregada, Emaranhada, Rígida, Caótica). Adaptação inspirada (Via B) no Modelo Circumplexo de Olson (FACES-IV) — NÃO reproduz o instrumento original nem as suas normas. Sem normas portuguesas: resultados descritivos por POMP %, rácios de equilíbrio (Coesão, Flexibilidade e Circumplexo Total) e posicionamento no modelo. A interpretação clínica é da responsabilidade do psicólogo.',
       domains:['Coesão Equilibrada (CE)','Flexibilidade Equilibrada (FE)','Desagregada (DES)','Emaranhada (EMA)','Rígida (RIG)','Caótica (CAO)','Rácio Circumplexo Total'],
       ageMin:12, ageMax:99 },
@@ -2482,7 +2532,7 @@ function initCatalog() {
     { id:'q_cabs_auto', name:'CABS — Comportamento Assertivo (Autorrelato)',
       dest:['Filho(a)'],
       link:'https://correiaricardina-ui.github.io/questionarios/CABS_Autorrelato.html',
-      syncKey:'cabs_auto', area:'Competências sociais / Assertividade', ageRange:'8–18 anos',
+      syncKey:'cabs_auto', area:'Competências Sociais & Assertividade', ageRange:'8–18 anos',
       objective:'Avaliar o estilo de resposta social da criança/jovem (assertivo, passivo, agressivo) em 27 situações interpessoais com 5 opções de resposta cada (autorrelato). Cotação por opção (−2 muito passiva a +2 muito agressiva): Score Total de Não Assertividade (0–54), Perfil Passivo, Perfil Agressivo e n.º de respostas assertivas. Faixas criteriais do ficheiro de cotação — sem normas portuguesas estandardizadas.',
       domains:['Perfil Passivo','Perfil Agressivo','Score Total de Não Assertividade','Respostas Assertivas'],
       ageMin:8, ageMax:18 },
@@ -2490,7 +2540,7 @@ function initCatalog() {
     { id:'q_cabs_hetero', name:'CABS — Comportamento Assertivo (Heterorrelato)',
       dest:['Mãe','Pai','Enc. Educação'],
       link:'https://correiaricardina-ui.github.io/questionarios/CABS_Heterorrelato.html',
-      syncKey:'cabs_hetero', area:'Competências sociais / Assertividade', ageRange:'4–18 anos',
+      syncKey:'cabs_hetero', area:'Competências Sociais & Assertividade', ageRange:'4–18 anos',
       objective:'Avaliar o estilo de resposta social da criança (assertivo, passivo, agressivo) na perspetiva dos pais/encarregados de educação, em 27 situações interpessoais com 5 opções de resposta cada. Cotação por opção (−2 muito passiva a +2 muito agressiva): Score Total de Não Assertividade (0–54), Perfil Passivo, Perfil Agressivo e n.º de respostas assertivas. Faixas criteriais do ficheiro de cotação — sem normas portuguesas estandardizadas.',
       domains:['Perfil Passivo','Perfil Agressivo','Score Total de Não Assertividade','Respostas Assertivas'],
       ageMin:4, ageMax:18 },
@@ -2499,7 +2549,7 @@ function initCatalog() {
     { id:'q_sppa', name:'SPPA — Como é que eu sou? + Importância (Adolescentes)',
       dest:['Filho(a)'],
       link:'https://correiaricardina-ui.github.io/questionarios/SPPA.html',
-      syncKey:'sppa', area:'Autoconceito / Autoestima', ageRange:'13–18 anos',
+      syncKey:'sppa', area:'Autoconceito & Autoestima', ageRange:'13–18 anos',
       objective:'Perfil de autoperceção para adolescentes (Self-Perception Profile for Adolescents, Harter 1988/2012) em bateria única: Parte I «Como é que eu sou?» (45 itens, 9 subescalas de 5 itens — 8 domínios específicos + Autoestima Global como dimensão própria; médias 1–4 com pró-rateamento ≥4/5) e Parte II «Qual a importância destas coisas?» (16 itens, 8 áreas; valorizada ≥3). Comparação normativa descritiva com as normas americanas do manual de 2012 (M sexo×ano, DP por ano; idades 13–16 → 8.º–11.º ano EUA; limiares z ±1,0 e ±1,5) e discrepâncias competência−importância (James/Harter) com sinalização de vulnerabilidade da autoestima. Tradução técnica PT-PT sem validação nem normas portuguesas — leitura clínica do psicólogo.',
       domains:['Escolar','Social','Atlética','Aparência Física','Laboral','Romântica','Comportamento','Amizades Íntimas','Autoestima Global','Importância por área','Discrepâncias C−I'],
       ageMin:13, ageMax:18 },
@@ -2508,7 +2558,7 @@ function initCatalog() {
     { id:'q_sppc', name:'SPPC — Como é que eu sou + Importância (Crianças)',
       dest:['Filho(a)'],
       link:'https://correiaricardina-ui.github.io/questionarios/SPPC_Bateria.html',
-      syncKey:'sppc', area:'Autoconceito / Autoestima', ageRange:'3.º–8.º ano (normas 9–14 anos)',
+      syncKey:'sppc', area:'Autoconceito & Autoestima', ageRange:'3.º–8.º ano (normas 9–14 anos)',
       objective:'Escala de Autoperceção para Crianças (Self-Perception Profile for Children, Harter 2012, rev. 1985) em bateria única: Parte I «Como é que eu sou» (36 itens, 6 subescalas de 6 itens — 5 domínios específicos + Autoestima Global como dimensão própria; médias 1–4 com pró-rateamento ≥4/6) e Parte II «Que importância isto tem para mim?» (10 itens, 5 áreas; valorizada ≥3). Comparação normativa descritiva com as normas do Anexo 2 (M e DP por sexo×idade, 9–14 anos; limiares z ±1,0 e ±1,5), discrepâncias competência−importância (James/Harter) com sinalização de vulnerabilidade da autoestima e comparação criança–professor (|C−P|: <0,5 convergência · 0,5–1,0 ligeira · ≥1,0 marcada) quando existe registo da Escala do Professor. Subescala Social com limitação normativa divulgada (normas 1985 vs itens 2012). Tradução técnica PT-PT sem validação nem normas portuguesas — leitura clínica do psicólogo.',
       domains:['Competência Escolar','Competência Social','Competência Desportiva','Aparência Física','Comportamento','Autoestima Global','Importância por área','Discrepâncias C−I','Comparação criança–professor'],
       ageMin:8, ageMax:14 },
@@ -2517,7 +2567,7 @@ function initCatalog() {
     { id:'q_sppc_professor', name:'SPPC — Escala de Avaliação do Professor (Crianças)',
       dest:['Professor(a)'],
       link:'https://correiaricardina-ui.github.io/questionarios/SPPC_Professor.html',
-      syncKey:'sppc_professor', area:'Autoconceito / Autoestima', ageRange:'3.º–8.º ano',
+      syncKey:'sppc_professor', area:'Autoconceito & Autoestima', ageRange:'3.º–8.º ano',
       objective:'Escala de Avaliação do Professor paralela ao Self-Perception Profile for Children (Harter, 2012): 15 itens sobre a competência REAL da criança segundo o juízo independente do(a) professor(a), em 5 domínios de 3 itens (médias 1–4 com pró-rateamento ≥2/3) — Competência Escolar, Social, Desportiva, Aparência Física e Comportamento. A Autoestima Global não é avaliada por observadores externos. Sem normas: leitura exclusivamente descritiva. Inclui comparação criança–professor por domínio quando existe registo SPPC do mesmo código (|C−P|: <0,5 convergência · 0,5–1,0 discrepância ligeira · ≥1,0 marcada) — índice de convergência de perspetivas, não medida de validade nem indicador de distorção por parte da criança. Tradução técnica PT-PT sem validação.',
       domains:['Competência Escolar','Competência Social','Competência Desportiva','Aparência Física','Comportamento','Comparação criança–professor'],
       ageMin:8, ageMax:14 },
@@ -2526,14 +2576,14 @@ function initCatalog() {
     { id:'q_sppld', name:'SPP-LD — Como Eu Sou + Importância (DAE)',
       dest:['Filho(a)'],
       link:'https://correiaricardina-ui.github.io/questionarios/SPPLD_Bateria.html',
-      syncKey:'sppld', area:'Autoconceito / Autoestima', ageRange:'3.º–8.º ano (8–15 anos)',
+      syncKey:'sppld', area:'Autoconceito & Autoestima', ageRange:'3.º–8.º ano (8–15 anos)',
       objective:'Perfil de Autoperceção para Alunos com Dificuldades de Aprendizagem Específicas (Self-Perception Profile for Learning Disabled Students, Renick & Harter, 1988/2012) em bateria única: «Como Eu Sou» (46 itens, 10 subescalas — 5 escolares: Capacidade Intelectual Geral, Leitura, Escrita, Ortografia, Matemática; + Atlética, Social, Aparência Física, Conduta + Autoestima Global como dimensão própria; médias 1–4 com máximo de 1 omisso por subescala), «Com Quem Me Comparei» (9 áreas; grupo de comparação social — sala de apoio vs aulas regulares — variável crítica de interpretação nesta população) e Escala de Importância (18 itens, 9 domínios). Sem normas: bandas descritivas do manual (<2,00 baixa · 2,00–3,75 média · >3,75 elevada) e referências americanas meramente comparativas (DAE pública/privada/desenvolvimento típico). Discrepâncias competência−importância (James) só nos domínios com importância ≥3,0, com soma, média e sinalização de vulnerabilidade. Aplicável também a alunos com desenvolvimento típico. Tradução técnica PT-PT (Via A) sem validação nem normas portuguesas — leitura clínica do psicólogo.',
       domains:['Capacidade Intelectual Geral','Competência em Leitura','Competência em Escrita','Competência em Ortografia','Competência em Matemática','Competência Atlética','Competência Social','Aparência Física','Conduta Comportamental','Autoestima Global','Importância por domínio','Discrepâncias C−I','Grupo de comparação social'],
       ageMin:8, ageMax:15 },
     { id:'q_sppcs', name:'SPPCS — Perfil de Autoperceção para Estudantes Universitários',
       dest:['Paciente'],
       link:'https://correiaricardina-ui.github.io/questionarios/SPPCS_v1.html',
-      syncKey:'sppcs', area:'Autoconceito / Autoestima', ageRange:'Ensino superior (17–23 anos)',
+      syncKey:'sppcs', area:'Autoconceito & Autoestima', ageRange:'Ensino superior (17–23 anos)',
       objective:'Perfil de Autoperceção para Estudantes Universitários (Self-Perception Profile for College Students, Neemann & Harter, 2012) em bateria única de 98 itens: «Como Eu Sou» (54 itens, 13 subescalas — Competência no Trabalho, Competência Escolar, Aceitação Social, Aparência Física, Relação com os Pais, Amizades Íntimas, Capacidade Intelectual, Moralidade, Relações Amorosas, Humor, Criatividade, Competência Atlética + Autoestima Global como dimensão própria de 6 itens; médias 1–4), «Classificações de Importância» (24 itens, 12 domínios) e «As Pessoas na Minha Vida» (20 itens, 5 fontes de apoio social — Amigo Íntimo, Mãe, Pai, Professores, Organizações Académicas). Classificações descritivas por valores z face às normas norte-americanas por sexo (N=300; sem normas portuguesas). Discrepância competência−importância (modelo de James/Harter) calculada apenas nos domínios com importância = 4. Tradução técnica PT-PT para uso clínico exploratório e investigação — leitura clínica do psicólogo.',
       domains:['Competência no Trabalho','Competência Escolar','Aceitação Social','Aparência Física','Relação com os Pais','Amizades Íntimas','Capacidade Intelectual','Moralidade','Relações Amorosas','Humor','Criatividade','Competência Atlética','Autoestima Global','Importância por domínio','Discrepância C−I','Apoio Social Percebido'],
       ageMin:17, ageMax:30 },
@@ -2541,7 +2591,7 @@ function initCatalog() {
     { id:'q_epcas_pe', name:'EPCAS-PE — Escala Pictórica de Competência Percebida e Aceitação Social',
       dest:['Psicóloga'],
       link:'https://correiaricardina-ui.github.io/questionarios/EPCAS_PE_v1.html',
-      syncKey:'epcas_pe', area:'Autoconceito / Autoestima', ageRange:'4–7 anos (pré-escolar e 1.º/2.º ano)',
+      syncKey:'epcas_pe', area:'Autoconceito & Autoestima', ageRange:'4–7 anos (pré-escolar e 1.º/2.º ano)',
       objective:'Tradução PT-PT da Pictorial Scale of Perceived Competence and Social Acceptance for Young Children, Forma Pré-Escolar/Jardim de Infância (Harter & Pike, 1983/1984), com administração individual pelo examinador: para cada item pictórico a criança escolhe qual das duas crianças ilustradas é mais parecida consigo e indica se é «muito» (círculo grande) ou «um pouco» (círculo pequeno) parecida — cotação 1–4 por item. 30 itens: 24 originais (4 subescalas × 6 itens — Competência Cognitiva, Competência Física, Aceitação pelos Pares, Aceitação Parental) + extensão Aparência Física (6 itens, ilustrações K. Eklund 2021–2022). Médias 1–4 por subescala (admite itens omissos: média sobre itens validamente administrados) e fatores ao nível do item: Competência Geral (Cognitiva+Física) e Aceitação Social (Pares+Parental). Inclui 2 itens de treino não cotados. Bandas exclusivamente descritivas (<2,00 Baixa · 2,00–2,99 Média · ≥3,00 Elevada; sem normas portuguesas) — leitura clínica do psicólogo.',
       domains:['Competência Cognitiva','Competência Física','Aceitação pelos Pares','Aceitação Parental','Aparência Física','Competência Geral','Aceitação Social'],
       ageMin:4, ageMax:7 },
@@ -2549,7 +2599,7 @@ function initCatalog() {
     { id:'q_diario_episodios', name:'Diário de Episódios',
       dest:['Mãe','Pai','Enc. Educação'],
       link:'https://correiaricardina-ui.github.io/questionarios/Diario_Episodios_v1.html',
-      syncKey:'diario_episodios', area:'Monitorização', ageRange:'Todas as idades',
+      syncKey:'diario_episodios', area:'Anamnese, História & Monitorização', ageRange:'Todas as idades',
       objective:'Registo inter-sessões de episódios em casa (ansiedade, desregulação, sono, somático, progresso, etc.). Os pais/cuidadores registam, à medida que acontecem, contexto, resposta da criança e resposta dos próprios. Instrumento qualitativo de monitorização — sem cotação normativa; produz apenas síntese descritiva (nº de episódios, frequência por tipo e distribuição de intensidade) e o detalhe integral de cada episódio.',
       domains:['Nº de episódios','Frequência por tipo','Distribuição de intensidade'],
       ageMin:0, ageMax:null },
@@ -2557,7 +2607,7 @@ function initCatalog() {
     { id:'q_anamnese_parental_complementar', name:'Anamnese Parental Complementar',
       dest:['Mãe','Pai','Enc. Educação'],
       link:'https://correiaricardina-ui.github.io/questionarios/ANAMNESE_PARENTAL_COMPLEMENTAR_v1.html',
-      syncKey:'anamnese_parental_complementar', area:'Anamnese & História Clínica', ageRange:'Todas as idades',
+      syncKey:'anamnese_parental_complementar', area:'Anamnese, História & Monitorização', ageRange:'Todas as idades',
       objective:'Recolha estruturada da perspetiva do progenitor ou cuidador que não esteve presente na consulta de anamnese inicial e deseja integrar o processo de avaliação/intervenção da criança. Instrumento qualitativo de anamnese — sem cotação normativa: regista a motivação para participar, a preocupação principal e as áreas assinaladas, a criança no contexto do respondente (rotinas, o que corre bem, o que é mais difícil), a evolução percebida, informação adicional relevante e as expectativas/disponibilidade para participar.',
       domains:['Preocupações principais','Áreas assinaladas','Contexto do respondente','Evolução percebida','Expectativas e disponibilidade'],
       ageMin:0, ageMax:null },
@@ -2613,7 +2663,7 @@ function initCatalog() {
     { id:'q_caarms_adap', name:'Entrevista adaptada CAARMS — Experiências Psicóticas Atenuadas, Dissociação e Funcionamento',
       dest:['Psicóloga'],
       link:'https://correiaricardina-ui.github.io/questionarios/Entrevista_CAARMS_adap.html',
-      syncKey:'caarms_adap', area:'Risco & Sintomatologia Psicopatológica Geral', ageRange:'Adolescentes / jovens',
+      syncKey:'caarms_adap', area:'Risco, Autolesão & Psicopatologia Geral', ageRange:'Adolescentes / jovens',
       objective:'Entrevista semiestruturada aplicada pela psicóloga (Avaliação Fenomenológica de Experiências Psicóticas Atenuadas, Dissociação e Funcionamento Subjetivo). Adaptação inspirada (Via B) nos domínios do CAARMS (Yung, McGorry et al., 2005), com formulação original em português europeu — NÃO constitui reprodução do CAARMS. Orientadora e descritiva, não diagnóstica: não classifica risco (UHR/APS/BLIPS). 10 domínios com cotação estruturada 0/1/2 (típico–preservado / intermédio / marcado–ausente); campos vazios cotam 0. A aplicação regista as respostas fluidas ditas pelo próprio, a cotação de cada item e observações qualitativas; o painel apresenta o perfil por domínio, o Índice Global de Alteração Dimensional (IGAD = média dos 10 índices; IGAD bruto = soma/54×100) e um painel de sinalização (11 marcadores Alto/Médio). Bandas orientadoras do IGAD: <34 Mínima / 34–66 Moderada / ≥67 Elevada. Instrumento orientativo, a integrar sempre com entrevista clínica, observação e história de vida.',
       domains:['Experiências percetivas atípicas','Pensamento, fluência e organização cognitiva','Ideias de referência, desconfiança e hipervigilância','Self, corpo e experiências dissociativas','Experiência emocional e afetividade','Funcionamento global e esforço subjetivo','Narrativa subjetiva e organização do discurso','Qualidade de contacto e presença relacional','Insight, significado e medos implícitos','Coerência interna e continuidade do self','IGAD (Índice Global)'],
       ageMin:null, ageMax:null },
@@ -2887,9 +2937,9 @@ function initCatalog() {
       'q_isc24':      { link:'https://correiaricardina-ui.github.io/questionarios/ISC24.html', syncKey:'isc24' },
       // ── QEA — Questionário de Esquemas para Adolescentes v1.0 ──────────
       'q_qea':        { link:'https://correiaricardina-ui.github.io/questionarios/QEA_questionario.html', syncKey:'qea' },
-      // ── EMP-H&F — Escala Multidimensional de Perfeccionismo v1.0 ────────
+      // ── EMP-H&F — Escala Multidimensional de Perfecionismo v1.0 ────────
       'q_emp_hf':     { link:'https://correiaricardina-ui.github.io/questionarios/EMP_HF_v1.html', syncKey:'emp_hf' },
-      // ── EMP-F — Escala Multidimensional de Perfeccionismo (Frost) v1.0 ──
+      // ── EMP-F — Escala Multidimensional de Perfecionismo (Frost) v1.0 ──
       'q_emp_f':      { link:'https://correiaricardina-ui.github.io/questionarios/EMP_F_v1.html', syncKey:'emp_f' },
       // ── OCI-CV-R — Inventário Obsessivo-Compulsivo Revisto para Crianças v1.0 ──
       'q_ocicvr':     { link:'https://correiaricardina-ui.github.io/questionarios/OCI_CV_R_v1.html', syncKey:'ocicvr' },
@@ -3433,12 +3483,12 @@ function initCatalog() {
       const d = defaults.find(x => x.id === 'q_qea');
       if(d) { store.set('q_' + d.id, d); catalog.push('q_qea'); store.set('catalog', catalog); }
     }
-    // EMP-H&F — Escala Multidimensional de Perfeccionismo (Hewitt & Flett) v1.0
+    // EMP-H&F — Escala Multidimensional de Perfecionismo (Hewitt & Flett) v1.0
     if(!catalog.includes('q_emp_hf')) {
       const d = defaults.find(x => x.id === 'q_emp_hf');
       if(d) { store.set('q_' + d.id, d); catalog.push('q_emp_hf'); store.set('catalog', catalog); }
     }
-    // EMP-F — Escala Multidimensional de Perfeccionismo (Frost) v1.0
+    // EMP-F — Escala Multidimensional de Perfecionismo (Frost) v1.0
     if(!catalog.includes('q_emp_f')) {
       const d = defaults.find(x => x.id === 'q_emp_f');
       if(d) { store.set('q_' + d.id, d); catalog.push('q_emp_f'); store.set('catalog', catalog); }
@@ -4522,7 +4572,7 @@ function formatScoreSummary(scores, syncKey) {
       return '<span style="font-size:0.78rem;' + cls + '">Global=' + g.toFixed(2) + sub + '</span>';
     }
   }
-  // ── EMP-H&F — Perfeccionismo Multidimensional (Hewitt & Flett, 1991) ──
+  // ── EMP-H&F — Perfecionismo Multidimensional (Hewitt & Flett, 1991) ──
   if(syncKey === 'emp_hf') {
     const totM = scores['TOTAL_media'] ?? scores['total_media'] ?? scores['Total_media'] ?? scores['mediaTotal'] ?? null;
     const paoM = scores['PAO_media']   ?? scores['pao_media']   ?? null;
@@ -4540,7 +4590,7 @@ function formatScoreSummary(scores, syncKey) {
       return `<span style="font-size:0.78rem;${cls}">Total=${t.toFixed(2)} · ${nivel}${sub}</span>`;
     }
   }
-  // ── EMP-F — Perfeccionismo Multidimensional (Frost et al., 1990) ──────
+  // ── EMP-F — Perfecionismo Multidimensional (Frost et al., 1990) ──────
   // Sem total global — interpretação por subescala. Cut-offs específicos:
   // CM/DA/PE ≥3.0 · PC ≥2.5 · PS ≥3.5 · O ≥4.2 → Elevado
   if(syncKey === 'emp_f') {
@@ -6882,10 +6932,350 @@ function renderOverview() {
 }
 
 // ═══════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
+// ÁREAS DE AVALIAÇÃO · VOCABULÁRIO CANÓNICO  ·  v1.0
+// ───────────────────────────────────────────────────────
+// Um instrumento = uma área = um domínio clínico.
+// A finalidade (rastreio · avaliação · monitorização) e o
+// alvo (TOC, ansiedade…) NÃO entram no nome da área: são
+// encontrados pela procura, que indexa nome, objetivo e
+// domínios. Esta lista é a única fonte de verdade e é
+// usada pelo selector do formulário e pela ordenação do
+// catálogo, que antes divergiam entre si.
+// ═══════════════════════════════════════════════════════
+const RC_AREAS_CANONICAS = [
+  'Anamnese, História & Monitorização',
+  'Neurodesenvolvimento',
+  'Atenção, PHDA & Funções Executivas',
+  'Ansiedade, Depressão & Internalização',
+  'Risco, Autolesão & Psicopatologia Geral',
+  'Trauma & Stress',
+  'Externalização & Comportamento',
+  'Regulação Emocional & Coping',
+  'Alimentação & Imagem Corporal',
+  'Sono',
+  'Família & Parentalidade',
+  'Escola, Motivação & Aprendizagem',
+  'Personalidade & Esquemas',
+  'Autoconceito & Autoestima',
+  'Competências Sociais & Assertividade',
+  'Orientação Vocacional & Inteligências',
+  'Funcionamento & Interferência Funcional',
+  'Comportamentos Aditivos'
+];
+
+// Equivalências: área antiga → área canónica.
+// Mantida indefinidamente, para que registos guardados em
+// localStorage antes desta versão continuem a ser lidos.
+const RC_AREA_EQUIV = {
+  'Anamnese & História Clínica':                  'Anamnese, História & Monitorização',
+  'Monitorização':                                'Anamnese, História & Monitorização',
+  'Despiste neurodesenvolvimento':                'Neurodesenvolvimento',
+  'Risco & Sintomatologia Psicopatológica Geral': 'Risco, Autolesão & Psicopatologia Geral',
+  'Risco suicidário':                             'Risco, Autolesão & Psicopatologia Geral',
+  'Comportamento / Autolesão (NSSI)':             'Risco, Autolesão & Psicopatologia Geral',
+  'Funcionamento familiar / TOC pediátrico':      'Família & Parentalidade',
+  'Funcionamento familiar / Ansiedade pediátrica':'Família & Parentalidade',
+  'Funcionamento familiar / Ansiedade':           'Família & Parentalidade',
+  'Funcionamento familiar / sistémico':           'Família & Parentalidade',
+  'Parentalidade & Stress Parental':              'Família & Parentalidade',
+  'Autoconceito / Autoestima':                    'Autoconceito & Autoestima',
+  'Competências Sociais & Performance':           'Competências Sociais & Assertividade',
+  'Competências sociais / Assertividade':         'Competências Sociais & Assertividade',
+  // listas obsoletas do selector antigo, sem instrumentos associados
+  'Internalização & Risco':                       'Ansiedade, Depressão & Internalização',
+  'Escola · Aprendizagem · Motivação':            'Escola, Motivação & Aprendizagem'
+};
+
+// Reatribuições individuais, decididas caso a caso
+const RC_AREA_POR_ID = {
+  'q_ppgrj': 'Ansiedade, Depressão & Internalização'   // pressão de desempenho desportivo
+};
+
+function rcAreaCanonica(q) {
+  if(q == null) return 'Sem área definida';
+  const porId = RC_AREA_POR_ID[q.id];
+  if(porId != null) return porId;
+  const a = q.area;
+  if(a == null || a === '') return 'Sem área definida';
+  const eq = RC_AREA_EQUIV[a];
+  return eq != null ? eq : a;
+}
+
+// Reescreve o campo `area` dos registos já guardados no
+// localStorage. Idempotente: correr duas vezes não altera
+// nada. Só toca no campo `area`; nenhum outro é lido nem
+// escrito, e nenhum registo é criado ou apagado.
+function rcMigrarAreas() {
+  try {
+    const ids = store.get('catalog') || [];
+    let mexidos = 0;
+    ids.forEach(id => {
+      const chave = (store.get(id) != null) ? id : ('q_' + id);
+      const q = store.get(chave);
+      if(q == null) return;
+      const canon = rcAreaCanonica(q);
+      if(canon !== 'Sem área definida' && q.area !== canon) {
+        q.area = canon;
+        store.set(chave, q);
+        mexidos++;
+      }
+    });
+    if(mexidos > 0) console.log('[RC] Áreas normalizadas em ' + mexidos + ' instrumentos.');
+    return mexidos;
+  } catch(e) {
+    console.warn('[RC] Migração de áreas não concluída:', e);
+    return 0;
+  }
+}
+
+// Preenche o selector do formulário a partir da lista canónica,
+// para que o vocabulário do formulário e o do catálogo não voltem
+// a divergir.
+function rcPreencherSelectAreas() {
+  const sel = document.getElementById('nq-area');
+  if(sel == null) return;
+  const atual = sel.value;
+  const opts = ['<option value="">— seleccione ou escreva abaixo —</option>']
+    .concat(RC_AREAS_CANONICAS.map(a =>
+      '<option value="' + rcEscapeHtml(a) + '">' + rcEscapeHtml(a) + '</option>'))
+    .concat(['<option value="Outro">Outro</option>']);
+  sel.innerHTML = opts.join('');
+  if(atual) sel.value = atual;
+}
+
+// ═══════════════════════════════════════════════════════
+// PROCURA NO CATÁLOGO  ·  v1.0
+// ───────────────────────────────────────────────────────
+// Indexa nome, id, syncKey, área, objetivo, domínios,
+// destinatários e faixa etária. Insensível a acentos e a
+// maiúsculas. Vários termos são conjuntivos (AND).
+// Zero resultados devolve resposta explícita + sugestões.
+// ═══════════════════════════════════════════════════════
+let rcCatalogQuery = '';
+
+// Minúsculas + remoção de diacríticos + espaços normalizados.
+// Colapsa ainda «cc» em «c»: depois da remoção da cedilha, isto faz
+// convergir as duas grafias admitidas em Portugal — «perfeccionismo»
+// e «perfecionismo», «correcção» e «correção» — de modo que qualquer
+// delas encontre o instrumento. Aplica-se ao índice e à consulta, pelo
+// que as duas partes ficam sempre na mesma métrica.
+function rcNorm(s) {
+  if(s == null) return '';
+  return String(s)
+    .toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/cc/g, 'c')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function rcEscapeHtml(s) {
+  if(s == null) return '';
+  return String(s).replace(/[&<>"']/g, function(c) {
+    return ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' })[c];
+  });
+}
+
+// Texto pesquisável de um instrumento (campos ricos incluídos)
+function rcIndiceInstrumento(q) {
+  if(q == null) return '';
+  const partes = [
+    q.name, q.id, q.syncKey, q.area, q.ageRange, q.objective,
+    Array.isArray(q.dest)    ? q.dest.join(' ')    : q.dest,
+    Array.isArray(q.domains) ? q.domains.join(' ') : q.domains,
+    q.link
+  ];
+  return rcNorm(partes.filter(p => p != null && p !== '').join(' · '));
+}
+
+// Índice curto, só para sugestões (nome + área + domínios)
+function rcIndiceCurto(q) {
+  if(q == null) return '';
+  const partes = [
+    q.name, q.syncKey, q.area,
+    Array.isArray(q.domains) ? q.domains.join(' ') : q.domains
+  ];
+  return rcNorm(partes.filter(p => p != null && p !== '').join(' · '));
+}
+
+// Índice compacto: só letras e dígitos de NOME, sigla, id e área.
+// Serve para siglas partidas por hífen ou underscore — "mchat" encontra
+// "M-CHAT-R/F", "empf" encontra "EMP_F". Não inclui o objetivo, para não
+// gerar correspondências acidentais dentro de texto corrido.
+function rcIndiceCompacto(q) {
+  if(q == null) return '';
+  const partes = [q.name, q.syncKey, q.id, q.area];
+  return rcNorm(partes.filter(p => p != null && p !== '').join(' '))
+         .replace(/[^a-z0-9]+/g, '');
+}
+
+function rcEscRegex(s) {
+  return String(s).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+// Um termo corresponde se começar numa fronteira de palavra — "toc" encontra
+// "TOC" mas não "protocolo". Termos com 5 ou mais caracteres são discriminantes
+// que baste para se aceitarem também dentro de palavras compostas, de modo que
+// "cognição" encontre "metacognição".
+function rcTermoNaFronteira(idx, termo) {
+  if(new RegExp('(^|[^a-z0-9])' + rcEscRegex(termo)).test(idx)) return true;
+  if(termo.length >= 5 && idx.indexOf(termo) !== -1) return true;
+  return false;
+}
+
+// Escada de precisão: primeiro fronteira de palavra (preciso);
+// só se nada corresponder é que se alarga ao índice compacto (permissivo).
+// Assim ganha-se precisão sem nunca perder um instrumento que existe.
+function rcFiltrarCatalogo(lista, consulta) {
+  const base = Array.isArray(lista) ? lista : [];
+  const q = rcNorm(consulta);
+  if(!q) return base.slice();
+  const termos = q.split(' ').filter(Boolean);
+
+  const precisos = base.filter(item => {
+    const idx = rcIndiceInstrumento(item);
+    return termos.every(t => rcTermoNaFronteira(idx, t));
+  });
+  if(precisos.length) return precisos;
+
+  const termosCompactos = termos.map(t => t.replace(/[^a-z0-9]+/g, '')).filter(Boolean);
+  if(!termosCompactos.length) return [];
+  return base.filter(item => {
+    const idxc = rcIndiceCompacto(item);
+    return termosCompactos.every(t => idxc.indexOf(t) !== -1);
+  });
+}
+
+// Distância de Levenshtein (para tolerância a gralhas)
+function rcDist(a, b) {
+  const m = a.length, n = b.length;
+  if(m === 0) return n;
+  if(n === 0) return m;
+  let prev = new Array(n + 1), cur = new Array(n + 1), i, j;
+  for(j = 0; j <= n; j++) prev[j] = j;
+  for(i = 1; i <= m; i++) {
+    cur[0] = i;
+    for(j = 1; j <= n; j++) {
+      cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1,
+                        prev[j - 1] + (a.charAt(i - 1) === b.charAt(j - 1) ? 0 : 1));
+    }
+    for(j = 0; j <= n; j++) prev[j] = cur[j];
+  }
+  return prev[n];
+}
+
+// Aproximações quando a procura não devolve nada
+function rcSugestoes(lista, consulta) {
+  const base = Array.isArray(lista) ? lista : [];
+  const termos = rcNorm(consulta).split(' ').filter(t => t.length >= 3);
+  if(!termos.length) return [];
+  const res = [];
+  base.forEach(item => {
+    const palavras = rcIndiceCurto(item).split(/[^a-z0-9]+/).filter(w => w.length >= 3);
+    let melhor = Infinity;
+    termos.forEach(t => {
+      const lim = t.length <= 4 ? 1 : (t.length <= 7 ? 2 : 3);
+      palavras.forEach(w => {
+        if(w.indexOf(t) === 0 || t.indexOf(w) === 0) { melhor = Math.min(melhor, 0); return; }
+        const d = rcDist(t, w);
+        if(d <= lim) melhor = Math.min(melhor, d);
+      });
+    });
+    if(melhor !== Infinity) res.push({ q: item, d: melhor });
+  });
+  res.sort((a, b) => (a.d - b.d) || String(a.q.name).localeCompare(String(b.q.name), 'pt'));
+  return res.slice(0, 6).map(r => r.q);
+}
+
+function rcAtualizarContador(visiveis, total) {
+  const el = document.getElementById('rc-cat-count');
+  if(el == null) return;
+  const btn = document.getElementById('rc-cat-search-clear');
+  const ativo = rcNorm(rcCatalogQuery) !== '';
+  if(btn != null) btn.style.display = ativo ? 'block' : 'none';
+  if(!ativo) {
+    el.innerHTML = '<strong>' + total + '</strong> instrumentos no catálogo';
+  } else {
+    el.innerHTML = '<strong>' + visiveis + '</strong> de ' + total +
+                   ' instrumentos correspondem a “' + rcEscapeHtml(rcCatalogQuery.trim()) + '”';
+  }
+}
+
+function rcPainelSemResultados(todos, consulta) {
+  const termo = rcEscapeHtml(String(consulta == null ? '' : consulta).trim());
+  const sugs = rcSugestoes(todos, consulta);
+  let bloco = '';
+  if(sugs.length) {
+    bloco = '<div class="rc-cat-sugg">' +
+      '<div class="rc-cat-sugg-label">Talvez procure</div>' +
+      sugs.map(s =>
+        '<button type="button" class="rc-cat-sugg-item" data-rc-sugg="' +
+        rcEscapeHtml(s.name == null ? '' : s.name) + '">' +
+        rcEscapeHtml(s.name) +
+        '<span class="rc-sugg-area">' + rcEscapeHtml(s.area || 'Sem área definida') + '</span>' +
+        '</button>'
+      ).join('') +
+    '</div>';
+  }
+  return '<div class="rc-cat-none">' +
+    '<div class="rc-cat-none-icon">🔍</div>' +
+    '<div class="rc-cat-none-title">Não existe no catálogo</div>' +
+    '<div class="rc-cat-none-sub">Nenhum dos <strong>' + todos.length + '</strong> instrumentos ' +
+    'corresponde a <span class="rc-cat-none-term">' + termo + '</span>.<br>' +
+    'A procura abrange nome, sigla, área, objetivo, domínios, destinatários e faixa etária.</div>' +
+    bloco +
+  '</div>';
+}
+
+// Coloca um termo na caixa e volta a desenhar
+function rcProcurarNoCatalogo(termo) {
+  const inp = document.getElementById('rc-cat-search');
+  rcCatalogQuery = termo == null ? '' : String(termo);
+  if(inp != null) inp.value = rcCatalogQuery;
+  renderCatalog();
+}
+
+function rcLimparProcuraCatalogo() {
+  rcProcurarNoCatalogo('');
+  const inp = document.getElementById('rc-cat-search');
+  if(inp != null) inp.focus();
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  const inp = document.getElementById('rc-cat-search');
+  if(inp != null) {
+    inp.addEventListener('input', function(e) {
+      rcCatalogQuery = e.target.value;
+      renderCatalog();
+    });
+    inp.addEventListener('keydown', function(e) {
+      if(e.key === 'Escape') { e.preventDefault(); rcLimparProcuraCatalogo(); }
+    });
+  }
+  const btn = document.getElementById('rc-cat-search-clear');
+  if(btn != null) btn.addEventListener('click', rcLimparProcuraCatalogo);
+  const lista = document.getElementById('catalog-list');
+  if(lista != null) {
+    lista.addEventListener('click', function(e) {
+      const alvo = e.target && e.target.closest ? e.target.closest('[data-rc-sugg]') : null;
+      if(alvo != null) rcProcurarNoCatalogo(alvo.getAttribute('data-rc-sugg'));
+    });
+  }
+});
+
+// ═══════════════════════════════════════════════════════
 // CATÁLOGO
 // ═══════════════════════════════════════════════════════
 function renderCatalog() {
-  const catalog = getCatalog();
+  const catalogTodos = getCatalog();
+  const catalog = rcFiltrarCatalogo(catalogTodos, rcCatalogQuery);
+  rcAtualizarContador(catalog.length, catalogTodos.length);
+  if(!catalog.length && rcNorm(rcCatalogQuery) !== '') {
+    const elv = document.getElementById('catalog-list');
+    if(elv != null) elv.innerHTML = rcPainelSemResultados(catalogTodos, rcCatalogQuery);
+    return;
+  }
   const el = document.getElementById('catalog-list');
   if(!catalog.length) {
     el.innerHTML = `<div class="empty-state"><div class="empty-icon">📋</div><p>Nenhum questionário adicionado ainda.</p></div>`;
@@ -6895,12 +7285,12 @@ function renderCatalog() {
   // Group by area
   const groups = {};
   catalog.forEach(q => {
-    const area = q.area || 'Sem área definida';
+    const area = rcAreaCanonica(q);
     if(!groups[area]) groups[area] = [];
     groups[area].push(q);
   });
 
-  const areaOrder = ['Anamnese & História Clínica','Neurodesenvolvimento','Internalização & Risco','Externalização & Comportamento','Regulação Emocional & Coping','Alimentação & Imagem Corporal','Família & Parentalidade','Escola · Aprendizagem · Motivação','Personalidade & Esquemas','Competências Sociais & Performance'];
+  const areaOrder = RC_AREAS_CANONICAS;
   const sortedAreas = Object.keys(groups).sort((a,b) => {
     const ia = areaOrder.indexOf(a), ib = areaOrder.indexOf(b);
     if(ia===-1 && ib===-1) return a.localeCompare(b);
@@ -7207,6 +7597,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   })();
   initCatalog();
+  rcMigrarAreas();
+  rcPreencherSelectAreas();
   checkReceivedQuestionnaires(); // dispara em background; resultado visível após login
 
   // Toggle password visibility

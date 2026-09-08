@@ -710,9 +710,23 @@ function normAgeGroup(ageGroup, age) {
   const a = parseInt(age, 10);
   if (!isNaN(a) && a > 0) return a <= 11 ? '6-11' : '12-18';
   const g = (ageGroup == null ? '' : String(ageGroup)).trim();
-  if (g === '6-11' || g === '12-18') return g;
-  if (g.includes('T')) return g.includes('2026-12') ? '12-18' : '6-11';
-  return g || '6-11';
+  const gn = g.replace(/[\u2010-\u2015]/g,'-');   // hífenes tipográficos → hífen simples
+  if (gn === '6-11' || gn === '12-18') return gn;
+  // O Sheets em pt-PT coage '6-11' e '12-18' a DATAS (6 de Novembro · 18 de
+  // Dezembro). Lê-se o mês e o dia, não o ano: a versão anterior procurava a
+  // cadeia '2026-12' e deixaria de funcionar a partir de 2027, atribuindo em
+  // silêncio o escalão 6-11 a adolescentes.
+  const iso = gn.match(/^\d{4}-(\d{2})-(\d{2})/);
+  if (iso) { const mes = +iso[1], dia = +iso[2];
+    if (mes === 12 && dia === 18) return '12-18';
+    if (mes === 11 && dia === 6)  return '6-11'; }
+  const par = gn.match(/(\d{1,2})\s*-\s*(\d{1,2})/);   // '6-11 anos', '12-18 anos'
+  if (par) return (+par[1]) <= 6 ? '6-11' : '12-18';
+  // Sem idade e sem escalão reconhecível NÃO se assume um grupo normativo: o
+  // valor segue tal e qual e getT bloqueia com mensagem explícita. Assumir
+  // '6-11' por omissão, como antes, produzia T calculados contra as normas
+  // erradas sem qualquer aviso.
+  return g;
 }
 function classify(T, composite) {
   if(T==null) return 'unknown';
@@ -891,6 +905,12 @@ function submitTRF() {
       patientCode: sessionMeta.code,
       nomeCrianca: sessionMeta.childName,
       nomeInquirido: sessionMeta.filledBy,
+      // v1.1 — o NOME do professor tem de seguir já na submissão inicial: é o
+      // quarto elemento da chave de dedupe do Sheet e sem ele dois professores
+      // da mesma criança no mesmo dia colapsam numa só linha. O sync posterior
+      // do painel já o enviava; a submissão do próprio respondente não.
+      nome_informante: sessionMeta.teacherName || '',
+      nome_preenche:   sessionMeta.teacherName || '',
       grauParentesco: 'Professor(a)',
       idade: sessionMeta.age,
       sexo: sessionMeta.sex,
@@ -959,6 +979,22 @@ const THRESHOLDS = { composite:{bl:60, clin:64}, syndrome:{bl:65, clin:70} };
 const OMISS_EXCLUIR = ['56h','113'];
 const LIMITE_OMISSOS = 8;
 
+// Normalização do sexo. O motor exige 'F' ou 'M' exactos; o valor pode chegar
+// do Sheet, de um registo antigo ou de importação em qualquer outra forma, e
+// nesse caso a cotação era bloqueada por inteiro. A lista é EXPLÍCITA de
+// propósito: um valor não previsto é devolvido tal e qual, para que getT o
+// recuse com mensagem clara em vez de o adivinhar pela primeira letra
+// («MENINA» não deve resolver para 'M' por acidente).
+const MAPA_SEXO = {
+  'F':'F','FEM':'F','FEMININO':'F','FEMININA':'F','RAPARIGA':'F','MENINA':'F',
+  'M':'M','MASC':'M','MASCULINO':'M','MASCULINA':'M','RAPAZ':'M','MENINO':'M'
+};
+function normSexo(s) {
+  const v = (s == null ? '' : String(s)).trim().toUpperCase()
+            .normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+  return MAPA_SEXO[v] !== undefined ? MAPA_SEXO[v] : v;
+}
+
 function CotacaoErro(codigo, escala, msg){
   const e = new Error('['+codigo+']'+(escala?' escala '+escala:'')+' — '+msg);
   e.codigo = codigo; e.escala = escala; e.cotacao = true; return e;
@@ -969,7 +1005,15 @@ function scoreProtocol(formId, ans, sex, ageGroup) {
   if (formId !== FORM_ID) throw CotacaoErro('FORMULARIO', null,
     'pedido de cotação para "'+formId+'" mas este módulo cota exclusivamente "'+FORM_ID+'". Sem fallback entre formulários.');
   ans = ans || {};
-  const getV = (n)=>{ let v = ans[n]!==undefined ? ans[n] : ans[String(n)];
+  sex = normSexo(sex);
+  // Chaves das respostas: o objecto pode chegar indexado por número (1, "1"),
+  // ou com os prefixos usados noutros instrumentos da plataforma ("item1",
+  // "q1"). Sem esta tolerância, um objecto prefixado não casava com nenhum
+  // item, todos ficavam nulos e o protocolo era cotado como 119 omissos —
+  // falha silenciosa, sem erro, com o perfil todo a zero.
+  const getV = (n)=>{ const chaves = [n, String(n), 'item'+n, 'q'+n, 'Q'+n, 'i'+n];
+    let v;
+    for (const c of chaves) { if (ans[c] !== undefined) { v = ans[c]; break; } }
     if(v===''||v===undefined||v===null) return null; v=Number(v); return isNaN(v)?null:v; };
   const contaveis = ITEMS.filter(it=>it.note!=='aberto' && OMISS_EXCLUIR.indexOf(String(it.n))===-1);
   const omissos = contaveis.filter(it=>getV(it.n)===null).map(it=>it.n);
