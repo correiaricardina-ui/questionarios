@@ -591,6 +591,7 @@ function renderEscala(){
   h+='<div class="card" style="margin-bottom:16px;">';
   h+='<div class="section-header">PERFIL DE RISCO</div>';
   h+='<div id="risco-badge" class="risk-badge risk-0">\u2014</div>';
+  h+='<div id="risco-alertas" style="margin-top:12px;"></div>';
   h+='</div>';
 
   /* NOTAS */
@@ -622,8 +623,11 @@ function renderEscala(){
       atualizarProgresso();
       atualizarRisco();
     }
-    if(el.classList.contains('resp-presente')||el.classList.contains('int-select')||el.classList.contains('cnt-input')){
+    /* v2: qualquer outro campo do formulário (intensidade, letalidade,
+       datas, contagens, descrições) passa também a ser recolhido. */
+    if(!el.classList.contains('resp-id')&&!el.classList.contains('resp-beh')){
       atualizarProgresso();
+      atualizarRisco();
     }
   });
 
@@ -632,13 +636,28 @@ function renderEscala(){
 }
 
 function atualizarProgresso(){
-  var total=10;
+  recolherCamposAuxiliares();
+  /* v1: total fixo em 10, excluindo intensidade e letalidade — o formulário
+     podia marcar 100% com esses blocos por preencher. v2: total dinâmico. */
+  var total=12;
   var respondidos=0;
   for(var i=1;i<=5;i++){if(respostas['id'+i]!==undefined)respondidos++;}
   var behavKeys=['tentativa','interrompida','abortada','preparatoria','calns','caliu'];
   behavKeys.forEach(function(k){if(respostas['beh-'+k]!==undefined)respondidos++;});
   var pres=document.querySelector('input[name="beh-presente"]:checked');
   if(pres)respondidos++;
+  var maxT=0;
+  for(var m=1;m<=5;m++){if(respostas['id'+m]===1&&m>maxT)maxT=m;}
+  if(maxT>0){
+    total+=5;
+    ['int-freq','int-dur','int-ctrl','int-diss','int-raz'].forEach(function(k){
+      if(respostas[k]!==undefined)respondidos++;});
+  }
+  if(respostas['beh-tentativa']===1){
+    total+=1;
+    if(respostas['leth-real-0']!==undefined||respostas['leth-real-1']!==undefined||
+       respostas['leth-real-2']!==undefined)respondidos++;
+  }
   var pct=Math.round(respondidos/total*100);
   var pf=document.getElementById('progress-fill');
   var pt=document.getElementById('progress-text');
@@ -650,11 +669,105 @@ function atualizarProgresso(){
   if(tipoEl)tipoEl.textContent=maxTipo||'\u2014';
 }
 
-function calcularNivelRisco(){
-  if(respostas['beh-tentativa']===1)return 5;
+/* ─── v2 · RECOLHA DE CAMPOS AUXILIARES ──────────────────────────────────────
+   Na v1 os blocos de Intensidade, Letalidade, contagens e descrições eram
+   apresentados mas nunca lidos: não entravam em respostas{}, no payload,
+   no CSV nem no PDF. Passam a ser recolhidos aqui.                          */
+function valOrdinal(txt){
+  if(!txt)return null;
+  var m=String(txt).match(/^\((\d+)\)/);
+  return m?parseInt(m[1]):null;
+}
+function recolherCamposAuxiliares(){
+  ['freq','dur','ctrl','diss','raz'].forEach(function(k){
+    var el=document.getElementById('int-'+k);
+    if(el){var v=valOrdinal(el.value); if(v!==null)respostas['int-'+k]=v; else delete respostas['int-'+k];}
+  });
+  for(var i=0;i<3;i++){
+    ['real','pot'].forEach(function(t){
+      var el=document.getElementById('leth-'+t+'-'+i);
+      if(el&&el.value!=='')respostas['leth-'+t+'-'+i]=parseInt(el.value);
+      else delete respostas['leth-'+t+'-'+i];
+    });
+    var d=document.getElementById('leth-data-'+i);
+    if(d&&d.value)respostas['leth-data-'+i]=d.value;
+  }
+  document.querySelectorAll('.cnt-input').forEach(function(el){
+    if(el.value!=='')respostas[el.id]=el.value; else delete respostas[el.id];
+  });
+  ['tentativa','interrompida','abortada','preparatoria','calns','caliu'].forEach(function(k){
+    var db=document.getElementById('desc-beh-'+k);
+    if(db&&db.value.trim())respostas['desc-beh-'+k]=db.value.trim();
+  });
+  for(var n=1;n<=5;n++){
+    var dd=document.getElementById('desc-id'+n);
+    if(dd&&dd.value.trim())respostas['desc-id'+n]=dd.value.trim();
+  }
+}
+
+/* ─── v2 · CLASSIFICAÇÃO DE RISCO ────────────────────────────────────────────
+   v1: nivel = 5 se tentativa real, senão tipo máximo de ideação.
+       Tentativa interrompida, abortada, actos preparatórios e acto de
+       intenção indeterminada não entravam na classificação.
+   v2: nivel = max(nível de ideação, nível de comportamento).
+       Piso comportamental 4 para interrompida / abortada / preparatória /
+       intenção indeterminada. Autolesão sem intenção suicida não eleva o
+       nível — gera alerta próprio.                                          */
+function ideacaoMaxima(){
   var maxTipo=0;
   for(var i=1;i<=5;i++){if(respostas['id'+i]===1&&i>maxTipo)maxTipo=i;}
   return maxTipo;
+}
+function nivelComportamento(){
+  if(respostas['beh-tentativa']===1)return 5;
+  if(respostas['beh-interrompida']===1||respostas['beh-abortada']===1||
+     respostas['beh-preparatoria']===1||respostas['beh-caliu']===1)return 4;
+  return 0;
+}
+function calcularNivelRisco(){
+  return Math.max(ideacaoMaxima(),nivelComportamento());
+}
+
+/* Índice descritivo de intensidade (2–21). Uso intra-sujeito, sem valor
+   normativo. Serve para comparar reaplicações do mesmo protocolo.          */
+function indiceIntensidade(){
+  var ks=['int-freq','int-dur','int-ctrl','int-diss','int-raz'],s=0;
+  for(var i=0;i<ks.length;i++){
+    if(respostas[ks[i]]===undefined)return null;
+    s+=respostas[ks[i]];
+  }
+  return s;
+}
+
+/* Modificadores clínicos: assinalam-se, não alteram o nível. */
+function calcularAlertas(){
+  var a=[],r=respostas;
+  if(r['int-ctrl']!==undefined&&r['int-ctrl']>=3)a.push('Controlabilidade reduzida sobre os pensamentos');
+  if(r['int-diss']!==undefined&&r['int-diss']>=4)a.push('Factores dissuasores insuficientes');
+  if(r['int-raz']!==undefined&&r['int-raz']>=3)a.push('Ausência de razões identificadas para não agir');
+  if(r['int-freq']!==undefined&&r['int-freq']>=3)a.push('Elevada frequência de ideação');
+  if(r['int-dur']!==undefined&&r['int-dur']>=4)a.push('Ideação de duração prolongada');
+  if(r['beh-calns']===1)a.push('Autolesão sem intenção suicida — preditor independente; não integra o nível de risco suicidário');
+  if(r['beh-caliu']===1)a.push('Acto de intenção indeterminada — classificado de forma conservadora como comportamento suicida');
+  for(var i=0;i<3;i++){
+    if(r['leth-real-'+i]!==undefined&&r['leth-real-'+i]>=2){a.push('Letalidade real ≥ 2 em pelo menos uma tentativa');break;}
+  }
+  for(var j=0;j<3;j++){
+    if(r['leth-real-'+j]===0&&r['leth-pot-'+j]===2){a.push('Letalidade potencial máxima apesar de ausência de dano');break;}
+  }
+  return a;
+}
+
+/* Campos por responder que condicionam a interpretação. */
+function calcularIncompletudes(){
+  var f=[],r=respostas,i;
+  for(i=1;i<=5;i++){if(r['id'+i]===undefined){f.push('Bloco de ideação incompleto');break;}}
+  var bk=['tentativa','interrompida','abortada','preparatoria','calns','caliu'];
+  for(i=0;i<bk.length;i++){if(r['beh-'+bk[i]]===undefined){f.push('Bloco de comportamento incompleto');break;}}
+  if(ideacaoMaxima()>0&&indiceIntensidade()===null)f.push('Ideação positiva com bloco de intensidade incompleto');
+  if(r['beh-tentativa']===1&&r['leth-real-0']===undefined&&r['leth-real-1']===undefined&&r['leth-real-2']===undefined)
+    f.push('Tentativa real assinalada sem letalidade registada');
+  return f;
 }
 
 var RISCO_INFO=[
@@ -662,8 +775,8 @@ var RISCO_INFO=[
   {cls:'risk-1',texto:'\ud83d\udfe2 RISCO BAIXO \u2014 Desejo de Estar Morto (Tipo 1)'},
   {cls:'risk-2',texto:'\ud83d\udfe1 RISCO BAIXO-MODERADO \u2014 Idea\u00e7\u00e3o N\u00e3o-Espec\u00edfica (Tipo 2)'},
   {cls:'risk-3',texto:'\ud83d\udfe0 RISCO MODERADO \u2014 Idea\u00e7\u00e3o com M\u00e9todo s/ Plano (Tipo 3)'},
-  {cls:'risk-4',texto:'\u26a0\ufe0f RISCO MODERADO-ALTO \u2014 Idea\u00e7\u00e3o com Inten\u00e7\u00e3o s/ Plano (Tipo 4)'},
-  {cls:'risk-5',texto:'\u26a0\ufe0f RISCO ELEVADO \u2014 Plano + Inten\u00e7\u00e3o / Tentativa Real'}
+  {cls:'risk-4',texto:'\u26a0\ufe0f RISCO MODERADO-ALTO \u2014 Idea\u00e7\u00e3o com Inten\u00e7\u00e3o (Tipo 4) ou comportamento preparat\u00f3rio / tentativa interrompida ou abortada'},
+  {cls:'risk-5',texto:'\u26a0\ufe0f RISCO ELEVADO \u2014 Idea\u00e7\u00e3o com Plano e Inten\u00e7\u00e3o (Tipo 5) ou Tentativa Real'}
 ];
 
 function atualizarRisco(){
@@ -673,6 +786,19 @@ function atualizarRisco(){
   RISCO_INFO.forEach(function(r){el.classList.remove(r.cls);});
   el.classList.add(RISCO_INFO[nivel].cls);
   el.textContent=RISCO_INFO[nivel].texto;
+  /* v2: modificadores clinicos e incompletudes visiveis em tempo real */
+  var box=document.getElementById('risco-alertas');
+  if(!box)return;
+  var al=calcularAlertas(), inc=calcularIncompletudes(), s='';
+  if(al.length){
+    s+='<div style="font-weight:700;color:var(--blue);font-size:.82rem;margin-bottom:6px;">Modificadores cl\u00ednicos</div>';
+    al.forEach(function(t){s+='<div style="font-size:.82rem;color:var(--text);background:var(--blue-xpale);border-left:3px solid var(--blue-mid);padding:6px 10px;margin-bottom:5px;border-radius:4px;">'+escHtml(t)+'</div>';});
+  }
+  if(inc.length){
+    s+='<div style="font-weight:700;color:var(--text-light);font-size:.82rem;margin:10px 0 6px;">Por responder</div>';
+    inc.forEach(function(t){s+='<div style="font-size:.8rem;color:var(--text-light);padding:4px 10px;">'+escHtml(t)+'</div>';});
+  }
+  box.innerHTML=s;
 }
 
 /* ─── SUBMETER ───────────────────────────────────────────────────────────────── */
@@ -680,6 +806,7 @@ function atualizarRisco(){
 function submeterAvaliacao(){
   var codigo=document.getElementById('av-codigo').value.trim().toUpperCase();
   if(!codigo){alert('C\u00f3digo do paciente em falta.');showPage('page-avaliacao');return;}
+  recolherCamposAuxiliares();
   var nivel=calcularNivelRisco();
   var maxTipo=0;
   for(var i=1;i<=5;i++){if(respostas['id'+i]===1&&i>maxTipo)maxTipo=i;}
@@ -699,6 +826,13 @@ function submeterAvaliacao(){
     actosPreparatorios:respostas['beh-preparatoria']||0,
     nivelRisco:nivel,
     nivelRiscoTexto:RISCO_INFO[nivel].texto,
+    /* v2 · campos antes perdidos */
+    autolesaoSemIntencao:respostas['beh-calns']||0,
+    intencaoIndeterminada:respostas['beh-caliu']||0,
+    nivelComportamento:nivelComportamento(),
+    indiceIntensidade:(indiceIntensidade()===null?'':indiceIntensidade()),
+    alertas:calcularAlertas().join(' | '),
+    incompletudes:calcularIncompletudes().join(' | '),
     notas:document.getElementById('av-notas').value,
     respostas:JSON.stringify(respostas)
   };
@@ -849,7 +983,9 @@ function fecharModal(e){
 function exportarCSV(){
   var local=JSON.parse(localStorage.getItem('cssrs_sessoes')||'[]');
   if(local.length===0){alert('Nenhuma sess\u00e3o para exportar.');return;}
-  var cols=['patientCode','nome','versao','data','ideacaoMaxTipo','tentativaReal','tentativaInterrompida','tentativaAbortada','actosPreparatorios','nivelRisco','nivelRiscoTexto','notas'];
+  /* v2: colunas novas acrescentadas no FIM, para não quebrar a sincronização
+   com a folha existente (syncKey: cssrs). */
+  var cols=['patientCode','nome','versao','data','ideacaoMaxTipo','tentativaReal','tentativaInterrompida','tentativaAbortada','actosPreparatorios','nivelRisco','nivelRiscoTexto','notas','autolesaoSemIntencao','intencaoIndeterminada','nivelComportamento','indiceIntensidade','alertas','incompletudes'];
   var bom='\uFEFF';
   var linhas=[cols.join(';')];
   local.forEach(function(s){

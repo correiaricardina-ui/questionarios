@@ -486,12 +486,26 @@ var NORM_MEDIA_POP = {
   'Hostilidade': 0.894, 'Ansiedade Fóbica': 0.418, 'Ideação Paranóide': 1.063,
   'Psicoticismo': 0.668
 };
-var NORM_MEDIA_PERT = {
+/* v2 · CORREÇÃO DE UNIDADES
+   Na v1 estes valores estavam em TOTAL da escala, enquanto NORM_MEDIA_POP
+   está em MÉDIA POR ITEM. O denominador (mediaC - mediaP) ficava ~10x maior
+   do que devia e o ratio ~10x menor, pelo que TODAS as dimensões saíam
+   «Normativo» — incluindo Ansiedade a 2,67.
+   Convertidos para média por item, dividindo pelo n.º de itens da escala.   */
+var NORM_MEDIA_PERT_TOTAL = {
   'Somatização': 9.445, 'Obsessões-Compulsões': 11.534,
   'Sensib. Interpessoal': 6.404, 'Depressão': 11.034, 'Ansiedade': 10.521,
   'Hostilidade': 7.034, 'Ansiedade Fóbica': 5.082, 'Ideação Paranóide': 7.651,
   'Psicoticismo': 7.021
 };
+var NORM_MEDIA_PERT = {};
+/* v2: média por item da população com perturbação emocional = total / n.º itens.
+   Tem de correr DEPOIS de NORM_MEDIA_PERT_TOTAL e de ESCALAS estarem
+   atribuídos — a hoisting de `var` deixa-os undefined se corrermos antes. */
+Object.keys(NORM_MEDIA_PERT_TOTAL).forEach(function(k){
+  var n = (ESCALAS[k] || []).length || 1;
+  NORM_MEDIA_PERT[k] = NORM_MEDIA_PERT_TOTAL[k] / n;
+});
 
 // ─── CONFIG ─────────────────────────────────────────────────────────────────
 var PASSWORD    = 'CNS2024';
@@ -711,13 +725,33 @@ function classificarIGS(igs){
   return { label: 'Dentro dos parâmetros normativos', cls: 'badge-normative' };
 }
 
-function classificarEscala(nome, score){
+/* Ratio = posição entre a média da população geral (0) e a média da população
+   com perturbação emocional (1). Acima de 1 significa igualar ou ultrapassar
+   a média clínica na dimensão.                                              */
+function ratioEscala(nome, score){
   var mediaP = NORM_MEDIA_POP[nome] || 0;
   var mediaC = NORM_MEDIA_PERT[nome] || 1;
-  var ratio = (score - mediaP) / (mediaC - mediaP);
-  if(ratio >= 0.6) return { label: 'Elevado', cls: 'badge-clinical' };
-  if(ratio >= 0.3) return { label: 'Moderado', cls: 'badge-borderline' };
-  return { label: 'Normativo', cls: 'badge-normative' };
+  if(mediaC === mediaP) return 0;
+  return (score - mediaP) / (mediaC - mediaP);
+}
+function classificarEscala(nome, score){
+  var r = ratioEscala(nome, score);
+  if(r >= 1.0) return { label: 'Muito elevado', cls: 'badge-clinical', ratio: r };
+  if(r >= 0.6) return { label: 'Elevado',       cls: 'badge-clinical', ratio: r };
+  if(r >= 0.3) return { label: 'Moderado',      cls: 'badge-borderline', ratio: r };
+  return        { label: 'Normativo',     cls: 'badge-normative', ratio: r };
+}
+
+/* TSP mede extensão, ISP mede intensidade. O cruzamento distingue sofrimento
+   concentrado de mal-estar difuso — leitura que a v1 não expunha.           */
+var NORM_TSP = 26.99, NORM_ISP = 1.561;
+function padraoExtensaoIntensidade(TSP, ISP){
+  var ext = TSP >= NORM_TSP * 1.25;
+  var intens = ISP >= NORM_ISP * 1.25;
+  if(!ext && intens) return 'Padrão focal-intenso — poucos sintomas endossados, mas com intensidade muito elevada. Sofrimento concentrado, não difuso.';
+  if(ext && !intens) return 'Padrão difuso-ligeiro — muitos sintomas endossados com intensidade baixa. Mal-estar generalizado de grau ligeiro.';
+  if(ext && intens)  return 'Padrão difuso e intenso — extensão e intensidade elevadas. Carga sintomática global.';
+  return 'Sem padrão assinalável no cruzamento extensão × intensidade.';
 }
 
 // ─── PAINEL CLÍNICO ──────────────────────────────────────────────────────────
@@ -809,16 +843,23 @@ function verDetalhe(idx){
   html += '<div class="escala-card"><div class="escala-nome">ISP (Índice Sintomas Positivos)</div><div class="escala-score">'+scores.ISP.toFixed(2)+'</div></div>';
   html += '</div>';
 
+  /* v2: leitura de padrao extensao x intensidade */
+  html += '<div style="margin:14px 0 18px;padding:12px 14px;background:#EEF3F7;border-left:4px solid #3B5A7A;border-radius:6px;font-size:0.86rem;color:#2C3E50;">'
+        + '<strong style="color:#3B5A7A;">Extensão × intensidade — </strong>'
+        + padraoExtensaoIntensidade(scores.TSP, scores.ISP) + '</div>';
+
   // Barras das escalas
   html += '<div style="font-weight:600;font-size:0.9rem;color:var(--blue);margin-bottom:12px;">📊 Perfil por Dimensão</div>';
   Object.keys(ESCALAS).forEach(function(nome){
     var score = scores.escalas[nome];
     var cl2 = classificarEscala(nome, score);
-    var maxEscala = 4;
-    var pct = Math.min(100, (score / maxEscala) * 100);
+    /* v2: barra proporcional a posicao clinica (0 = media da populacao geral,
+       100% = media da populacao com perturbacao emocional), em vez de 0-4
+       absoluto — que fazia parecer baixas dimensoes clinicamente elevadas. */
+    var pct = Math.max(0, Math.min(100, cl2.ratio * 100));
     var cor = cl2.cls === 'badge-clinical' ? '#C0392B' : cl2.cls === 'badge-borderline' ? '#E67E22' : '#27AE60';
     html += '<div class="bar-wrap">';
-    html += '<div class="bar-label">'+nome+' — <strong>'+score.toFixed(2)+'</strong> <span class="'+cl2.cls+'">'+cl2.label+'</span></div>';
+    html += '<div class="bar-label">'+nome+' — <strong>'+score.toFixed(2)+'</strong> <span class="'+cl2.cls+'">'+cl2.label+'</span> <span style="color:#7095A8;font-size:0.78rem;">posição clínica '+Math.round(cl2.ratio*100)+'%</span></div>';
     html += '<div class="bar-track"><div class="bar-fill" style="width:'+pct+'%;background:'+cor+';"></div></div>';
     html += '</div>';
   });
