@@ -384,6 +384,8 @@ var filtroActual='todos';
 var respostas={};
 var paginaActual=1;
 var POR_PAGINA=15;
+var casoActual=null;
+var casoRestrito=true;
 
 // ── CRITÉRIOS DSM-5 ─────────────────────────────────────────────
 var CRITERIOS=[
@@ -525,6 +527,7 @@ function actualizarVersao(){
 // ── INICIAR ───────────────────────────────────────────────────
 function iniciarQuestionario(){
   respostas={};
+  ambitoDesbloqueado=false;
   document.getElementById('section-1').style.display='block';
   document.getElementById('section-2').style.display='none';
   actualizarVersao();
@@ -556,6 +559,33 @@ function voltarParaIdentificacao(){
   window.scrollTo(0,0);
 }
 
+// ── ÂMBITO POR INFORMADOR ─────────────────────────────────────
+// O DIVA-5 aplicado a um adulto reparte-se por três informadores: o próprio
+// responde aos dois períodos, o parceiro só à adultez (observa o presente, não
+// a infância) e os pais só à infância (não observam o funcionamento adulto).
+// Sem bloqueio, uma coluna fora de âmbito chega ao Sheet preenchida e entra na
+// contagem como se fosse medição — foi o que sucedeu no registo materno do caso
+// de referência. A coluna bloqueada fica fixada em '?', que é o valor que o
+// motor de cotação lê como «período não avaliado» (→ INDETERMINADO), e não
+// como ausência de sintomas.
+// A Young DIVA-5 é de administração CONJUNTA (jovem e pais/EE na mesma sessão):
+// aí não há bloqueio, por desenho do instrumento.
+var ambitoDesbloqueado=false;
+function ambitoInformador(){
+  var rel=(document.getElementById('relacao')||{}).value||'';
+  var v=(document.getElementById('versao')||{}).value||'adultos';
+  if(v==='young'||ambitoDesbloqueado) return {c1:true,c2:true,nota:''};
+  if(rel==='Parceiro(a)')
+    return {c1:true,c2:false,nota:'Coluna <em>Infância</em> bloqueada em «?» — o período de infância será respondido por quem acompanhou a pessoa nessa altura.'};
+  if(rel==='Mãe'||rel==='Pai'||rel==='Encarregado de Educação'||rel==='Outro familiar')
+    return {c1:false,c2:true,nota:'Coluna <em>Adultez</em> bloqueada em «?» — o funcionamento actual será respondido pelo próprio e, quando exista, pelo parceiro.'};
+  return {c1:true,c2:true,nota:''};
+}
+function alternarAmbito(cb){
+  ambitoDesbloqueado=!!(cb&&cb.checked);
+  renderEntrevista();
+}
+
 // ── RENDER ENTREVISTA ─────────────────────────────────────────
 function orientarInformador(){
   var rel=(document.getElementById('relacao')||{}).value||'';
@@ -578,6 +608,17 @@ function orientarInformador(){
   } else if(rel){
     t='<strong style="color:var(--blue)">Preencha as colunas sobre as quais tem conhecimento direto.</strong><br>Nas restantes, marque <strong>?</strong>.';
   }
+  var amb=ambitoInformador();
+  if(amb.nota){
+    t+='<div style="margin-top:8px;padding-top:8px;border-top:1px dashed var(--gray-bdr);font-size:.82rem;color:var(--text-light)">'+amb.nota+'</div>';
+  }
+  var rel2=(document.getElementById('relacao')||{}).value||'';
+  var v2=(document.getElementById('versao')||{}).value||'adultos';
+  if(t&&v2!=='young'&&(rel2==='Parceiro(a)'||rel2==='Mãe'||rel2==='Pai'||rel2==='Encarregado de Educação'||rel2==='Outro familiar')){
+    t+='<label style="display:flex;align-items:center;gap:6px;margin-top:8px;font-size:.78rem;color:var(--text-light);cursor:pointer">'+
+       '<input type="checkbox" id="chk-ambito" onchange="alternarAmbito(this)"'+(ambitoDesbloqueado?' checked':'')+'>'+
+       'Desbloquear as duas colunas (aplicação conjunta, em consulta)</label>';
+  }
   if(t){ box.innerHTML=t; box.style.display='block'; } else { box.style.display='none'; }
 }
 
@@ -595,6 +636,15 @@ function renderEntrevista(){
   // Colunas de período — adultos e ID têm adultez+infância; young tem só "Presente"
   var temInfancia=(v!=='young');
   var temInformante=(v==='young');
+  var amb=ambitoInformador();
+  // Fixar em '?' as colunas fora do âmbito deste informador
+  if(!amb.c1||!amb.c2){
+    var s1=temInformante?'_J':'_A', s2=temInformante?'_P':'_I';
+    CRITERIOS.forEach(function(c){
+      if(!amb.c1) respostas[c.cod+s1]='?';
+      if(!amb.c2) respostas[c.cod+s2]='?';
+    });
+  }
 
   var html='';
   var domActual='';
@@ -630,13 +680,13 @@ function renderEntrevista(){
     // Opções de cotação
     if(temInfancia){
       html+='<div style="display:flex;flex-direction:column;gap:8px;min-width:150px">';
-      html+=renderRadios(c.cod+'_A','Adultez');
-      html+=renderRadios(c.cod+'_I','Infância');
+      html+=renderRadios(c.cod+'_A','Adultez',!amb.c1);
+      html+=renderRadios(c.cod+'_I','Infância',!amb.c2);
       html+='</div>';
     } else if(temInformante){
       html+='<div style="display:flex;flex-direction:column;gap:8px;min-width:150px">';
-      html+=renderRadios(c.cod+'_J','Jovem');
-      html+=renderRadios(c.cod+'_P','Pais/EE');
+      html+=renderRadios(c.cod+'_J','Jovem',!amb.c1);
+      html+=renderRadios(c.cod+'_P','Pais/EE',!amb.c2);
       html+='</div>';
     } else {
       html+='<div style="min-width:120px">';
@@ -651,7 +701,17 @@ function renderEntrevista(){
   actualizarProgresso();
 }
 
-function renderRadios(name,label){
+function renderRadios(name,label,bloqueado){
+  if(bloqueado){
+    return '<div style="font-size:.72rem;color:var(--text-light);margin-bottom:3px">'+label+
+      ' <span style="font-size:.66rem">(fora do seu âmbito)</span></div>'+
+      '<div class="radio-group" style="opacity:.45;pointer-events:none">'+
+      ['Sim','Não','?'].map(function(v){
+        return '<label class="radio-opt'+(v==='?'?' selected':'')+'" id="lbl-'+name+'-'+v+'">'+
+          '<span style="color:var(--text-light);font-weight:600;font-size:.82rem">'+v+'</span></label>';
+      }).join('')+
+      '</div>';
+  }
   return '<div style="font-size:.72rem;color:var(--text-light);margin-bottom:3px">'+label+'</div>'+
     '<div class="radio-group">'+
     ['Sim','Não','?'].map(function(v){
@@ -674,12 +734,23 @@ function seleccionarOpcao(name,val){
 
 function actualizarProgresso(){
   var v=document.getElementById('versao').value;
-  var esperados=v==='adultos'?36:(v==='id'?36:36); // 18 critérios × 2 colunas cada
-  var total=CRITERIOS.length*2;
-  var resp=Object.keys(respostas).length;
+  var amb=ambitoInformador();
+  var nCols=(amb.c1?1:0)+(amb.c2?1:0); if(nCols===0) nCols=1;
+  // Só contam as colunas em âmbito: com uma coluna bloqueada, a barra chegaria
+  // sempre a 50 % e leria-se como entrevista por terminar.
+  var sufs=(v==='young')?['_J','_P']:['_A','_I'];
+  var activos=[]; if(amb.c1) activos.push(sufs[0]); if(amb.c2) activos.push(sufs[1]);
+  if(!activos.length) activos=[sufs[0]];
+  var total=CRITERIOS.length*activos.length;
+  var resp=0, completos=0;
+  CRITERIOS.forEach(function(c){
+    var n=0;
+    activos.forEach(function(sf){ if(respostas[c.cod+sf]!==undefined) n++; });
+    resp+=n; if(n===activos.length) completos++;
+  });
   var pct=Math.round((resp/total)*100);
   document.getElementById('prog-fill').style.width=pct+'%';
-  document.getElementById('prog-txt').textContent=Math.floor(resp/2)+' / 18 critérios respondidos';
+  document.getElementById('prog-txt').textContent=completos+' / 18 critérios respondidos';
 }
 
 // ── COTAÇÃO ───────────────────────────────────────────────────
@@ -715,6 +786,25 @@ function cotar(){
   var desatOkA=(v==='young')?(desatJ>=thr||desatP>=thr):(desatAdult>=thr);
   var hiOkA=(v==='young')?(hiJ>=thr||hiP>=thr):(hiAdult>=thr);
 
+  // ── Itens efectivamente RESPONDIDOS por coluna ──────────────────────────
+  // Distinguem «não avaliado» de «avaliado e negativo». São o que permite ao
+  // painel e à vista de caso saber qual o âmbito de cada informador: um zero
+  // de contagem com zero respostas não é ausência de sintomas, é ausência de
+  // medição. Gravados no Sheet como RespAdultez / RespInfancia.
+  var respAdu=0, respInfC=0;
+  CRITERIOS.forEach(function(c){
+    var r1=respostas[c.cod+sufA[0]], r2=respostas[c.cod+sufA[1]];
+    if(r1==='Sim'||r1==='Não') respAdu++;
+    if(r2==='Sim'||r2==='Não') respInfC++;
+  });
+  scores.respAdu=respAdu;
+
+  // ── CRITÉRIO A · estado (período actual) ───────────────────────────────
+  if(respAdu===0) scores.critA='NÃO AVALIADO — coluna do período actual por preencher';
+  else if(respAdu<9) scores.critA='PARCIALMENTE AVALIADO ('+respAdu+'/18 itens)';
+  else if(desatOkA||hiOkA) scores.critA='PREENCHIDO — atinge o limiar em pelo menos um domínio';
+  else scores.critA='NÃO PREENCHIDO — sintomatologia actual abaixo do limiar';
+
   if(v==='young'){
     // Young DIVA-5 mantém a lógica original (jovem OU pais)
     var diagY='Não preenche critérios';
@@ -723,6 +813,7 @@ function cotar(){
     else if(hiOkA) diagY='Predominantemente H/I';
     scores.diag=diagY;
     scores.critB='n/a';
+    scores.respInf=respInfC;
     return scores;
   }
 
@@ -758,10 +849,15 @@ function cotar(){
     if(hOk) return 'Predominantemente H/I';
     return 'Não preenche critérios';
   }
-  scores.diagDSM  = (respInf===0) ? 'INDETERMINADO — Critério B não avaliado'
-                                  : apres(desatOkA&&desatOkB_dsm,  hiOkA&&hiOkB_dsm);
-  scores.diagDIVA = (respInf===0) ? 'INDETERMINADO — Critério B não avaliado'
-                                  : apres(desatOkA&&desatOkB_diva, hiOkA&&hiOkB_diva);
+  // Um período por avaliar torna a apresentação INDETERMINADA, seja ele qual
+  // for. Até aqui só o Critério B era considerado: o registo dos pais, que não
+  // respondem à adultez, saía como «Não preenche critérios» — uma conclusão,
+  // a verde, sobre um período que ninguém mediu.
+  var porAvaliar = (respAdu===0) ? 'Critério A' : ((respInf===0) ? 'Critério B' : null);
+  scores.diagDSM  = porAvaliar ? 'INDETERMINADO — '+porAvaliar+' não avaliado'
+                               : apres(desatOkA&&desatOkB_dsm,  hiOkA&&hiOkB_dsm);
+  scores.diagDIVA = porAvaliar ? 'INDETERMINADO — '+porAvaliar+' não avaliado'
+                               : apres(desatOkA&&desatOkB_diva, hiOkA&&hiOkB_diva);
 
   // Campo legado: leitura mais conservadora (regra DSM-5-TR), sempre provisória
   scores.diag = scores.diagDSM + ' \u00b7 PROVISÓRIO';
@@ -800,6 +896,15 @@ function submeter(){
     hiInf:scores.hiInf||scores.hiP||0,
     diagnostico:scores.diag,
     answers:answers.join(';'),
+    // ── 4 colunas finais da aba DIVA5 (O:R) ──────────────────────────────
+    // Guardas != null obrigatórias: zero em respAdu/respInf significa
+    // «coluna não avaliada» e é precisamente o valor que faz o painel
+    // devolver INDETERMINADO. Com || '' o zero desaparecia e o registo do
+    // parceiro passaria a ser lido como infância avaliada e negativa.
+    critA:scores.critA!=null?scores.critA:'',
+    critB:scores.critB!=null?scores.critB:'',
+    respAdu:scores.respAdu!=null?scores.respAdu:'',
+    respInf:scores.respInf!=null?scores.respInf:'',
     data:new Date().toISOString()
   };
 
@@ -842,48 +947,101 @@ function submeter(){
 
 // ── PAINEL CLÍNICO ────────────────────────────────────────────
 function carregarDados(){
-  // Tentar sincronizar do sheet
-  fetch(SCRIPT_URL+'?instrumento=DIVA5&t='+Date.now())
+  // Devolve a promessa: o arranque por URL (?clinico=&caso=) precisa de esperar
+  // pela sincronização antes de abrir a vista de caso.
+  return fetch(SCRIPT_URL+'?instrumento=DIVA5&t='+Date.now())
     .then(function(r){return r.json()})
     .then(function(data){
       var rows=Array.isArray(data)?data:(data&&data.rows?data.rows:[]);
       if(rows.length){
         var sessions=load(SK)||{};
+
+        // ── Normalizacao de nomes (chave de informador) ───────────────────
+        function chave(s){
+          return String(s==null?'':s).toLowerCase()
+            .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+            .replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');
+        }
+        function num(v){var n=parseFloat(v);return isNaN(n)?0:n;}
+        function temValor(v){return v!==undefined&&v!==null&&String(v).trim()!=='';}
+
+        // ── Limpeza unica dos registos importados com a chave antiga ──────
+        // A chave anterior era codigo+data e colidia entre informadores;
+        // as linhas que sobreviveram traziam ainda todas as contagens a zero
+        // (nomes de coluna errados). São reconstruidas de raiz nesta sincronizacao.
+        Object.keys(sessions).forEach(function(k){
+          if(sessions[k]&&sessions[k].fromSheet&&k.indexOf('sheet_')!==0) delete sessions[k];
+        });
+
         rows.forEach(function(row){
           var code=row['Código']||row['Código Paciente']||row.patientCode||row.codigo||'';
           if(!code) return;
-          var sid=code+'_sheet_'+String(row['Data']||'').replace(/[^0-9]/g,'');
-          if(sessions[sid]) return;
-          // Evitar duplicar sessões já guardadas localmente (mesmo código + mesmo dia)
+          var respondente=row['Respondente']||row.nome_informante||'';
+          var relacao=row['Relação']||row.relacao||'';
           var rowDateStr=(function(){
             var d=String(row['Data']||'');
             if(d.includes('T')){var dt=new Date(d);return isNaN(dt)?d.slice(0,10):dt.toLocaleDateString('pt-PT');}
             return d.slice(0,10);
           })();
+
+          // ── Chave de sessao POR INFORMADOR ──────────────────────────────
+          // O DIVA-5 e aplicado ao proprio, ao parceiro e aos pais SOB O MESMO
+          // CODIGO e, quase sempre, NO MESMO DIA. A coluna 'Data' do Sheet e uma
+          // data civil (dd/mm/aaaa, sem hora), pelo que a chave codigo+data
+          // colidia entre os tres informadores: as submissoes do proprio e do
+          // parceiro eram descartadas em silencio. O nome do respondente e a
+          // relacao sao o que efectivamente os distingue.
+          var sid='sheet_'+String(code).toUpperCase()+'_'+String(row['Data']||'').replace(/[^0-9]/g,'')
+                 +'_'+chave(respondente)+'_'+chave(relacao);
+
+          // Evitar duplicar a sessao guardada localmente PELO MESMO informador.
+          // Sem o respondente na comparacao, uma aplicacao feita em consulta
+          // suprimia todas as submissoes remotas desse codigo nesse dia.
           var jaExiste=Object.values(sessions).some(function(s){
             if(s.fromSheet) return false;
-            if((s.patientCode||'').toUpperCase()!==code.toUpperCase()) return false;
+            if(String(s.patientCode||'').toUpperCase()!==String(code).toUpperCase()) return false;
+            if(chave(s.nome_informante)!==chave(respondente)) return false;
             var sd=s.date?(s.date.includes('T')?new Date(s.date).toLocaleDateString('pt-PT'):s.date.slice(0,10)):'';
             return sd===rowDateStr;
           });
           if(jaExiste) return;
+
           var vd=row['Versão']||row.versao||'adultos';
+          var faixa=row['FaixaEtária']||row.faixa||'';
+
+          // ── Nomes reais das colunas do Sheet (HEADERS['DIVA5']) ─────────
+          // 'DesatAdult'/'DesatInf'/'HI_Adult'/'HI_Inf' nunca existiram na
+          // folha: a leitura devolvia sempre 0 e qualquer registo sincronizado
+          // aparecia com 0/9 em todos os dominios.
+          var dA=num(row['Desatenção_Adultez']!==undefined?row['Desatenção_Adultez']:row.desatAdult);
+          var dI=num(row['Desatenção_Infância']!==undefined?row['Desatenção_Infância']:row.desatInf);
+          var hA=num(row['HI_Adultez']!==undefined?row['HI_Adultez']:row.hiAdult);
+          var hI=num(row['HI_Infância']!==undefined?row['HI_Infância']:row.hiInf);
+
+          var thr=(vd==='young'&&faixa==='menor17')?6:5;
+          var sc={versao:vd,thr:thr,diag:row['Diagnóstico']||row.diagnostico||''};
+          if(vd==='young'){sc.desatJ=dA;sc.desatP=dI;sc.hiJ=hA;sc.hiP=hI;}
+          else {sc.desatAdult=dA;sc.desatInf=dI;sc.hiAdult=hA;sc.hiInf=hI;}
+          if(temValor(row['CritérioA'])) sc.critA=row['CritérioA'];
+          if(temValor(row['CritérioB'])) sc.critB=row['CritérioB'];
+          if(temValor(row['RespAdultez'])) sc.respAdu=num(row['RespAdultez']);
+          if(temValor(row['RespInfancia'])) sc.respInf=num(row['RespInfancia']);
+
+          // Respostas item-a-item: 18 segmentos 'Adultez|Infancia' separados por ';'.
+          var respostasStr=String(row['Respostas']||row.respostas||row.answers||'').trim();
+          var answers=respostasStr?respostasStr.split(';'):null;
+
           sessions[sid]={
             id:sid,patientCode:code,
             nomeCrianca:row['NomeCriança']||row.nomeCrianca||'',
-            nome_informante:row['Respondente']||row.nome_informante||'',
+            nome_informante:respondente,
             nome_crianca:row['NomeCriança']||row.nomeCrianca||'',
-            relacao:row['Relação']||row.relacao||'',
+            relacao:relacao,
             versao:vd,
-            scores:{
-              desatAdult:parseFloat(row['DesatAdult']||0),
-              desatInf:parseFloat(row['DesatInf']||0),
-              hiAdult:parseFloat(row['HI_Adult']||0),
-              hiInf:parseFloat(row['HI_Inf']||0),
-              diag:row['Diagnóstico']||row.diagnostico||'',
-              versao:vd,thr:5
-            },
-            answers:null,
+            nivelDI:row['NívelDI']||row.nivelDI||'',
+            faixa:faixa,
+            scores:sc,
+            answers:answers,
             date:(function(){
               var d=String(row['Data']||'');
               if(d.includes('T')){var dt=new Date(d);return isNaN(dt)?d:dt.toLocaleDateString('pt-PT');}
@@ -921,6 +1079,13 @@ function renderPainel(){
   var inicio=(paginaActual-1)*POR_PAGINA;
   var pagina=arr.slice(inicio,inicio+POR_PAGINA);
 
+  // Quantos informadores existem por código — habilita o botão de vista de caso
+  var nInformadores={};
+  Object.values(sessions).forEach(function(s){
+    var k=String(s.patientCode||'').toUpperCase(); if(!k) return;
+    nInformadores[k]=(nInformadores[k]||0)+1;
+  });
+
   var html='';
   if(pagina.length===0){
     html='<div style="padding:32px;text-align:center;color:var(--text-light);font-size:.9rem">Sem registos encontrados.</div>';
@@ -948,7 +1113,12 @@ function renderPainel(){
           (sc.hiAdult!==undefined?sc.hiAdult:(sc.hiJ!==undefined?sc.hiJ:'—'))+
           '<span style="font-size:.72rem;font-weight:400;color:var(--text-light)">/9</span></div>'+
         '<div>'+diagBadge+'</div>'+
-        '<div><button class="btn btn-xs btn-secondary" onclick="verDetalhe(\''+s.id+'\')">Ver →</button></div>'+
+        '<div style="display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end">'+
+          '<button class="btn btn-xs btn-secondary" onclick="verDetalhe(\''+s.id+'\')">Ver →</button>'+
+          (nInformadores[String(s.patientCode||'').toUpperCase()]>1
+            ? '<button class="btn btn-xs btn-primary" onclick="verCaso(\''+String(s.patientCode||'').replace(/'/g,"")+'\')">Caso ('+nInformadores[String(s.patientCode||'').toUpperCase()]+') →</button>'
+            : '')+
+        '</div>'+
       '</div>';
     });
   }
@@ -965,6 +1135,296 @@ function renderPainel(){
 }
 
 function irPagina(p){paginaActual=p;renderPainel();}
+
+
+// ── VISTA DE CASO · cruzamento entre informadores ──────────────────────────
+// O DIVA-5 não é um questionário por respondente: é uma entrevista cujo
+// resultado só existe depois de cruzados os informadores. O próprio cobre os
+// dois períodos, o parceiro a adultez, os pais a infância. Lida linha a linha,
+// cada submissão isolada é enganadora — o registo do parceiro devolve sempre
+// INDETERMINADO (Critério B por avaliar) e o dos pais nada diz sobre o
+// funcionamento actual. Esta vista reúne as submissões do mesmo código e
+// resolve os Critérios A e B sobre o conjunto.
+function sessoesDoCaso(code){
+  var sessions=load(SK)||{};
+  var alvo=String(code||'').toUpperCase();
+  return Object.values(sessions)
+    .filter(function(s){return String(s.patientCode||'').toUpperCase()===alvo;})
+    .sort(function(a,b){return String(a.date||'').localeCompare(String(b.date||''));});
+}
+
+// Âmbito esperado de cada informador, a partir da relação declarada. Na versão
+// Young não se aplica (administração conjunta). Serve para que uma coluna
+// respondida fora de âmbito — a mãe a descrever o funcionamento adulto, por
+// exemplo — não entre na síntese sem que isso seja uma decisão explícita.
+function ambitoDaRelacao(rel,v){
+  if(v==='young') return {c1:true,c2:true};
+  if(rel==='Parceiro(a)') return {c1:true,c2:false};
+  if(rel==='Mãe'||rel==='Pai'||rel==='Encarregado de Educação'||rel==='Outro familiar'||rel==='Técnico / Cuidador'||rel==='Professor') return {c1:false,c2:true};
+  return {c1:true,c2:true};
+}
+
+function htmlCaso(code,restringir){
+  if(restringir===undefined) restringir=true;
+  var arr=sessoesDoCaso(code);
+  if(!arr.length) return null;
+  var v=arr[0].versao||'adultos';
+  var versoes={}; arr.forEach(function(s){versoes[s.versao||'adultos']=1;});
+  var mistura=Object.keys(versoes).length>1;
+  var lbl1=(v==='young')?'Jovem':'Adultez';
+  var lbl2=(v==='young')?'Pais/EE (infância)':'Infância (5–12a)';
+  var thr=arr.reduce(function(m,s){var t=(s.scores&&s.scores.thr)||5;return Math.max(m,t);},0)||5;
+
+  // Matriz respostas[informador][critério] = [col1,col2]
+  var infos=arr.map(function(s,i){
+    var ans=Array.isArray(s.answers)?s.answers:null;
+    var cel=CRITERIOS.map(function(c,k){
+      if(!ans||!ans[k]) return ['',''];
+      var parts=String(ans[k]).split('|');
+      return [(parts[0]||'').trim(),(parts[1]||'').trim()];
+    });
+    var ambR=ambitoDaRelacao(s.relacao||'',s.versao||'adultos');
+    return {
+      idx:i, id:s.id,
+      nome:s.nome_informante||'—',
+      relacao:s.relacao||'—',
+      amb:ambR,
+      foraAmbito:(!ambR.c1&&cel.some(function(x){return x[0]==='Sim'||x[0]==='Não';}))||
+                 (!ambR.c2&&cel.some(function(x){return x[1]==='Sim'||x[1]==='Não';})),
+      data:s.date?(String(s.date).includes('T')?new Date(s.date).toLocaleDateString('pt-PT'):s.date):'—',
+      temAns:!!ans, cel:cel, scores:s.scores||{}
+    };
+  });
+
+  function resposta(cel){ return (cel==='Sim'||cel==='Não')?cel:''; }
+  // Síntese por critério e período: convergência por endosso (regra OR), que é
+  // a mesma já usada na Young DIVA-5 deste ficheiro (jovem OU pais). '?' e
+  // vazio não contam como negativo — contam como não avaliado.
+  function contaNaSintese(inf,col){
+    if(!restringir) return true;
+    return col===0?inf.amb.c1:inf.amb.c2;
+  }
+  function sintese(k,col){
+    var sim=false, nao=false, n=0;
+    infos.forEach(function(inf){
+      if(!contaNaSintese(inf,col)) return;
+      var r=resposta(inf.cel[k][col]); if(!r) return;
+      n++; if(r==='Sim') sim=true; else nao=true;
+    });
+    return {val:sim?'Sim':(nao?'Não':'—'), n:n, divergente:sim&&nao};
+  }
+
+  var sint=CRITERIOS.map(function(c,k){return {c0:sintese(k,0),c1:sintese(k,1)};});
+  function contar(col,dom){
+    var n=0;
+    CRITERIOS.forEach(function(c,k){
+      if(c.dom!==dom) return;
+      var x=col===0?sint[k].c0:sint[k].c1;
+      if(x.val==='Sim') n++;
+    });
+    return n;
+  }
+  function avaliados(col){
+    var n=0;
+    CRITERIOS.forEach(function(c,k){
+      var x=col===0?sint[k].c0:sint[k].c1;
+      if(x.n>0) n++;
+    });
+    return n;
+  }
+
+  var desat1=contar(0,'A'), hi1=contar(0,'B');
+  var desat2=contar(1,'A'), hi2=contar(1,'B');
+  var av1=avaliados(0), av2=avaliados(1);
+
+  var THR_B_DSM=2;
+  var desatOkA=desat1>=thr, hiOkA=hi1>=thr;
+  var desatOkB_dsm=desat2>=THR_B_DSM, hiOkB_dsm=hi2>=THR_B_DSM;
+  var desatOkB_diva=desat2>=thr, hiOkB_diva=hi2>=thr;
+
+  function apres(d,h){
+    if(d&&h) return 'Combinado';
+    if(d) return 'Predominantemente Desatento';
+    if(h) return 'Predominantemente Hiperativo/Impulsivo';
+    return 'Não preenche critérios';
+  }
+  var critA = av1===0 ? 'NÃO AVALIADO — nenhum informador respondeu ao período actual'
+            : (av1<9 ? 'PARCIALMENTE AVALIADO ('+av1+'/18 critérios com resposta)'
+            : ((desatOkA||hiOkA) ? 'PREENCHIDO — atinge o limiar (≥'+thr+') em pelo menos um domínio'
+                                 : 'NÃO PREENCHIDO — sintomatologia actual abaixo de '+thr));
+  var critB = av2===0 ? 'NÃO AVALIADO — nenhum informador respondeu ao período de infância'
+            : (av2<9 ? 'PARCIALMENTE AVALIADO ('+av2+'/18 critérios com resposta)'
+            : ((desatOkB_diva||hiOkB_diva) ? 'PREENCHIDO — limiar DIVA-5 (≥'+thr+')'
+            : ((desatOkB_dsm||hiOkB_dsm) ? 'PREENCHIDO — DSM-5-TR «vários sintomas» (≥'+THR_B_DSM+'), abaixo do limiar DIVA-5'
+                                         : 'NÃO PREENCHIDO — sintomatologia de infância abaixo de '+THR_B_DSM)));
+  var indet=(av1===0||av2===0);
+  var diagDSM  = indet ? 'INDETERMINADO — '+(av1===0?'Critério A':'Critério B')+' não avaliado'
+                       : apres(desatOkA&&desatOkB_dsm,  hiOkA&&hiOkB_dsm);
+  var diagDIVA = indet ? 'INDETERMINADO — '+(av1===0?'Critério A':'Critério B')+' não avaliado'
+                       : apres(desatOkA&&desatOkB_diva, hiOkA&&hiOkB_diva);
+
+  // ── Cabeçalho ───────────────────────────────────────────────────────────
+  var nome=arr[0].nomeCrianca||'';
+  var titulo='DIVA-5 — vista de caso · '+code+(nome?' · '+nome:'');
+  var sub=infos.length+' informadores · '+
+    infos.map(function(i){return i.nome+' ('+i.relacao+')';}).join(' · ')+
+    ' · '+({adultos:'Adultos',young:'Young DIVA-5',id:'DIVA-5 ID'}[v]||v);
+
+  var h='';
+  if(mistura) h+='<div style="background:#FDF3E7;border-left:4px solid #E67E22;border-radius:6px;padding:10px 14px;margin-bottom:14px;font-size:.82rem">⚠ As submissões deste caso não usam todas a mesma versão do DIVA-5. Confirme antes de integrar.</div>';
+  var semAns=infos.filter(function(i){return !i.temAns;});
+  if(semAns.length) h+='<div style="background:#FDF3E7;border-left:4px solid #E67E22;border-radius:6px;padding:10px 14px;margin-bottom:14px;font-size:.82rem">⚠ '+semAns.length+' submissão(ões) sem respostas item-a-item — entram nas contagens por informador mas não na grelha de convergência.</div>';
+  var fora=infos.filter(function(i){return i.foraAmbito;});
+  if(fora.length){
+    h+='<div style="background:#FDF3E7;border-left:4px solid #E67E22;border-radius:6px;padding:10px 14px;margin-bottom:14px;font-size:.82rem">'+
+       '⚠ '+fora.map(function(i){return i.nome+' ('+i.relacao+')';}).join(', ')+
+       ' respondeu(ram) a um período fora do âmbito previsto para essa relação. '+
+       (restringir
+         ? 'Essas respostas estão <strong>excluídas</strong> da síntese e aparecem a cinzento na grelha.'
+         : 'Essas respostas estão <strong>incluídas</strong> na síntese.')+
+       '</div>';
+  }
+  h+='<div class="no-print" style="margin-bottom:14px"><button class="btn btn-xs btn-secondary" onclick="verCaso(\''+String(code).replace(/\x27/g,'')+'\','+(restringir?'false':'true')+')">'+
+     (restringir?'Incluir respostas fora de âmbito na síntese':'Restringir a síntese ao âmbito de cada informador')+'</button></div>';
+
+  // ── Quadro-síntese ──────────────────────────────────────────────────────
+  function bloco(t,val,limiar,n){
+    var ok=val>=limiar;
+    var cor=n===0?'var(--text-light)':(ok?'var(--red)':'var(--green)');
+    return '<div style="flex:1;min-width:150px;background:var(--blue-xpale);border-radius:8px;padding:10px 14px">'+
+      '<div style="font-size:.74rem;color:var(--text-light);margin-bottom:2px">'+t+'</div>'+
+      '<div style="font-size:1.1rem;font-weight:700;color:'+cor+'">'+(n===0?'—':val+'/9')+
+      '<span style="font-size:.72rem;font-weight:400;color:var(--text-light)"> (limiar ≥'+limiar+')</span></div></div>';
+  }
+  h+='<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px">'+
+     bloco('Desatenção — '+lbl1,desat1,thr,av1)+
+     bloco('H/I — '+lbl1,hi1,thr,av1)+
+     bloco('Desatenção — '+lbl2,desat2,thr,av2)+
+     bloco('H/I — '+lbl2,hi2,thr,av2)+
+     '</div>';
+
+  h+='<div style="background:#fff;border:1px solid var(--gray-bdr);border-radius:8px;padding:12px 16px;margin-bottom:16px;font-size:.86rem;line-height:1.7">'+
+     '<div><strong>Critério A</strong> (período actual): '+critA+'</div>'+
+     '<div><strong>Critério B</strong> (infância, 5–12 anos): '+critB+'</div>'+
+     '<div style="margin-top:6px"><strong>Apresentação · regra DSM-5-TR</strong> («vários sintomas» antes dos 12 anos, ≥'+THR_B_DSM+'): '+diagDSM+'</div>'+
+     '<div><strong>Apresentação · regra DIVA-5 formal</strong> (mesmo limiar nos dois períodos): '+diagDIVA+'</div>'+
+     '<div style="margin-top:8px;color:var(--text-light);font-size:.8rem">Leitura PROVISÓRIA. Critérios C (≥2 contextos), D (interferência) e E (exclusão de outro quadro) não são recolhidos por este registo e exigem apreciação clínica. Síntese por convergência: um critério conta como presente se pelo menos um informador o endossa nesse período; «?» e omissões contam como não avaliado, nunca como ausência.</div>'+
+     '</div>';
+
+  // ── Contagens por informador ────────────────────────────────────────────
+  h+='<div style="overflow-x:auto;margin-bottom:16px"><table style="width:100%;border-collapse:collapse;font-size:.82rem">'+
+     '<thead><tr style="background:var(--blue-xpale)">'+
+     '<th style="padding:7px 10px;text-align:left;color:var(--blue)">Informador</th>'+
+     '<th style="padding:7px 10px;text-align:left;color:var(--blue)">Data</th>'+
+     '<th style="padding:7px 10px;text-align:center;color:var(--blue)">Des. '+lbl1+'</th>'+
+     '<th style="padding:7px 10px;text-align:center;color:var(--blue)">H/I '+lbl1+'</th>'+
+     '<th style="padding:7px 10px;text-align:center;color:var(--blue)">Des. '+lbl2+'</th>'+
+     '<th style="padding:7px 10px;text-align:center;color:var(--blue)">H/I '+lbl2+'</th>'+
+     '<th style="padding:7px 10px;text-align:left;color:var(--blue)">Âmbito respondido</th>'+
+     '</tr></thead><tbody>';
+  infos.forEach(function(inf){
+    var sc=inf.scores;
+    var d1=(sc.desatAdult!==undefined?sc.desatAdult:sc.desatJ);
+    var h1=(sc.hiAdult!==undefined?sc.hiAdult:sc.hiJ);
+    var d2=(sc.desatInf!==undefined?sc.desatInf:sc.desatP);
+    var h2=(sc.hiInf!==undefined?sc.hiInf:sc.hiP);
+    var n1=0,n2=0;
+    inf.cel.forEach(function(par){ if(resposta(par[0]))n1++; if(resposta(par[1]))n2++; });
+    if(!inf.temAns){ n1=(sc.respAdu!==undefined?sc.respAdu:null); n2=(sc.respInf!==undefined?sc.respInf:null); }
+    function cel(val,n){
+      if(n===0) return '<span style="color:var(--text-light)">n/a</span>';
+      return (val===undefined||val===null)?'—':val;
+    }
+    var amb=[];
+    if(n1===null||n1>0) amb.push(lbl1+(n1!==null?' ('+n1+'/18)':''));
+    if(n2===null||n2>0) amb.push(lbl2+(n2!==null?' ('+n2+'/18)':''));
+    h+='<tr style="border-bottom:1px solid var(--gray-bdr)">'+
+      '<td style="padding:7px 10px"><strong>'+inf.nome+'</strong><br><span style="font-size:.74rem;color:var(--text-light)">'+inf.relacao+'</span></td>'+
+      '<td style="padding:7px 10px;color:var(--text-light)">'+inf.data+'</td>'+
+      '<td style="padding:7px 10px;text-align:center;font-weight:600">'+cel(d1,n1)+'</td>'+
+      '<td style="padding:7px 10px;text-align:center;font-weight:600">'+cel(h1,n1)+'</td>'+
+      '<td style="padding:7px 10px;text-align:center;font-weight:600">'+cel(d2,n2)+'</td>'+
+      '<td style="padding:7px 10px;text-align:center;font-weight:600">'+cel(h2,n2)+'</td>'+
+      '<td style="padding:7px 10px;font-size:.78rem;color:var(--text-light)">'+(amb.join(' · ')||'—')+'</td>'+
+      '</tr>';
+  });
+  h+='</tbody></table></div>';
+
+  // ── Grelha 18 critérios × informadores ──────────────────────────────────
+  var comAns=infos.filter(function(i){return i.temAns;});
+  if(comAns.length){
+    function grelha(col,label){
+      var presentes=comAns.filter(function(inf){
+        return inf.cel.some(function(par){return resposta(par[col]);});
+      });
+      if(!presentes.length) return '<div style="font-size:.84rem;color:var(--text-light);margin-bottom:14px">'+label+' — sem respostas registadas por nenhum informador.</div>';
+      var t='<div style="font-weight:700;color:var(--blue);margin:10px 0 6px">'+label+'</div>';
+      t+='<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:.78rem">'+
+         '<thead><tr style="background:var(--blue-xpale)">'+
+         '<th style="padding:6px 8px;text-align:left;color:var(--blue)">#</th>'+
+         '<th style="padding:6px 8px;text-align:left;color:var(--blue)">Critério</th>'+
+         presentes.map(function(inf){return '<th style="padding:6px 8px;text-align:center;color:var(--blue)">'+inf.nome.split(/[\s,]+/)[0]+'<br><span style="font-size:.68rem;font-weight:400">'+inf.relacao+'</span></th>';}).join('')+
+         '<th style="padding:6px 8px;text-align:center;color:var(--blue)">Síntese</th>'+
+         '</tr></thead><tbody>';
+      var domAnt='';
+      CRITERIOS.forEach(function(c,k){
+        if(c.dom!==domAnt){
+          domAnt=c.dom;
+          t+='<tr><td colspan="'+(presentes.length+3)+'" style="padding:5px 8px;background:#F4F7FA;font-weight:700;color:var(--blue);font-size:.76rem">'+
+             (c.dom==='A'?'Domínio A — Desatenção':'Domínio B — Hiperatividade / Impulsividade')+'</td></tr>';
+        }
+        var sx=col===0?sint[k].c0:sint[k].c1;
+        t+='<tr style="border-bottom:1px solid var(--gray-bdr)'+(sx.divergente?';background:#FDF3E7':'')+'">'+
+           '<td style="padding:5px 8px;color:var(--text-light)">'+c.cod+'</td>'+
+           '<td style="padding:5px 8px">'+c.txt+'</td>';
+        presentes.forEach(function(inf){
+          var r=inf.cel[k][col];
+          var conta=contaNaSintese(inf,col);
+          var cor=!conta?'var(--text-light)':(r==='Sim'?'var(--red)':(r==='Não'?'var(--green)':'var(--text-light)'));
+          t+='<td style="padding:5px 8px;text-align:center;font-weight:600;color:'+cor+(conta?'':';opacity:.5;font-style:italic')+'">'+(r||'—')+'</td>';
+        });
+        var corS=sx.val==='Sim'?'var(--red)':(sx.val==='Não'?'var(--green)':'var(--text-light)');
+        t+='<td style="padding:5px 8px;text-align:center;font-weight:700;color:'+corS+'">'+sx.val+(sx.divergente?' *':'')+'</td>';
+        t+='</tr>';
+      });
+      t+='</tbody></table></div>';
+      return t;
+    }
+    h+=grelha(0,lbl1);
+    h+=grelha(1,lbl2);
+    h+='<div style="font-size:.76rem;color:var(--text-light);margin-top:8px">* Critério com divergência entre informadores — linha assinalada a laranja. A divergência é informação clínica, não erro: distingue o que só se observa num contexto do que atravessa todos.</div>';
+  }
+
+  return {titulo:titulo, sub:sub, corpo:h, code:String(code).toUpperCase(), restringir:restringir};
+}
+
+function verCaso(code,restringir){
+  var r=htmlCaso(code,restringir);
+  if(!r){alert('Sem registos para este código.');return;}
+  casoActual=r.code; casoRestrito=r.restringir;
+  document.getElementById('modal-titulo').textContent=r.titulo;
+  document.getElementById('modal-sub').textContent=r.sub;
+  document.getElementById('modal-corpo').innerHTML=
+    '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px">'+
+    '<button class="btn btn-secondary" style="padding:5px 12px;font-size:.8rem" onclick="exportarCasoPDF(casoActual,casoRestrito)">📊 Vista de caso (PDF)</button>'+
+    '</div>'+r.corpo;
+  document.getElementById('modal-overlay').style.display='flex';
+}
+
+function exportarCasoPDF(code,restringir){
+  var r=htmlCaso(code,restringir);
+  if(!r){alert('Sem registos para este código.');return;}
+  var htmlPDF='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>'+r.titulo+'</title>'+
+    '<style>:root{--blue:#3B5A7A;--blue-xpale:#EBF2F8;--gray-bdr:#DDE3EA;--text-light:#6B7A8D;--red:#C0392B;--green:#27AE60}'+
+    'body{font-family:Arial,sans-serif;font-size:12px;color:#2C3E50;padding:24px}h2{color:#3B5A7A;margin-bottom:4px}'+
+    '.sub{color:#6B7A8D;margin-bottom:18px}.no-print{margin-bottom:18px}@media print{.no-print{display:none}}</style></head><body>'+
+    '<div class="no-print"><button onclick="window.print()">🖨 Imprimir / Guardar PDF</button></div>'+
+    '<h2>'+r.titulo+'</h2><div class="sub">'+r.sub+' · Ricardina Correia · Cédula 8233 · Psicologia Pediátrica</div>'+
+    r.corpo+'</body></html>';
+  var w=window.open('','_blank');
+  if(!w){alert('Pop-up bloqueado. Permita pop-ups para este site.');return;}
+  w.document.write(htmlPDF);w.document.close();
+}
 
 // ── MODAL DETALHE ────────────────────────────────────────────
 function verDetalhe(sid){
@@ -1418,6 +1878,25 @@ function exportarInterpretacaoPDF(sessao){
 // ── ARRANQUE ──────────────────────────────────────────────────
 actualizarVersao();
 showPage('page-home');
+
+// ── Acesso directo ao painel: ?clinico=CNS2024[&caso=CÓDIGO] ───────────────
+// Convenção da plataforma. O parâmetro 'caso' abre directamente a vista
+// composta desse código, depois de concluída a sincronização — é o percurso
+// do botão «Ver resultado» do painel central.
+(function(){
+  try{
+    var qs=new URLSearchParams(window.location.search);
+    if(qs.get('clinico')!==PASSWORD) return;
+    showPage('page-clinico');
+    var alvo=String(qs.get('caso')||qs.get('codigo')||'').trim().toUpperCase();
+    var pronto=carregarDados();
+    if(alvo&&pronto&&typeof pronto.then==='function'){
+      pronto.then(function(){
+        if(sessoesDoCaso(alvo).length) verCaso(alvo);
+      });
+    }
+  }catch(e){}
+})();
 </script>
 </body>
 </html>

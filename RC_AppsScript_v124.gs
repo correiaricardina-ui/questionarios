@@ -4,6 +4,32 @@
 // Versão 72.0 — maio 2026
 //
 // ═══════════════════════════════════════════════════════════════════════════
+// ALTERAÇÕES v124.0 — SCARED-R · correcção de integração (versões Criança e Pais)
+//
+// Contexto: os ficheiros HTML publicados para o SCARED-R eram, por erro, os
+// geradores de cotação clínica da versão anterior — não submetiam nada ao Sheet
+// e expunham a cotação ao respondente. Foram reconstruídos no padrão da skill e
+// passam agora a submeter. Esta versão prepara o backend para esse primeiro
+// envio real. Nenhuma linha foi removida; as alterações são pontuais e aditivas.
+//
+//   · buildRow['SCARED_R_CRIANCA'] — substituído o padrão `X || ''` por
+//     verificação `!= null` no Total e nas 11 subescalas. É exactamente a
+//     correcção que a v86.0 aplicou à versão de pais e que ficou por aplicar
+//     à versão de criança: o score 0 é legítimo (uma subescala a zero significa
+//     ausência declarada de sintomas) e estava a ser gravado como célula vazia.
+//     Campos corrigidos: Total, sub_Panico, sub_AG, sub_AS, sub_FS, sub_FE_total,
+//     sub_POC, sub_PSPT, fe_FobiaEscola, fe_Situacional, fe_Sangue, fe_Animais.
+//     21 elementos antes, 21 depois — a assinatura da linha não muda.
+//
+//   · DEDUPE_KEYS['SCARED_R_PAIS'] e ['SCARED_R_CRIANCA'] — entradas NOVAS.
+//     Nenhuma das abas constava da tabela; sem elas cada re-sincronização faria
+//     appendRow e a aba acumularia duplicados. Detalhe e justificação do número
+//     de elementos junto às próprias entradas.
+//
+// ⚠ HEADERS, ABA, DEDUPE_ALIASES e todos os restantes instrumentos intactos.
+//   Diff auditado: 0 remoções.
+//
+// ═══════════════════════════════════════════════════════════════════════════
 // ALTERAÇÕES v122.0 — AASP · Perfil Sensorial Adolescente e Adulto
 //   (Brown & Dunn, 2002; Pearson/PsychCorp). 60 itens, escala 1–5, quatro
 //   quadrantes de 15 itens cada (Baixo Registo, Procura de Sensação,
@@ -4969,6 +4995,24 @@ function parseData(raw) {
 // Só afeta os instrumentos listados — todos os restantes continuam a fazer
 // appendRow exatamente como antes (diff estritamente aditivo).
 var DEDUPE_KEYS = {
+  // SCARED_R_PAIS e SCARED_R_CRIANCA (v124.0) — até aqui nenhuma das duas abas
+  // constava desta tabela e caíam no appendRow. Nunca produziu duplicados porque
+  // os ficheiros publicados nunca submeteram nada; a partir da reconstrução dos
+  // HTML passam a submeter, pelo que a chave tem de existir ANTES do primeiro
+  // envio real.
+  // · Pais — quatro elementos (Secção 33): código + data + tipo de respondente +
+  //   nome. O tipo ('Relação') é indispensável mas não basta: duas mães do mesmo
+  //   agregado não existem, mas mãe e pai a responderem no mesmo dia são o
+  //   contraste entre informadores que o instrumento procura, e o nome protege
+  //   ainda a reaplicação por outro cuidador na mesma data.
+  // · Criança — três elementos: a aba não tem coluna de tipo de respondente
+  //   (é sempre auto-relato) e o nome de quem preenche é o único discriminante
+  //   disponível; acrescentar uma quarta coluna inexistente seria ignorado pelo
+  //   _colIndexByNames e daria uma falsa sensação de robustez.
+  // 'Relacao' e 'NomePreenche' resolvem pelos DEDUPE_ALIASES já existentes
+  // ('Relação' e 'NomeInformante'). Nenhum alias foi criado ou alterado.
+  'SCARED_R_PAIS':     ['Código', 'Data', 'Relacao', 'NomePreenche'],
+  'SCARED_R_CRIANCA':  ['Código', 'Data', 'NomePreenche'],
   // TRF_618 (v123.0) — dedupe de 4 elementos (Secção 33): código + data + tipo
   // de respondente + nome. Até aqui o TRF não constava desta tabela e caía no
   // appendRow: cada sincronização do painel do instrumento reenviava TODAS as
@@ -6878,21 +6922,26 @@ function buildRow(abaNome, d) {
   }
 
   if (abaNome === 'SCARED_R_CRIANCA') {
+    // ⚠ Guarda != null OBRIGATÓRIA (v124.0 — mesma correcção que a v86.0 aplicou à
+    //   versão de pais): `X || ''` converte o score 0 em célula vazia, e neste
+    //   instrumento o 0 é resultado legítimo e clinicamente informativo — uma
+    //   subescala a 0 significa ausência declarada de sintomas nesse domínio.
     return [
       hoje, d.patientCode||d.codigo||'', d.childName||d.nomeCrianca||'',
       d.dob||'', d.genero||d.gender||'', d.ano_escolar||d.grade||'',
-      d.nome_informante||'', d.totalScore||'', d.classificacao||'',
-      d['sub_Perturbação de Pânico']||d.sub_Perturbac_o_de_P_nico||'',
-      d['sub_Ansiedade Generalizada']||d.sub_Ansiedade_Generalizada||'',
-      d['sub_Ansiedade de Separação']||d.sub_Ansiedade_de_Separac_o||'',
-      d['sub_Fobia Social']||d.sub_Fobia_Social||'',
-      d['sub_Fobia Específica (total)']||d.sub_Fobia_Espec_fica__total_||'',
-      d['sub_Pert. Obsessivo-Compulsiva']||d.sub_Pert__Obsessivo_Compulsiva||'',
-      d['sub_Pert. de Stress Pós-Traumático']||d.sub_Pert__de_Stress_P_s_Traum_tico||'',
-      d['fe_Fobia à Escola']||d.fe_Fobia___Escola||'',
-      d['fe_Fobia Específica — Situacional']||d.fe_Fobia_Espec_fica___Situacional||'',
-      d['fe_Fobia Específica — Sangue']||d.fe_Fobia_Espec_fica___Sangue||'',
-      d['fe_Fobia Específica — Animais']||d.fe_Fobia_Espec_fica___Animais||'',
+      d.nome_informante||'',
+      (d.totalScore != null ? d.totalScore : ''), d.classificacao||'',
+      (d['sub_Perturbação de Pânico'] != null ? d['sub_Perturbação de Pânico'] : (d.sub_Perturbac_o_de_P_nico != null ? d.sub_Perturbac_o_de_P_nico : '')),
+      (d['sub_Ansiedade Generalizada'] != null ? d['sub_Ansiedade Generalizada'] : (d.sub_Ansiedade_Generalizada != null ? d.sub_Ansiedade_Generalizada : '')),
+      (d['sub_Ansiedade de Separação'] != null ? d['sub_Ansiedade de Separação'] : (d.sub_Ansiedade_de_Separac_o != null ? d.sub_Ansiedade_de_Separac_o : '')),
+      (d['sub_Fobia Social'] != null ? d['sub_Fobia Social'] : (d.sub_Fobia_Social != null ? d.sub_Fobia_Social : '')),
+      (d['sub_Fobia Específica (total)'] != null ? d['sub_Fobia Específica (total)'] : (d.sub_Fobia_Espec_fica__total_ != null ? d.sub_Fobia_Espec_fica__total_ : '')),
+      (d['sub_Pert. Obsessivo-Compulsiva'] != null ? d['sub_Pert. Obsessivo-Compulsiva'] : (d.sub_Pert__Obsessivo_Compulsiva != null ? d.sub_Pert__Obsessivo_Compulsiva : '')),
+      (d['sub_Pert. de Stress Pós-Traumático'] != null ? d['sub_Pert. de Stress Pós-Traumático'] : (d.sub_Pert__de_Stress_P_s_Traum_tico != null ? d.sub_Pert__de_Stress_P_s_Traum_tico : '')),
+      (d['fe_Fobia à Escola'] != null ? d['fe_Fobia à Escola'] : (d.fe_Fobia___Escola != null ? d.fe_Fobia___Escola : '')),
+      (d['fe_Fobia Específica — Situacional'] != null ? d['fe_Fobia Específica — Situacional'] : (d.fe_Fobia_Espec_fica___Situacional != null ? d.fe_Fobia_Espec_fica___Situacional : '')),
+      (d['fe_Fobia Específica — Sangue'] != null ? d['fe_Fobia Específica — Sangue'] : (d.fe_Fobia_Espec_fica___Sangue != null ? d.fe_Fobia_Espec_fica___Sangue : '')),
+      (d['fe_Fobia Específica — Animais'] != null ? d['fe_Fobia Específica — Animais'] : (d.fe_Fobia_Espec_fica___Animais != null ? d.fe_Fobia_Espec_fica___Animais : '')),
       d.answers||'' ];
   }
 

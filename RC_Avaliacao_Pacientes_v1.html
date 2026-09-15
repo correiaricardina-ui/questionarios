@@ -3818,7 +3818,7 @@ function statusBadge(status) {
 // ═══════════════════════════════════════════════════════
 // OBTER SCORE RESUMIDO DO RESULTADO (localStorage)
 // ═══════════════════════════════════════════════════════
-function getResultSummary(qid, patientCode) {
+function getResultSummary(qid, patientCode, recipient) {
   try {
     const q = store.get('q_' + qid);
     // 1. Formato padrão novo: rc_sess:{código}:{syncKey}
@@ -3909,6 +3909,47 @@ function getResultSummary(qid, patientCode) {
             const cls = maxT >= 70 ? 'color:#C0392B;font-weight:700;' : maxT >= 65 ? 'color:#E67E22;font-weight:600;' : 'color:var(--green);font-weight:600;';
             return '<span style="font-size:0.78rem;' + cls + '">IN=' + (inT||'—') + ' · HI=' + (hiT||'—') + (lpT ? ' · LP/EF=' + lpT : '') + '</span>';
           }
+        }
+      }
+    }
+  } catch(e) {}
+
+  // ── DIVA-5 · sumário lido do Sheet, por informador ──────────────────────
+  // Este instrumento não grava em `rc_sess:` — as submissões chegam pelo Sheet.
+  // E chegam TRÊS por caso (o próprio, o parceiro, os pais) sob o MESMO código:
+  // sem o destinatário, as três atribuições mostrariam o mesmo valor; sem
+  // leitura do Sheet, nenhuma mostraria valor algum. Os nomes de coluna da aba
+  // DIVA5 coincidem com as chaves lidas pelo ramo 'diva5' de
+  // formatScoreSummary, pelo que a linha é passada tal como vem.
+  try {
+    const qDiva = store.get('q_' + qid);
+    const abaDiva = QID_TO_ABA[qid] || (qDiva && qDiva.syncKey ? SYNC_KEY_TO_ABA[qDiva.syncKey] : null);
+    if (abaDiva === 'DIVA5' && _sheetCache && Array.isArray(_sheetCache['DIVA5'])) {
+      const pc = String(patientCode || '').trim().toUpperCase();
+      const linhas = pc.length >= 4 ? _sheetCache['DIVA5'].filter(row =>
+        String(row['Código'] || row['Codigo'] || row['codigo'] || row['patientCode'] || '')
+          .trim().toUpperCase() === pc) : [];
+      if (linhas.length) {
+        const alvo = String(recipient || '').toLowerCase().trim();
+        // Correspondência por palavras: 'Enc. Educação' tem de casar com
+        // 'Encarregado de Educação', que não é substring nem superstring.
+        const casa = (valor) => {
+          const v = String(valor || '').toLowerCase().trim();
+          if (!v || !alvo) return false;
+          if (v.includes(alvo) || alvo.includes(v)) return true;
+          return v.split(/[\s\/\(\)\.,-]+/).some(w => w.length > 3 && alvo.includes(w)) ||
+                 alvo.split(/[\s\/\(\)\.,-]+/).some(w => w.length > 3 && v.includes(w));
+        };
+        let linha = linhas.find(row => casa(row['Respondente']))
+                 || linhas.find(row => casa(row['Relação']))
+                 || (linhas.length === 1 ? linhas[0] : null);
+        if (linha) {
+          const resumo = formatScoreSummary(linha, 'diva5') || '';
+          const nInf = linhas.length > 1
+            ? '<span style="font-size:0.72rem;color:var(--text-light);margin-left:6px;">· ' +
+              linhas.length + ' informadores no caso</span>'
+            : '';
+          return resumo + nInf;
         }
       }
     }
@@ -6449,9 +6490,16 @@ function renderAssignments(patientId) {
     let resultZone = '';
     if(isReceived) {
       const patient = store.get('patient_' + patientId);
-      const scoreHtml = patient ? (getResultSummary(a.qid, patient.code) || '') : '';
+      const scoreHtml = patient ? (getResultSummary(a.qid, patient.code, a.recipientLabel || a.recipient) || '') : '';
       const dataStr = a.receivedAt ? ' · ' + new Date(a.receivedAt).toLocaleDateString('pt-PT') : '';
-      const linkResult = q?.link ? (q.link + (q.link.includes('?') ? '&' : '?') + 'clinico=CNS2024') : '#';
+      // DIVA-5: o resultado clinicamente legível é o do CASO (cruzamento dos
+      // três informadores), não o da submissão isolada — o registo do parceiro
+      // devolve sempre INDETERMINADO por si só. O parâmetro 'caso' abre a vista
+      // composta desse código directamente.
+      const abaLink = QID_TO_ABA[a.qid] || (q && q.syncKey ? SYNC_KEY_TO_ABA[q.syncKey] : null);
+      const paramCaso = (abaLink === 'DIVA5' && patient && patient.code)
+        ? '&caso=' + encodeURIComponent(String(patient.code).trim().toUpperCase()) : '';
+      const linkResult = q?.link ? (q.link + (q.link.includes('?') ? '&' : '?') + 'clinico=CNS2024' + paramCaso) : '#';
       resultZone = `<div style="margin-top:6px;padding:8px 10px;background:#F0FBF5;border:1.5px solid #1E7E5A33;border-radius:8px;display:flex;flex-wrap:wrap;align-items:center;gap:8px;">
         <span style="font-size:0.78rem;color:var(--green);font-weight:600;">✓ Preenchido${dataStr}</span>
         ${scoreHtml ? '<span style="margin-left:4px;">' + scoreHtml + '</span>' : ''}
