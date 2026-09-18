@@ -3972,6 +3972,26 @@ var HEADERS = {
     'N_Sinalizados', 'Respostas'
   ],
 
+  // ── RDP-RC · Registo Diario Prospetivo (v125.0) ──────────────────────
+  //   Instrumento de CONSTRUCAO PROPRIA, sem validacao psicometrica.
+  //   Registo DIARIO: uma linha por dia e por utente (nao uma linha por protocolo).
+  //   Chave de deduplicacao efectiva = Codigo + Data (autorrelato unico por dia).
+  //   11 itens de criterio (4 nucleares + 7 adicionais), 0-3 cada -> Total_Criterio 0-33.
+  //   GI, Cefaleia e Descanso sao especificos do caso e correm EM PARALELO: NAO entram
+  //   no Total_Criterio nem em qualquer criterio do DSM-5-TR.
+  //   A fase do ciclo NAO e gravada: e atribuida RETROSPETIVAMENTE no painel do
+  //   questionario, a partir do inicio da menstruacao SEGUINTE, e mudaria de valor a
+  //   cada nova submissao — gravar uma fase congelaria uma leitura provisoria.
+  //   ⚠ Formatar 'Horas_Sono' como TEXTO SIMPLES no Sheet antes da primeira submissao:
+  //     a locale pt-PT converte silenciosamente valores como "7,5" em data.
+  RDP_RC: [
+    'Data', 'Código', 'NomeUtente', 'NomeInformante',
+    'Menstruacao', 'SOS',
+    'Total_Criterio', 'Interferencia',
+    'GI', 'Cefaleia', 'Descanso', 'Horas_Sono',
+    'Nota', 'Respostas'
+  ],
+
 };
 
 
@@ -4951,6 +4971,13 @@ var ABA = {
   'csas-p': 'CSAS_P',
   'CSASP':  'CSAS_P',
   'CSAS_Pais': 'CSAS_P',
+  // ── RDP-RC · Registo Diario Prospetivo (v125.0) ──
+  'RDP_RC':    'RDP_RC',
+  'rdp_rc':    'RDP_RC',
+  'RDP-RC':    'RDP_RC',
+  'rdp':       'RDP_RC',
+  'RDP':       'RDP_RC',
+  'RDP_RC_v1': 'RDP_RC',
 };
 
 
@@ -10664,6 +10691,48 @@ function buildRow(abaNome, d) {
     _eBase.push(d.Alerta || d.alerta || '');
     _eBase.push(_eResp);
     return _eBase;
+  }
+
+  // ── RDP-RC · Registo Diario Prospetivo (v125.0) ────────────────────────
+  // Ordem das colunas identica a de HEADERS['RDP_RC'] (14) — validada por posicao.
+  // ⚠ Guarda != null OBRIGATORIA (nunca ||): neste instrumento o ZERO e resultado
+  //   legitimo e clinicamente informativo em NOVE colunas distintas —
+  //     Menstruacao = 0 -> dia SEM fluxo, que e o dado que delimita as fases;
+  //     SOS = 0         -> dia sem recurso a medicacao em SOS;
+  //     Total_Criterio = 0 -> dia assintomatico, o resultado mais informativo de
+  //                        todos numa fase folicular e a propria base de comparacao;
+  //     Interferencia / GI / Cefaleia / Descanso = 0 -> ausencia declarada do sintoma.
+  //   (x||'') converteria todos estes zeros em celulas vazias e tornaria um dia
+  //   assintomatico indistinguivel de um dia por preencher — o que destruiria o
+  //   contraste lutea/folicular, que e a unica leitura do instrumento.
+  // ⚠ 'Horas_Sono' chega como STRING (pode vir vazia, e pode trazer virgula decimal):
+  //   e gravada tal e qual, sem coercao numerica. A coluna tem de estar formatada
+  //   como TEXTO SIMPLES no Sheet.
+  if (abaNome === 'RDP_RC') {
+    var _rV = function (a, b) {
+      if (a !== undefined && a !== null) return a;
+      if (b !== undefined && b !== null) return b;
+      return '';
+    };
+    var _rNome = d.nome || d.Nome || d.nomeUtente || d.NomeUtente || nome || '';
+    var _rResp = (typeof d.itens === 'string') ? d.itens
+               : JSON.stringify(d.itens || d.respostas || d.Respostas || d.answers || {});
+    return [
+      hoje,
+      d.patientCode || d.codigo || d.Código || cod || '',
+      _rNome,
+      _rNome,
+      _rV(d.menstruacao, d.Menstruacao),
+      _rV(d.sos, d.SOS),
+      _rV(d.total_criterio, d.Total_Criterio),
+      _rV(d.interferencia, d.Interferencia),
+      _rV(d.gi, d.GI),
+      _rV(d.cefaleia, d.Cefaleia),
+      _rV(d.descanso, d.Descanso),
+      (d.horas_sono !== undefined && d.horas_sono !== null) ? String(d.horas_sono) : '',
+      d.nota || d.Nota || '',
+      _rResp
+    ];
   }
 
   return [hoje, JSON.stringify(d)];

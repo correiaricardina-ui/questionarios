@@ -878,11 +878,18 @@ const QID_TO_ABA = {
   'q_csas':            'CSAS',
   'q_csas_p':          'CSAS_P',
   // ── BESAA · Escala de Estima Corporal (Mendelson et al., 2001) ──
-  'q_besaa':           'BESAA'
+  'q_besaa':           'BESAA',
+  // ── RDP-RC · Registo Diário Prospetivo (v123) ──
+  'q_rdp_rc':          'RDP_RC'
 };
 
 
 const SYNC_KEY_TO_ABA = {
+  // ── RDP-RC · Registo Diário Prospetivo (v123) ──
+  'rdp_rc':        'RDP_RC',
+  'RDP_RC':        'RDP_RC',
+  'RDP-RC':        'RDP_RC',
+  'rdp':           'RDP_RC',
   // ── AASP · Perfil Sensorial Adolescente e Adulto (v122) ──
   'aasp':          'AASP',
   'AASP':          'AASP',
@@ -1499,6 +1506,20 @@ async function checkSheetForResponse(qid, patientCode) {
 function initCatalog() {
   const existing = store.get('catalog') || [];
   const defaults = [
+    // ── RDP-RC · Registo Diário Prospetivo (v123) ──
+    // Instrumento de CONSTRUÇÃO PRÓPRIA, sem validação psicométrica, normas ou
+    // fidelidade conhecida: dispositivo de observação estruturada, não um teste.
+    // ⚠ Registo DIÁRIO — uma linha por dia e por utente, não um protocolo único.
+    // ⚠ A fase do ciclo é atribuída RETROSPETIVAMENTE, a partir do início da
+    //   menstruação SEGUINTE: a classificação de um dia muda quando chega o ciclo
+    //   seguinte e só estabiliza no fim. Nada de fase é gravado no Sheet.
+    // ⚠ Classificação DESCRITIVA do padrão (R0–R4), nunca gravidade: paleta AZUL.
+    //   O VERMELHO fica reservado ao único sinalizador binário do instrumento —
+    //   registo insuficiente (menos de dois ciclos completos), que é uma condição
+    //   de validade e não uma medida.
+    // ⚠ R3 é COMPATIBILIDADE DE PADRÃO, nunca diagnóstico: a confirmação e a
+    //   decisão terapêutica são da Psiquiatria.
+    { id:'q_rdp_rc', name:'RDP-RC — Registo Diário Prospetivo (ciclo menstrual)', dest:['Próprio'], link:'https://correiaricardina-ui.github.io/questionarios/RDP_RC_v1.html', syncKey:'rdp_rc', area:'Regulação Emocional & Coping', ageRange:'12–99 anos', objective:'Regista PROSPETIVAMENTE, dia a dia, a variação sintomática ao longo do ciclo menstrual, para testar se o agravamento se concentra na FASE LÚTEA TARDIA. Instrumento de CONSTRUÇÃO PRÓPRIA, em português europeu, SEM validação psicométrica, sem normas e sem estudo de fidelidade: é um dispositivo de OBSERVAÇÃO ESTRUTURADA, não um teste. Cada registo diário cobre 11 itens de critério numa escala 0–3 (0 nada · 1 um pouco · 2 bastante · 3 muito) — 4 NUCLEARES (labilidade do humor, irritabilidade, humor deprimido, ansiedade) e 7 ADICIONAIS (interesse, concentração, fadiga, apetite, sono, sobrecarga, sintomas físicos) —, devolvendo um Total de critério 0–33, mais um item de INTERFERÊNCIA no dia (0–3) e dois sinalizadores binários (dia de fluxo menstrual; toma de medicação em SOS). Corre ainda, EM PARALELO, um bloco de três sintomas específicos do caso (sintomas digestivos, cefaleia, acordar sem descanso) e as horas de sono — que NÃO entram no Total de critério nem em qualquer critério do DSM-5-TR e servem apenas de leitura ecológica acompanhante. ⚠ A FASE NÃO É CALCULADA A PARTIR DO INÍCIO DO CICLO: em ciclos de 35–40 dias a fase lútea não é contável para a frente, pelo que é atribuída RETROSPETIVAMENTE a partir do início da menstruação SEGUINTE — lútea tardia = os 7 dias anteriores ao início do fluxo; folicular = dias 3 a 9 após o início do fluxo; os restantes ficam intermédios e não entram na comparação. Por isso a classificação de um dia pode mudar quando chega o ciclo seguinte, e só estabiliza no fim. ⚠ O DSM-5-TR exige DOIS ciclos prospetivos completos: abaixo disso o padrão devolvido é R0 e nenhuma leitura substantiva é admissível. ⚠ A leitura primária é o CONTRASTE lútea vs folicular, nunca o valor absoluto de um dia: considera-se agravamento assinalável uma variação ≥ 30% da média lútea sobre a média folicular, e um item conta como presente quando atinge 2 ou mais em pelo menos metade dos dias lúteos. ⚠ A DISSOCIAÇÃO entre PMDD e exacerbação pré-menstrual (PME) faz-se pelo NÍVEL BASAL folicular: com média por item ≥ 1,0 na fase folicular, o quadro é de agravamento de sintomatologia já presente, e o DSM-5-TR EXCLUI o diagnóstico de PMDD — a implicação clínica é tratar o quadro de base, com atenção acrescida na janela lútea. Padrões devolvidos: R0 registo insuficiente · R1 sem agravamento assinalável · R2 exacerbação pré-menstrual de quadro preexistente · R3 compatível com PMDD · R4 agravamento lúteo subclínico. ⚠ R3 é uma COMPATIBILIDADE DE PADRÃO, nunca um diagnóstico: a confirmação diagnóstica e a decisão terapêutica são da PSIQUIATRIA. ⚠ Ausência de agravamento cíclico (R1) é informação clínica de pleno direito: exclui o ciclo como fator de manutenção e remete a procura para outro eixo. ⚠ Registo DIÁRIO — uma linha por dia e por utente, não um protocolo único; a adesão ao registo é ela própria dado clínico, e falhas sistemáticas numa das fases enviesam a comparação', domains:['Total de critério (11 itens, 0–33) — soma dos 4 nucleares com os 7 adicionais; é a pontuação que entra na comparação entre fases','Sintomas nucleares (4 itens, 0–12) — labilidade do humor, irritabilidade, humor deprimido e ansiedade; o DSM-5-TR exige pelo menos UM presente','Sintomas adicionais (7 itens, 0–21) — interesse, concentração, fadiga, apetite, sono, sobrecarga e sintomas físicos','Interferência no dia (1 item, 0–3) — impacto declarado no funcionamento desse dia, seguido em paralelo às médias de fase','Bloco específico do caso (sintomas digestivos, cefaleia, acordar sem descanso) — corre EM PARALELO e NÃO entra no Total de critério nem em qualquer critério do DSM-5-TR','Horas de sono declaradas — indicador ecológico externo a qualquer pontuação; média comparada entre fases','Sinalizador de fluxo menstrual (0/1) — não é sintoma: é o marcador que delimita retrospetivamente as fases','Sinalizador de medicação em SOS (0/1) — proporção de dias com recurso a SOS, comparada entre fases','Atribuição RETROSPETIVA de fase — lútea tardia (7 dias anteriores ao início do fluxo) · folicular (dias 3 a 9 após o início do fluxo) · intermédia (excluída da comparação); a classificação de um dia só estabiliza quando chega o ciclo seguinte','Médias por fase — média do Total de critério nos dias lúteos e nos dias foliculares, com o número de dias efetivamente disponíveis em cada uma','Variação lútea-folicular (%) — agravamento assinalável a partir de 30%; com média folicular inferior a 1,0 a variação é truncada em 200% e lida como remissão folicular','Itens presentes em pelo menos metade dos dias lúteos — item conta como presente a partir de 2; critério de contagem sintomática (≥ 5 itens, com ≥ 1 nuclear)','Nível basal folicular (média por item) — discriminante entre PMDD e exacerbação pré-menstrual: a partir de 1,0 o DSM-5-TR exclui PMDD por se tratar de agravamento de quadro preexistente','Padrão devolvido — R0 registo insuficiente (menos de dois ciclos completos) · R1 sem agravamento assinalável · R2 exacerbação pré-menstrual (PME) · R3 compatível com PMDD · R4 agravamento lúteo subclínico; R3 é compatibilidade de padrão, nunca diagnóstico','Número de ciclos prospetivos completos — o DSM-5-TR exige DOIS; abaixo disso nenhuma leitura substantiva é admissível'] , ageMin:144, ageMax:1188},
     // ── AASP · Perfil Sensorial Adolescente e Adulto (v122) ──
     // Brown & Dunn (2002) · Pearson/PsychCorp. Contraparte adolescente/adulta do
     // Perfil Sensorial 2 (PS2), já catalogado — daí a mesma área clínica.
@@ -2780,6 +2801,8 @@ function initCatalog() {
   } else {
     // Forçar links e syncKeys actualizados
     const META = {
+      // ── RDP-RC · Registo Diário Prospetivo (v123) ──
+      'q_rdp_rc':     { link:'https://correiaricardina-ui.github.io/questionarios/RDP_RC_v1.html', syncKey:'rdp_rc' },
       // ── AASP · Perfil Sensorial Adolescente e Adulto (v122) ──
       'q_aasp':       { link:'https://correiaricardina-ui.github.io/questionarios/AASP_v1.html', syncKey:'aasp' },
       // ── Família EIF · Escalas de Interferência Funcional (v121) ──
@@ -3083,6 +3106,17 @@ function initCatalog() {
         }
       }
     });
+    // ── RDP-RC · Registo Diário Prospetivo (v123) ──
+    // Garante o aparecimento da ligação em instâncias do RC já instaladas.
+    if(!catalog.includes('q_rdp_rc')) {
+      const _rdpDefault = defaults.find(d => d.id === 'q_rdp_rc');
+      if(_rdpDefault) {
+        store.set('q_rdp_rc', _rdpDefault);
+        store.set('q_' + 'q_rdp_rc', _rdpDefault);
+        catalog.push('q_rdp_rc');
+        store.set('catalog', catalog);
+      }
+    }
     // ── AASP · Perfil Sensorial Adolescente e Adulto (v122) ──
     // Garante o aparecimento da ligação em instâncias do RC já instaladas.
     if(!catalog.includes('q_aasp')) {
@@ -5168,6 +5202,37 @@ function formatScoreSummary(scores, syncKey) {
       return _html;
     }
   }
+  // ── RDP-RC · Registo Diário Prospetivo (v123) ─────────────────────
+  // Inserida ANTES do fallback genérico (que preempta qualquer branch posterior).
+  // Guardas `!= null` (nunca `||`): o ZERO é resultado legítimo e clinicamente
+  // informativo — Total de critério 0 é o dia assintomático, que é precisamente a
+  // base de comparação folicular, e 0 ciclos completos é o estado inicial do
+  // registo, não um dado em falta.
+  // ⚠ Paleta AZUL no total e no padrão: R0–R4 descrevem um PADRÃO de variação e
+  //   não uma gravidade; colori-los comunicaria um juízo que o instrumento não
+  //   suporta. O VERMELHO fica reservado ao único sinalizador binário — registo
+  //   insuficiente (menos de dois ciclos prospetivos completos), que é uma
+  //   condição de validade e bloqueia qualquer leitura substantiva.
+  if(syncKey === 'rdp_rc') {
+    const _tc  = scores['Total_Criterio'] ?? scores['total_criterio'];
+    const _cic = scores['Ciclos'] ?? scores['ciclos'];
+    const _pad = scores['Padrao'] ?? scores['padrao'] ?? scores['Padr\u00e3o'] ?? '';
+    const _partes = [];
+    if(_tc != null) {
+      _partes.push('<span style=\"font-size:0.78rem;color:var(--blue);font-weight:600;\">'
+                 + 'Total de crit\u00e9rio = ' + _tc + '/33</span>');
+    }
+    if(_pad) {
+      const _cod = String(_pad).slice(0,2);
+      const _c = (_cod === 'R0') ? 'color:#C0392B;font-weight:700;' : 'color:var(--blue);font-weight:600;';
+      _partes.push('<span style=\"font-size:0.78rem;' + _c + '\">' + _cod + '</span>');
+    }
+    if(_cic != null) {
+      const _c2 = (_cic < 2) ? 'color:#C0392B;font-weight:700;' : 'color:var(--blue-mid);';
+      _partes.push('<span style=\"font-size:0.72rem;' + _c2 + '\">' + _cic + ' ciclo(s)</span>');
+    }
+    if(_partes.length > 0) return _partes.join('<span style=\"color:var(--blue-mid);\"> \u00b7 </span>');
+  }
   // Genérico
   const entries = Object.entries(scores).filter(([,v]) => v != null).slice(0,3);
   if(entries.length > 0) return `<span style="font-size:0.78rem;color:var(--blue-dark);">${entries.map(([k,v])=>k+'='+v).join(' · ')}</span>`;
@@ -6144,6 +6209,12 @@ function renderAssignments(patientId) {
             // ── Verificação nome-primeiro, relação como fallback ──
             function matchRespondent(row, aba, recip) {
               const NC = {
+                // ── RDP-RC · Registo Diário Prospetivo (autorrelato; nome primeiro) ──
+                // Registo DIÁRIO: uma linha por dia e por utente, todas do MESMO
+                // respondente. O discriminante efectivo entre linhas legítimas é a
+                // DATA, não o nome, mas a entrada é indispensável para o instrumento
+                // chegar a passar a «Preenchido ✓».
+                'RDP_RC':['NomeUtente','NomeInformante'],
                 // ── AASP · autorrelato (nome primeiro; tipo como fallback) ──
                 // O tipo é quase sempre 'O próprio' e repete-se entre linhas
                 // legítimas, pelo que o discriminante efectivo é o NOME.
@@ -6698,6 +6769,8 @@ async function syncAndMark(patientId, idx) {
       const patUpper = String(patient.code).trim().toUpperCase();
       function matchResp2(row, aba2, recip) {
         const NC2 = {
+          // ── RDP-RC · Registo Diário Prospetivo (autorrelato; nome primeiro) ──
+          'RDP_RC':['NomeUtente','NomeInformante'],
           // ── AASP · autorrelato (nome primeiro; tipo como fallback) ──
           'AASP':['NomeInformante','NomeUtente','Informante'],
           // ── Família EIF · as duas formas partilham a aba (nome primeiro) ──
@@ -7635,7 +7708,7 @@ document.addEventListener('DOMContentLoaded', () => {
   store.del('pw');
   // Forçar re-leitura do META em cada arranque — limpa chaves com prefixo errado
   (function forceMetaRefresh() {
-    const META_VERSION = 'v27_maio2026_cars2';
+    const META_VERSION = 'v28_setembro2026_rdp';
     if(localStorage.getItem('cns_meta_version') !== META_VERSION) {
       // Limpar chaves de metadados de questionários para forçar recriação
       Object.keys(localStorage)
