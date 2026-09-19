@@ -233,7 +233,7 @@ table.sess-table tr:hover{background:var(--blue-xpale);cursor:pointer;}
     <div class="card">
       <h2 class="sec-title" style="font-size:1.05rem;">Registos individuais</h2>
       <table class="sess-table"><thead><tr>
-        <th>Data</th><th>Código</th><th>Fase</th><th>Total</th><th>Interf.</th><th>SOS</th><th>Menst.</th>
+        <th>Data</th><th>Código</th><th>Fase</th><th>Total</th><th>Interf.</th><th>SOS</th><th>Menst.</th><th>Tardio</th>
       </tr></thead><tbody id="tbody-registos"></tbody></table>
     </div>
   </div>
@@ -294,7 +294,7 @@ function iniciarRegisto(){
   var hs=document.getElementById('horas-sono'); if(hs)hs.value='';
   document.getElementById('sec-id').style.display='block';
   document.getElementById('sec-itens').style.display='none';
-  renderItens(); renderFlags();
+  renderItens(); renderFlags(); atualizarExpansao();
   showPage('page-registo');
 }
 function avancar(){
@@ -328,12 +328,33 @@ function grupo(titulo, lista){
   });
   return h;
 }
+/* Versao curta por defeito: 4 itens nucleares + impacto no dia. O restante
+   abre automaticamente quando algum nuclear e assinalado em 2 ou mais — que
+   sao precisamente os dias em que o criterio dos 5 sintomas se avalia.
+   Nos dias calmos nao ha nada para contar e percorrer 14 itens so para
+   marcar zeros e o que faz abandonar o registo. */
 function renderItens(){
   var h=grupo('Estado de espírito', NUCLEARES)
+       +grupo('Impacto no dia', [INTERFERENCIA])
+       +'<div id="bloco-extra" style="display:none;">'
+       +'<div style="margin-top:18px;padding:9px 12px;border-radius:6px;background:var(--blue-xpale);'
+       +'border-left:4px solid var(--blue-mid);font-size:.82rem;color:var(--text-light);">'
+       +'Como assinalou algo mais marcado hoje, seguem-se algumas perguntas adicionais.</div>'
        +grupo('Outros sintomas', ADICIONAIS)
        +grupo('Corpo', ESPECIFICOS)
-       +grupo('Impacto no dia', [INTERFERENCIA]);
+       +'</div>';
   document.getElementById('itens-container').innerHTML=h;
+}
+function haSinalNuclear(){
+  return NUCLEARES.some(function(it){ return (respostas[it.k]||0)>=2; });
+}
+function atualizarExpansao(){
+  var box=document.getElementById('bloco-extra');
+  if(box) box.style.display = haSinalNuclear() ? 'block' : 'none';
+}
+function itensExigidos(){
+  var base=NUCLEARES.concat([INTERFERENCIA]);
+  return haSinalNuclear() ? base.concat(ADICIONAIS, ESPECIFICOS) : base;
 }
 function escolher(k,i){
   respostas[k]=i;
@@ -341,6 +362,7 @@ function escolher(k,i){
     var el=document.getElementById('opt-'+k+'-'+j);
     if(el) el.classList.toggle('sel', j===i);
   });
+  atualizarExpansao();
   atualizarProgresso();
 }
 function renderFlags(){
@@ -359,7 +381,9 @@ function toggleFlag(k){
   if(el){ el.classList.toggle('sel',flags[k]); var cb=el.querySelector('input'); if(cb)cb.checked=flags[k]; }
 }
 function atualizarProgresso(){
-  var n=Object.keys(respostas).length, total=TODOS.length;
+  var exigidos=itensExigidos();
+  var total=exigidos.length;
+  var n=exigidos.filter(function(it){ return respostas[it.k]!==undefined; }).length;
   document.getElementById('progress-txt').textContent=n+' / '+total+' respondidos';
   document.getElementById('progress-fill').style.width=Math.round(n/total*100)+'%';
 }
@@ -369,8 +393,10 @@ function somaCriterio(itens){
   return CRITERIO.reduce(function(s,k){ return s+(itens[k]||0); },0);
 }
 function submeter(){
-  if(Object.keys(respostas).length < TODOS.length){
-    alert('Faltam itens por responder ('+Object.keys(respostas).length+' de '+TODOS.length+').');
+  var exigidos=itensExigidos();
+  var respondidos=exigidos.filter(function(it){ return respostas[it.k]!==undefined; });
+  if(respondidos.length < exigidos.length){
+    alert('Faltam itens por responder ('+respondidos.length+' de '+exigidos.length+').');
     return;
   }
   var payload={
@@ -378,6 +404,7 @@ function submeter(){
     patientCode:document.getElementById('codigo').value.trim(),
     nome:document.getElementById('nome').value.trim(),
     data:document.getElementById('data').value,
+    tardio:(document.getElementById('data').value < new Date().toISOString().slice(0,10))?1:0,
     menstruacao:flags.menstruacao?1:0,
     sos:flags.sos?1:0,
     interferencia:respostas.interferencia||0,
@@ -428,6 +455,15 @@ function atribuirFases(regs){
   });
   return fases;
 }
+/* Estado de recolha, em linguagem direta para leitura em sessao. */
+function completude(nCiclos,nLut,nFol){
+  if(nCiclos===0) return 'Sem início de fluxo registado. A fase só é determinável a partir do primeiro.';
+  if(nCiclos===1) return '1 início de fluxo registado · 0 de 2 ciclos completos. Faltam 2 inícios.';
+  if(nCiclos===2) return '2 inícios de fluxo · 1 de 2 ciclos completos. Falta 1 início para a análise ficar disponível.';
+  var aviso='';
+  if(nLut<10||nFol<10) aviso=' Atenção: menos de 5 dias por janela em algum ciclo — médias pouco fiáveis.';
+  return nCiclos+' inícios de fluxo · 2 ou mais ciclos completos. Recolha suficiente.'+aviso;
+}
 function media(v){ return v.length? Math.round(v.reduce(function(a,b){return a+b;},0)/v.length*100)/100 : null; }
 
 function analisar(regs){
@@ -459,7 +495,9 @@ function analisar(regs){
   var mediaItemFol = (mFol!==null)? mFol/CRITERIO.length : null;
   var nCiclos=iniciosMenstruacao(regs).length;
   return {
-    dias:regs.length, ciclos:Math.max(0,nCiclos-1),
+    dias:regs.length, inicios:nCiclos, ciclos:Math.max(0,nCiclos-1),
+    tardios:regs.filter(function(r){return r.tardio==1;}).length,
+    completude:completude(nCiclos,lut.length,fol.length),
     nLut:lut.length, nFol:fol.length,
     mediaLutea:mLut, mediaFolicular:mFol, variacao:variacao,
     itensLutea:itensLut, nuclearesLutea:nuclearesLut,
@@ -482,7 +520,9 @@ function analisar(regs){
 }
 function fmtVar(v){ return v>=200? 'aumento >200%, com remissão folicular' : (v>0?'+':'')+v+'%'; }
 function padraoRDP(variacao,itensLut,nuclearesLut,mediaItemFol,nCiclos){
-  if(nCiclos<2) return 'R0 — Registo insuficiente: o DSM-5-TR exige dois ciclos prospetivos completos. Manter recolha.';
+  /* Dois ciclos COMPLETOS = intervalo entre o 1.º e o 3.º inicio de fluxo.
+     A v1 libertava o padrao com 2 inicios, ou seja com um unico ciclo. */
+  if(nCiclos<3) return 'R0 — Registo insuficiente: o DSM-5-TR exige dois ciclos prospetivos completos (três inícios de fluxo registados). Manter recolha.';
   if(variacao===null) return 'R0 — Fases incompletas; comparação não possível.';
   var agrava=variacao>=LIMIAR_DISSOCIACAO;
   var criterioItens=(itensLut.length>=MIN_ITENS && nuclearesLut.length>=1);
@@ -530,8 +570,9 @@ function renderTabela(){
     return '<tr><td>'+escHtml(r.data)+'</td><td>'+escHtml(r.patientCode)+'</td>'
       +'<td><span class="badge '+cls+'">'+f+'</span></td>'
       +'<td>'+escHtml(r.total_criterio)+'</td><td>'+escHtml(r.interferencia)+'</td>'
-      +'<td>'+(r.sos==1?'sim':'—')+'</td><td>'+(r.menstruacao==1?'sim':'—')+'</td></tr>';
-  }).join('') || '<tr><td colspan="7" style="text-align:center;color:var(--text-light);padding:24px;">Sem registos.</td></tr>';
+      +'<td>'+(r.sos==1?'sim':'—')+'</td><td>'+(r.menstruacao==1?'sim':'—')+'</td>'
+      +'<td>'+(r.tardio==1?'sim':'—')+'</td></tr>';
+  }).join('') || '<tr><td colspan="8" style="text-align:center;color:var(--text-light);padding:24px;">Sem registos.</td></tr>';
 }
 function linha(rot,a,b){
   return '<tr><td>'+rot+'</td><td>'+(a===null?'—':a)+'</td><td>'+(b===null?'—':b)+'</td></tr>';
@@ -546,8 +587,11 @@ function renderAnalise(){
   if(a.estado){ box.innerHTML='<p class="sec-intro">'+a.estado+'</p>'; return; }
   var h='<div style="margin-top:16px;padding:14px 16px;border-radius:10px;background:var(--blue-xpale);border-left:4px solid var(--blue);">'
       +'<strong>'+escHtml(a.padrao)+'</strong></div>';
-  h+='<p class="sec-intro" style="margin-top:14px;">'+a.dias+' dias · '+a.ciclos+' ciclos completos · '
-    +a.nLut+' dias lúteos · '+a.nFol+' dias foliculares</p>';
+  h+='<p class="sec-intro" style="margin-top:14px;">'+a.dias+' dias registados · '+a.inicios+' inícios de fluxo · '
+    +a.ciclos+' ciclos completos · '+a.nLut+' dias lúteos · '+a.nFol+' dias foliculares'
+    +(a.tardios?' · '+a.tardios+' registos tardios':'')+'</p>';
+  h+='<div style="margin:10px 0 14px;padding:10px 12px;border-radius:6px;background:var(--blue-xpale);'
+    +'border-left:4px solid var(--blue-mid);font-size:.84rem;">'+escHtml(a.completude)+'</div>';
   h+='<table class="sess-table"><thead><tr><th></th><th>Lútea</th><th>Folicular</th></tr></thead><tbody>';
   h+=linha('Total de critério',a.mediaLutea,a.mediaFolicular);
   h+=linha('Interferência funcional',a.interfLutea,a.interfFolicular);
@@ -566,7 +610,7 @@ function renderAnalise(){
 }
 function exportarCSV(){
   var regs=carregarRegistos();
-  var cols=['patientCode','nome','data','menstruacao','sos','interferencia','total_criterio','gi','cefaleia','descanso','horas_sono','nota','itens'];
+  var cols=['patientCode','nome','data','tardio','menstruacao','sos','interferencia','total_criterio','gi','cefaleia','descanso','horas_sono','nota','itens'];
   var csv='\uFEFF'+cols.join(';')+'\n'+regs.map(function(r){
     return cols.map(function(c){return '"'+String(r[c]==null?'':r[c]).replace(/"/g,'""')+'"';}).join(';');
   }).join('\n');
