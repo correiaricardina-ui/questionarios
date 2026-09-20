@@ -4,6 +4,753 @@
 // Versão 72.0 — maio 2026
 //
 // ═══════════════════════════════════════════════════════════════════════════
+// ALTERAÇÕES v138.0 — EAFE-CA · Escala de Avaliação do Funcionamento
+//   Executivo em Crianças e Adolescentes, nas TRÊS formas: Pais e Cuidadores
+//   (heterorrelato, 6–17 anos), Autorrelato (12–17 anos) e Professores
+//   (heterorrelato escolar, 6–17 anos). Instrumento ORIGINAL de construção
+//   própria em português europeu, inspirado no modelo híbrido de
+//   autorregulação e funções executivas de Barkley, R. A. (1997, 2011, 2012).
+//   NÃO constitui tradução, adaptação autorizada nem equivalente psicométrico
+//   de qualquer instrumento publicado, e não dispõe de estudos de validade,
+//   fidelidade ou normas para a população portuguesa: os limiares são
+//   CRITERIAIS, ancorados na escala de resposta.
+//
+//   ⚠ NÃO CONFUNDIR com a EAFE (Entrevista de Análise Funcional do Estudo),
+//     instrumento DISTINTO, de outra área, cuja aba se chama 'EAFE' e cujos
+//     aliases 'EAFE' e 'eafe' permanecem INTACTOS. A EAFE-CA usa abas com
+//     prefixo 'EAFECA_' e nenhum alias em comum.
+//
+// Integração ADITIVA. Nenhuma linha das versões anteriores foi removida ou
+// alterada; todas as entradas novas foram inseridas sem tocar nas restantes.
+//
+//   · HEADERS['EAFECA_P'], ['EAFECA_A'] e ['EAFECA_T'] — 39 colunas, cabeçalho
+//     IDÊNTICO nas três abas, por o payload das três formas ter exactamente a
+//     mesma forma. Abas separadas porque a comparação entre informantes exige
+//     linhas independentes, porque as faixas etárias diferem e porque os
+//     campos de contexto escolar (Disciplina, TempoConhece, HorasSemanais) só
+//     são preenchidos na forma de Professores.
+//   · ABA — aliases 'EAFECA_P', 'eafeca_p', 'EAFECA_Pais', 'EAFECA_A',
+//     'eafeca_a', 'EAFECA_Auto', 'EAFECA_T', 'eafeca_t' e 'EAFECA_Prof'.
+//     NENHUM alias existente foi criado, alterado ou reapontado.
+//   · DEDUPE_KEYS nas três abas — chave de QUATRO elementos (Secção 33):
+//     Código + Data + tipo de respondente + nome. As colunas chamam-se
+//     'Informante' e 'NomeInformante' e resolvem pelos DEDUPE_ALIASES JÁ
+//     EXISTENTES ('PreenchidoPor' → 'Informante' · 'NomePreenche' →
+//     'NomeInformante'). NENHUM alias foi criado ou alterado. Nas formas de
+//     heterorrelato o discriminante é real e frequente — mãe e pai, ou dois
+//     professores de disciplinas diferentes, podem responder no mesmo dia para
+//     a mesma criança, e a comparação entre informantes é saída clínica
+//     explícita do instrumento, pelo que descartar uma das linhas seria perda
+//     de informação e não limpeza de duplicados; no autorrelato o tipo é
+//     constante e o NOME é o discriminante efectivo. A chave preserva as
+//     reavaliações em datas distintas — comportamento exigido pela
+//     monitorização serial que a coluna 'Momento' suporta — e é idempotente em
+//     re-sincronizações.
+//   · buildRow — ramo ÚNICO que serve as três abas, por o cabeçalho ser
+//     idêntico. Guarda != null OBRIGATÓRIA (nunca ||): o ZERO é resultado
+//     clinicamente substantivo nas contagens de indicadores (AGT_CI a ARE_CI e
+//     CI_Global — zero indicadores é o resultado esperado num perfil sem
+//     sinalização) e na amplitude interdomínios (AID = 0 significa perfil
+//     perfeitamente homogéneo entre os cinco domínios).
+//   · ⚠ O literal 'N/C' (não cotável) é gravado TAL COMO VEM e NUNCA convertido
+//     em zero nem em célula vazia: o motor devolve 'N/C' quando um domínio tem
+//     menos de 10 itens respondidos, quando o protocolo global tem menos de 50,
+//     quando falta algum dos 10 itens do IRE ou quando falta alguma das cinco
+//     médias de domínio para calcular a AID. 'N/C' e 0 são resultados
+//     clinicamente opostos.
+//   · Cotação: 60 itens em escala 1–4 (1 nunca ou raramente · 2 às vezes ·
+//     3 frequentemente · 4 muito frequentemente), janela dos ÚLTIMOS 6 MESES.
+//     DEZ itens invertidos — 8, 11, 18, 23, 31, 35, 42, 47, 53 e 57 —
+//     recodificados como 5 menos o valor assinalado. Cinco domínios de 12
+//     itens, sem sobreposição nem lacunas: AGT Autogestão do Tempo (1–12) ·
+//     ARP Auto-organização e Resolução de Problemas (13–24) · ACI Autocontrolo
+//     Inibitório (25–36) · AMP Automotivação e Persistência (37–48) · ARE
+//     Autorregulação Emocional (49–60). PEG (Pontuação Executiva Global) ·
+//     MEG (Média Executiva Global, 1,00–4,00) · CI (contagem de indicadores,
+//     itens corrigidos iguais ou superiores a 3) por domínio e global · IRE
+//     (Índice de Risco Executivo, itens 4, 6, 13, 19, 25, 28, 37, 44, 50 e 55,
+//     amplitude 10–40) · AID (Amplitude Interdomínios).
+//   · Limiares CRITERIAIS: média 1,00–1,74 sem indicadores · 1,75–2,24
+//     ligeiros · 2,25–2,99 moderados · 3,00–4,00 acentuados; IRE inferior a 25
+//     sem sinalização · 25–29 moderada · 30 ou mais elevada; AID igual ou
+//     superior a 0,75 indica perfil heterogéneo, caso em que a leitura deve ser
+//     feita por domínio e não pelo compósito global.
+//   · Colunas de VALIDADE DE PROTOCOLO: 'N_Respondidos' (de 60),
+//     'Opcoes_Distintas' (de 4, padrão de resposta pouco diferenciado),
+//     'Disc_Media' (média dos itens invertidos menos média dos directos —
+//     possível aquiescência ou itens invertidos não processados) e
+//     'Sinalizacao' (texto da advertência activa).
+//   · ⚠ FORMATAR COMO TEXTO SIMPLES antes da primeira submissão, nas TRÊS
+//     abas: 'AGT_Media', 'ARP_Media', 'ACI_Media', 'AMP_Media', 'ARE_Media',
+//     'MEG', 'AID' e 'Disc_Media' — chegam como texto com VÍRGULA decimal e o
+//     locale pt-PT converte-os silenciosamente em data.
+//
+// ⚠ HEADERS, ABA, DEDUPE_ALIASES e todos os restantes instrumentos intactos.
+//
+// ═══════════════════════════════════════════════════════════════════════════
+// ALTERAÇÕES v137.0 — EIR-14 · Escala de Irritabilidade (14 itens).
+//   Adaptação INSPIRADA (Via B) da Born-Steiner Irritability Scale (Born, L.,
+//   Koren, G., Lin, E. & Steiner, M. (2008), J Psychiatry Neurosci, 33(4),
+//   344–354), com itens ORIGINAIS redigidos de raiz em português europeu. NÃO
+//   é a BSIS, não é tradução da BSIS e não pode ser apresentada como tal: o
+//   conteúdo literal dos itens da escala original não consta do artigo de
+//   validação disponível em acesso aberto (Grassi et al., 2023) e não existe
+//   versão portuguesa validada.
+//
+// Integração ADITIVA. Nenhuma linha das versões anteriores foi removida ou
+// alterada; todas as entradas novas foram inseridas sem tocar nas restantes.
+//
+//   · HEADERS['EIR14'] — 44 colunas. UMA aba: o instrumento é exclusivamente
+//     de autorrelato e não tem formas paralelas.
+//   · ABA — aliases 'EIR14', 'eir14', 'EIR-14', 'EIR_14' e 'EIR14_v1'. NENHUM
+//     alias existente foi criado, alterado ou reapontado.
+//   · DEDUPE_KEYS['EIR14'] — chave de QUATRO elementos (Secção 33): Código +
+//     Data + tipo de respondente + nome. As colunas chamam-se 'Informante' e
+//     'NomeInformante' e resolvem pelos DEDUPE_ALIASES JÁ EXISTENTES
+//     ('PreenchidoPor' → 'Informante' · 'NomePreenche' → 'NomeInformante').
+//     NENHUM alias foi criado ou alterado. Sendo autorrelato, o tipo é
+//     constante ('Autorrelato') e o NOME é o discriminante efectivo; a chave
+//     preserva as reavaliações em datas distintas, comportamento exigido pela
+//     monitorização serial que a coluna 'Momento' suporta, e é idempotente em
+//     re-sincronizações.
+//   · buildRow['EIR14'] — ramo próprio. Guarda != null OBRIGATÓRIA (nunca ||):
+//     neste instrumento o ZERO é resultado clinicamente substantivo em TODAS
+//     as colunas numéricas — um Total de 0 significa ausência declarada de
+//     manifestações de irritabilidade na janela de 7 dias e é o resultado
+//     modal em população não clínica; um Índice de Carga de 0 significa
+//     ausência de interferência funcional; um ICR de 0 significa controlo
+//     máximo declarado nos dois itens de controlo. (x||'') tornaria
+//     indistinguível o resultado negativo do protocolo por cotar.
+//   · Cotação: 14 itens nucleares em escala 0–3, janela dos ÚLTIMOS 7 DIAS,
+//     SEM itens invertidos entre os nucleares. Total prorrateado =
+//     ARRED(soma ÷ n.º respondidos × 14; 0), amplitude 0–42. Admitem-se até 2
+//     omissões (mínimo de 12 itens respondidos); acima disso o protocolo é
+//     declarado INVÁLIDO e a coluna 'Validade' grava 'Inválido'. Os 2 itens de
+//     controlo são invertidos (3 − resposta) e NÃO entram no total: produzem o
+//     ICR (0–6) e a divergência de consistência. 5 EVA de carga (0–10) dão o
+//     Índice de Carga; 2 EVA dão estado (E1) e traço (E2) e a discrepância.
+//   · Estrutura UNIFATORIAL: só o Total é psicometricamente interpretável. Os
+//     agrupamentos tónico (1–5), fásico (6–10) e de repercussão (11–14) são
+//     RACIONAIS, destinam-se exclusivamente à leitura qualitativa do perfil
+//     intra-individual e NÃO têm normas próprias — a análise fatorial do
+//     instrumento de referência extraiu um fator único (40,07 % da variância).
+//   · ⚠ NÃO EXISTEM NORMAS PORTUGUESAS. As colunas 'M_Ref', 'DP_Ref', 'Z',
+//     'Percentil', 'Nivel' e 'Categoria' derivam de referências externas
+//     provisórias obtidas com OUTRO instrumento, noutra língua e noutra
+//     população (Grassi et al., 2023, Tabelas 5 e 6), e são estimativas de
+//     posicionamento relativo, não classificações normativas validadas. As
+//     distribuições têm assimetria positiva e efeito de chão, pelo que o
+//     percentil subestima o percentil real nos extremos superiores
+//     (anomalia A-03 do livro de cotação).
+//   · 'Aplicabilidade_Normativa' grava 'Direta' (10–14 anos e ≥ 19 anos),
+//     'Extrapolada' (15–18 anos, fora da faixa das referências de
+//     adolescentes) ou 'Não aplicável'. É resultado de interpretabilidade e
+//     grava-se tal como vem.
+//   · ⚠ Formatar como TEXTO SIMPLES antes da primeira submissão, 14 colunas
+//     decimais com vírgula: 'Media_Item', 'T_Media', 'T_Desvio', 'F_Media',
+//     'F_Desvio', 'R_Media', 'R_Desvio', 'Media_Controlo', 'Divergencia',
+//     'Carga', 'M_Ref', 'DP_Ref', 'Z' e 'Percentil'.
+//
+// ⚠ HEADERS, ABA, DEDUPE_ALIASES e todos os restantes instrumentos intactos.
+//
+// ═══════════════════════════════════════════════════════════════════════════
+// ALTERAÇÕES v136.0 — EAIR · Escala de Avaliação da Ira e da sua Regulação.
+//   Instrumento ORIGINAL de construção própria em português europeu (Via B),
+//   edificado por equivalência conceptual com a tradição de avaliação da ira
+//   (modelo estado-traço de Spielberger, 1988, 1999; modelo de Deffenbacher,
+//   1999, 2011; modelo processual de regulação emocional de Gross, 1998, 2015;
+//   distinção entre irritabilidade tónica e fásica de Leibenluft, 2017). NÃO é
+//   tradução, adaptação autorizada nem equivalente psicométrico de nenhum
+//   instrumento comercial: os itens do STAXI e congéneres são protegidos e NÃO
+//   foram reproduzidos nem traduzidos.
+//
+// Integração ADITIVA. Nenhuma linha das versões anteriores foi removida ou
+// alterada; todas as entradas novas foram inseridas sem tocar nas restantes.
+//
+//   · HEADERS['EAIR_I'], ['EAIR_JA'], ['EAIR_A'] e ['EAIR_H'] — 35 colunas,
+//     cabeçalho IDÊNTICO nas quatro abas. O instrumento tem quatro formas
+//     isomórficas (a mesma posição corresponde à mesma faceta em todas), o que
+//     obriga a abas separadas e não a uma aba única com coluna de forma: a
+//     concordância entre informantes é uma das saídas clínicas do instrumento e
+//     exige linhas independentes por informante, e as três formas de
+//     autorrelato têm faixas etárias distintas que o painel RC usa para filtrar
+//     a atribuição.
+//   · ABA — aliases das quatro abas, em minúsculas, maiúsculas e nome de
+//     ficheiro. NENHUM alias existente foi criado, alterado ou reapontado.
+//   · DEDUPE_KEYS das quatro abas — chave de QUATRO elementos (Secção 33):
+//     Código + Data + tipo de respondente + nome. As colunas chamam-se
+//     'Informante' e 'NomeInformante' e resolvem pelos DEDUPE_ALIASES JÁ
+//     EXISTENTES ('PreenchidoPor' → 'Informante' · 'NomePreenche' →
+//     'NomeInformante'). NENHUM alias foi criado ou alterado. Na EAIR_H o
+//     discriminante é real e frequente — mãe, pai e professor podem responder
+//     no mesmo dia para a mesma criança, e a divergência entre observadores é,
+//     neste instrumento, informação clínica explicitamente prevista no modelo
+//     interpretativo; nas três formas de autorrelato o tipo é constante e o
+//     NOME é o discriminante efectivo. A chave preserva as reavaliações em datas
+//     distintas, comportamento exigido pela monitorização serial que a coluna
+//     'Ancoragem' suporta (janela de duas semanas), e é idempotente em
+//     re-sincronizações.
+//   · buildRow — ramo ÚNICO que bifurca pelas quatro abas, por o cabeçalho ser
+//     idêntico. Guarda != null OBRIGATÓRIA (nunca ||): o ZERO é resultado
+//     clinicamente substantivo em TODAS as colunas numéricas — um IDP de 0
+//     significa que a dimensão se situa no limite inferior da amplitude teórica
+//     e é o resultado esperado, por exemplo, na dimensão II de um perfil de
+//     contenção hostil; um ICR de 0 significa ausência de indícios de padrão de
+//     resposta aquiescente, que é precisamente o resultado que autoriza a
+//     leitura sem reservas. (x||'') tornaria indistinguível o resultado
+//     negativo do protocolo por cotar.
+//   · Cotação: 24 itens, escala 1–4, QUATRO itens invertidos nas posições 5, 12,
+//     14 e 19 (um por dimensão), recodificados como 5 menos o valor assinalado.
+//     Quatro dimensões de seis itens — I Experiência e Reatividade da Ira ·
+//     II Expressão Externa · III Expressão Interna e Contenção · IV Regulação e
+//     Controlo — com bruto de 6 a 24 e Índice Dimensional Padronizado (IDP) de
+//     0 a 100. Uma omissão por dimensão é imputada pela média dos respondidos
+//     (soma × 6 / n); duas ou mais tornam a dimensão NÃO COTÁVEL, caso em que as
+//     colunas de bruto e de IDP recebem o literal 'n.c.' e NUNCA zero.
+//   · A EAIR NÃO produz pontuação total, por decisão do instrumento: as
+//     dimensões não são somáveis entre si por terem valências distintas — um
+//     valor elevado em IV traduz recurso preservado, ao passo que um valor
+//     elevado em I, II ou III traduz maior expressão de ira.
+//   · IEI (Índice de Expressão da Ira) = bruto II + bruto III − bruto IV + 24,
+//     amplitude 12 a 66. Só é INTERPRETADO quando o IDP da dimensão I é igual ou
+//     superior a 50 (anomalia A-05 do manual): sendo um balanço entre expressão
+//     e regulação, um perfil de ira globalmente baixa mas desprovido de recursos
+//     regulatórios devolve valor intermédio que não traduz gravidade.
+//   · IDI (Índice de Direccionalidade da Ira) = bruto II − bruto III, amplitude
+//     −18 a +18; ≥ 3 predomínio externalizante, ≤ −3 predomínio internalizante.
+//   · ICR (Indicador de Coerência de Resposta), 0 a 4: número de dimensões em
+//     que o item invertido recodificado se afasta em 2 ou mais pontos da média
+//     dos cinco itens diretos. A partir de 3, cautela interpretativa.
+//   · ⚠ NÃO EXISTEM NORMAS PORTUGUESAS nem estudos psicométricos publicados. O
+//     IDP exprime a POSIÇÃO NA AMPLITUDE TEÓRICA do instrumento e NÃO constitui
+//     percentil normativo; os limiares de 25, 50 e 75 ancoram-se na métrica de
+//     resposta e não em amostra normativa. Por isso a leitura é apresentada em
+//     paleta AZUL, sem codificação de gravidade por cores; o VERMELHO fica
+//     reservado aos dois sinalizadores binários (défice regulatório, quando o
+//     IDP da dimensão IV é inferior a 25, e ICR igual ou superior a 3).
+//   · ⚠ Formatar como TEXTO SIMPLES antes da primeira submissão, nas QUATRO
+//     abas: 'Bruto_I', 'Bruto_II', 'Bruto_III', 'Bruto_IV', 'IDP_I', 'IDP_II',
+//     'IDP_III', 'IDP_IV', 'IEI', 'IDP_IEI' e 'IDI' — onze colunas com vírgula
+//     decimal, que a localização pt-PT converteria silenciosamente em datas.
+//
+// ⚠ HEADERS, ABA, DEDUPE_ALIASES e todos os restantes instrumentos intactos.
+//
+// ═══════════════════════════════════════════════════════════════════════════
+// ALTERAÇÕES v135.0 — QAF-CA · Questionário de Ataques de Fúria (Rage Attacks)
+//   para Crianças e Adolescentes, FORMA P (heterorrelato do cuidador).
+//   Instrumento ORIGINAL de construção própria em português europeu (Via B),
+//   edificado por equivalência conceptual com o Rage Attacks Questionnaire
+//   (Budman, Bruun, Park & Olson, 1998; Budman, Rockmore, Stokes & Sossin,
+//   2003) e com a métrica do RAQ-R (Müller-Vahl et al., 2020; validação em
+//   Palm et al., 2021). NÃO é tradução, versão autorizada nem equivalente
+//   validado de nenhum deles: os itens do RAQ são protegidos e NÃO foram
+//   reproduzidos. Mantém-se deliberadamente a métrica de 22 itens, escala 0–3
+//   e total 0–66 para preservar comparabilidade de GRANDEZA com as
+//   distribuições publicadas — não equivalência psicométrica.
+//
+// Integração ADITIVA. Nenhuma linha das versões anteriores foi removida ou
+// alterada; todas as entradas novas foram inseridas sem tocar nas restantes.
+//
+//   · HEADERS['QAFCA_P'] (39 colunas). O instrumento tem DUAS formas paralelas
+//     — P (heterorrelato, 6–17 anos) e A (autorrelato, ≥ 11 anos) — que exigem
+//     abas separadas: o índice de discrepância entre informantes é uma das
+//     saídas clínicas do instrumento e obriga a linhas independentes. Esta
+//     versão integra apenas a Forma P; a aba 'QAFCA_A' será acrescentada com a
+//     Forma A, sem alteração desta entrada.
+//   · ABA — aliases 'QAFCA_P', 'qafca_p', 'QAF-CA_P', 'QAFCA_Forma_P' e
+//     'QAFCA_P_v1'.
+//   · DEDUPE_KEYS['QAFCA_P'] — chave de QUATRO elementos (Secção 33): Código +
+//     Data + tipo de respondente + nome. Aqui o tipo de respondente chama-se
+//     'Relação' e resolve pela chave 'Relacao' dos DEDUPE_ALIASES JÁ
+//     EXISTENTES (criada na v91.0 para a SGRS); o nome resolve por
+//     'NomePreenche' → 'NomeInformante'. NENHUM alias foi criado ou alterado.
+//     O discriminante é real e frequente: o protocolo prevê explicitamente a
+//     aplicação a um segundo informante (outro cuidador ou diretor de turma,
+//     adaptando a leitura dos itens 17, 18 e 21 ao contexto escolar), e a
+//     divergência entre observadores é informação clínica. A chave preserva as
+//     reavaliações em datas distintas, comportamento exigido pela monitorização
+//     serial que a coluna 'Momento' suporta, e é idempotente em re-sincronizações.
+//   · buildRow['QAFCA_P'] — ramo próprio. Guarda != null OBRIGATÓRIA (nunca
+//     ||): o ZERO é resultado clinicamente substantivo em TODAS as colunas
+//     numéricas — Total = 0 significa ausência declarada de ataques de fúria,
+//     e é o resultado esperado em população não clínica (a distribuição de
+//     referência de controlos tem média 10,09 em 66). N_Sinal = 0 significa
+//     ausência de dano a objetos, agressão a pessoas e comportamento de risco,
+//     que é precisamente o resultado que autoriza excluir a sinalização.
+//   · Cotação: 22 itens, escala 0–3, SEM itens invertidos. Facetas descritivas
+//     D1 (itens 1–5) · D2 (6–11) · D3 (12–16) · D4 (17–22), comparáveis entre
+//     si pela MÉDIA POR ITEM (0–3) e não pela soma bruta, dada a composição
+//     desigual (5/6/5/6). Total = ARRED(média dos itens respondidos × 22; 0),
+//     aplicado apenas com 19 ou mais itens respondidos; com 4 ou mais omissões
+//     o protocolo é INVÁLIDO e não é cotado.
+//   · Sinalização clínica prioritária: itens 8 (dano a objetos), 9 (agressão a
+//     pessoas) e 10 (comportamento de risco). Fica ATIVA quando pelo menos um
+//     é cotado ≥ 2, INDEPENDENTEMENTE da pontuação total — subordiná-la ao
+//     total tornaria o instrumento clinicamente perigoso, porque um jovem com
+//     poucos episódios mas com agressão física em cada um obtém total moderado
+//     e exige, ainda assim, apreciação de segurança imediata.
+//   · ⚠ NÃO EXISTEM NORMAS. Os limiares do total (0–9 ausente/mínimo · 10–19
+//     ligeiro · 20–28 moderado · 29–40 elevado · 41–66 muito elevado) são
+//     EXPLORATÓRIOS e derivam da distribuição de referência do RAQ-R em
+//     ADULTOS alemães (controlos M = 10,09; DP = 9,33), com instrumento
+//     distinto: a transposição para população infantojuvenil portuguesa é
+//     decisão metodológica assumida e não equivalência demonstrada. Por isso a
+//     leitura é apresentada em paleta AZUL, sem codificação de gravidade por
+//     cores; o VERMELHO fica reservado à sinalização, que é sinal binário.
+//   · ⚠ As colunas 'IGG', 'D1_Media', 'D2_Media', 'D3_Media', 'D4_Media' e
+//     'Dispersao' guardam decimais com vírgula, e 'Idade_Inicio' guarda texto
+//     livre que a locale pt-PT tende a coagir a data ('4 anos', '2/2020') —
+//     formatar as SETE como Texto simples ANTES da primeira submissão.
+//   · ⚠ Medida DIMENSIONAL: o ataque de fúria NÃO constitui entidade
+//     nosológica. Os resultados apoiam a formulação e o diferencial (PEI
+//     312.34 / 6C71 · PDDH 296.99 / 6C90.1 · POD 313.81 / 6C90 · PHDA 314.0x /
+//     6A05 · Tourette 307.23 / 8A05.00) e nunca os substituem.
+//
+// ═══════════════════════════════════════════════════════════════════════════
+// ALTERAÇÕES v134.0 — EBIP-7 · Escala Breve de Irritabilidade Pediátrica.
+//   Instrumento ORIGINAL de construção própria em português europeu, edificado
+//   por equivalência conceptual e psicométrica com o Affective Reactivity Index
+//   (ARI; Stringaris, Goodman, Ferdinando, Razdan, Muhrer, Leibenluft &
+//   Brotman, 2012, J Child Psychol Psychiatry, 53(11), 1109–1117), cujos itens
+//   são protegidos por direitos de autor e NÃO são reproduzidos nem traduzidos.
+//   Modelo bidimensional de irritabilidade tónica e fásica: Brotman, Kircanski
+//   & Leibenluft (2017). NÃO é tradução nem versão autorizada do ARI.
+//   DUAS abas: EBIP7_C (cuidador, 6–17 anos) e EBIP7_J (autorrelato, 11–17),
+//   porque as grelhas de faixa descritiva dos dois informantes são distintas e
+//   não intermutáveis, e porque o índice de discrepância exige linhas separadas.
+//
+// Integração ADITIVA. Nenhuma linha das versões anteriores foi removida ou
+// alterada; todas as entradas novas foram inseridas sem tocar nas restantes.
+//
+//   · HEADERS['EBIP7_C'] (27 colunas) e HEADERS['EBIP7_J'] (28 — acrescenta
+//     'PresencaClinico', que só faz sentido no autorrelato).
+//   · ABA — aliases 'EBIP7_C', 'ebip7_c', 'EBIP-7_C', 'EBIP7_Cuidador',
+//     'EBIP7_Cuidador_v1' e os homólogos da versão de autorrelato.
+//   · DEDUPE_KEYS — chave de QUATRO elementos (Secção 33): Código + Data + tipo
+//     de respondente + nome. As colunas chamam-se 'Informante' e
+//     'NomeInformante' e resolvem pelos DEDUPE_ALIASES JÁ EXISTENTES
+//     ('PreenchidoPor' → 'Informante' · 'NomePreenche' → 'NomeInformante').
+//     NENHUM alias foi criado ou alterado. Na EBIP7_C o discriminante é real e
+//     frequente — mãe e pai podem responder no mesmo dia para a mesma criança e
+//     a divergência entre progenitores é informação clínica; na EBIP7_J o tipo
+//     é constante ('Jovem (autorrelato)') e o NOME é o discriminante efectivo.
+//     A chave preserva as reavaliações em datas distintas, comportamento
+//     exigido pela monitorização serial que a coluna 'Momento' suporta.
+//   · buildRow['EBIP7_C'] e ['EBIP7_J'] — ramo único que bifurca por aba.
+//     Guarda != null OBRIGATÓRIA (nunca ||): o ZERO é resultado clinicamente
+//     substantivo em TODAS as colunas numéricas. Total = 0 significa ausência
+//     declarada de irritabilidade e Item7 = 0 significa ausência de custo
+//     funcional — ambos são o resultado modal em população não clínica, e
+//     (x||'') tornaria indistinguível o resultado negativo do protocolo por
+//     cotar.
+//   · Cotação: total bruto = soma dos itens 1 a 6 (0–12); o item 7 avalia
+//     incapacidade funcional e NUNCA é somado ao total. Com 1 item omisso,
+//     total prorrateado = ROUND(soma dos 5 respondidos × 6 ÷ 5; 0); com 2 ou
+//     mais omissos o protocolo NÃO é cotável e grava-se 'NC' — texto, nunca
+//     zero. Sem itens invertidos. Índices de Limiar (1+6), Frequência (2+5) e
+//     Duração (3+4) são agrupamentos QUALITATIVOS, não subescalas validadas.
+//   · ⚠ NÃO EXISTEM NORMAS PORTUGUESAS. As faixas descritivas derivam do
+//     posicionamento em desvios-padrão face a parâmetros comunitários
+//     publicados do instrumento de referência (cuidador M = 3,3 / DP = 3,4;
+//     autorrelato M = 3,0 / DP = 3,0) e são de leitura EXPLORATÓRIA, nunca
+//     normativa. Não são aplicáveis a protocolos com janela de 7 dias, cuja
+//     leitura é estritamente intraindividual — nesses casos 'Faixa' e 'Matriz'
+//     gravam 'n.a. (janela 7 dias)', que é resultado de aplicabilidade e não
+//     dado em falta.
+//   · ⚠ As colunas 'Media' (0,00–2,00) e 'Z' (com sinal, ex. '+1,68') guardam
+//     decimais com vírgula — formatar ambas como Texto simples ANTES da
+//     primeira submissão, nas DUAS abas (a locale pt-PT coage decimais a datas).
+//   · ⚠ Medida DIMENSIONAL e TRANSDIAGNÓSTICA: um total elevado sinaliza um
+//     domínio a aprofundar, não identifica entidade nosológica. A atribuição
+//     diagnóstica exige entrevista clínica estruturada.
+//
+// ═══════════════════════════════════════════════════════════════════════════
+// ALTERAÇÕES v133.0 — LOI-CV · Inventário Obsessivo de Leyton, Versão para
+//   Crianças, forma de rastreio (Berg, Whitaker, Davies, Flament & Rapoport,
+//   1988). Instrumento de utilização livre na literatura epidemiológica,
+//   desenvolvido no National Institute of Mental Health; os 20 itens estão
+//   integralmente publicados em artigo de acesso aberto. Estrutura fatorial e
+//   pontos de corte de Canals, Hernández-Martínez, Cosi, Lázaro & Toro (2012),
+//   Int J Clin Health Psychol, 12(1), 81–96 (acesso aberto). Adaptação
+//   linguística para português europeu, sem alteração do número de itens, da
+//   ordem, do formato de resposta nem da estrutura fatorial.
+//   UMA aba: LOI_CV. Autorrelato da criança, 8 aos 12 anos, 20 itens.
+//
+// Integração ADITIVA. Nenhuma linha das versões anteriores foi removida ou
+// alterada; todas as entradas novas foram inseridas sem tocar nas restantes.
+//
+//   · HEADERS['LOI_CV'] (26 colunas) — por fator e no total gravam-se os três
+//     indicadores do instrumento (pontuação «Sim», pontuação de interferência e
+//     pontuação total), as faixas de leitura do total e da interferência, a
+//     decisão de rastreio e o domínio predominante.
+//   · ABA — aliases 'LOI_CV', 'loi_cv', 'LOI-CV', 'LOICV' e 'LOI_CV_v1'.
+//   · DEDUPE_KEYS — chave de QUATRO elementos (Secção 33): Código + Data + tipo
+//     de respondente + nome. As colunas chamam-se 'Informante' e
+//     'NomeInformante' e resolvem pelos DEDUPE_ALIASES JÁ EXISTENTES
+//     ('PreenchidoPor' → 'Informante' · 'NomePreenche' → 'NomeInformante').
+//     NENHUM alias foi criado ou alterado. Sendo autorrelato, o tipo distingue
+//     apenas a autoadministração da leitura assistida e repete-se entre
+//     aplicações legítimas, pelo que o NOME é o discriminante efectivo; a chave
+//     preserva as reavaliações em datas distintas, que é o comportamento
+//     exigido pela monitorização serial que a coluna 'Momento' suporta.
+//   · buildRow['LOI_CV'] — guarda != null obrigatória (nunca ||): o ZERO é
+//     resultado clinicamente substantivo em TODAS as colunas numéricas. Uma
+//     pontuação «Sim» de 0 significa ausência declarada de sintomatologia
+//     obsessivo-compulsiva e uma interferência de 0 significa ausência de custo
+//     funcional — (x||'') converteria o resultado mais informativo do
+//     instrumento em célula vazia e tornaria indistinguível o rastreio negativo
+//     do protocolo por cotar.
+//   · Cotação: pontuação «Sim» = nº de itens assinalados como presentes (0–20);
+//     pontuação de interferência = soma das interferências de TODOS os itens
+//     cotados, independentemente da resposta «Sim» (0–60), que é a regra dos
+//     estudos de validação e a que sustenta os pontos de corte; pontuação total
+//     = soma das duas (0–80). Sem itens invertidos e sem ponderações.
+//   · Pontos de corte (Canals et al., 2012, curvas ROC com diagnóstico por
+//     entrevista estruturada; ambos no percentil 80 da amostra normativa):
+//     total ≥ 21 (sens. 82,4% · espec. 84,1% · AUC 0,909) e interferência ≥ 10
+//     (sens. 82,4% · espec. 83,8% · AUC 0,912).
+//   · ⚠ INSTRUMENTO DE RASTREIO, NÃO DE DIAGNÓSTICO. VPP 18,2% e VPN 99,1% nos
+//     pontos de corte adoptados: a assimetria condiciona toda a utilização —
+//     serve para EXCLUIR, não para confirmar. Um resultado positivo obriga a
+//     avaliação clínica subsequente e nunca deve ser comunicado às famílias ou
+//     à escola como indicação de diagnóstico.
+//   · ⚠ NÃO EXISTEM NORMAS PORTUGUESAS. Os pontos de corte derivam de amostra
+//     escolar espanhola (n = 1514 na fase 1; n = 562 na fase 2) de 8 a 12 anos.
+//   · ⚠ Todas as colunas numéricas são INTEIROS — não há colunas com decimais e
+//     não é necessário formatar nenhuma como texto simples antes da primeira
+//     submissão.
+//
+// ═══════════════════════════════════════════════════════════════════════════
+// ALTERAÇÕES v132.0 — COIS-R · Escala de Impacto da Perturbação
+//   Obsessivo-Compulsiva na Criança, Revista (Piacentini, Peris, Bergman,
+//   Chang & Jaffer, 2007). Copyright © 2007, John Piacentini — instrumento
+//   disponibilizado pelos autores para utilização clínica e de investigação
+//   sem encargo, com citação obrigatória da fonte. Adaptação linguística para
+//   português europeu, sem alteração do número de itens, da ordem original, da
+//   escala de resposta nem da estrutura fatorial.
+//   DUAS abas, uma por versão: COIS_RC (autorrelato da criança ou jovem) e
+//   COIS_RP (relato parental sobre a criança). As estruturas fatoriais são
+//   DISTINTAS e NÃO intermutáveis — a versão criança tem três subescalas
+//   (Escola 10 itens · Social 6 · Atividades 17) e a parental quatro (Escola 6 ·
+//   Social 13 · Família/Atividades 9 · Competências de Vida Diária 5) — pelo
+//   que duas abas separadas são exigência estrutural e não conveniência.
+//   33 itens em ambas, escala 0–3, janela do ÚLTIMO MÊS, 7 aos 17 anos.
+//
+// Integração ADITIVA. Nenhuma linha das versões anteriores foi removida ou
+// alterada; todas as entradas novas foram inseridas sem tocar nas restantes.
+//
+//   · HEADERS['COIS_RC'] (22 colunas) e HEADERS['COIS_RP'] (25 colunas) — por
+//     subescala gravam-se a soma ajustada, a média por item e a classificação
+//     criterial, e no fim a pontuação total, o domínio mais afetado e a
+//     configuração do perfil (dissociado vs. homogéneo).
+//   · ABA — aliases 'COIS_RC', 'cois_rc', 'COIS-RC', 'COIS_RC_v1' e os
+//     homólogos da versão parental.
+//   · DEDUPE_KEYS — chave de QUATRO elementos (Secção 33): Código + Data +
+//     tipo de respondente + nome. As colunas chamam-se 'Informante' e
+//     'NomeInformante' e resolvem pelos DEDUPE_ALIASES JÁ EXISTENTES
+//     ('PreenchidoPor' → 'Informante' · 'NomePreenche' → 'NomeInformante').
+//     NENHUM alias foi criado ou alterado. Na COIS_RP o discriminante é real e
+//     frequente: o protocolo recomenda a administração a um dos progenitores,
+//     mas mãe e pai podem responder no mesmo dia para a mesma criança e a
+//     divergência entre eles é informação clínica. Na COIS_RC o tipo distingue
+//     apenas autoadministração de leitura assistida e repete-se entre
+//     aplicações legítimas, pelo que o NOME é o discriminante efectivo.
+//   · buildRow['COIS_RC'] e buildRow['COIS_RP'] — guarda != null obrigatória
+//     (nunca ||): o ZERO é o resultado MAIS FREQUENTE deste instrumento e é
+//     clinicamente substantivo. A convenção dos autores manda cotar 0 quando a
+//     atividade não se aplica à vida da criança, e uma soma de subescala igual
+//     a zero significa ausência declarada de compromisso funcional nesse
+//     domínio — (x||'') converteria esse resultado em célula vazia e tornaria
+//     indistinguível a ausência de impacto do domínio por cotar.
+//   · ⚠ NÃO EXISTEM NORMAS PORTUGUESAS nem estudo de validação da presente
+//     adaptação linguística, e os autores NÃO publicaram pontos de corte. Os
+//     limiares gravados nas colunas de classificação (média por item: <0,50
+//     mínimo · 0,50–0,99 ligeiro · 1,00–1,49 moderado · 1,50–1,99 elevado ·
+//     ≥2,00 muito elevado) são CRITERIAIS, definidos sobre a amplitude da
+//     escala de resposta, e por isso são apresentados no painel em paleta
+//     AZUL, sem codificação de gravidade por cores.
+//   · ⚠ COLUNAS COM DECIMAIS — ESCOLA_Media, SOCIAL_Media, ATIVID_Media e
+//     TOTAL_Media na COIS_RC; ESCOLA_Media, SOCIAL_Media, FAMATIV_Media,
+//     CVD_Media e TOTAL_Media na COIS_RP. Formatar como TEXTO SIMPLES ANTES da
+//     primeira submissão: a locale pt-PT coage '2,00' a data. O painel do
+//     questionário recalcula sempre a partir de 'Respostas' (JSON), pelo que
+//     estas colunas nunca são fonte de cotação.
+//
+// ═══════════════════════════════════════════════════════════════════════════
+// ALTERAÇÕES v131.0 — CGI · Escala de Impressão Clínica Global (Guy, 1976)
+//   Instrumento de DOMÍNIO PÚBLICO (ECDEU Assessment Manual for
+//   Psychopharmacology, DHEW ADM 76-338, obra de autoria governamental
+//   norte-americana). UMA aba: CGI. Heteroavaliação pelo CLÍNICO, após a
+//   observação e a entrevista — não é autorrelato e não é entregue ao doente
+//   nem aos cuidadores. Transversal a todas as faixas etárias e quadros
+//   clínicos. Período de referência: últimos sete dias.
+//
+// Integração ADITIVA. Nenhuma linha das versões anteriores foi removida ou
+// alterada; todas as entradas novas foram inseridas sem tocar nas restantes.
+//
+//   · HEADERS['CGI'] (27 colunas) — a CGI NÃO produz pontuação compósita: cada
+//     eixo é ordinal e independente, pelo que não há soma nem total. Grava-se o
+//     enquadramento (Momento, Farmacologico) e, por cada um dos até TRÊS quadros
+//     clínicos avaliados na mesma sessão, a designação, a CGI-G (1–7), a CGI-M
+//     (1–7) e o Índice de Eficácia resolvido por matriz a partir do efeito
+//     terapêutico e dos efeitos adversos (1–4 cada).
+//   · ABA — aliases 'CGI', 'cgi', 'CGI_v1'.
+//   · DEDUPE_KEYS['CGI'] — chave de QUATRO elementos (Secção 33): Código + Data
+//     + tipo de respondente + nome. As colunas chamam-se 'Informante' e
+//     'NomeInformante' e resolvem pelos DEDUPE_ALIASES JÁ EXISTENTES
+//     ('PreenchidoPor' → 'Informante' · 'NomePreenche' → 'NomeInformante').
+//     NENHUM alias foi criado ou alterado. Aqui o tipo é discriminante real: o
+//     mesmo caso pode ser cotado no mesmo dia pela psicóloga e pelo médico
+//     assistente — é precisamente o contraste entre cotadores que a escala
+//     admite — e o NOME desempata quando ambos se identificam com a mesma
+//     função. Datas distintas continuam a ser linhas distintas, que é o
+//     comportamento exigido pela monitorização serial (linha de base ·
+//     reavaliação · final · seguimento).
+//   · buildRow['CGI'] — guarda != null obrigatória (nunca ||). Nenhuma das
+//     colunas de cotação admite o valor zero (CGI-G e CGI-M são 1–7; efeito
+//     terapêutico e efeitos adversos são 1–4), mas a guarda mantém-se por
+//     invariante da plataforma e porque distingue o NÃO COTADO — que é
+//     resultado legítimo e frequente: a CGI-M não é cotável em linha de base,
+//     por falta de termo de comparação, e o Índice de Eficácia só é aplicável
+//     havendo terapêutica farmacológica instituída.
+//   · ⚠ A CGI NÃO POSSUI NORMAS. Os limiares gravados na interpretação
+//     (CGI-G ≤ 2 remissão · CGI-G ≥ 4 quadro clinicamente significativo ·
+//     CGI-M ≤ 2 resposta · CGI-M = 3 resposta parcial · CGI-M ≥ 5 agravamento)
+//     são convenções consolidadas na literatura (Guy, 1976; Busner & Targum,
+//     2007) e não pontos de corte normativos. Os rótulos verbais do Índice de
+//     Eficácia são convenção operacional do livro de cotação — o manual
+//     original apresenta a matriz sem rótulos — e por isso são apresentados no
+//     painel em paleta AZUL, sem codificação de gravidade por cores.
+//   · ⚠ Nenhuma coluna guarda decimais: todas as cotações são inteiros. Não é
+//     necessária formatação prévia de colunas como texto simples.
+//
+// ═══════════════════════════════════════════════════════════════════════════
+// ALTERAÇÕES v130.0 — QPTMV · Questionário Parental de Tiques Motores e Vocais
+//   (instrumento ORIGINAL de construção de raiz, Via B: não é versão, tradução
+//   nem adaptação autorizada de qualquer instrumento existente). UMA aba:
+//   QPTMV. 28 itens (14 motores + 14 vocais), heterorrelato do progenitor ou
+//   cuidador coabitante, janela de sete dias, 6 aos 17 anos.
+//
+// Integração ADITIVA. Nenhuma linha das versões anteriores foi removida ou
+// alterada; todas as entradas novas foram inseridas sem tocar nas restantes.
+//
+//   · HEADERS['QPTMV'] (40 colunas) — quatro famílias de índices (Número N,
+//     Frequência F, Intensidade I, Gravidade G) por escala motora, escala vocal
+//     e total, acrescidas das magnitudes médias m_M, m_V e (F+I)_T, da
+//     dominância relativa R e de onze campos de leitura descritiva
+//     (perfil modal, dominância, extensão × magnitude por escala, dissociação
+//     frequência–intensidade por escala e total, saliência social, itens
+//     abertos), dos três campos qualitativos não cotados (Espec_M13,
+//     Espec_V13, Observacoes), dos três estados de bloqueio e do veredicto da
+//     auditoria estrutural G = N × (F+I).
+//   · ABA — aliases 'QPTMV', 'qptmv', 'QPTMV_v1', 'QPTMV_v1_0'.
+//   · DEDUPE_KEYS['QPTMV'] — chave de QUATRO elementos (Secção 33): Código +
+//     Data + tipo de respondente + nome. As colunas chamam-se 'Informante' e
+//     'NomeInformante' e resolvem pelos DEDUPE_ALIASES JÁ EXISTENTES
+//     ('PreenchidoPor' → 'Informante' · 'NomePreenche' → 'NomeInformante').
+//     NENHUM alias foi criado ou alterado. Aqui o tipo é discriminante real —
+//     mãe e pai a responderem no mesmo dia são duas leituras legítimas do mesmo
+//     repertório — e o nome desempata quando ambos se identificam com a mesma
+//     relação. Datas distintas continuam a ser linhas distintas, que é o
+//     comportamento exigido pela monitorização intraindividual multi-momento.
+//   · buildRow — um ramo novo, inserido imediatamente antes do fallback.
+//
+// ⚠ Guarda != null OBRIGATÓRIA (nunca ||): o ZERO é resultado legítimo e
+//   informativo em N_M, N_V, N_T, G_M, G_V e G_T — zero significa AUSÊNCIA DE
+//   ENDOSSO na escala, que é precisamente o resultado que documenta a remissão
+//   ou a especificidade modal do repertório. (x||'') tornaria esse resultado
+//   indistinguível de um campo por preencher.
+//
+// ⚠ Todas as colunas de média — F_M, I_M, F_V, I_V, F_T, I_T, m_M, m_V, FI_T —
+//   e a dominância R_Dominancia chegam como STRING com vírgula decimal (ex:
+//   '2,40') e são gravadas tal e qual, sem coerção numérica. Têm de estar
+//   formatadas como TEXTO SIMPLES no Sheet antes da primeira submissão: a
+//   locale pt-PT converte '2,40' em data.
+//
+// ⚠ Numa escala sem endosso (N = 0) as médias assumem 0 por convenção do livro
+//   (decisão D-06) — esse zero significa AUSÊNCIA e não intensidade nula, pelo
+//   que o painel do questionário o apresenta como 'n.i.'. A coluna de Número
+//   tem de ser sempre lida antes de qualquer média.
+//
+// ⚠ O instrumento NÃO tem normas, NÃO tem pontos de corte e NÃO é diagnóstico.
+//   É proibida a leitura das pontuações em termos de 'ligeiro', 'moderado' ou
+//   'grave'. Para avaliação da gravidade de tiques, a Yale Global Tic Severity
+//   Scale (Leckman et al., 1989) permanece o instrumento de referência.
+//
+// ⚠ HEADERS, ABA, DEDUPE_ALIASES e todos os restantes instrumentos intactos.
+//
+// ═══════════════════════════════════════════════════════════════════════════
+// ALTERAÇÕES v128.0 — EQVA-41 · Escala de Qualidade de Vida do Adolescente
+//   (construção original inspirada, tecnicamente equivalente ao YQOL-R quanto
+//   ao modelo conceptual, à estrutura em quatro domínios, ao número de itens e
+//   ao formato de resposta; NÃO reproduz, não traduz nem deriva do texto dos
+//   itens originais — o YQOL-R está protegido por direitos de autor da
+//   University of Washington). UMA aba: EQVA41. 41 itens, escala 0–10,
+//   autorrelato dos 11 aos 18 anos.
+//
+// Integração ADITIVA. Nenhuma linha das versões anteriores foi removida ou
+// alterada; todas as entradas novas foram inseridas sem tocar nas restantes.
+//
+//   · HEADERS['EQVA41'] (28 colunas) — quatro domínios (SS Sentido de Si,
+//     REL Relações, AMB Ambiente e Comunidade, QVG Qualidade de Vida Geral) e
+//     a pontuação total, cada um com soma ajustada, pontuação transformada na
+//     métrica 0–100 e classificação criterial. Acrescem Config_SS_REL
+//     (configuração do perfil SS × REL), Coerencia_QVG (coerência da
+//     apreciação global face aos domínios específicos), Sinalizacoes,
+//     N_Sinalizacoes e Respostas.
+//   · ABA — aliases 'EQVA41', 'eqva41', 'EQVA-41', 'eqva-41', 'EQVA_41',
+//     'EQVA41_v1'.
+//   · DEDUPE_KEYS['EQVA41'] — chave de QUATRO elementos (Secção 33): Código +
+//     Data + tipo de respondente + nome. As colunas chamam-se 'Informante' e
+//     'NomeInformante' e resolvem pelos DEDUPE_ALIASES JÁ EXISTENTES
+//     ('PreenchidoPor' → 'Informante' · 'NomePreenche' → 'NomeInformante').
+//     NENHUM alias foi criado ou alterado. Sendo instrumento exclusivamente de
+//     autorrelato, o tipo só distingue autoadministração de leitura assistida e
+//     repete-se entre aplicações legítimas; o NOME é o discriminante efectivo e
+//     protege a reaplicação no mesmo dia. Datas distintas continuam a ser
+//     linhas distintas, que é o comportamento pretendido na monitorização
+//     intraindividual (linha de base · reavaliações · final).
+//   · buildRow — um ramo novo, inserido imediatamente antes do fallback.
+//
+// ⚠ Guarda != null OBRIGATÓRIA (nunca ||): o ZERO é resultado legítimo e
+//   informativo em N_Sinalizacoes — zero significa protocolo SEM itens de
+//   sinalização activos, que é o resultado que dispensa exploração dirigida.
+//   (x||'') tornaria esse resultado indistinguível de um campo por preencher.
+//
+// ⚠ Domínios não cotáveis (omissões acima do limite de 20%) chegam como 'n.i.'
+//   nas colunas de soma, de pontuação 0–100 e de classificação — nunca zero,
+//   que seria lido como perceção nula de qualidade de vida em vez de ausência
+//   de dados.
+//
+// ⚠ Todas as colunas *_Soma e *_100 chegam como STRING com vírgula decimal
+//   (ex: '62,2') e são gravadas tal e qual, sem coerção numérica. Têm de estar
+//   formatadas como TEXTO SIMPLES no Sheet antes da primeira submissão: a
+//   locale pt-PT converte '62,2' em data.
+//
+// ⚠ O instrumento não tem normas publicadas nem estudo psicométrico próprio: as
+//   cinco faixas (Muito baixa <40 · Baixa 40–54 · Moderada 55–69 · Elevada
+//   70–84 · Muito elevada ≥85) são CRITERIAIS, definidas sobre a proporção da
+//   amplitude da escala, e não constituem pontos de corte normativos. Destina-se
+//   a utilização exploratória, de apoio à formulação clínica e à monitorização
+//   intraindividual.
+//
+// ⚠ HEADERS, ABA, DEDUPE_ALIASES e todos os restantes instrumentos intactos.
+// ═══════════════════════════════════════════════════════════════════════════
+//
+// ═══════════════════════════════════════════════════════════════════════════
+// ALTERAÇÕES v127.0 — QUP-T · Questionário de Urgência Premonitória ao Tique
+//   (construção original inspirada; sem equivalência formal ao PUTS, Woods et
+//   al., 2005). TRÊS abas, uma por versão: QUPT_J (juvenil, 11–18 anos, 20
+//   itens), QUPT_I (infantil, 6–10 anos, 13 itens, aplicação assistida) e
+//   QUPT_P (parental, 16 itens).
+//
+// Integração ADITIVA. Nenhuma linha das versões anteriores foi removida ou
+// alterada; todas as entradas novas foram inseridas sem tocar nas restantes.
+//
+//   · HEADERS['QUPT_J'] e HEADERS['QUPT_I'] (33 colunas, idênticas entre si) —
+//     duas escalas fatoriais (F1 somatossensorial, F2 mental/incompletude), o
+//     índice IUP derivado delas, e dois índices não fatoriais (O ocorrência e
+//     deteção, A ciclo de reforço negativo). Cada um grava média por item,
+//     pontuação final prorrateada e nível N1–N4. Acrescem IDF (discrepância
+//     fatorial), Perfil (SOM/MEN/CONC), LeituraConjugada (IUP × Índice O),
+//     DP_Itens, Alertas (AVR-1/2/3), EscalasNaoValidas, quatro colunas da
+//     Secção Q (registo qualitativo, não pontuado) e Respostas.
+//   · HEADERS['QUPT_P'] (20 colunas) — três índices (R comunicação, C
+//     manifestação observável, F repercussão funcional), cada um com média,
+//     pontuação, nível e contagem de «Não observei».
+//   · ABA — aliases para as três abas.
+//   · DEDUPE_KEYS — chave de QUATRO elementos (Secção 33) nas três abas:
+//     Código + Data + Relacao + NomePreenche. As colunas chamam-se 'Relação' e
+//     'NomeInformante' e resolvem pelos DEDUPE_ALIASES JÁ EXISTENTES
+//     ('Relacao' → 'Relação' · 'NomePreenche' → 'NomeInformante'). NENHUM alias
+//     foi criado ou alterado. O nome é o discriminante efectivo: no QUP-T/P mãe
+//     e pai podem responder no mesmo dia — é precisamente o contraste que o
+//     protocolo admite — e no QUP-T/I o tipo é quase sempre o mesmo adulto de
+//     apoio, pelo que sem o nome duas aplicações do mesmo dia colapsariam.
+//   · buildRow — três ramos novos, inseridos imediatamente antes do fallback.
+//
+// ⚠ Guarda != null OBRIGATÓRIA (nunca ||): no QUP-T/P o ZERO é resultado
+//   legítimo e informativo em R_NaoObservei, C_NaoObservei e F_NaoObservei —
+//   zero significa protocolo SEM lacunas de observação, que é a condição de
+//   máxima confiança na leitura parental. (x||'') tornaria um protocolo
+//   completo indistinguível de um protocolo por preencher.
+//
+// ⚠ As escalas não válidas (omissões acima da tolerância) gravam a string
+//   'n.v.' nas colunas de média, pontuação e nível — nunca zero, que seria lido
+//   como ausência total do fenómeno em vez de ausência de dados.
+//
+// ⚠ Todas as colunas *_Media, *_Final, 'IDF' e 'DP_Itens' chegam como STRING
+//   com vírgula decimal (ex: '2,33') e são gravadas tal e qual, sem coerção
+//   numérica. Têm de estar formatadas como TEXTO SIMPLES no Sheet antes da
+//   primeira submissão: a locale pt-PT converte '2,33' em data.
+//
+// ⚠ O instrumento não tem normas portuguesas nem estudo psicométrico próprio;
+//   os níveis N1–N4 resultam de ancoragem racional na métrica de resposta e são
+//   estritamente descritivos. A urgência premonitória não constitui critério
+//   diagnóstico no DSM-5-TR nem na CID-11.
+//
+// ⚠ HEADERS, ABA, DEDUPE_ALIASES e todos os restantes instrumentos intactos.
+// ═══════════════════════════════════════════════════════════════════════════
+//
+// ═══════════════════════════════════════════════════════════════════════════
+// ALTERAÇÕES v126.0 — USP-SPS-PT-EU · Escala de Avaliação de Fenómenos
+//   Sensoriais da Universidade de São Paulo (Rosário, Prado, Miguel e cols.,
+//   2009), adaptação linguística e procedimental em português europeu.
+//   Aplicação MEDIADA por clínico, item a item — o autopreenchimento foi
+//   abandonado pelos autores por concordância insuficiente.
+//
+// Integração ADITIVA. Nenhuma linha das versões anteriores foi removida ou
+// alterada; todas as entradas novas foram inseridas sem tocar nas restantes.
+//
+//   · HEADERS['USP_SPS'] (40 colunas) — UMA aba. Parte I (22 itens, estatuto
+//     Nunca/Passado/Atual) NÃO pontua no sistema original: gera indicadores
+//     DESCRITIVOS derivados (N_Tipos_Atuais, N_Tipos_Alguma_Vez, Tipos_Fisicos,
+//     Tipos_Mentais, Amplitude_Pct, Idade_Inicio). Só a Parte II pontua —
+//     frequência + incómodo + interferência, 0–5 cada, Escore_Gravidade 0–15.
+//   · ABA — aliases 'USP_SPS', 'usp_sps', 'USP-SPS', 'USPSPS', 'uspsps',
+//     'USP_SPS_v1'.
+//   · DEDUPE_KEYS['USP_SPS'] — chave de QUATRO elementos (Secção 33): Código +
+//     Data + tipo de respondente + nome. As colunas chamam-se 'Informante' e
+//     'NomeInformante' e resolvem pelos DEDUPE_ALIASES já existentes
+//     ('PreenchidoPor' → 'Informante' · 'NomePreenche' → 'NomeInformante').
+//     NENHUM alias foi criado ou alterado. O nome é o discriminante efectivo:
+//     o tipo repete-se entre reaplicações (é quase sempre 'Próprio + mãe' ou
+//     equivalente), pelo que sem ele duas sessões do mesmo dia — reaplicação
+//     após reclassificação da Parte IV, ou dois avaliadores — colapsariam numa
+//     só linha.
+//   · buildRow — um ramo novo, inserido imediatamente antes do fallback.
+//
+//   · DEDUPE_KEYS['RDP_RC'] — entrada NOVA (correcção). A aba não constava da
+//     tabela e caía no appendRow incondicional do doPost: corrigir um registo já
+//     submetido, ou reabrir o questionário no mesmo dia, criava uma segunda
+//     linha para o MESMO dia. Neste instrumento isso não é apenas ruído — a
+//     leitura é a MÉDIA POR FASE, pelo que um dia duplicado entra duas vezes no
+//     cálculo e enviesa o contraste lútea/folicular, que é a única leitura que o
+//     RDP-RC produz. Detalhe e justificação do número de elementos junto à
+//     própria entrada.
+//
+// ⚠ Guarda != null OBRIGATÓRIA em toda a linha: neste instrumento o ZERO é
+//   resultado legítimo e clinicamente informativo em NOVE colunas —
+//     N_Tipos_Atuais = 0 → nenhum fenómeno sensorial no último mês, que é
+//       precisamente o resultado que exclui o eixo sensorial da formulação;
+//     Tipos_Fisicos / Tipos_Mentais = 0 → ausência declarada dessa natureza;
+//     Amplitude_Pct = 0 → nenhum dos sete tipos presente;
+//     II_Frequencia / II_Incomodo / II_Interferencia = 0 → ancoragem «Nunca» /
+//       «Nenhum» / «Nenhuma interferência», que é uma resposta e não uma
+//       omissão;
+//     Escore_Gravidade = 0 → faixa «Ausente», o resultado que fundamenta a
+//       exclusão de relevância clínica.
+//   (x||'') converteria todos estes zeros em células vazias e tornaria um
+//   protocolo negativo indistinguível de um protocolo por preencher.
+//
+// ⚠ 'Idade_Inicio' grava a string 'n.i.' quando nenhum item positivo tem
+//   datação — nunca zero, que seria lido como início no primeiro ano de vida.
+//
+// ⚠ 'Media_Ancoragem' chega como STRING com vírgula decimal (ex: '2,67').
+//   Formatar a coluna como TEXTO SIMPLES no Sheet ANTES da primeira submissão:
+//   a locale pt-PT converte silenciosamente '2,67' numa data.
+//
+// ═══════════════════════════════════════════════════════════════════════════
 // ALTERAÇÕES v124.0 — SCARED-R · correcção de integração (versões Criança e Pais)
 //
 // Contexto: os ficheiros HTML publicados para o SCARED-R eram, por erro, os
@@ -907,6 +1654,15 @@
 //   · Só afecta submissões FUTURAS; linhas já existentes não são alteradas.
 //   · HEADERS e restantes instrumentos intactos — 22 elementos = 22 colunas; diff auditado: 12↔12, 0 remoções.
 //
+// ALTERAÇÕES v129.0 — YGTSS e CY-BOCS como instrumentos autónomos:
+//   · HEADERS['YGTSS'] — 50 colunas (inventário + 20 dimensões Atual/Pior + comprometimento + índices + Respostas)
+//   · HEADERS['CYBOCS'] — 40 colunas (itens 1–16, subescalas, total, classificação, checklist, alvos + Respostas)
+//   · ABA aliases: 'YGTSS'/'ygtss' REAPONTADOS de TSOC_YGTSS para YGTSS; novos 'CYBOCS','cybocs','CY-BOCS','CY_BOCS','cy_bocs'
+//   · buildRow para 'YGTSS' e 'CYBOCS' — guardas != null em todas as cotações (0 é resultado válido);
+//     'n.i.' e 'n.c.' gravados tal como chegam, nunca convertidos a zero
+//   · A aba TSOC_YGTSS, o respetivo buildRow e três aliases mantêm-se intactos para preservar histórico
+//   · O painel TSOC_Sintese_v1.html é só de leitura: não tem aba nem buildRow
+//
 // ALTERAÇÕES v84.0 — adição da TS-OC Parte I — YGTSS (Yale Global Tic Severity Scale; Leckman et al., 1989):
 //   · HEADERS['TSOC_YGTSS'] — 24 colunas:
 //     Data · Código · NomeCriança · NomeInformante · Informante · Idade · Timestamp ·
@@ -1650,6 +2406,333 @@
 
 // ── CABEÇALHOS POR INSTRUMENTO ──────────────────────────────
 var HEADERS = {
+
+  // ── EAFE-CA · Funcionamento Executivo em Crianças e Adolescentes (v138.0) ──
+  //   TRÊS abas com cabeçalho IDÊNTICO de 39 colunas: EAFECA_P (Pais e
+  //   Cuidadores, 6–17), EAFECA_A (Autorrelato, 12–17) e EAFECA_T
+  //   (Professores, 6–17). Abas separadas porque a comparação entre
+  //   informantes exige linhas independentes e porque só a forma de
+  //   Professores preenche 'Disciplina', 'TempoConhece' e 'HorasSemanais'.
+  //   'Informante' grava o literal da forma ('Pais/Cuidador' · 'Autorrelato' ·
+  //   'Professor') e 'NomeInformante' o nome de quem preencheu — em conjunto
+  //   formam o discriminante de dedupe. 'Momento' suporta a monitorização
+  //   serial.
+  //   ⚠ Guarda != null obrigatória: o ZERO é resultado clinicamente
+  //     substantivo nas contagens de indicadores (AGT_CI a ARE_CI, CI_Global)
+  //     e na amplitude interdomínios (AID).
+  //   ⚠ O literal 'N/C' grava-se TAL COMO VEM, nunca como 0 nem como vazio.
+  //   ⚠ FORMATAR COMO TEXTO SIMPLES: 'AGT_Media', 'ARP_Media', 'ACI_Media',
+  //     'AMP_Media', 'ARE_Media', 'MEG', 'AID' e 'Disc_Media' (vírgula
+  //     decimal).
+  EAFECA_P: [
+    'Data', 'Código', 'NomeCriança', 'DataNasc', 'Idade', 'Ano', 'Sexo',
+    'Informante', 'NomeInformante', 'Relacao',
+    'Disciplina', 'TempoConhece', 'HorasSemanais', 'Momento',
+    'AGT_Bruto', 'AGT_Media', 'AGT_CI',
+    'ARP_Bruto', 'ARP_Media', 'ARP_CI',
+    'ACI_Bruto', 'ACI_Media', 'ACI_CI',
+    'AMP_Bruto', 'AMP_Media', 'AMP_CI',
+    'ARE_Bruto', 'ARE_Media', 'ARE_CI',
+    'PEG', 'MEG', 'CI_Global', 'IRE', 'AID',
+    'N_Respondidos', 'Opcoes_Distintas', 'Disc_Media', 'Sinalizacao',
+    'Respostas'
+  ],
+
+  EAFECA_A: [
+    'Data', 'Código', 'NomeCriança', 'DataNasc', 'Idade', 'Ano', 'Sexo',
+    'Informante', 'NomeInformante', 'Relacao',
+    'Disciplina', 'TempoConhece', 'HorasSemanais', 'Momento',
+    'AGT_Bruto', 'AGT_Media', 'AGT_CI',
+    'ARP_Bruto', 'ARP_Media', 'ARP_CI',
+    'ACI_Bruto', 'ACI_Media', 'ACI_CI',
+    'AMP_Bruto', 'AMP_Media', 'AMP_CI',
+    'ARE_Bruto', 'ARE_Media', 'ARE_CI',
+    'PEG', 'MEG', 'CI_Global', 'IRE', 'AID',
+    'N_Respondidos', 'Opcoes_Distintas', 'Disc_Media', 'Sinalizacao',
+    'Respostas'
+  ],
+
+  EAFECA_T: [
+    'Data', 'Código', 'NomeCriança', 'DataNasc', 'Idade', 'Ano', 'Sexo',
+    'Informante', 'NomeInformante', 'Relacao',
+    'Disciplina', 'TempoConhece', 'HorasSemanais', 'Momento',
+    'AGT_Bruto', 'AGT_Media', 'AGT_CI',
+    'ARP_Bruto', 'ARP_Media', 'ARP_CI',
+    'ACI_Bruto', 'ACI_Media', 'ACI_CI',
+    'AMP_Bruto', 'AMP_Media', 'AMP_CI',
+    'ARE_Bruto', 'ARE_Media', 'ARE_CI',
+    'PEG', 'MEG', 'CI_Global', 'IRE', 'AID',
+    'N_Respondidos', 'Opcoes_Distintas', 'Disc_Media', 'Sinalizacao',
+    'Respostas'
+  ],
+
+  // ── EIR-14 · Escala de Irritabilidade, 14 itens (v137.0) ───────────────
+  //   UMA aba: instrumento exclusivamente de autorrelato, sem formas
+  //   paralelas. 44 colunas.
+  //   'Informante' grava sempre o literal 'Autorrelato' e 'NomeInformante' o
+  //   nome de quem preencheu — em conjunto formam o discriminante de dedupe.
+  //   'Momento' suporta a monitorização serial (Inicial · Reavaliação ·
+  //   Seguimento).
+  //   ⚠ Guarda != null obrigatória: o ZERO é resultado clinicamente
+  //     substantivo em todas as colunas numéricas.
+  //   ⚠ 'Validade' pode gravar 'Inválido' (mais de 2 omissões nos itens
+  //     nucleares) e 'Categoria' o literal 'NÃO INTERPRETÁVEL — protocolo
+  //     inválido'; ambos são resultado de validade e gravam-se tal como vêm.
+  //   ⚠ Formatar como TEXTO SIMPLES antes da primeira submissão:
+  //     'Media_Item', 'T_Media', 'T_Desvio', 'F_Media', 'F_Desvio', 'R_Media',
+  //     'R_Desvio', 'Media_Controlo', 'Divergencia', 'Carga', 'M_Ref',
+  //     'DP_Ref', 'Z' e 'Percentil' (decimais com vírgula).
+  EIR14: [
+    'Data', 'Código', 'NomeCriança', 'Idade', 'Sexo',
+    'Informante', 'NomeInformante', 'Momento',
+    'GrupoNormativo', 'Aplicabilidade_Normativa',
+    'N_Itens', 'Soma_Bruta', 'Total', 'Media_Item', 'Validade',
+    'T_Soma', 'T_Media', 'T_Desvio',
+    'F_Soma', 'F_Media', 'F_Desvio',
+    'R_Soma', 'R_Media', 'R_Desvio',
+    'ICR', 'Media_Controlo', 'Divergencia',
+    'Carga', 'Nivel_Carga', 'Cat_Carga',
+    'E1', 'E2', 'Disc_Estado_Traco',
+    'M_Ref', 'DP_Ref', 'Z', 'Percentil', 'Nivel', 'Categoria',
+    'S1', 'S2', 'S3', 'S4',
+    'Respostas'
+  ],
+
+  // ── EAIR · Escala de Avaliação da Ira e da sua Regulação (v136.0) ──────
+  //   QUATRO abas com cabeçalho IDÊNTICO de 35 colunas. As formas são
+  //   isomórficas — a mesma posição corresponde à mesma faceta em todas —, o
+  //   que permite comparação longitudinal e entre informantes; as abas são
+  //   separadas porque a concordância entre informantes exige linhas
+  //   independentes e porque as faixas etárias das três formas de autorrelato
+  //   são distintas.
+  //   'Forma' regista a forma administrada e 'Ancoragem' distingue a instrução
+  //   de traço (rastreio) da janela de duas semanas (monitorização), que
+  //   partilham itens e regras de cotação.
+  //   'Relacao' guarda a especificação livre da relação com o avaliado e, nas
+  //   formas de autorrelato, o literal 'Próprio'. 'Contexto' e 'PeriodoObs' só
+  //   são preenchidas na EAIR_H.
+  //   ⚠ Guarda != null obrigatória: o ZERO é resultado clinicamente
+  //     substantivo em todas as colunas numéricas.
+  //   ⚠ As dimensões não cotáveis gravam o literal 'n.c.' em 'Bruto_*' e
+  //     'IDP_*' — nunca zero, nunca vazio.
+  //   ⚠ Formatar como TEXTO SIMPLES antes da primeira submissão, nas quatro
+  //     abas: 'Bruto_I' a 'Bruto_IV', 'IDP_I' a 'IDP_IV', 'IEI', 'IDP_IEI' e
+  //     'IDI' (decimais com vírgula).
+
+  // EAIR_I — Forma Infantil, autorrelato, 8 aos 12 anos.
+  EAIR_I: [
+    'Data', 'Código', 'NomeAvaliado', 'Idade', 'Escolaridade', 'Forma',
+    'Ancoragem', 'Informante', 'NomeInformante', 'Relacao', 'Contexto', 'PeriodoObs',
+    'Bruto_I', 'IDP_I', 'Class_I',
+    'Bruto_II', 'IDP_II', 'Class_II',
+    'Bruto_III', 'IDP_III', 'Class_III',
+    'Bruto_IV', 'IDP_IV', 'Class_IV',
+    'IEI', 'IDP_IEI', 'IEI_Class',
+    'IDI', 'IDI_Class',
+    'ICR', 'ICR_Class',
+    'Perfil', 'DeficeRegulatorio', 'ItensOmitidos',
+    'Respostas'
+  ],
+
+  // EAIR_JA — Forma Juvenil, autorrelato, 13 aos 18 anos.
+  EAIR_JA: [
+    'Data', 'Código', 'NomeAvaliado', 'Idade', 'Escolaridade', 'Forma',
+    'Ancoragem', 'Informante', 'NomeInformante', 'Relacao', 'Contexto', 'PeriodoObs',
+    'Bruto_I', 'IDP_I', 'Class_I',
+    'Bruto_II', 'IDP_II', 'Class_II',
+    'Bruto_III', 'IDP_III', 'Class_III',
+    'Bruto_IV', 'IDP_IV', 'Class_IV',
+    'IEI', 'IDP_IEI', 'IEI_Class',
+    'IDI', 'IDI_Class',
+    'ICR', 'ICR_Class',
+    'Perfil', 'DeficeRegulatorio', 'ItensOmitidos',
+    'Respostas'
+  ],
+
+  // EAIR_A — Forma Adulto, autorrelato, 18 ou mais anos.
+  EAIR_A: [
+    'Data', 'Código', 'NomeAvaliado', 'Idade', 'Escolaridade', 'Forma',
+    'Ancoragem', 'Informante', 'NomeInformante', 'Relacao', 'Contexto', 'PeriodoObs',
+    'Bruto_I', 'IDP_I', 'Class_I',
+    'Bruto_II', 'IDP_II', 'Class_II',
+    'Bruto_III', 'IDP_III', 'Class_III',
+    'Bruto_IV', 'IDP_IV', 'Class_IV',
+    'IEI', 'IDP_IEI', 'IEI_Class',
+    'IDI', 'IDI_Class',
+    'ICR', 'ICR_Class',
+    'Perfil', 'DeficeRegulatorio', 'ItensOmitidos',
+    'Respostas'
+  ],
+
+  // EAIR_H — Forma de Heteroavaliação, encarregado de educação ou professor.
+  //   Única forma que admite omissão deliberada ('Sem informação'), prevista
+  //   no protocolo quando o informante não observa determinado comportamento.
+  EAIR_H: [
+    'Data', 'Código', 'NomeAvaliado', 'Idade', 'Escolaridade', 'Forma',
+    'Ancoragem', 'Informante', 'NomeInformante', 'Relacao', 'Contexto', 'PeriodoObs',
+    'Bruto_I', 'IDP_I', 'Class_I',
+    'Bruto_II', 'IDP_II', 'Class_II',
+    'Bruto_III', 'IDP_III', 'Class_III',
+    'Bruto_IV', 'IDP_IV', 'Class_IV',
+    'IEI', 'IDP_IEI', 'IEI_Class',
+    'IDI', 'IDI_Class',
+    'ICR', 'ICR_Class',
+    'Perfil', 'DeficeRegulatorio', 'ItensOmitidos',
+    'Respostas'
+  ],
+
+  // ── QAF-CA · Ataques de Fúria, Forma P · heterorrelato (v135.0) ────────
+  //   39 colunas. Instrumento original de construção própria (Via B), 22 itens
+  //   em escala 0–3, total 0–66, SEM itens invertidos. Facetas descritivas
+  //   D1 (itens 1–5) · D2 (6–11) · D3 (12–16) · D4 (17–22) — agrupamentos de
+  //   conteúdo e NÃO fatores independentes: a estrutura é unifatorial, pelo que
+  //   as facetas não têm normas próprias nem se interpretam como subescalas.
+  //   'D*_Media' é o indicador de comparação entre facetas, porque a composição
+  //   é desigual (5/6/5/6) e a soma bruta não é comparável.
+  //   'Validade' guarda 'Válido' ou 'Inválido — omissões > 3'; com 4 ou mais
+  //   omissões não há Total nem classificação — ausência que é resultado e não
+  //   dado em falta.
+  //   'Sinalizacao' e 'N_Sinal' derivam EXCLUSIVAMENTE dos itens 8, 9 e 10 e
+  //   são independentes da pontuação total, por decisão de segurança clínica.
+  //   'Momento' distingue a linha de base das reavaliações e suporta a
+  //   monitorização serial sem colidir com a chave de dedupe.
+  //   As oito últimas colunas antes de 'Respostas' guardam a Secção I do
+  //   protocolo (caracterização dos episódios), que NÃO é cotada.
+  //   ⚠ Guarda != null obrigatória: o ZERO é resultado clinicamente
+  //     substantivo em todas as colunas numéricas.
+  //   ⚠ Formatar como TEXTO SIMPLES antes da primeira submissão: 'IGG',
+  //     'D1_Media', 'D2_Media', 'D3_Media', 'D4_Media', 'Dispersao' (decimais
+  //     com vírgula) e 'Idade_Inicio' (texto livre coagível a data).
+  QAFCA_P: [
+    'Data', 'Código', 'NomeCriança', 'Idade', 'Sexo', 'Ano',
+    'NomeInformante', 'Relação', 'Momento',
+    'N_Resp', 'N_Omissos', 'Validade',
+    'Total', 'IGG',
+    'D1_Soma', 'D1_Media', 'D2_Soma', 'D2_Media',
+    'D3_Soma', 'D3_Media', 'D4_Soma', 'D4_Media',
+    'Dispersao', 'N_Sinal', 'Sinalizacao', 'Nivel_Global',
+    'Nivel_D1', 'Nivel_D2', 'Nivel_D3', 'Nivel_D4',
+    'Idade_Inicio', 'Episodios_Mes', 'Duracao', 'Desencadeantes',
+    'Contextos', 'Sinais_Aviso', 'O_Que_Ajuda', 'Episodio_Tipico',
+    'Respostas'
+  ],
+
+  // ── LOI-CV · Inventário Obsessivo de Leyton, versão para crianças (v133.0) ──
+  //   Berg et al. (1988), forma de rastreio de 20 itens; estrutura fatorial e
+  //   pontos de corte de Canals et al. (2012). Autorrelato, 8 aos 12 anos.
+  //   Dupla codificação por item: presença do sintoma (Sim/Não) e grau de
+  //   interferência (0 nenhuma · 1 pouca · 2 moderada · 3 muita). A separação
+  //   entre presença fenomenológica e custo funcional é a característica
+  //   psicométrica central do instrumento e reproduz a autonomia do critério de
+  //   interferência no diagnóstico (DSM-5-TR 300.3 / F42.2; CID-11 6B20).
+  //   Três fatores: Ordem/verificação/contaminação (OVC, 7 itens) ·
+  //   Preocupação obsessiva (PO, 7) · Superstição/compulsão mental (SCM, 6).
+  //   Sim_* amplitude 0–7/0–7/0–6 e 0–20 no total; Int_* 0–21/0–21/0–18 e 0–60;
+  //   Tot_* 0–28/0–28/0–24 e 0–80.
+  //   'Momento' distingue a linha de base das reavaliações e suporta a
+  //   monitorização serial sem colidir com a chave de dedupe.
+  //   ⚠ Guarda != null obrigatória: o ZERO é resultado clinicamente
+  //     substantivo em todas as colunas numéricas — significa ausência
+  //     declarada de sintoma ou de custo funcional, e é o resultado modal em
+  //     população não clínica.
+  //   ⚠ Todas as colunas numéricas são INTEIROS: nenhuma precisa de ser
+  //     formatada como texto simples antes da primeira submissão.
+  // ── EBIP-7 · Escala Breve de Irritabilidade Pediátrica (v134.0) ────────
+  //   Instrumento original de construção própria, 7 itens, escala 0–2.
+  //   DUAS abas, porque as grelhas de faixa descritiva do cuidador e do
+  //   autorrelato são distintas e não intermutáveis.
+  //   Total = itens 1–6 (0–12); o item 7 é incapacidade funcional e nunca entra
+  //   no total nem no prorrateio. Com 1 omisso, total prorrateado; com 2 ou
+  //   mais, 'Total' = 'NC' (texto, nunca zero).
+  //   ⚠ Guarda != null obrigatória: o ZERO é o resultado modal em população não
+  //     clínica e significa ausência declarada de irritabilidade ou de custo
+  //     funcional.
+  //   ⚠ 'Media' e 'Z' guardam decimais com vírgula — formatar as duas colunas
+  //     como Texto simples ANTES da primeira submissão, nas duas abas.
+  //   ⚠ Faixas EXPLORATÓRIAS, não normativas: sem normas portuguesas. Com
+  //     janela de 7 dias, 'Faixa' e 'Matriz' gravam 'n.a. (janela 7 dias)'.
+
+  // EBIP7_C — heterorrelato do cuidador, 6 aos 17 anos.
+  EBIP7_C: [
+    'Data', 'Código', 'NomeCriança', 'DataNasc', 'Idade', 'Sexo', 'Ano',
+    'Informante', 'NomeInformante', 'Clinico', 'Momento', 'Janela',
+    'ItensValidos', 'Total', 'Prorrateado', 'Media', 'Classificacao',
+    'Item7', 'Item7_Etiqueta', 'Limiar', 'Frequencia', 'Duracao', 'Z',
+    'Faixa', 'Componente', 'Matriz',
+    'Respostas'
+  ],
+
+  // EBIP7_J — autorrelato do jovem, 11 aos 17 anos. Acrescenta
+  //   'PresencaClinico' (o preenchimento assistido altera a leitura da
+  //   desejabilidade social e do insight, e é informação de enquadramento).
+  EBIP7_J: [
+    'Data', 'Código', 'NomeCriança', 'DataNasc', 'Idade', 'Sexo', 'Ano',
+    'Informante', 'NomeInformante', 'Clinico', 'PresencaClinico',
+    'Momento', 'Janela',
+    'ItensValidos', 'Total', 'Prorrateado', 'Media', 'Classificacao',
+    'Item7', 'Item7_Etiqueta', 'Limiar', 'Frequencia', 'Duracao', 'Z',
+    'Faixa', 'Componente', 'Matriz',
+    'Respostas'
+  ],
+
+  LOI_CV: [
+    'Data', 'Código', 'NomeCriança', 'NomeInformante', 'Informante',
+    'Idade', 'Ano', 'Sexo', 'Momento',
+    'Sim_OVC', 'Sim_PO', 'Sim_SCM', 'Sim_Total',
+    'Int_OVC', 'Int_PO', 'Int_SCM', 'Int_Total',
+    'Tot_OVC', 'Tot_PO', 'Tot_SCM', 'Tot_Total',
+    'Faixa_Total', 'Faixa_Interf', 'Decisao', 'Dominante',
+    'Respostas'
+  ],
+  // ── COIS-R · Impacto Funcional da POC na Criança (v132.0) ──────────────
+  //   Piacentini, Peris, Bergman, Chang & Jaffer (2007). 33 itens, escala 0–3,
+  //   janela do último mês. DUAS abas, porque as estruturas fatoriais das duas
+  //   versões são distintas e não intermutáveis.
+  //   Soma ajustada = ROUND(soma dos respondidos ÷ nº respondidos × nº itens; 2);
+  //   média por item = soma ajustada ÷ nº itens. A subescala não é cotada
+  //   abaixo de 80% de itens respondidos — nesse caso as três colunas dessa
+  //   subescala e todas as colunas de total ficam VAZIAS, e o vazio é
+  //   resultado de validade, não dado em falta.
+  //   ⚠ Guarda != null obrigatória: o ZERO é o resultado mais frequente do
+  //     instrumento (a convenção dos autores manda cotar 0 quando a atividade
+  //     não se aplica) e significa ausência declarada de compromisso.
+  //   ⚠ *_Media guardam decimais — formatar as colunas como Texto simples ANTES
+  //     da primeira submissão (pt-PT coage decimais a datas).
+  //   ⚠ Limiares CRITERIAIS, não normativos: sem normas portuguesas e sem
+  //     pontos de corte publicados pelos autores.
+
+  // COIS-RC — autorrelato da criança ou jovem: Escola (10) · Social (6) ·
+  //   Atividades (17). O fator Atividades agrega o quotidiano familiar,
+  //   doméstico e de lazer que, na perspetiva parental, se reparte por dois
+  //   fatores distintos.
+  COIS_RC: [
+    'Data', 'Código', 'NomeCriança', 'Idade', 'Ano',
+    'Informante', 'NomeInformante',
+    'ESCOLA_Soma', 'ESCOLA_Media', 'ESCOLA_Classif',
+    'SOCIAL_Soma', 'SOCIAL_Media', 'SOCIAL_Classif',
+    'ATIVID_Soma', 'ATIVID_Media', 'ATIVID_Classif',
+    'TOTAL_Soma', 'TOTAL_Media', 'TOTAL_Classif',
+    'Dominio', 'Perfil',
+    'Respostas'
+  ],
+
+  // COIS-RP — relato parental: Escola (6) · Social (13) · Família/Atividades (9) ·
+  //   Competências de Vida Diária (5). A autonomização do fator Competências de
+  //   Vida Diária — higiene, vestir-se, deitar-se, tarefas domésticas — é
+  //   específica da perspetiva parental e capta o custo funcional dos rituais em
+  //   atividades que a criança tende a não reportar como problemáticas.
+  COIS_RP: [
+    'Data', 'Código', 'NomeCriança', 'Idade', 'Ano',
+    'Informante', 'NomeInformante',
+    'ESCOLA_Soma', 'ESCOLA_Media', 'ESCOLA_Classif',
+    'SOCIAL_Soma', 'SOCIAL_Media', 'SOCIAL_Classif',
+    'FAMATIV_Soma', 'FAMATIV_Media', 'FAMATIV_Classif',
+    'CVD_Soma', 'CVD_Media', 'CVD_Classif',
+    'TOTAL_Soma', 'TOTAL_Media', 'TOTAL_Classif',
+    'Dominio', 'Perfil',
+    'Respostas'
+  ],
+
   // ── AASP · Perfil Sensorial Adolescente e Adulto (v122.0) ──────────────
   //   Brown & Dunn (2002). 60 itens, escala 1–5, sem itens invertidos.
   //   Quatro quadrantes de 15 itens (amplitude 15–75 cada) e seis secções
@@ -3910,6 +4993,39 @@ var HEADERS = {
     'Respostas'
   ],
 
+  // ── YGTSS — Yale Global Tic Severity Scale (Leckman et al., 1989) · instrumento autónomo, v129 ──
+  // Substitui operacionalmente a TSOC_YGTSS (mantida acima para não perder dados já recolhidos).
+  // Inventário de 37 tiques + 5 dimensões × motor/fónico (0–5) + comprometimento (0–5 ×10). Global 0–100.
+  // Índices não interpretáveis chegam como 'n.i.' e são gravados tal como vêm — nunca convertidos a zero.
+  YGTSS: [
+    'Data', 'Código', 'NomeCriança', 'Informante', 'NomeInformante', 'Idade',
+    'Mot_A_Numero', 'Mot_A_Frequencia', 'Mot_A_Intensidade', 'Mot_A_Complexidade', 'Mot_A_Interferencia',
+    'Fon_A_Numero', 'Fon_A_Frequencia', 'Fon_A_Intensidade', 'Fon_A_Complexidade', 'Fon_A_Interferencia',
+    'Mot_P_Numero', 'Mot_P_Frequencia', 'Mot_P_Intensidade', 'Mot_P_Complexidade', 'Mot_P_Interferencia',
+    'Fon_P_Numero', 'Fon_P_Frequencia', 'Fon_P_Intensidade', 'Fon_P_Complexidade', 'Fon_P_Interferencia',
+    'Comp_A', 'Comp_P',
+    'Sub_Motor_A', 'Sub_Fonico_A', 'Total_Tiques_A', 'Indice_Comp_A', 'Global_A', 'Banda_A',
+    'Predominio_A', 'Proporcionalidade_A', 'Estado_A',
+    'Sub_Motor_P', 'Sub_Fonico_P', 'Total_Tiques_P', 'Indice_Comp_P', 'Global_P', 'Banda_P', 'Estado_P',
+    'Tiques_Presentes', 'Presentes_Motor', 'Presentes_Fonico', 'Sinalizadores', 'Idade_Inicio',
+    'Respostas'
+  ],
+
+  // ── CY-BOCS — Children's Yale-Brown Obsessive Compulsive Scale (Scahill et al., 1997) · v129 ──
+  // Entrevista semiestruturada administrada pelo clínico. Itens 1–10 de gravidade (0–4) e 11–16 de
+  // investigação (não somados). Subescalas 0–20; total 0–40. 'Momento' permite monitorização serial.
+  // Itens não cotados chegam como 'n.c.' e são gravados tal como vêm — nunca convertidos a zero.
+  CYBOCS: [
+    'Data', 'Código', 'NomeCriança', 'Informante', 'NomeInformante', 'Momento', 'Idade', 'Ano',
+    'Item_1', 'Item_2', 'Item_3', 'Item_4', 'Item_5', 'Item_6', 'Item_7', 'Item_8', 'Item_9', 'Item_10',
+    'Item_11', 'Item_12', 'Item_13', 'Item_14', 'Item_15', 'Item_16',
+    'Sub_Obsessoes', 'Sub_Compulsoes', 'Total_CYBOCS', 'Itens_Cotados',
+    'Classificacao', 'Predominio', 'Remissao', 'Estado', 'Sinalizadores',
+    'Check_Atual_Obs', 'Check_Atual_Comp', 'Check_Passado_Obs', 'Check_Passado_Comp',
+    'Alvo_Obsessoes', 'Alvo_Compulsoes',
+    'Respostas'
+  ],
+
   // ── A-DES — Escala de Experiências Dissociativas em Adolescentes · Putnam et al. (1997) · auto-relato, 30 itens (0–10) ──
   // Média global + 5 domínios (Amnésia, DP/DR, Absorção, Identidade, Transversal). Cut-off orientador 4.0. 'Respostas' guarda os 30 itens em JSON.
   A_DES: [
@@ -3992,11 +5108,235 @@ var HEADERS = {
     'Nota', 'Respostas'
   ],
 
+  // ── USP-SPS-PT-EU · Fenómenos Sensoriais (v126.0) ─────────────────────
+  //   Rosário, Prado, Miguel e cols. (2009); adaptação PT-EU v1.0.
+  //   Aplicação MEDIADA por clínico. Uma linha por sessão e por avaliador.
+  //   Parte I (22 itens) NÃO pontua no sistema original: as seis colunas de
+  //   indicadores (N_Tipos_*, Tipos_*, Amplitude_Pct, Idade_Inicio) são
+  //   DESCRITIVAS derivadas. Só a Parte II pontua (0–15).
+  //   ⚠ Formatar 'Media_Ancoragem' como TEXTO SIMPLES no Sheet antes da
+  //     primeira submissão: a locale pt-PT converte '2,67' em data.
+  //   ⚠ 'Idade_Inicio' pode conter 'n.i.' — guardar como texto, nunca 0.
+  // ── QUP-T/J · Urgência Premonitória ao Tique — versão juvenil (v127.0) ──
+  //   11–18 anos · autorrelato · 20 itens · janela dos últimos 7 dias.
+  //   F1 (J01–J05) e F2 (J06–J10) são as escalas fatoriais; o IUP é derivado de
+  //   ambas e só existe com as duas válidas. O (J11–J13) e A (J14–J16) são
+  //   índices não fatoriais. A Secção S (J17–J20) é administrada mas NÃO entra
+  //   em nenhum total — lê-se item a item e viaja apenas em 'Respostas'.
+  //   ⚠ Formatar *_Media, *_Final, 'IDF' e 'DP_Itens' como TEXTO SIMPLES no
+  //     Sheet antes da primeira submissão: a locale pt-PT converte '2,33' em data.
+  //   ⚠ Escalas não válidas gravam 'n.v.' — nunca 0.
+  QUPT_J: [
+    'Data', 'Código', 'NomeCriança', 'Idade', 'NomeInformante', 'Relação', 'Versão',
+    'F1_Media', 'F1_Final', 'F1_Nivel',
+    'F2_Media', 'F2_Final', 'F2_Nivel',
+    'IUP_Media', 'IUP_Final', 'IUP_Nivel',
+    'O_Media', 'O_Final', 'O_Nivel',
+    'A_Media', 'A_Final', 'A_Nivel',
+    'IDF', 'Perfil', 'LeituraConjugada', 'DP_Itens', 'Alertas', 'EscalasNaoValidas',
+    'Q_Localizacao', 'Q_TiqueIncomoda', 'Q_Agrava', 'Q_Alivia',
+    'Respostas'
+  ],
+
+  // ── QUP-T/I · Urgência Premonitória ao Tique — versão infantil (v127.0) ──
+  //   6–10 anos · autorrelato ASSISTIDO (o adulto lê e regista) · 13 itens.
+  //   Mesmas colunas da versão juvenil, para permitir leitura longitudinal na
+  //   transição dos 10 para os 11 anos: a métrica é a MÉDIA POR ITEM, comum às
+  //   duas versões. Composição diferente — F1 (I01–I04), F2 (I05–I07),
+  //   O (I08–I09), A (I10–I11), Secção S (I12–I13) — e tolerância de omissão
+  //   ZERO em O e A, por terem apenas dois itens cada.
+  QUPT_I: [
+    'Data', 'Código', 'NomeCriança', 'Idade', 'NomeInformante', 'Relação', 'Versão',
+    'F1_Media', 'F1_Final', 'F1_Nivel',
+    'F2_Media', 'F2_Final', 'F2_Nivel',
+    'IUP_Media', 'IUP_Final', 'IUP_Nivel',
+    'O_Media', 'O_Final', 'O_Nivel',
+    'A_Media', 'A_Final', 'A_Nivel',
+    'IDF', 'Perfil', 'LeituraConjugada', 'DP_Itens', 'Alertas', 'EscalasNaoValidas',
+    'Q_Localizacao', 'Q_TiqueIncomoda', 'Q_Agrava', 'Q_Alivia',
+    'Respostas'
+  ],
+
+  // ── QUP-T/P · Urgência Premonitória ao Tique — versão parental (v127.0) ──
+  //   Cuidador · 16 itens. NÃO mede urgência premonitória: a urgência é
+  //   experiência interna e não observável por terceiros. Mede relato
+  //   comunicado (R, P01–P04), indicadores comportamentais observáveis
+  //   (C, P05–P10) e repercussão funcional (F, P11–P16). NÃO é somável com o
+  //   autorrelato e não se calculam diferenças aritméticas entre as duas fontes.
+  //   ⚠ «Não observei» é resposta LEGÍTIMA e é tratada como omissão, nunca como
+  //     zero (D-12). As colunas *_NaoObservei contam-nas por índice; o valor 0
+  //     é resultado informativo (protocolo sem lacunas de observação) e exige
+  //     guarda != null.
+  QUPT_P: [
+    'Data', 'Código', 'NomeCriança', 'Idade', 'NomeInformante', 'Relação',
+    'R_Media', 'R_Final', 'R_Nivel', 'R_NaoObservei',
+    'C_Media', 'C_Final', 'C_Nivel', 'C_NaoObservei',
+    'F_Media', 'F_Final', 'F_Nivel', 'F_NaoObservei',
+    'EscalasNaoValidas', 'Respostas'
+  ],
+
+  USP_SPS: [
+    'Data', 'Código', 'NomeCriança', 'NomeInformante', 'Informante',
+    'DataNasc', 'Idade', 'Sexo', 'Ano', 'Sessao',
+    'ModoAplicacao', 'Medicacao', 'TCC',
+    'Presenca_FS', 'N_Tipos_Atuais', 'N_Tipos_Alguma_Vez',
+    'Tipos_Fisicos', 'Tipos_Mentais', 'Amplitude_Pct', 'Idade_Inicio', 'Item_E',
+    'II_Frequencia', 'II_Incomodo', 'II_Interferencia',
+    'Escore_Gravidade', 'Media_Ancoragem', 'Classificacao', 'Relevancia_Clinica',
+    'Item4_Eixo', 'III_Alivio', 'III_Completude', 'III_Descricao',
+    'IV_Registo', 'IV_Natureza',
+    'Categorias', 'Sinalizacoes', 'Ancoras', 'Justificacao_Item4',
+    'Observacoes', 'Respostas'
+  ],
+
+  // ── EQVA-41 · Escala de Qualidade de Vida do Adolescente (v128.0) ──
+  // 28 colunas. Quatro domínios + total, cada um com soma ajustada, pontuação
+  // transformada 0–100 e classificação criterial.
+  // ⚠ *_Soma e *_100 chegam como STRING com vírgula decimal: formatar como
+  //   TEXTO SIMPLES no Sheet antes da primeira submissão.
+  // ⚠ Domínio não cotável chega como 'n.i.', nunca zero.
+  EQVA41: [
+    'Data', 'Código', 'NomeJovem', 'Idade', 'Ano', 'Momento',
+    'Informante', 'NomeInformante',
+    'SS_Soma', 'SS_100', 'SS_Classe',
+    'REL_Soma', 'REL_100', 'REL_Classe',
+    'AMB_Soma', 'AMB_100', 'AMB_Classe',
+    'QVG_Soma', 'QVG_100', 'QVG_Classe',
+    'Total_Soma', 'Total_100', 'Total_Classe',
+    'Config_SS_REL', 'Coerencia_QVG', 'Sinalizacoes', 'N_Sinalizacoes',
+    'Respostas'
+  ],
+
+  // ── QPTMV · Questionário Parental de Tiques Motores e Vocais (v130.0) ──
+  // 40 colunas. Índices N/F/I/G por escala motora, escala vocal e total, com
+  // as magnitudes médias, a dominância relativa e a leitura descritiva.
+  // ⚠ F_M, I_M, F_V, I_V, F_T, I_T, m_M, m_V, FI_T e R_Dominancia chegam como
+  //   STRING com vírgula decimal: formatar como TEXTO SIMPLES no Sheet antes
+  //   da primeira submissão.
+  // ⚠ Escala sem endosso (N = 0) produz médias 0 por convenção do livro — esse
+  //   zero significa ausência, não intensidade nula. Ler sempre N primeiro.
+  QPTMV: [
+    'Data', 'Código', 'NomeCriança', 'Idade',
+    'Informante', 'NomeInformante', 'Momento',
+    'N_M', 'N_V', 'N_T',
+    'F_M', 'I_M', 'F_V', 'I_V', 'F_T', 'I_T',
+    'G_M', 'G_V', 'G_T',
+    'm_M', 'm_V', 'FI_T', 'R_Dominancia',
+    'Perfil_Modal', 'Leitura_Dominancia',
+    'Ext_Mag_M', 'Ext_Mag_V',
+    'Dissoc_M', 'Dissoc_V', 'Dissoc_T',
+    'Saliencia_Social', 'Itens_Abertos',
+    'Espec_M13', 'Espec_V13', 'Observacoes',
+    'Bloqueio_M', 'Bloqueio_V', 'Bloqueio_T', 'Auditoria',
+    'Respostas'
+  ],
+
+  // ── CGI · Escala de Impressão Clínica Global (v131.0) ──────────────────
+  // 27 colunas. Guy (1976), ECDEU Assessment Manual, domínio público.
+  // A CGI não produz pontuação compósita: os dois eixos são ordinais e
+  // independentes, não há soma nem total, e cada um interpreta-se isoladamente.
+  // ⚠ Heteroavaliação pelo CLÍNICO. 'Informante' guarda a FUNÇÃO de quem cota
+  //   (Psicóloga clínica · Pedopsiquiatra · Médico assistente · …) e
+  //   'NomeInformante' o respectivo nome — os dois elementos que, com o código e
+  //   a data, formam a chave de dedupe.
+  // ⚠ Até TRÊS quadros clínicos por sessão: o protocolo manda cotar uma coluna
+  //   por diagnóstico quando existe comorbilidade. Q2 e Q3 ficam VAZIOS quando
+  //   não usados — vazio é resultado, não dado em falta.
+  // ⚠ Q*_CGI_M vazio em linha de base é o comportamento CORRECTO: a subescala de
+  //   melhoria exige termo de comparação com o estado inicial.
+  // ⚠ Q*_IE resolve-se por matriz 4×4 a partir de Q*_ET e Q*_EA e só existe
+  //   havendo terapêutica farmacológica instituída.
+  // ⚠ Todas as cotações são INTEIROS — nenhuma coluna precisa de formatação
+  //   prévia como texto simples.
+  CGI: [
+    'Data', 'Código', 'NomeCriança',
+    'Informante', 'NomeInformante', 'Momento', 'Farmacologico',
+    'Q1_Quadro', 'Q1_CGI_G', 'Q1_CGI_M', 'Q1_ET', 'Q1_EA', 'Q1_IE',
+    'Q2_Quadro', 'Q2_CGI_G', 'Q2_CGI_M', 'Q2_ET', 'Q2_EA', 'Q2_IE',
+    'Q3_Quadro', 'Q3_CGI_G', 'Q3_CGI_M', 'Q3_ET', 'Q3_EA', 'Q3_IE',
+    'Observacoes',
+    'Respostas'
+  ],
+
 };
 
 
 // ── MAPEAMENTO: instrumento → aba ────────────────────────────
 var ABA = {
+  // ── EAFE-CA · Funcionamento Executivo em Crianças e Adolescentes (v138.0) ──
+  // Três formas, três abas. Nenhum alias existente foi tocado.
+  // ⚠ 'EAFE' e 'eafe' continuam a apontar para a aba 'EAFE' (Entrevista de
+  //   Análise Funcional do Estudo), instrumento DISTINTO.
+  'EAFECA_P':    'EAFECA_P',
+  'eafeca_p':    'EAFECA_P',
+  'EAFECA_Pais': 'EAFECA_P',
+  'EAFECA_A':    'EAFECA_A',
+  'eafeca_a':    'EAFECA_A',
+  'EAFECA_Auto': 'EAFECA_A',
+  'EAFECA_T':    'EAFECA_T',
+  'eafeca_t':    'EAFECA_T',
+  'EAFECA_Prof': 'EAFECA_T',
+  // ── EIR-14 · Escala de Irritabilidade (v137.0) ─────────────────────────
+  // Uma forma, uma aba. Nenhum alias existente foi tocado.
+  'EIR14':       'EIR14',
+  'eir14':       'EIR14',
+  'EIR-14':      'EIR14',
+  'EIR_14':      'EIR14',
+  'EIR14_v1':    'EIR14',
+  // ── EAIR · Escala de Avaliação da Ira e da sua Regulação (v136.0) ──────
+  // Quatro formas, quatro abas. Nenhum alias existente foi tocado.
+  'EAIR_I':      'EAIR_I',
+  'eair_i':      'EAIR_I',
+  'EAIR-I':      'EAIR_I',
+  'EAIR_Infantil': 'EAIR_I',
+  'EAIR_I_v1':   'EAIR_I',
+  'EAIR_JA':     'EAIR_JA',
+  'eair_ja':     'EAIR_JA',
+  'EAIR-JA':     'EAIR_JA',
+  'EAIR_Juvenil': 'EAIR_JA',
+  'EAIR_JA_v1':  'EAIR_JA',
+  'EAIR_A':      'EAIR_A',
+  'eair_a':      'EAIR_A',
+  'EAIR-A':      'EAIR_A',
+  'EAIR_Adulto': 'EAIR_A',
+  'EAIR_A_v1':   'EAIR_A',
+  'EAIR_H':      'EAIR_H',
+  'eair_h':      'EAIR_H',
+  'EAIR-H':      'EAIR_H',
+  'EAIR_Heteroavaliacao': 'EAIR_H',
+  'EAIR_H_v1':   'EAIR_H',
+  // ── QAF-CA · Ataques de Fúria, Forma P · heterorrelato (v135.0) ────────
+  'QAFCA_P':        'QAFCA_P',
+  'qafca_p':        'QAFCA_P',
+  'QAF-CA_P':       'QAFCA_P',
+  'QAFCA_Forma_P':  'QAFCA_P',
+  'QAFCA_P_v1':     'QAFCA_P',
+  // ── EBIP-7 · Escala Breve de Irritabilidade Pediátrica (v134.0) — 2 abas ──
+  'EBIP7_C':           'EBIP7_C',
+  'ebip7_c':           'EBIP7_C',
+  'EBIP-7_C':          'EBIP7_C',
+  'EBIP7_Cuidador':    'EBIP7_C',
+  'EBIP7_Cuidador_v1': 'EBIP7_C',
+  'EBIP7_J':           'EBIP7_J',
+  'ebip7_j':           'EBIP7_J',
+  'EBIP-7_J':          'EBIP7_J',
+  'EBIP7_Jovem':       'EBIP7_J',
+  'EBIP7_Jovem_v1':    'EBIP7_J',
+  // ── LOI-CV · Inventário Obsessivo de Leyton, versão crianças (v133.0) ──
+  'LOI_CV':            'LOI_CV',
+  'loi_cv':            'LOI_CV',
+  'LOI-CV':            'LOI_CV',
+  'LOICV':             'LOI_CV',
+  'LOI_CV_v1':         'LOI_CV',
+  // ── COIS-R · Impacto Funcional da POC na Criança (v132.0) — duas abas ──
+  'COIS_RC':           'COIS_RC',
+  'cois_rc':           'COIS_RC',
+  'COIS-RC':           'COIS_RC',
+  'COIS_RC_v1':        'COIS_RC',
+  'COIS_RP':           'COIS_RP',
+  'cois_rp':           'COIS_RP',
+  'COIS-RP':           'COIS_RP',
+  'COIS_RP_v1':        'COIS_RP',
   // ── AASP · Perfil Sensorial Adolescente e Adulto (v122.0) ──
   'AASP':              'AASP',
   'aasp':              'AASP',
@@ -4246,8 +5586,17 @@ var ABA = {
   'TSOC_YGTSS':       'TSOC_YGTSS',
   'tsoc_ygtss':       'TSOC_YGTSS',
   'TSOC-YGTSS':       'TSOC_YGTSS',
-  'YGTSS':            'TSOC_YGTSS',
-  'ygtss':            'TSOC_YGTSS',
+  // ⚠ v129 — 'YGTSS' e 'ygtss' passaram a apontar para a aba YGTSS (instrumento autónomo).
+  //   Antes remetiam para TSOC_YGTSS; mantê-las assim escreveria o payload do novo
+  //   YGTSS_v1.html numa aba com cabeçalhos incompatíveis, com as colunas de cotação vazias.
+  //   A aba TSOC_YGTSS continua acessível pelos três aliases acima.
+  'YGTSS':            'YGTSS',
+  'ygtss':            'YGTSS',
+  'CYBOCS':           'CYBOCS',
+  'cybocs':           'CYBOCS',
+  'CY-BOCS':          'CYBOCS',
+  'CY_BOCS':          'CYBOCS',
+  'cy_bocs':          'CYBOCS',
   'A_DES':            'A_DES',
   'a_des':            'A_DES',
   'A-DES':            'A_DES',
@@ -4978,6 +6327,46 @@ var ABA = {
   'rdp':       'RDP_RC',
   'RDP':       'RDP_RC',
   'RDP_RC_v1': 'RDP_RC',
+  // ── QUP-T · Urgência Premonitória ao Tique (v127.0) — três abas ──
+  'QUPT_J':     'QUPT_J',
+  'qupt_j':     'QUPT_J',
+  'QUP-T/J':    'QUPT_J',
+  'QUPT-J':     'QUPT_J',
+  'QUPT_J_v1':  'QUPT_J',
+  'QUPT_I':     'QUPT_I',
+  'qupt_i':     'QUPT_I',
+  'QUP-T/I':    'QUPT_I',
+  'QUPT-I':     'QUPT_I',
+  'QUPT_I_v1':  'QUPT_I',
+  'QUPT_P':     'QUPT_P',
+  'qupt_p':     'QUPT_P',
+  'QUP-T/P':    'QUPT_P',
+  'QUPT-P':     'QUPT_P',
+  'QUPT_P_v1':  'QUPT_P',
+  // ── USP-SPS-PT-EU · Fenómenos Sensoriais (v126.0) ──
+  'USP_SPS':    'USP_SPS',
+  'usp_sps':    'USP_SPS',
+  'USP-SPS':    'USP_SPS',
+  'usp-sps':    'USP_SPS',
+  'USPSPS':     'USP_SPS',
+  'uspsps':     'USP_SPS',
+  'USP_SPS_v1': 'USP_SPS',
+  // ── EQVA-41 · Qualidade de Vida do Adolescente (v128.0) ──
+  'EQVA41':     'EQVA41',
+  'eqva41':     'EQVA41',
+  'EQVA-41':    'EQVA41',
+  'eqva-41':    'EQVA41',
+  'EQVA_41':    'EQVA41',
+  'EQVA41_v1':  'EQVA41',
+  // ── QPTMV · Tiques Motores e Vocais, heterorrelato parental (v130.0) ──
+  'QPTMV':      'QPTMV',
+  'qptmv':      'QPTMV',
+  'QPTMV_v1':   'QPTMV',
+  'QPTMV_v1_0': 'QPTMV',
+  // ── CGI · Impressão Clínica Global, heteroavaliação pelo clínico (v131.0) ──
+  'CGI':        'CGI',
+  'cgi':        'CGI',
+  'CGI_v1':     'CGI',
 };
 
 
@@ -5022,6 +6411,166 @@ function parseData(raw) {
 // Só afeta os instrumentos listados — todos os restantes continuam a fazer
 // appendRow exatamente como antes (diff estritamente aditivo).
 var DEDUPE_KEYS = {
+  // EAFE-CA (v138.0) — dedupe de 4 elementos (Secção 33) nas três abas:
+  // código + data + tipo de respondente + nome. As colunas chamam-se
+  // 'Informante' e 'NomeInformante' e resolvem pelos DEDUPE_ALIASES JÁ
+  // EXISTENTES ('PreenchidoPor' → 'Informante' · 'NomePreenche' →
+  // 'NomeInformante'). Nenhum alias foi criado ou alterado. Nas formas de
+  // heterorrelato o discriminante é real e frequente — mãe e pai, ou dois
+  // professores de disciplinas diferentes, podem responder no mesmo dia para a
+  // mesma criança e a comparação entre informantes é saída clínica do
+  // instrumento; no autorrelato o tipo é constante e o NOME é o discriminante
+  // efectivo. A chave preserva reavaliações em datas distintas (coluna
+  // 'Momento') e é idempotente em re-sincronizações.
+  'EAFECA_P':          ['Código', 'Data', 'PreenchidoPor', 'NomePreenche'],
+  'EAFECA_A':          ['Código', 'Data', 'PreenchidoPor', 'NomePreenche'],
+  'EAFECA_T':          ['Código', 'Data', 'PreenchidoPor', 'NomePreenche'],
+  // EIR-14 (v137.0) — dedupe de 4 elementos (Secção 33): código + data + tipo
+  // de respondente + nome. As colunas chamam-se 'Informante' e
+  // 'NomeInformante' e resolvem pelos DEDUPE_ALIASES já existentes
+  // ('PreenchidoPor' → 'Informante' · 'NomePreenche' → 'NomeInformante').
+  // Sendo autorrelato, o tipo é constante e o NOME é o discriminante efectivo;
+  // a chave preserva reavaliações em datas distintas e é idempotente em
+  // re-sincronizações.
+  'EIR14':             ['Código', 'Data', 'PreenchidoPor', 'NomePreenche'],
+  // EAIR (v136.0) — dedupe de 4 elementos (Secção 33) nas quatro abas: código +
+  // data + tipo de respondente + nome. As colunas chamam-se 'Informante' e
+  // 'NomeInformante' e resolvem pelos DEDUPE_ALIASES já existentes
+  // ('PreenchidoPor' → 'Informante' · 'NomePreenche' → 'NomeInformante').
+  // Nenhum alias foi criado ou alterado. Na EAIR_H o discriminante é real e
+  // frequente — mãe, pai e professor podem responder no mesmo dia para a mesma
+  // criança, e a concordância entre informantes é uma saída clínica explícita do
+  // modelo interpretativo, pelo que descartar uma das linhas por dedupe
+  // demasiado restritivo seria perda de informação e não limpeza de duplicados;
+  // nas três formas de autorrelato o tipo é constante e o NOME é o discriminante
+  // efectivo. A chave preserva as reavaliações em datas distintas, comportamento
+  // exigido pela monitorização serial que a janela de duas semanas serve, e
+  // mantém-se idempotente em re-sincronizações.
+  'EAIR_I':            ['Código', 'Data', 'PreenchidoPor', 'NomePreenche'],
+  'EAIR_JA':           ['Código', 'Data', 'PreenchidoPor', 'NomePreenche'],
+  'EAIR_A':            ['Código', 'Data', 'PreenchidoPor', 'NomePreenche'],
+  'EAIR_H':            ['Código', 'Data', 'PreenchidoPor', 'NomePreenche'],
+  // QAF-CA Forma P (v135.0) — dedupe de 4 elementos (Secção 33): código + data
+  // + tipo de respondente + nome. Neste instrumento a coluna do tipo chama-se
+  // 'Relação' e resolve pela chave 'Relacao' dos DEDUPE_ALIASES já existentes
+  // (criada na v91.0 para a SGRS); o nome resolve por 'NomePreenche' →
+  // 'NomeInformante'. Nenhum alias foi criado ou alterado. O discriminante é
+  // real e frequente: o protocolo prevê a aplicação a um segundo informante
+  // (outro cuidador ou diretor de turma), e a divergência entre observadores é
+  // uma das saídas clínicas do instrumento — descartá-la por dedupe
+  // demasiado restritivo seria perda de informação, não limpeza de duplicados.
+  // A chave preserva reavaliações em datas distintas e mantém-se idempotente
+  // em re-sincronizações.
+  'QAFCA_P':           ['Código', 'Data', 'Relacao', 'NomePreenche'],
+  // EBIP-7 (v134.0) — dedupe de 4 elementos (Secção 33) nas duas abas: código +
+  // data + tipo de respondente + nome. As colunas chamam-se 'Informante' e
+  // 'NomeInformante' e resolvem pelos DEDUPE_ALIASES já existentes
+  // ('PreenchidoPor' → 'Informante' · 'NomePreenche' → 'NomeInformante').
+  // Nenhum alias foi criado ou alterado. Na EBIP7_C o discriminante é real e
+  // frequente — mãe e pai podem responder no mesmo dia para a mesma criança, e
+  // a divergência entre informantes é, neste instrumento, uma das saídas
+  // clinicamente mais informativas; na EBIP7_J o tipo é constante e o NOME é o
+  // discriminante efectivo. A chave preserva reavaliações em datas distintas,
+  // comportamento exigido pela monitorização de resposta à intervenção que a
+  // janela de 7 dias serve, e mantém-se idempotente em re-sincronizações.
+  'EBIP7_C':           ['Código', 'Data', 'PreenchidoPor', 'NomePreenche'],
+  'EBIP7_J':           ['Código', 'Data', 'PreenchidoPor', 'NomePreenche'],
+  // LOI-CV (v133.0) — dedupe de 4 elementos (Secção 33): código + data + tipo
+  // de respondente + nome. As colunas chamam-se 'Informante' e 'NomeInformante'
+  // e resolvem pelos DEDUPE_ALIASES já existentes ('PreenchidoPor' →
+  // 'Informante' · 'NomePreenche' → 'NomeInformante'). Nenhum alias foi criado
+  // ou alterado. Sendo autorrelato, o tipo distingue apenas a autoadministração
+  // da leitura assistida e repete-se entre aplicações legítimas, pelo que o
+  // NOME é o discriminante efectivo. A chave preserva as reavaliações em datas
+  // distintas — comportamento exigido pela monitorização serial que a coluna
+  // 'Momento' suporta — e mantém-se idempotente em re-sincronizações.
+  'LOI_CV':            ['Código', 'Data', 'PreenchidoPor', 'NomePreenche'],
+  // COIS-R (v132.0) — dedupe de 4 elementos (Secção 33) nas duas abas: código +
+  // data + tipo de respondente + nome. As colunas chamam-se 'Informante' e
+  // 'NomeInformante' e resolvem pelos DEDUPE_ALIASES já existentes
+  // ('PreenchidoPor' → 'Informante' · 'NomePreenche' → 'NomeInformante').
+  // Nenhum alias foi criado ou alterado. Na COIS_RP o discriminante é real e
+  // frequente — mãe e pai podem responder no mesmo dia para a mesma criança, e
+  // a divergência entre progenitores é informação clínica; na COIS_RC o tipo
+  // distingue apenas autoadministração de leitura assistida e repete-se entre
+  // aplicações legítimas, pelo que o NOME é o discriminante efectivo. A chave
+  // preserva reavaliações em datas distintas, que é o comportamento exigido
+  // pela monitorização do compromisso funcional ao longo da intervenção, e
+  // mantém-se idempotente em re-sincronizações.
+  'COIS_RC':           ['Código', 'Data', 'PreenchidoPor', 'NomePreenche'],
+  'COIS_RP':           ['Código', 'Data', 'PreenchidoPor', 'NomePreenche'],
+  // RDP_RC (v126.0, correcção) — chave de DOIS elementos: Código + Data. É a
+  // excepção deliberada à chave de quatro elementos da Secção 33, e a razão é a
+  // natureza do instrumento: registo DIÁRIO de autorrelato, uma linha por dia e
+  // por utente, todas do MESMO respondente. Acrescentar tipo e nome do
+  // respondente não discriminaria nada — repetem-se em todas as linhas — e
+  // apenas daria uma falsa sensação de robustez; o discriminante efectivo entre
+  // linhas legítimas é a DATA, como a nota de HEADERS['RDP_RC'] já documentava.
+  // Com esta chave o upsert torna-se idempotente: uma correcção do mesmo dia
+  // REESCREVE a linha desse dia em vez de acrescentar uma segunda, e uma
+  // re-sincronização do painel do questionário (que reenvia os registos guardados
+  // em localStorage) deixa de multiplicar linhas. Dias diferentes continuam a ser
+  // linhas distintas, que é o comportamento pretendido.
+  // ⚠ A coluna 'Data' tem de estar formatada como TEXTO SIMPLES no Sheet: o
+  //   upsertRow compara os valores-chave por texto normalizado, e se a locale
+  //   pt-PT coagir '19/09/2026' para data real a comparação falha e o registo
+  //   volta a ser acrescentado (sem perda de dados, mas sem dedupe).
+  'RDP_RC':            ['Código', 'Data'],
+  // QUP-T (v127.0) — dedupe de 4 elementos (Secção 33) nas três abas: código +
+  // data + tipo de respondente + nome. As colunas chamam-se 'Relação' e
+  // 'NomeInformante' e resolvem pelos DEDUPE_ALIASES já existentes ('Relacao' e
+  // 'NomePreenche'). Nenhum alias foi criado ou alterado. O NOME é o
+  // discriminante efectivo: no QUP-T/P mãe e pai a responderem no mesmo dia é o
+  // contraste entre informadores que o protocolo admite, e no QUP-T/I o tipo
+  // ('Psicóloga', 'Mãe') repete-se entre aplicações legítimas. A chave mantém-se
+  // idempotente em re-sincronizações e preserva reavaliações em datas distintas.
+  'QUPT_J':            ['Código', 'Data', 'Relacao', 'NomePreenche'],
+  'QUPT_I':            ['Código', 'Data', 'Relacao', 'NomePreenche'],
+  'QUPT_P':            ['Código', 'Data', 'Relacao', 'NomePreenche'],
+  // USP_SPS (v126.0) — dedupe de 4 elementos (Secção 33): código + data + tipo
+  // de respondente + nome. As colunas chamam-se 'Informante' e 'NomeInformante'
+  // e resolvem pelos DEDUPE_ALIASES já existentes ('PreenchidoPor' →
+  // 'Informante' · 'NomePreenche' → 'NomeInformante'). Nenhum alias foi criado
+  // ou alterado. O NOME é o discriminante efectivo: o tipo de informante
+  // repete-se entre sessões legítimas (é quase sempre 'Próprio + mãe'), pelo que
+  // sem ele uma reaplicação no mesmo dia — situação prevista pelo próprio
+  // instrumento, que manda RECOTAR quando a sonda da Parte IV revela sensação
+  // não registada na Parte I — seria descartada em silêncio. A chave mantém-se
+  // idempotente em re-sincronizações e preserva reavaliações em datas distintas.
+  'USP_SPS':           ['Código', 'Data', 'PreenchidoPor', 'NomePreenche'],
+  // EQVA-41 (v128.0) — dedupe de 4 elementos (Secção 33): código + data + tipo
+  // de respondente + nome. As colunas chamam-se 'Informante' e 'NomeInformante'
+  // e resolvem pelos DEDUPE_ALIASES já existentes ('PreenchidoPor' →
+  // 'Informante' · 'NomePreenche' → 'NomeInformante'). Nenhum alias foi criado
+  // ou alterado. Sendo o instrumento exclusivamente de AUTORRELATO, o tipo
+  // distingue apenas autoadministração de leitura assistida e repete-se entre
+  // aplicações legítimas: o NOME é o discriminante efectivo e protege a
+  // reaplicação no mesmo dia. Datas distintas continuam a ser linhas distintas,
+  // que é o comportamento pretendido na monitorização intraindividual (linha de
+  // base · reavaliação 1 · reavaliação 2 · final).
+  'EQVA41':            ['Código', 'Data', 'PreenchidoPor', 'NomePreenche'],
+  // QPTMV (v130.0) — dedupe de 4 elementos (Secção 33): código + data + tipo de
+  // respondente + nome. As colunas chamam-se 'Informante' e 'NomeInformante' e
+  // resolvem pelos DEDUPE_ALIASES já existentes ('PreenchidoPor' →
+  // 'Informante' · 'NomePreenche' → 'NomeInformante'). Nenhum alias foi criado
+  // ou alterado. Ao contrário dos instrumentos de autorrelato, aqui o TIPO é
+  // discriminante real: o livro admite a comparação entre cuidadores, pelo que
+  // mãe e pai a responderem no mesmo dia são duas linhas legítimas; o NOME
+  // desempata quando ambos se identificam com a mesma relação. Datas distintas
+  // continuam a ser linhas distintas — é o comportamento exigido pela
+  // monitorização intraindividual multi-momento (T0 a T7).
+  'QPTMV':             ['Código', 'Data', 'PreenchidoPor', 'NomePreenche'],
+  // CGI (v131.0) — dedupe de 4 elementos (Secção 33): código + data + tipo de
+  // respondente + nome. As colunas chamam-se 'Informante' e 'NomeInformante' e
+  // resolvem pelos DEDUPE_ALIASES já existentes ('PreenchidoPor' →
+  // 'Informante' · 'NomePreenche' → 'NomeInformante'). Nenhum alias foi criado
+  // ou alterado. O TIPO é discriminante real: o mesmo caso pode ser cotado no
+  // mesmo dia pela psicóloga e pelo médico assistente, e é exactamente esse
+  // contraste entre cotadores que a escala admite; o NOME desempata quando
+  // ambos se identificam com a mesma função. Datas distintas continuam a ser
+  // linhas distintas — é o comportamento exigido pela monitorização serial
+  // (linha de base · reavaliação · final · seguimento).
+  'CGI':               ['Código', 'Data', 'PreenchidoPor', 'NomePreenche'],
   // SCARED_R_PAIS e SCARED_R_CRIANCA (v124.0) — até aqui nenhuma das duas abas
   // constava desta tabela e caíam no appendRow. Nunca produziu duplicados porque
   // os ficheiros publicados nunca submeteram nada; a partir da reconstrução dos
@@ -5433,6 +6982,362 @@ function buildRow(abaNome, d) {
   var hoje = parseData(d.data || d.date || d.Data);
   var cod  = d.patientCode || d.CodigoPaciente || d.codigo || d.Código || '';
   var nome = d.nomeCrianca || d.NomeCrianca || d.childName || d.nome || '';
+
+  // ── EAFE-CA · Funcionamento Executivo em Crianças e Adolescentes (v138.0) ──
+  // Ordem das colunas idêntica à de HEADERS['EAFECA_P'], ['EAFECA_A'] e
+  // ['EAFECA_T'] (39, cabeçalho idêntico) — validada por posição. Ramo ÚNICO
+  // que serve as três abas, por o payload das três formas ter a mesma forma.
+  // ⚠ Guarda != null OBRIGATÓRIA (nunca ||): o ZERO é resultado clinicamente
+  //   substantivo nas contagens de indicadores (AGT_CI a ARE_CI e CI_Global —
+  //   zero indicadores é o resultado esperado num perfil sem sinalização) e na
+  //   amplitude interdomínios (AID = 0 significa perfil perfeitamente
+  //   homogéneo). (x||'') converteria estes resultados em célula vazia e
+  //   tornaria indistinguível o protocolo negativo do protocolo por cotar.
+  // ⚠ O literal 'N/C' é gravado TAL COMO VEM: 'N/C' e 0 são clinicamente
+  //   opostos — o primeiro significa que não há base suficiente para cotar, o
+  //   segundo que o resultado está no mínimo da escala.
+  if (abaNome === 'EAFECA_P' || abaNome === 'EAFECA_A' || abaNome === 'EAFECA_T') {
+    var _ecV = function (a, b) {
+      if (a !== undefined && a !== null) return a;
+      if (b !== undefined && b !== null) return b;
+      return '';
+    };
+    var _ecResp = (typeof d.Respostas === 'string') ? d.Respostas
+                : ((typeof d.respostas === 'string') ? d.respostas
+                : JSON.stringify(d.Respostas || d.respostas || d.answers || {}));
+    return [
+      hoje,
+      cod,
+      _ecV(d.nomeCrianca, d.NomeCrianca !== undefined ? d.NomeCrianca : nome),
+      _ecV(d.dataNasc, d.DataNasc),
+      _ecV(d.idade, d.Idade),
+      _ecV(d.ano, d.Ano),
+      _ecV(d.sexo, d.Sexo),
+      _ecV(d.informante, d.Informante),
+      _ecV(d.nome_informante, d.NomeInformante),
+      _ecV(d.relacao, d.Relacao),
+      _ecV(d.disciplina, d.Disciplina),
+      _ecV(d.tempoConhece, d.TempoConhece),
+      _ecV(d.horasSemanais, d.HorasSemanais),
+      _ecV(d.momento, d.Momento),
+      _ecV(d.AGT_Bruto, d.agt_bruto), _ecV(d.AGT_Media, d.agt_media), _ecV(d.AGT_CI, d.agt_ci),
+      _ecV(d.ARP_Bruto, d.arp_bruto), _ecV(d.ARP_Media, d.arp_media), _ecV(d.ARP_CI, d.arp_ci),
+      _ecV(d.ACI_Bruto, d.aci_bruto), _ecV(d.ACI_Media, d.aci_media), _ecV(d.ACI_CI, d.aci_ci),
+      _ecV(d.AMP_Bruto, d.amp_bruto), _ecV(d.AMP_Media, d.amp_media), _ecV(d.AMP_CI, d.amp_ci),
+      _ecV(d.ARE_Bruto, d.are_bruto), _ecV(d.ARE_Media, d.are_media), _ecV(d.ARE_CI, d.are_ci),
+      _ecV(d.PEG, d.peg),
+      _ecV(d.MEG, d.meg),
+      _ecV(d.CI_Global, d.ci_global),
+      _ecV(d.IRE, d.ire),
+      _ecV(d.AID, d.aid),
+      _ecV(d.N_Respondidos, d.n_respondidos),
+      _ecV(d.Opcoes_Distintas, d.opcoes_distintas),
+      _ecV(d.Disc_Media, d.disc_media),
+      _ecV(d.Sinalizacao, d.sinalizacao),
+      _ecResp
+    ];
+  }
+
+  // ── EIR-14 · Escala de Irritabilidade, 14 itens (v137.0) ───────────────
+  // Ordem das colunas idêntica à de HEADERS['EIR14'] (44) — validada por
+  // posição.
+  // ⚠ Guarda != null OBRIGATÓRIA (nunca ||): neste instrumento o ZERO é
+  //   resultado clinicamente substantivo em TODAS as colunas numéricas — um
+  //   Total de 0 significa ausência declarada de manifestações de
+  //   irritabilidade na janela de 7 dias e é o resultado modal em população
+  //   não clínica; um Índice de Carga de 0 significa ausência de interferência
+  //   funcional; um ICR de 0 significa controlo máximo declarado nos dois
+  //   itens de controlo; uma discrepância estado−traço de 0 significa estado
+  //   atual congruente com o funcionamento habitual. (x||'') converteria o
+  //   resultado mais frequente do instrumento em célula vazia e tornaria
+  //   indistinguível o protocolo negativo do protocolo por cotar.
+  // ⚠ 'Media_Item', 'T_Media', 'T_Desvio', 'F_Media', 'F_Desvio', 'R_Media',
+  //   'R_Desvio', 'Media_Controlo', 'Divergencia', 'Carga', 'M_Ref', 'DP_Ref',
+  //   'Z' e 'Percentil' chegam como texto com vírgula decimal — têm de estar
+  //   formatadas como Texto simples na folha.
+  if (abaNome === 'EIR14') {
+    var _e14V = function (a, b) {
+      if (a !== undefined && a !== null) return a;
+      if (b !== undefined && b !== null) return b;
+      return '';
+    };
+    var _e14Resp = (typeof d.Respostas === 'string') ? d.Respostas
+                 : ((typeof d.respostas === 'string') ? d.respostas
+                 : JSON.stringify(d.Respostas || d.respostas || d.answers || {}));
+    return [
+      hoje,
+      cod,
+      _e14V(d.nomeCrianca, d.NomeCriança !== undefined ? d.NomeCriança : nome),
+      _e14V(d.idade, d.Idade),
+      _e14V(d.sexo, d.Sexo),
+      _e14V(d.informante, d.Informante),
+      _e14V(d.nome_informante, d.NomeInformante),
+      _e14V(d.momento, d.Momento),
+      _e14V(d.grupo_normativo, d.GrupoNormativo),
+      _e14V(d.aplicabilidade_normativa, d.Aplicabilidade_Normativa),
+      _e14V(d.n_itens, d.N_Itens),
+      _e14V(d.soma_bruta, d.Soma_Bruta),
+      _e14V(d.total, d.Total),
+      _e14V(d.media_item, d.Media_Item),
+      _e14V(d.validade, d.Validade),
+      _e14V(d.t_soma, d.T_Soma),
+      _e14V(d.t_media, d.T_Media),
+      _e14V(d.t_desvio, d.T_Desvio),
+      _e14V(d.f_soma, d.F_Soma),
+      _e14V(d.f_media, d.F_Media),
+      _e14V(d.f_desvio, d.F_Desvio),
+      _e14V(d.r_soma, d.R_Soma),
+      _e14V(d.r_media, d.R_Media),
+      _e14V(d.r_desvio, d.R_Desvio),
+      _e14V(d.icr, d.ICR),
+      _e14V(d.media_controlo, d.Media_Controlo),
+      _e14V(d.divergencia, d.Divergencia),
+      _e14V(d.carga, d.Carga),
+      _e14V(d.nivel_carga, d.Nivel_Carga),
+      _e14V(d.cat_carga, d.Cat_Carga),
+      _e14V(d.e1, d.E1),
+      _e14V(d.e2, d.E2),
+      _e14V(d.disc_estado_traco, d.Disc_Estado_Traco),
+      _e14V(d.m_ref, d.M_Ref),
+      _e14V(d.dp_ref, d.DP_Ref),
+      _e14V(d.z, d.Z),
+      _e14V(d.percentil, d.Percentil),
+      _e14V(d.nivel, d.Nivel),
+      _e14V(d.categoria, d.Categoria),
+      _e14V(d.s1, d.S1),
+      _e14V(d.s2, d.S2),
+      _e14V(d.s3, d.S3),
+      _e14V(d.s4, d.S4),
+      _e14Resp
+    ];
+  }
+
+  // ── EAIR · Escala de Avaliação da Ira e da sua Regulação (v136.0) ──────
+  // Ramo ÚNICO que bifurca pelas quatro abas, por o cabeçalho ser idêntico.
+  // Ordem das colunas idêntica à de HEADERS['EAIR_I'] (35) — validada por
+  // posição.
+  // ⚠ Guarda != null OBRIGATÓRIA (nunca ||): neste instrumento o ZERO é
+  //   resultado clinicamente substantivo em TODAS as colunas numéricas — um IDP
+  //   de 0 significa que a dimensão se situa no limite inferior da amplitude
+  //   teórica, resultado esperado na dimensão II de um perfil de contenção
+  //   hostil, e um ICR de 0 é precisamente o resultado que autoriza a leitura
+  //   sem reservas. (x||'') tornaria indistinguível o resultado negativo do
+  //   protocolo por cotar.
+  // ⚠ 'Bruto_*' e 'IDP_*' podem conter legitimamente o literal 'n.c.' (duas ou
+  //   mais omissões numa dimensão, admissíveis apenas na EAIR_H); 'IEI_Class'
+  //   pode conter 'Não interpretável' quando o IDP da dimensão I é inferior a 50
+  //   (anomalia A-05). Ambos são resultado de cotabilidade ou de
+  //   interpretabilidade, e gravam-se tal como vêm.
+  // ⚠ 'Bruto_*', 'IDP_*', 'IEI', 'IDP_IEI' e 'IDI' chegam como texto com vírgula
+  //   decimal — as onze colunas têm de estar formatadas como Texto simples na
+  //   folha, nas quatro abas.
+  if (abaNome === 'EAIR_I' || abaNome === 'EAIR_JA' ||
+      abaNome === 'EAIR_A' || abaNome === 'EAIR_H') {
+    var _eaV = function (a, b) {
+      if (a !== undefined && a !== null) return a;
+      if (b !== undefined && b !== null) return b;
+      return '';
+    };
+    var _eaResp = (typeof d.Respostas === 'string') ? d.Respostas
+                : ((typeof d.respostas === 'string') ? d.respostas
+                : JSON.stringify(d.Respostas || d.respostas || d.answers || {}));
+    return [
+      hoje,
+      cod,
+      _eaV(d.nomeCrianca, d.NomeAvaliado !== undefined ? d.NomeAvaliado : nome),
+      _eaV(d.idade, d.Idade),
+      _eaV(d.escolaridade, d.Escolaridade),
+      _eaV(d.forma, d.Forma),
+      _eaV(d.ancoragem, d.Ancoragem),
+      _eaV(d.informante, d.Informante),
+      _eaV(d.nome_informante, d.NomeInformante),
+      _eaV(d.relacao, d.Relacao !== undefined ? d.Relacao : d.Relação),
+      _eaV(d.contexto, d.Contexto),
+      _eaV(d.periodoObs, d.PeriodoObs),
+      _eaV(d.Bruto_I, d.bruto_i),     _eaV(d.IDP_I, d.idp_i),     _eaV(d.Class_I, d.class_i),
+      _eaV(d.Bruto_II, d.bruto_ii),   _eaV(d.IDP_II, d.idp_ii),   _eaV(d.Class_II, d.class_ii),
+      _eaV(d.Bruto_III, d.bruto_iii), _eaV(d.IDP_III, d.idp_iii), _eaV(d.Class_III, d.class_iii),
+      _eaV(d.Bruto_IV, d.bruto_iv),   _eaV(d.IDP_IV, d.idp_iv),   _eaV(d.Class_IV, d.class_iv),
+      _eaV(d.IEI, d.iei), _eaV(d.IDP_IEI, d.idp_iei), _eaV(d.IEI_Class, d.iei_class),
+      _eaV(d.IDI, d.idi), _eaV(d.IDI_Class, d.idi_class),
+      _eaV(d.ICR, d.icr), _eaV(d.ICR_Class, d.icr_class),
+      _eaV(d.Perfil, d.perfil),
+      _eaV(d.DeficeRegulatorio, d.deficeRegulatorio),
+      _eaV(d.ItensOmitidos, d.itensOmitidos),
+      _eaResp
+    ];
+  }
+
+  // ── QAF-CA · Ataques de Fúria, Forma P · heterorrelato (v135.0) ────────
+  // Ordem das colunas idêntica à de HEADERS['QAFCA_P'] (39) — validada por
+  // posição.
+  // ⚠ Guarda != null OBRIGATÓRIA (nunca ||): neste instrumento o ZERO é
+  //   resultado clinicamente substantivo em TODAS as colunas numéricas — um
+  //   Total de 0 significa ausência declarada de ataques de fúria e é o
+  //   resultado esperado em população não clínica, e N_Sinal = 0 é justamente
+  //   o resultado que autoriza excluir a sinalização de segurança. (x||'')
+  //   tornaria indistinguível o resultado negativo do protocolo por cotar.
+  // ⚠ 'Validade' pode conter 'Inválido — omissões > 3'; nesse caso 'Total' e
+  //   os níveis vêm vazios, ausência que é resultado e não dado em falta.
+  // ⚠ 'IGG', 'D*_Media' e 'Dispersao' chegam como texto com vírgula decimal e
+  //   'Idade_Inicio' como texto livre — as sete colunas têm de estar
+  //   formatadas como Texto simples na folha.
+  if (abaNome === 'QAFCA_P') {
+    var _qfV = function (a, b) {
+      if (a !== undefined && a !== null) return a;
+      if (b !== undefined && b !== null) return b;
+      return '';
+    };
+    var _qfResp = (typeof d.Respostas === 'string') ? d.Respostas
+                : ((typeof d.respostas === 'string') ? d.respostas
+                : JSON.stringify(d.Respostas || d.respostas || d.answers || {}));
+    return [
+      hoje,
+      cod,
+      nome || d.NomeCriança || d.nomeCrianca || '',
+      _qfV(d.idade, d.Idade),
+      _qfV(d.sexo, d.Sexo),
+      _qfV(d.ano, d.Ano),
+      _qfV(d.nome_informante, d.NomeInformante),
+      _qfV(d.relacao, d.Relação !== undefined ? d.Relação : d.Relacao),
+      _qfV(d.momento, d.Momento),
+      _qfV(d.N_Resp, d.n_resp),
+      _qfV(d.N_Omissos, d.n_omissos),
+      _qfV(d.Validade, d.validade),
+      _qfV(d.Total, d.total),
+      _qfV(d.IGG, d.igg),
+      _qfV(d.D1_Soma, d.d1_soma), _qfV(d.D1_Media, d.d1_media),
+      _qfV(d.D2_Soma, d.d2_soma), _qfV(d.D2_Media, d.d2_media),
+      _qfV(d.D3_Soma, d.d3_soma), _qfV(d.D3_Media, d.d3_media),
+      _qfV(d.D4_Soma, d.d4_soma), _qfV(d.D4_Media, d.d4_media),
+      _qfV(d.Dispersao, d.dispersao),
+      _qfV(d.N_Sinal, d.n_sinal),
+      _qfV(d.Sinalizacao, d.sinalizacao),
+      _qfV(d.Nivel_Global, d.nivel_global),
+      _qfV(d.Nivel_D1, d.nivel_d1), _qfV(d.Nivel_D2, d.nivel_d2),
+      _qfV(d.Nivel_D3, d.nivel_d3), _qfV(d.Nivel_D4, d.nivel_d4),
+      _qfV(d.Idade_Inicio, d.idade_inicio),
+      _qfV(d.Episodios_Mes, d.episodios_mes),
+      _qfV(d.Duracao, d.duracao),
+      _qfV(d.Desencadeantes, d.desencadeantes),
+      _qfV(d.Contextos, d.contextos),
+      _qfV(d.Sinais_Aviso, d.sinais_aviso),
+      _qfV(d.O_Que_Ajuda, d.o_que_ajuda),
+      _qfV(d.Episodio_Tipico, d.episodio_tipico),
+      _qfResp
+    ];
+  }
+
+  // ── EBIP-7 · Escala Breve de Irritabilidade Pediátrica (v134.0) ────────
+  // Ramo único que bifurca por aba. Ordem das colunas idêntica à de
+  // HEADERS['EBIP7_C'] (27) e HEADERS['EBIP7_J'] (28) — validada por posição.
+  // ⚠ Guarda != null OBRIGATÓRIA (nunca ||): neste instrumento o ZERO é
+  //   resultado clinicamente substantivo em TODAS as colunas numéricas — um
+  //   total de 0 significa ausência declarada de irritabilidade e um Item7 de 0
+  //   significa ausência de custo funcional, ambos resultado modal em população
+  //   não clínica. (x||'') tornaria indistinguível o resultado negativo do
+  //   protocolo por cotar.
+  // ⚠ 'Total' pode legitimamente conter o texto 'NC' (2 ou mais itens omissos);
+  //   'Faixa' e 'Matriz' podem conter 'n.a. (janela 7 dias)'. Ambos são
+  //   resultado de validade ou de aplicabilidade, e gravam-se tal como vêm.
+  // ⚠ 'Media' e 'Z' chegam como texto com vírgula decimal — as colunas têm de
+  //   estar formatadas como Texto simples na folha.
+  if (abaNome === 'EBIP7_C' || abaNome === 'EBIP7_J') {
+    var _ebV = function (a, b) {
+      if (a !== undefined && a !== null) return a;
+      if (b !== undefined && b !== null) return b;
+      return '';
+    };
+    var _ebResp = (typeof d.respostas === 'string') ? d.respostas
+                : ((typeof d.Respostas === 'string') ? d.Respostas
+                : JSON.stringify(d.Respostas || d.respostas || d.answers || {}));
+    var _ebLinha = [
+      hoje,
+      cod,
+      nome || d.NomeCriança || d.nomeCrianca || '',
+      _ebV(d.dataNasc, d.DataNasc),
+      _ebV(d.idade, d.Idade),
+      _ebV(d.sexo, d.Sexo),
+      _ebV(d.ano, d.Ano),
+      _ebV(d.informante, d.Informante),
+      _ebV(d.nome_informante, d.NomeInformante),
+      _ebV(d.clinico, d.Clinico)
+    ];
+    if (abaNome === 'EBIP7_J') {
+      _ebLinha.push(_ebV(d.presencaClinico, d.PresencaClinico));
+    }
+    _ebLinha.push(
+      _ebV(d.momento, d.Momento),
+      _ebV(d.janela, d.Janela),
+      _ebV(d.itensValidos, d.ItensValidos),
+      _ebV(d.total, d.Total),
+      _ebV(d.prorrateado, d.Prorrateado),
+      _ebV(d.media, d.Media),
+      _ebV(d.classificacao, d.Classificacao),
+      _ebV(d.item7, d.Item7),
+      _ebV(d.item7Etiqueta, d.Item7_Etiqueta),
+      _ebV(d.limiar, d.Limiar),
+      _ebV(d.frequencia, d.Frequencia),
+      _ebV(d.duracao, d.Duracao),
+      _ebV(d.z, d.Z),
+      _ebV(d.faixa, d.Faixa),
+      _ebV(d.componente, d.Componente),
+      _ebV(d.matriz, d.Matriz),
+      _ebResp
+    );
+    return _ebLinha;
+  }
+
+  // ── LOI-CV · Inventário Obsessivo de Leyton, versão crianças (v133.0) ──
+  // Ordem das colunas idêntica à de HEADERS['LOI_CV'] (26) — validada por
+  // posição.
+  // ⚠ Guarda != null OBRIGATÓRIA (nunca ||): neste instrumento o ZERO é
+  //   resultado clinicamente substantivo em TODAS as colunas numéricas — uma
+  //   pontuação «Sim» de 0 significa ausência declarada de sintomatologia
+  //   obsessivo-compulsiva e uma interferência de 0 significa ausência de custo
+  //   funcional, e ambas são o resultado modal em população não clínica.
+  //   (x||'') converteria o resultado mais informativo do instrumento em célula
+  //   vazia e tornaria indistinguível o rastreio negativo do protocolo por
+  //   cotar.
+  // ⚠ Todas as colunas numéricas são inteiros: nenhuma exige formatação como
+  //   texto simples.
+  if (abaNome === 'LOI_CV') {
+    var _lcV = function (a, b) {
+      if (a !== undefined && a !== null) return a;
+      if (b !== undefined && b !== null) return b;
+      return '';
+    };
+    var _lcResp = (typeof d.Respostas === 'string') ? d.Respostas
+                : JSON.stringify(d.Respostas || d.respostas || d.answers || {});
+    return [
+      hoje,
+      cod,
+      nome || d.NomeCriança || d.nomeCrianca || '',
+      _lcV(d.nome_informante, d.NomeInformante),
+      _lcV(d.informante, d.Informante),
+      _lcV(d.idade, d.Idade),
+      _lcV(d.ano, d.Ano),
+      _lcV(d.sexo, d.Sexo),
+      _lcV(d.momento, d.Momento),
+      _lcV(d.Sim_OVC, d.sim_ovc),
+      _lcV(d.Sim_PO, d.sim_po),
+      _lcV(d.Sim_SCM, d.sim_scm),
+      _lcV(d.Sim_Total, d.sim_total),
+      _lcV(d.Int_OVC, d.int_ovc),
+      _lcV(d.Int_PO, d.int_po),
+      _lcV(d.Int_SCM, d.int_scm),
+      _lcV(d.Int_Total, d.int_total),
+      _lcV(d.Tot_OVC, d.tot_ovc),
+      _lcV(d.Tot_PO, d.tot_po),
+      _lcV(d.Tot_SCM, d.tot_scm),
+      _lcV(d.Tot_Total, d.tot_total),
+      _lcV(d.Faixa_Total, d.faixa_total),
+      _lcV(d.Faixa_Interf, d.faixa_interf),
+      _lcV(d.Decisao, d.decisao),
+      _lcV(d.Dominante, d.dominante),
+      _lcResp
+    ];
+  }
 
   // ── AASP · Perfil Sensorial Adolescente e Adulto (v122.0) ──────────────
   // Ordem das colunas idêntica à de HEADERS['AASP'] (36) — validada por posição.
@@ -10272,6 +12177,56 @@ function buildRow(abaNome, d) {
     ];
   }
 
+  if (abaNome === 'YGTSS') {
+    var ygtssResp = (typeof d.Respostas === 'string') ? d.Respostas
+                  : JSON.stringify(d.respostas || d.Respostas || {});
+    // Guardas `!= null` em todas as cotações: 0 é resultado clinicamente válido
+    // (ausência de tiques numa dimensão) e não pode ser convertido em vazio.
+    var _yg = function (v) { return v != null ? v : ''; };
+    return [
+      hoje,
+      d.patientCode || d.codigo || d.Código || cod || '',
+      d.nomeCrianca || d.NomeCriança || d.NomeCrianca || nome || '',
+      d.informante || d.Informante || d.relacao || '',
+      d.nome_informante || d.nomeInformante || d.NomeInformante || '',
+      _yg(d.idade),
+      _yg(d.Mot_A_Numero), _yg(d.Mot_A_Frequencia), _yg(d.Mot_A_Intensidade), _yg(d.Mot_A_Complexidade), _yg(d.Mot_A_Interferencia),
+      _yg(d.Fon_A_Numero), _yg(d.Fon_A_Frequencia), _yg(d.Fon_A_Intensidade), _yg(d.Fon_A_Complexidade), _yg(d.Fon_A_Interferencia),
+      _yg(d.Mot_P_Numero), _yg(d.Mot_P_Frequencia), _yg(d.Mot_P_Intensidade), _yg(d.Mot_P_Complexidade), _yg(d.Mot_P_Interferencia),
+      _yg(d.Fon_P_Numero), _yg(d.Fon_P_Frequencia), _yg(d.Fon_P_Intensidade), _yg(d.Fon_P_Complexidade), _yg(d.Fon_P_Interferencia),
+      _yg(d.Comp_A), _yg(d.Comp_P),
+      _yg(d.Sub_Motor_A), _yg(d.Sub_Fonico_A), _yg(d.Total_Tiques_A), _yg(d.Indice_Comp_A), _yg(d.Global_A), _yg(d.Banda_A),
+      _yg(d.Predominio_A), _yg(d.Proporcionalidade_A), _yg(d.Estado_A),
+      _yg(d.Sub_Motor_P), _yg(d.Sub_Fonico_P), _yg(d.Total_Tiques_P), _yg(d.Indice_Comp_P), _yg(d.Global_P), _yg(d.Banda_P), _yg(d.Estado_P),
+      _yg(d.Tiques_Presentes), _yg(d.Presentes_Motor), _yg(d.Presentes_Fonico), _yg(d.Sinalizadores), _yg(d.Idade_Inicio),
+      ygtssResp
+    ];
+  }
+
+  if (abaNome === 'CYBOCS') {
+    var cybocsResp = (typeof d.Respostas === 'string') ? d.Respostas
+                   : JSON.stringify(d.respostas || d.Respostas || {});
+    // 'n.c.' (item não cotado) e 'n.i.' (índice não interpretável) são gravados tal como
+    // chegam; 0 é cotação legítima — daí a verificação `!= null` e nunca `||`.
+    var _cy = function (v) { return v != null ? v : ''; };
+    return [
+      hoje,
+      d.patientCode || d.codigo || d.Código || cod || '',
+      d.nomeCrianca || d.NomeCriança || d.NomeCrianca || nome || '',
+      d.informante || d.Informante || 'Clínico',
+      d.nome_informante || d.nomeInformante || d.NomeInformante || '',
+      _cy(d.momento || d.Momento), _cy(d.idade), _cy(d.ano || d.Ano),
+      _cy(d.Item_1), _cy(d.Item_2), _cy(d.Item_3), _cy(d.Item_4), _cy(d.Item_5),
+      _cy(d.Item_6), _cy(d.Item_7), _cy(d.Item_8), _cy(d.Item_9), _cy(d.Item_10),
+      _cy(d.Item_11), _cy(d.Item_12), _cy(d.Item_13), _cy(d.Item_14), _cy(d.Item_15), _cy(d.Item_16),
+      _cy(d.Sub_Obsessoes), _cy(d.Sub_Compulsoes), _cy(d.Total_CYBOCS), _cy(d.Itens_Cotados),
+      _cy(d.Classificacao), _cy(d.Predominio), _cy(d.Remissao), _cy(d.Estado), _cy(d.Sinalizadores),
+      _cy(d.Check_Atual_Obs), _cy(d.Check_Atual_Comp), _cy(d.Check_Passado_Obs), _cy(d.Check_Passado_Comp),
+      _cy(d.Alvo_Obsessoes), _cy(d.Alvo_Compulsoes),
+      cybocsResp
+    ];
+  }
+
   if (abaNome === 'TSOC_YGTSS') {
     var tsocResp = (typeof d.Respostas === 'string') ? d.Respostas
                  : JSON.stringify(d.respostas || d.Respostas || {});
@@ -10733,6 +12688,333 @@ function buildRow(abaNome, d) {
       d.nota || d.Nota || '',
       _rResp
     ];
+  }
+
+  // ── USP-SPS-PT-EU · Fenómenos Sensoriais (v126.0) ──────────────────────
+  // Ordem das colunas idêntica à de HEADERS['USP_SPS'] (40) — validada por posição.
+  // ⚠ Guarda != null OBRIGATÓRIA (nunca ||): o ZERO é resultado legítimo em nove
+  //   colunas — N_Tipos_Atuais = 0 é o resultado que EXCLUI o eixo sensorial da
+  //   formulação; Tipos_Fisicos / Tipos_Mentais / Amplitude_Pct = 0 registam a
+  //   ausência declarada; II_Frequencia / II_Incomodo / II_Interferencia = 0 são
+  //   as ancoragens «Nunca» / «Nenhum» / «Nenhuma interferência»; e
+  //   Escore_Gravidade = 0 é a faixa «Ausente». (x||'') apagaria todos e tornaria
+  //   um protocolo negativo indistinguível de um protocolo por preencher.
+  // ⚠ 'Idade_Inicio' pode chegar como 'n.i.' (nenhum item positivo datado):
+  //   gravada tal e qual, nunca convertida em zero.
+  // ⚠ 'Media_Ancoragem' chega como STRING com vírgula decimal; gravada tal e
+  //   qual, sem coerção numérica. A coluna tem de estar formatada como TEXTO
+  //   SIMPLES no Sheet.
+  if (abaNome === 'USP_SPS') {
+    var _uV = function (a, b) {
+      if (a !== undefined && a !== null) return a;
+      if (b !== undefined && b !== null) return b;
+      return '';
+    };
+    var _uResp = (typeof d.Respostas === 'string') ? d.Respostas
+               : JSON.stringify(d.Respostas || d.respostas || d.answers || {});
+    return [
+      hoje,
+      cod,
+      nome || d.nomeCrianca || d.NomeCrianca || '',
+      _uV(d.nome_informante, d.NomeInformante),
+      _uV(d.informante, d.Informante),
+      _uV(d.dob, d.DataNasc),
+      _uV(d.idade, d.Idade),
+      _uV(d.genero, d.Sexo),
+      _uV(d.ano, d.Ano),
+      _uV(d.sessao, d.Sessao),
+      _uV(d.modo, d.ModoAplicacao),
+      _uV(d.medicacao, d.Medicacao),
+      _uV(d.tcc, d.TCC),
+      _uV(d.presenca_fs, d.Presenca_FS),
+      _uV(d.n_tipos_atuais, d.N_Tipos_Atuais),
+      _uV(d.n_tipos_alguma_vez, d.N_Tipos_Alguma_Vez),
+      _uV(d.tipos_fisicos, d.Tipos_Fisicos),
+      _uV(d.tipos_mentais, d.Tipos_Mentais),
+      _uV(d.amplitude_pct, d.Amplitude_Pct),
+      _uV(d.idade_inicio, d.Idade_Inicio),
+      _uV(d.item_E, d.Item_E),
+      _uV(d.ii_frequencia, d.II_Frequencia),
+      _uV(d.ii_incomodo, d.II_Incomodo),
+      _uV(d.ii_interferencia, d.II_Interferencia),
+      _uV(d.escore_gravidade, d.Escore_Gravidade),
+      _uV(d.media_ancoragem, d.Media_Ancoragem),
+      _uV(d.classificacao, d.Classificacao),
+      _uV(d.relevancia_clinica, d.Relevancia_Clinica),
+      _uV(d.item4_eixo, d.Item4_Eixo),
+      _uV(d.iii_alivio, d.III_Alivio),
+      _uV(d.iii_completude, d.III_Completude),
+      _uV(d.iii_descricao, d.III_Descricao),
+      _uV(d.iv_registo, d.IV_Registo),
+      _uV(d.iv_natureza, d.IV_Natureza),
+      _uV(d.categorias, d.Categorias),
+      _uV(d.sinalizacoes, d.Sinalizacoes),
+      _uV(d.ancoras, d.Ancoras),
+      _uV(d.justificacao_item4, d.Justificacao_Item4),
+      _uV(d.observacoes, d.Observacoes),
+      _uResp
+    ];
+  }
+
+  // ── QUP-T · Urgência Premonitória ao Tique (v127.0) ────────────────────
+  // Três ramos. Ordem das colunas idêntica à de HEADERS['QUPT_J'] /
+  // HEADERS['QUPT_I'] (33) e HEADERS['QUPT_P'] (20) — validada por posição.
+  // ⚠ Guarda != null OBRIGATÓRIA (nunca ||): no ramo parental o ZERO é
+  //   resultado legítimo em R_NaoObservei / C_NaoObservei / F_NaoObservei —
+  //   zero significa protocolo SEM lacunas de observação, a condição de máxima
+  //   confiança na leitura. (x||'') apagaria esses zeros.
+  // ⚠ Escalas não válidas chegam como 'n.v.' e são gravadas tal e qual, nunca
+  //   convertidas em zero.
+  // ⚠ Médias, pontuações, IDF e DP chegam como STRING com vírgula decimal e são
+  //   gravadas sem coerção numérica; as colunas têm de estar formatadas como
+  //   TEXTO SIMPLES no Sheet.
+  if (abaNome === 'QUPT_J' || abaNome === 'QUPT_I') {
+    var _qV = function (a, b) {
+      if (a !== undefined && a !== null) return a;
+      if (b !== undefined && b !== null) return b;
+      return '';
+    };
+    var _qResp = (typeof d.Respostas === 'string') ? d.Respostas
+               : JSON.stringify(d.Respostas || d.respostas || d.answers || {});
+    return [
+      hoje,
+      cod,
+      nome || d.nomeCrianca || d.NomeCrianca || '',
+      _qV(d.idade, d.Idade),
+      _qV(d.nome_informante, d.NomeInformante),
+      _qV(d.relacao, d.Relação),
+      _qV(d.versao, d.Versão),
+      _qV(d.F1_Media, d.f1_media), _qV(d.F1_Final, d.f1_final), _qV(d.F1_Nivel, d.f1_nivel),
+      _qV(d.F2_Media, d.f2_media), _qV(d.F2_Final, d.f2_final), _qV(d.F2_Nivel, d.f2_nivel),
+      _qV(d.IUP_Media, d.iup_media), _qV(d.IUP_Final, d.iup_final), _qV(d.IUP_Nivel, d.iup_nivel),
+      _qV(d.O_Media, d.o_media), _qV(d.O_Final, d.o_final), _qV(d.O_Nivel, d.o_nivel),
+      _qV(d.A_Media, d.a_media), _qV(d.A_Final, d.a_final), _qV(d.A_Nivel, d.a_nivel),
+      _qV(d.IDF, d.idf),
+      _qV(d.Perfil, d.perfil),
+      _qV(d.LeituraConjugada, d.leitura_conjugada),
+      _qV(d.DP_Itens, d.dp_itens),
+      _qV(d.Alertas, d.alertas),
+      _qV(d.EscalasNaoValidas, d.escalas_nao_validas),
+      _qV(d.Q_Localizacao, d.q_localizacao),
+      _qV(d.Q_TiqueIncomoda, d.q_tique_incomoda),
+      _qV(d.Q_Agrava, d.q_agrava),
+      _qV(d.Q_Alivia, d.q_alivia),
+      _qResp
+    ];
+  }
+
+  if (abaNome === 'QUPT_P') {
+    var _pV = function (a, b) {
+      if (a !== undefined && a !== null) return a;
+      if (b !== undefined && b !== null) return b;
+      return '';
+    };
+    var _pResp = (typeof d.Respostas === 'string') ? d.Respostas
+               : JSON.stringify(d.Respostas || d.respostas || d.answers || {});
+    return [
+      hoje,
+      cod,
+      nome || d.nomeCrianca || d.NomeCrianca || '',
+      _pV(d.idade, d.Idade),
+      _pV(d.nome_informante, d.NomeInformante),
+      _pV(d.relacao, d.Relação),
+      _pV(d.R_Media, d.r_media), _pV(d.R_Final, d.r_final), _pV(d.R_Nivel, d.r_nivel),
+      _pV(d.R_NaoObservei, d.r_nao_observei),
+      _pV(d.C_Media, d.c_media), _pV(d.C_Final, d.c_final), _pV(d.C_Nivel, d.c_nivel),
+      _pV(d.C_NaoObservei, d.c_nao_observei),
+      _pV(d.F_Media, d.f_media), _pV(d.F_Final, d.f_final), _pV(d.F_Nivel, d.f_nivel),
+      _pV(d.F_NaoObservei, d.f_nao_observei),
+      _pV(d.EscalasNaoValidas, d.escalas_nao_validas),
+      _pResp
+    ];
+  }
+
+  // ── EQVA-41 · Qualidade de Vida do Adolescente (v128.0) ────────────────
+  // Ordem das colunas idêntica à de HEADERS['EQVA41'] (28) — validada por posição.
+  // ⚠ Guarda != null OBRIGATÓRIA (nunca ||): o ZERO é resultado legítimo em
+  //   N_Sinalizacoes — zero significa protocolo SEM itens de sinalização
+  //   activos, o resultado que dispensa exploração clínica dirigida. (x||'')
+  //   tornaria esse resultado indistinguível de um campo por preencher.
+  // ⚠ Domínios não cotáveis chegam como 'n.i.' e são gravados tal e qual, nunca
+  //   convertidos em zero: zero seria lido como perceção nula de qualidade de
+  //   vida em vez de ausência de dados.
+  // ⚠ Somas e pontuações 0–100 chegam como STRING com vírgula decimal e são
+  //   gravadas sem coerção numérica; as colunas têm de estar formatadas como
+  //   TEXTO SIMPLES no Sheet.
+  if (abaNome === 'EQVA41') {
+    var _eV = function (a, b) {
+      if (a !== undefined && a !== null) return a;
+      if (b !== undefined && b !== null) return b;
+      return '';
+    };
+    var _eResp = (typeof d.Respostas === 'string') ? d.Respostas
+               : JSON.stringify(d.Respostas || d.respostas || d.answers || {});
+    return [
+      hoje,
+      cod,
+      nome || d.nomeJovem || d.NomeJovem || '',
+      _eV(d.idade, d.Idade),
+      _eV(d.ano, d.Ano),
+      _eV(d.momento, d.Momento),
+      _eV(d.informante, d.Informante),
+      _eV(d.nome_informante, d.NomeInformante),
+      _eV(d.SS_Soma, d.ss_soma), _eV(d.SS_100, d.ss_100), _eV(d.SS_Classe, d.ss_classe),
+      _eV(d.REL_Soma, d.rel_soma), _eV(d.REL_100, d.rel_100), _eV(d.REL_Classe, d.rel_classe),
+      _eV(d.AMB_Soma, d.amb_soma), _eV(d.AMB_100, d.amb_100), _eV(d.AMB_Classe, d.amb_classe),
+      _eV(d.QVG_Soma, d.qvg_soma), _eV(d.QVG_100, d.qvg_100), _eV(d.QVG_Classe, d.qvg_classe),
+      _eV(d.Total_Soma, d.total_soma), _eV(d.Total_100, d.total_100), _eV(d.Total_Classe, d.total_classe),
+      _eV(d.Config_SS_REL, d.config_ss_rel),
+      _eV(d.Coerencia_QVG, d.coerencia_qvg),
+      _eV(d.Sinalizacoes, d.sinalizacoes),
+      _eV(d.N_Sinalizacoes, d.n_sinalizacoes),
+      _eResp
+    ];
+  }
+
+  // ── QPTMV · Tiques Motores e Vocais (v130.0) ──────────────────────────
+  // Ordem das colunas idêntica à de HEADERS['QPTMV'] (40) — validada por posição.
+  // ⚠ Guarda != null OBRIGATÓRIA (nunca ||): o ZERO é resultado legítimo em
+  //   N_M, N_V, N_T, G_M, G_V e G_T — zero significa ausência de endosso na
+  //   escala, que é o resultado que documenta remissão ou especificidade modal
+  //   do repertório. (x||'') tornaria esse resultado indistinguível de um campo
+  //   por preencher.
+  // ⚠ Médias e dominância chegam como STRING com vírgula decimal e são gravadas
+  //   sem coerção numérica; as colunas têm de estar formatadas como TEXTO
+  //   SIMPLES no Sheet.
+  if (abaNome === 'QPTMV') {
+    var _qV = function (a, b) {
+      if (a !== undefined && a !== null) return a;
+      if (b !== undefined && b !== null) return b;
+      return '';
+    };
+    var _qResp = (typeof d.Respostas === 'string') ? d.Respostas
+               : JSON.stringify(d.Respostas || d.respostas || d.answers || []);
+    return [
+      hoje,
+      cod,
+      nome || d.NomeCriança || d.nomeCrianca || '',
+      _qV(d.idade, d.Idade),
+      _qV(d.informante, d.Informante),
+      _qV(d.nome_informante, d.NomeInformante),
+      _qV(d.momento, d.Momento),
+      _qV(d.N_M, d.n_m), _qV(d.N_V, d.n_v), _qV(d.N_T, d.n_t),
+      _qV(d.F_M, d.f_m), _qV(d.I_M, d.i_m),
+      _qV(d.F_V, d.f_v), _qV(d.I_V, d.i_v),
+      _qV(d.F_T, d.f_t), _qV(d.I_T, d.i_t),
+      _qV(d.G_M, d.g_m), _qV(d.G_V, d.g_v), _qV(d.G_T, d.g_t),
+      _qV(d.m_M, d.m_m), _qV(d.m_V, d.m_v), _qV(d.FI_T, d.fi_t),
+      _qV(d.R_Dominancia, d.r_dominancia),
+      _qV(d.Perfil_Modal, d.perfil_modal),
+      _qV(d.Leitura_Dominancia, d.leitura_dominancia),
+      _qV(d.Ext_Mag_M, d.ext_mag_m), _qV(d.Ext_Mag_V, d.ext_mag_v),
+      _qV(d.Dissoc_M, d.dissoc_m), _qV(d.Dissoc_V, d.dissoc_v), _qV(d.Dissoc_T, d.dissoc_t),
+      _qV(d.Saliencia_Social, d.saliencia_social),
+      _qV(d.Itens_Abertos, d.itens_abertos),
+      _qV(d.Espec_M13, d.espec_m13), _qV(d.Espec_V13, d.espec_v13),
+      _qV(d.Observacoes, d.observacoes),
+      _qV(d.Bloqueio_M, d.bloqueio_m), _qV(d.Bloqueio_V, d.bloqueio_v),
+      _qV(d.Bloqueio_T, d.bloqueio_t),
+      _qV(d.Auditoria, d.auditoria),
+      _qResp
+    ];
+  }
+
+  // ── CGI · Escala de Impressão Clínica Global (v131.0) ─────────────────
+  // Ordem das colunas idêntica à de HEADERS['CGI'] (27) — validada por posição.
+  // ⚠ Guarda != null OBRIGATÓRIA (nunca ||): nenhuma cotação da CGI admite o
+  //   valor zero (CGI-G e CGI-M são 1–7; efeito terapêutico e efeitos adversos
+  //   são 1–4), mas a guarda é o invariante da plataforma e preserva a
+  //   distinção entre o NÃO COTADO e o campo por preencher — distinção que aqui
+  //   é clinicamente substantiva: a CGI-M não é cotável em linha de base, por
+  //   falta de termo de comparação com o estado inicial, e o Índice de Eficácia
+  //   só se aplica havendo terapêutica farmacológica instituída.
+  // ⚠ Q2 e Q3 chegam vazios quando a sessão cotou um único quadro clínico; o
+  //   vazio é resultado e não dado em falta.
+  if (abaNome === 'CGI') {
+    var _cV = function (a, b) {
+      if (a !== undefined && a !== null) return a;
+      if (b !== undefined && b !== null) return b;
+      return '';
+    };
+    var _cResp = (typeof d.Respostas === 'string') ? d.Respostas
+               : JSON.stringify(d.Respostas || d.respostas || d.answers || {});
+    return [
+      hoje,
+      cod,
+      nome || d.NomeCriança || d.nomeCrianca || '',
+      _cV(d.informante, d.Informante),
+      _cV(d.nome_informante, d.NomeInformante),
+      _cV(d.momento, d.Momento),
+      _cV(d.farmacologico, d.Farmacologico),
+      _cV(d.Q1_Quadro, d.q1_quadro), _cV(d.Q1_CGI_G, d.q1_cgi_g), _cV(d.Q1_CGI_M, d.q1_cgi_m),
+      _cV(d.Q1_ET, d.q1_et), _cV(d.Q1_EA, d.q1_ea), _cV(d.Q1_IE, d.q1_ie),
+      _cV(d.Q2_Quadro, d.q2_quadro), _cV(d.Q2_CGI_G, d.q2_cgi_g), _cV(d.Q2_CGI_M, d.q2_cgi_m),
+      _cV(d.Q2_ET, d.q2_et), _cV(d.Q2_EA, d.q2_ea), _cV(d.Q2_IE, d.q2_ie),
+      _cV(d.Q3_Quadro, d.q3_quadro), _cV(d.Q3_CGI_G, d.q3_cgi_g), _cV(d.Q3_CGI_M, d.q3_cgi_m),
+      _cV(d.Q3_ET, d.q3_et), _cV(d.Q3_EA, d.q3_ea), _cV(d.Q3_IE, d.q3_ie),
+      _cV(d.Observacoes, d.observacoes),
+      _cResp
+    ];
+  }
+
+  // ── COIS-R · Impacto Funcional da POC na Criança (v132.0) ─────────────
+  // Duas abas com geometria própria: COIS_RC (22 colunas, três subescalas) e
+  // COIS_RP (25 colunas, quatro subescalas). Ordem idêntica à de HEADERS —
+  // validada por posição.
+  // ⚠ Guarda != null OBRIGATÓRIA (nunca ||): neste instrumento o ZERO é o
+  //   resultado MAIS FREQUENTE e é clinicamente substantivo — a convenção dos
+  //   autores manda cotar 0 quando a atividade não se aplica à vida da criança,
+  //   e uma soma de subescala igual a zero significa ausência declarada de
+  //   compromisso funcional nesse domínio. (x||'') converteria esse resultado
+  //   em célula vazia e tornaria indistinguível a ausência de impacto do
+  //   domínio por cotar.
+  // ⚠ Uma subescala com menos de 80% de itens respondidos NÃO é cotada: as suas
+  //   três colunas e todas as colunas de total chegam vazias, e o vazio é
+  //   resultado de validade e não dado em falta.
+  // ⚠ As colunas *_Media chegam como STRING com vírgula decimal e são gravadas
+  //   sem coerção numérica; têm de estar formatadas como TEXTO SIMPLES no Sheet.
+  if (abaNome === 'COIS_RC' || abaNome === 'COIS_RP') {
+    var _koV = function (a, b) {
+      if (a !== undefined && a !== null) return a;
+      if (b !== undefined && b !== null) return b;
+      return '';
+    };
+    var _koResp = (typeof d.Respostas === 'string') ? d.Respostas
+                : JSON.stringify(d.Respostas || d.respostas || d.answers || {});
+    var _koLinha = [
+      hoje,
+      cod,
+      nome || d.NomeCriança || d.nomeCrianca || '',
+      _koV(d.idade, d.Idade),
+      _koV(d.ano, d.Ano),
+      _koV(d.informante, d.Informante),
+      _koV(d.nome_informante, d.NomeInformante),
+      _koV(d.ESCOLA_Soma, d.escola_soma),
+      _koV(d.ESCOLA_Media, d.escola_media),
+      _koV(d.ESCOLA_Classif, d.escola_classif),
+      _koV(d.SOCIAL_Soma, d.social_soma),
+      _koV(d.SOCIAL_Media, d.social_media),
+      _koV(d.SOCIAL_Classif, d.social_classif)
+    ];
+    if (abaNome === 'COIS_RC') {
+      _koLinha.push(_koV(d.ATIVID_Soma, d.ativid_soma));
+      _koLinha.push(_koV(d.ATIVID_Media, d.ativid_media));
+      _koLinha.push(_koV(d.ATIVID_Classif, d.ativid_classif));
+    } else {
+      _koLinha.push(_koV(d.FAMATIV_Soma, d.famativ_soma));
+      _koLinha.push(_koV(d.FAMATIV_Media, d.famativ_media));
+      _koLinha.push(_koV(d.FAMATIV_Classif, d.famativ_classif));
+      _koLinha.push(_koV(d.CVD_Soma, d.cvd_soma));
+      _koLinha.push(_koV(d.CVD_Media, d.cvd_media));
+      _koLinha.push(_koV(d.CVD_Classif, d.cvd_classif));
+    }
+    _koLinha.push(_koV(d.TOTAL_Soma, d.total_soma));
+    _koLinha.push(_koV(d.TOTAL_Media, d.total_media));
+    _koLinha.push(_koV(d.TOTAL_Classif, d.total_classif));
+    _koLinha.push(_koV(d.Dominio, d.dominio));
+    _koLinha.push(_koV(d.Perfil, d.perfil));
+    _koLinha.push(_koResp);
+    return _koLinha;
   }
 
   return [hoje, JSON.stringify(d)];
