@@ -926,21 +926,41 @@ var THRESHOLDS = {
   broadband: { clinical: 64, borderline: 60 }, /* Manual PT: borderline T60-63, clínico T>63 */
   total:     { clinical: 64, borderline: 60 } /* Manual PT: borderline T60-63, clínico T>63 */
 };
+/* v1.1 — motor sincronizado com a correcção de CBCL_15_v5.html:
+   os arrays de SCALE_DEFS usam a numeracao do protocolo (1..99) e o array de
+   respostas e indexado de 0. A versao anterior lia respostas[item], somando o
+   item seguinte ao previsto e nunca o item 99. */
 function calcScores(respostas) {
+  if (!Array.isArray(respostas)) respostas = [];
+  function val(n){
+    var v = respostas[n - 1];
+    if (v === null || v === undefined || v === '') return null;
+    v = parseInt(v, 10);
+    return isNaN(v) ? null : v;
+  }
   var result = {};
-  var totalSum = 0;
-  for (var i = 0; i < respostas.length; i++) totalSum += respostas[i];
+  var totalSum = 0, nResp = 0;
+  for (var i = 1; i <= ITEMS.length; i++) {
+    var vi = val(i);
+    if (vi !== null) { totalSum += vi; nResp++; }
+  }
 
   for (var si = 0; si < SCALE_DEFS.length; si++) {
     var sc = SCALE_DEFS[si];
-    var sum = 0;
-    for (var ii = 0; ii < sc.items.length; ii++) sum += (respostas[sc.items[ii]] || 0);
+    var sum = 0, nEsc = 0;
+    for (var ii = 0; ii < sc.items.length; ii++) {
+      var v = val(sc.items[ii]);
+      if (v !== null) { sum += v; nEsc++; }
+    }
     var norm = NORMS[sc.name];
     var z = norm ? (sum - norm.mean) / norm.sd : 0;
     var t = Math.min(100, Math.max(20, Math.round(50 + 10 * z)));
     var thr = THRESHOLDS[sc.type];
     var zona = t >= thr.clinical ? 'Cl\u00ednica' : t >= thr.borderline ? 'Aten\u00e7\u00e3o' : 'Normal';
-    result[sc.name] = { sum: sum, tscore: t, zona: zona, type: sc.type };
+    /* `t` e `tscore` expostos em simultaneo: o painel de sintese le `t` (como no
+       C-TRF) e o questionario de origem le `tscore`. */
+    result[sc.name] = { sum: sum, t: t, tscore: t, zona: zona, type: sc.type,
+                        nItens: sc.items.length, nResp: nEsc };
   }
 
   var normT = NORMS['Total'];
@@ -948,7 +968,8 @@ function calcScores(respostas) {
   var tT = Math.min(100, Math.max(20, Math.round(50 + 10 * zT)));
   var thrT = THRESHOLDS['total'];
   var zonaT = tT >= thrT.clinical ? 'Cl\u00ednica' : tT >= thrT.borderline ? 'Aten\u00e7\u00e3o' : 'Normal';
-  result['Total'] = { sum: totalSum, tscore: tT, zona: zonaT, type: 'total' };
+  result['Total'] = { sum: totalSum, t: tT, tscore: tT, zona: zonaT, type: 'total',
+                      nItens: ITEMS.length, nResp: nResp };
 
   return result;
 }
@@ -1061,19 +1082,48 @@ function esc(s){
 function num(x){ var v = parseFloat(x); return isNaN(v) ? null : v; }
 
 /* Respostas: a ÚNICA fonte de verdade. As colunas T_* do Sheet nunca são lidas
-   — algumas foram gravadas por versões antigas com tabelas incorrectas.       */
+   — algumas foram gravadas por versões antigas com tabelas incorrectas.
+   v1.1: a coluna pode chegar como array, JSON, JSON duplamente codificado ou
+   string delimitada (`0,1,2`, `0|1|2`, `0;1;2`). Aceitar só JSON deixava o
+   registo por cotar com a mensagem «Sem respostas item a item».              */
+function parseArrayRespostas(raw){
+  var v = raw;
+  for (var passo = 0; passo < 3; passo++){
+    if (Array.isArray(v)) break;
+    if (v && typeof v === 'object') break;
+    var s = String(v == null ? '' : v).trim();
+    if (!s) return null;
+    if (s.charAt(0) === '[' || s.charAt(0) === '{' || s.charAt(0) === '"'){
+      try { v = JSON.parse(s); continue; } catch(e){ /* tenta delimitadores */ }
+    }
+    var partes = s.split(/[\s,;|]+/).filter(function(x){ return x !== ''; });
+    if (partes.length > 1){ v = partes; break; }
+    return null;
+  }
+  if (!Array.isArray(v)) return null;
+  return v.map(function(x){
+    if (x === null || x === undefined || x === '') return null;
+    var n = parseInt(x, 10);
+    return isNaN(n) ? null : n;
+  });
+}
 function parseRespostas(row, formato){
   var raw = col(row, ['Respostas','respostas','answers','Answers','Item 100']);
   if (raw === '' ) return null;
   if (formato === 'pipe'){
-    if (typeof raw === 'string' && raw.indexOf('|') !== -1) return ENG.CTRF15.parse(raw);
-    try { var p = JSON.parse(raw); return Array.isArray(p) ? p : null; } catch(e){ return null; }
+    if (typeof raw === 'string' && raw.indexOf('|') !== -1 && raw.indexOf(':') !== -1) return ENG.CTRF15.parse(raw);
+    var a = parseArrayRespostas(raw);
+    return (a && a.length) ? a : null;
+  }
+  if (formato === 'array'){
+    var arr = parseArrayRespostas(raw);
+    return (arr && arr.length) ? arr : null;
   }
   var parsed = raw;
   if (typeof raw === 'string'){
     try { parsed = JSON.parse(raw); } catch(e){ return null; }
+    if (typeof parsed === 'string'){ try { parsed = JSON.parse(parsed); } catch(e){ return null; } }
   }
-  if (formato === 'array') return Array.isArray(parsed) ? parsed : null;
   return (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) ? parsed : null;
 }
 
@@ -1639,51 +1689,145 @@ function sondaAlinhamento(engChave){
   };
 }
 
+/* ─── utilitários da banda pré-escolar ─── */
+function preT(r, nome){
+  if (!r.cot || !r.cot.bruto) return null;
+  var v = r.cot.bruto[nome];
+  if (!v) return null;
+  var T = (v.t !== undefined && v.t !== null) ? v.t : (v.tscore !== undefined ? v.tscore : null);
+  return { T:T, raw:(v.sum !== undefined ? v.sum : null) };
+}
+function temEscalaPre(chave, nome){
+  var eng = ENG[chave];
+  if (!eng || !eng.SCALE_DEFS) return false;
+  if (nome === 'Total') return true;
+  return eng.SCALE_DEFS.some(function(d){ return d.name === nome; });
+}
+/* Discrepância entre informadores na banda pré-escolar: mesma régua do módulo
+   escolar (Δ ≥ 10 pontos T = 1 desvio-padrão), aplicada aos T de cada forma.  */
+function discrepanciaPre(cols, nome){
+  var vals = [];
+  cols.forEach(function(r){
+    if (!temEscalaPre(r.chave, nome)) return;
+    var v = preT(r, nome);
+    if (v && v.T !== null) vals.push({ r:r, T:v.T });
+  });
+  if (vals.length < 2) return { ok:false, n:vals.length };
+  vals.sort(function(a,b){ return b.T - a.T; });
+  var d = vals[0].T - vals[vals.length-1].T;
+  return { ok:true, delta:d, relevante:d >= PD.DELTA_REL, alto:vals[0], baixo:vals[vals.length-1], n:vals.length };
+}
+/* Especificidade contextual casa × escola: relato mais elevado de cada contexto,
+   nunca média — uma elevação num dos cuidadores é uma elevação no contexto.    */
+function especificidadePre(cols, nome, composto){
+  var casa = null, escola = null;
+  cols.forEach(function(r){
+    if (!temEscalaPre(r.chave, nome)) return;
+    var v = preT(r, nome);
+    if (!v || v.T === null) return;
+    if (r.chave === 'CBCL15'  && (casa   === null || v.T > casa.T))   casa   = { T:v.T, r:r };
+    if (r.chave === 'CTRF15'  && (escola === null || v.T > escola.T)) escola = { T:v.T, r:r };
+  });
+  if (!casa || !escola) return { ok:false };
+  var lim = composto ? 60 : 65;
+  var eCasa = casa.T >= lim, eEsc = escola.T >= lim;
+  var padrao = eCasa && eEsc ? 'pervasivo' : eCasa ? 'familiar' : eEsc ? 'escolar' : 'nao';
+  var txt = { pervasivo:'Pervasivo (casa e jardim de infância)', familiar:'Específico do contexto familiar',
+              escolar:'Específico do contexto pré-escolar', nao:'Sem elevação em nenhum contexto' }[padrao];
+  return { ok:true, padrao:padrao, texto:txt, casa:casa, escola:escola, limiar:lim };
+}
+
 function moduloPreEscolar(cols){
-  var h = '<div class="sec-title">2P · Banda pré-escolar (1½-5)</div>';
   var sCB = sondaAlinhamento('CBCL15');
   var sCT = sondaAlinhamento('CTRF15');
   var temCB = cols.some(function(r){ return r.chave === 'CBCL15'; });
   var temCT = cols.some(function(r){ return r.chave === 'CTRF15'; });
 
-  if (sCB.ok && !sCB.alinhado){
-    h += '<div class="aviso aviso-bloqueio"><div class="aviso-titulo">⛔ Leitura do CBCL 1½-5 bloqueada — mapa de itens desalinhado</div>' +
-      'A verificação automática de alinhamento detectou que, no motor do <strong>CBCL 1½-5</strong>, ' +
-      'cada escala lê a resposta do item <strong>seguinte</strong> ao que lhe pertence' +
-      (sCB.desvio === 1 ? '' : '') + ': uma resposta colocada no item ' + sCB.item +
-      ' não entra na escala «' + esc(sCB.escala) + '», ao passo que uma resposta colocada no item ' + (sCB.item + 1) + ' entra. ' +
-      'Pela mesma razão, o item ' + sCB.ultimoItem + ' <strong>nunca é contabilizado</strong> (o formulário tem ' + sCB.nItens + ' itens). ' +
-      'A forma C-TRF 1½-5, verificada pela mesma sonda, está alinhada.<br><br>' +
-      'Enquanto o desvio persistir, este painel <strong>não apresenta pontuações do CBCL 1½-5</strong> nem realiza a leitura ' +
-      'cruzada pais × educador na banda pré-escolar: reproduzi-las seria propagar o erro para a síntese. ' +
-      'Corrigir exige uma alteração ao ficheiro <code>CBCL_15_v5.html</code> (mantendo o nome), com recotação dos protocolos ' +
-      'já submetidos a partir da coluna Respostas.</div>';
+  /* ── Defesa mantida: se a sonda voltar a detectar desalinhamento em qualquer
+        das formas, o módulo bloqueia em vez de propagar o erro para a síntese ── */
+  if ((sCB.ok && !sCB.alinhado) || (sCT.ok && !sCT.alinhado)){
+    var mal = (sCB.ok && !sCB.alinhado) ? { s:sCB, nome:'CBCL 1½-5', fich:'CBCL_15_v5.html' }
+                                        : { s:sCT, nome:'C-TRF 1½-5', fich:'CTRF_15_v2.html' };
+    var h = '<div class="sec-title">2P · Banda pré-escolar (1½-5)</div>';
+    h += '<div class="aviso aviso-bloqueio"><div class="aviso-titulo">⛔ Leitura do ' + esc(mal.nome) + ' bloqueada — mapa de itens desalinhado</div>' +
+      'A verificação automática de alinhamento detectou que, no motor do <strong>' + esc(mal.nome) + '</strong>, ' +
+      'cada escala lê a resposta do item <strong>seguinte</strong> ao que lhe pertence: uma resposta colocada no item ' + mal.s.item +
+      ' não entra na escala «' + esc(mal.s.escala) + '», ao passo que uma resposta colocada no item ' + (mal.s.item + 1) + ' entra. ' +
+      'Pela mesma razão, o item ' + mal.s.ultimoItem + ' <strong>nunca é contabilizado</strong> (o formulário tem ' + mal.s.nItens + ' itens).<br><br>' +
+      'Enquanto o desvio persistir, este painel <strong>não apresenta pontuações desta forma</strong> nem realiza a leitura ' +
+      'cruzada pais × educador na banda pré-escolar. Corrigir exige uma alteração ao ficheiro <code>' + esc(mal.fich) + '</code> ' +
+      '(mantendo o nome), com recotação dos protocolos já submetidos a partir da coluna Respostas.</div>';
+    return h;
   }
 
-  if (temCT){
-    h += '<div class="sec-note">C-TRF 1½-5 — leitura descritiva isolada. Sem comparação entre informadores nesta banda ' +
-         'enquanto o CBCL 1½-5 estiver bloqueado.</div>';
-    h += '<div class="tbl-wrap"><table><thead><tr><th>Escala</th><th>Tipo</th>';
-    var cts = cols.filter(function(r){ return r.chave === 'CTRF15' && r.cot; });
-    cts.forEach(function(r){ h += '<th>' + esc(rotuloColuna(r)) + '<br><span style="font-weight:400;text-transform:none">' + esc(r.data) + '</span></th>'; });
-    h += '</tr></thead><tbody>';
-    var ordem = ENG.CTRF15.SCALE_DEFS.map(function(d){ return [d.name, d.type]; }).concat([['Total','total']]);
+  var h = '<div class="sec-title">2P · Perfil comparado entre informadores (1½-5)</div>';
+  h += '<div class="sec-note">Cotação local a partir da coluna Respostas de cada aba. ' +
+       'As pontuações T desta banda derivam de médias e desvios-padrão de referência, não de tabelas bruto→T do perfil em papel: ' +
+       'leem-se como posição relativa, não como percentis do manual.</div>';
+
+  var ordem = ENG.CBCL15.SCALE_DEFS.map(function(d){ return [d.name, d.type]; }).concat([['Total','total']]);
+
+  h += '<div class="tbl-wrap"><table><thead><tr><th>Escala</th><th>Tipo</th>';
+  cols.forEach(function(r){
+    h += '<th>' + esc(rotuloColuna(r)) + '<br><span style="font-weight:400;text-transform:none">' + esc(r.data) + '</span></th>';
+  });
+  h += '<th>Δ inter-informador</th></tr></thead><tbody>';
+
+  ordem.forEach(function(p){
+    var nome = p[0], tipo = p[1], composto = (tipo !== 'syndrome');
+    h += '<tr><td><strong>' + esc(nome) + '</strong></td>' +
+         '<td style="font-size:.78rem;color:var(--text-light)">' +
+         (tipo === 'syndrome' ? 'Síndrome' : tipo === 'broadband' ? 'Composto' : 'Total') + '</td>';
+    cols.forEach(function(r){
+      if (!temEscalaPre(r.chave, nome)){
+        h += '<td><span class="t-unknown">n.a.</span></td>';
+        return;
+      }
+      var v = preT(r, nome);
+      h += '<td>' + (v && v.T !== null ? celulaT(v.T, v.raw, composto) : '<span class="t-unknown">—</span>') + '</td>';
+    });
+    var d = discrepanciaPre(cols, nome);
+    h += '<td>' + (!d.ok ? '<span class="t-unknown">—</span>'
+         : (d.relevante ? '<span class="delta-flag">' + d.delta + '</span>' : '<span class="delta-ok">' + d.delta + '</span>')) + '</td>';
+    h += '</tr>';
+  });
+  h += '</tbody></table></div>';
+
+  /* ── especificidade contextual casa × jardim de infância ── */
+  if (temCB && temCT){
+    h += '<div class="sec-title" style="font-size:.95rem">2P.1 · Especificidade contextual (casa × jardim de infância)</div>';
+    h += '<div class="tbl-wrap"><table><thead><tr><th>Escala</th><th>Casa (CBCL)</th><th>Jardim de infância (C-TRF)</th><th>Padrão</th></tr></thead><tbody>';
     ordem.forEach(function(p){
-      h += '<tr><td><strong>' + esc(p[0]) + '</strong></td><td style="font-size:.78rem;color:var(--text-light)">' +
-           (p[1] === 'syndrome' ? 'Síndrome' : p[1] === 'broadband' ? 'Composto' : 'Total') + '</td>';
-      cts.forEach(function(r){
-        var v = r.cot.bruto[p[0]];
-        h += '<td>' + (v ? celulaT(v.t, v.sum, p[1] !== 'syndrome') : '<span class="t-unknown">—</span>') + '</td>';
-      });
-      h += '</tr>';
+      var nome = p[0], composto = (p[1] !== 'syndrome');
+      if (!temEscalaPre('CTRF15', nome)) return;   /* escalas exclusivas do CBCL saem no quadro seguinte */
+      var e = especificidadePre(cols, nome, composto);
+      if (!e.ok) return;
+      h += '<tr><td><strong>' + esc(nome) + '</strong></td>' +
+           '<td>' + celulaT(e.casa.T, preT(e.casa.r, nome).raw, composto) + '</td>' +
+           '<td>' + celulaT(e.escola.T, preT(e.escola.r, nome).raw, composto) + '</td>' +
+           '<td>' + esc(e.texto) + '</td></tr>';
     });
     h += '</tbody></table></div>';
-    h += '<div class="legenda">As escalas Problemas de Sono e o inquérito de desenvolvimento da linguagem existem apenas no ' +
-         'CBCL 1½-5 e não têm equivalente no C-TRF, pelo que nunca entram em comparação entre informadores. ' +
-         'As pontuações T desta banda derivam de médias e desvios-padrão de referência, não de tabelas bruto→T do perfil em papel.</div>';
-  } else if (temCB){
-    h += '<div class="sec-note">Existem protocolos CBCL 1½-5 para este caso, mas nenhum C-TRF 1½-5.</div>';
+    h += '<div class="legenda">Limiar de elevação: T ≥ 65 nas síndromes e T ≥ 60 nos compostos. ' +
+         'Uma divergência entre contextos não invalida nenhum dos relatos: informadores diferentes observam contextos diferentes, ' +
+         'com exigências e graus de estruturação distintos.</div>';
   }
+
+  /* ── escalas sem equivalente entre as duas formas ── */
+  var exclusivas = ordem.filter(function(p){ return !temEscalaPre('CTRF15', p[0]); }).map(function(p){ return p[0]; });
+  if (exclusivas.length){
+    h += '<div class="sec-note"><strong>Escalas sem comparação possível:</strong> ' + esc(exclusivas.join(', ')) +
+         ' — existem apenas no CBCL 1½-5 e não têm equivalente no C-TRF, pelo que nunca entram na leitura entre informadores. ' +
+         'O mesmo se aplica ao inquérito de desenvolvimento da linguagem.</div>';
+  }
+  if (temCB && !temCT){
+    h += '<div class="sec-note">Existem protocolos CBCL 1½-5 para este caso, mas nenhum C-TRF 1½-5: a leitura fica circunscrita ao contexto familiar.</div>';
+  } else if (temCT && !temCB){
+    h += '<div class="sec-note">Existem protocolos C-TRF 1½-5 para este caso, mas nenhum CBCL 1½-5: a leitura fica circunscrita ao contexto pré-escolar.</div>';
+  }
+  h += '<div class="legenda">Δ inter-informador assinala diferenças iguais ou superiores a ' + PD.DELTA_REL +
+       ' pontos T (1 desvio-padrão). Verificação de alinhamento item ↔ escala executada em tempo real sobre ambos os motores: ' +
+       'CBCL 1½-5 e C-TRF 1½-5 alinhados.</div>';
   return h;
 }
 
@@ -1706,11 +1850,28 @@ function blocoTrajectoria(caso){
          esc(t.rotulo) + '</div><div class="tbl-wrap"><table><thead><tr><th>Escala</th>';
     t.serie.forEach(function(r){ h += '<th>' + esc(r.data || '—') + '</th>'; });
     h += '<th>Variação</th></tr></thead><tbody>';
-    var escalas = (t.chave === 'CBCL15' || t.chave === 'CTRF15')
-      ? null : SIND.concat(COMPOSTOS);
-    if (!escalas){
-      h += '<tr><td colspan="' + (t.serie.length + 2) + '" style="color:var(--text-light)">' +
-           'Trajectória da banda pré-escolar: consultar o quadro descritivo acima.</td></tr>';
+    var ehPre = (t.chave === 'CBCL15' || t.chave === 'CTRF15');
+    var escalas = ehPre ? null : SIND.concat(COMPOSTOS);
+    if (ehPre){
+      /* v1.1 — a trajectória pré-escolar deixou de remeter para o quadro
+         descritivo: com os motores alinhados, lê-se pelas próprias escalas. */
+      var engPre = ENG[t.chave];
+      var ordemPre = engPre.SCALE_DEFS.map(function(d){ return [d.name, d.type]; }).concat([['Total','total']]);
+      ordemPre.forEach(function(p){
+        var composto = (p[1] !== 'syndrome');
+        h += '<tr><td><strong>' + esc(p[0]) + '</strong></td>';
+        var vals = [];
+        t.serie.forEach(function(r){
+          var v = preT(r, p[0]);
+          vals.push(v ? v.T : null);
+          h += '<td>' + (v && v.T !== null ? celulaT(v.T, v.raw, composto) : '<span class="t-unknown">—</span>') + '</td>';
+        });
+        var a0 = vals[0], b0 = vals[vals.length-1];
+        var dv0 = (a0 !== null && a0 !== undefined && b0 !== null && b0 !== undefined) ? (b0 - a0) : null;
+        h += '<td>' + (dv0 === null ? '<span class="t-unknown">—</span>'
+             : (Math.abs(dv0) >= PD.DELTA_REL ? '<span class="delta-flag">' + (dv0 > 0 ? '+' : '') + dv0 + '</span>'
+             : '<span class="delta-ok">' + (dv0 > 0 ? '+' : '') + dv0 + '</span>')) + '</td></tr>';
+      });
     } else {
       escalas.forEach(function(p){
         var composto = ['INT','EXT','TOT'].indexOf(p[0]) !== -1;

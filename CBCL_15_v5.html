@@ -360,8 +360,7 @@ tr:hover td{background:var(--blue-xpale)}
         <button class="btn btn-secondary btn-xs" onclick="syncToSheets()" style="background:#1E7E5A;color:white;border:none;">&#11014; Enviar para Sheet</button>
         <button class="btn btn-secondary btn-xs" onclick="exportarDados()" style="background:#5B7FA6;color:white;border:none;">&#128228; Exportar</button>
         <button class="btn btn-secondary btn-xs" onclick="importarDados()" style="background:#5B7FA6;color:white;border:none;">&#128229; Importar</button>
-        <button class="btn btn-secondary btn-xs" onclick="exportarRespostasPDF(sessaoActual)">&#128203; Respostas PDF</button>
-        <button class="btn btn-secondary btn-xs" onclick="exportarInterpretacaoPDF(sessaoActual)">&#128202; Interpreta&#231;&#227;o PDF</button>
+        <button class="btn btn-secondary btn-xs" onclick="recotarSessoes()" style="background:#3B5A7A;color:white;border:none;" title="Recalcula as pontua&#231;&#245;es a partir das respostas item-a-item">&#8634; Recotar</button>
         <button class="btn btn-secondary btn-xs" onclick="limparDados()" style="color:var(--red)">&#128465; Limpar</button>
         <button class="btn btn-secondary btn-xs" onclick="showPage('page-home')">&#8592; Sair</button>
       </div>
@@ -622,31 +621,84 @@ function updateProgress() {
 }
 
 // ====== SCORES ======
+/* v5.1 — CORRECCAO CRITICA DE COTACAO
+   Os arrays de SCALE_DEFS usam a numeracao do protocolo (1..99), mas o array
+   `respostas` e indexado de 0. A versao anterior lia respostas[item] em vez de
+   respostas[item-1], pelo que cada escala somava o item SEGUINTE ao previsto e o
+   item 99 nunca era contabilizado. Todas as pontuacoes brutas e T anteriores a
+   esta correccao estao invalidas e devem ser recotadas (botao "Recotar" no painel). */
+function zonaDe(t, type) {
+  var thr = THRESHOLDS[type] || THRESHOLDS.syndrome;
+  if (t == null || isNaN(t)) return '\u2014';
+  return t >= thr.clinical ? 'Cl\u00ednica' : t >= thr.borderline ? 'Aten\u00e7\u00e3o' : 'Normal';
+}
+
+function valorItem(respostas, n) {   /* n = numero do item no protocolo (1..99) */
+  var v = respostas[n - 1];
+  if (v == null || v === '') return null;
+  v = parseInt(v, 10);
+  return isNaN(v) ? null : v;
+}
+
 function calcScores(respostas) {
+  if (!Array.isArray(respostas)) respostas = [];
   var result = {};
   var totalSum = 0;
-  for (var i = 0; i < respostas.length; i++) totalSum += respostas[i];
+  var nResp = 0;
+  for (var i = 0; i < ITEMS.length; i++) {
+    var vi = valorItem(respostas, i + 1);
+    if (vi != null) { totalSum += vi; nResp++; }
+  }
 
   for (var si = 0; si < SCALE_DEFS.length; si++) {
     var sc = SCALE_DEFS[si];
-    var sum = 0;
-    for (var ii = 0; ii < sc.items.length; ii++) sum += (respostas[sc.items[ii]] || 0);
+    var sum = 0, nEsc = 0;
+    for (var ii = 0; ii < sc.items.length; ii++) {
+      var v = valorItem(respostas, sc.items[ii]);
+      if (v != null) { sum += v; nEsc++; }
+    }
     var norm = NORMS[sc.name];
     var z = norm ? (sum - norm.mean) / norm.sd : 0;
     var t = Math.min(100, Math.max(20, Math.round(50 + 10 * z)));
-    var thr = THRESHOLDS[sc.type];
-    var zona = t >= thr.clinical ? 'Cl\u00ednica' : t >= thr.borderline ? 'Aten\u00e7\u00e3o' : 'Normal';
-    result[sc.name] = { sum: sum, tscore: t, zona: zona, type: sc.type };
+    result[sc.name] = {
+      sum: sum, tscore: t, zona: zonaDe(t, sc.type), type: sc.type,
+      nItens: sc.items.length, nResp: nEsc, completo: (nEsc === sc.items.length)
+    };
   }
 
   var normT = NORMS['Total'];
   var zT = (totalSum - normT.mean) / normT.sd;
   var tT = Math.min(100, Math.max(20, Math.round(50 + 10 * zT)));
-  var thrT = THRESHOLDS['total'];
-  var zonaT = tT >= thrT.clinical ? 'Cl\u00ednica' : tT >= thrT.borderline ? 'Aten\u00e7\u00e3o' : 'Normal';
-  result['Total'] = { sum: totalSum, tscore: tT, zona: zonaT, type: 'total' };
+  result['Total'] = {
+    sum: totalSum, tscore: tT, zona: zonaDe(tT, 'total'), type: 'total',
+    nItens: ITEMS.length, nResp: nResp, completo: (nResp === ITEMS.length)
+  };
 
   return result;
+}
+
+/* Escalas a que cada item pertence — usado nos relatorios item-a-item */
+var MAPA_ITEM_ESCALAS = (function(){
+  var abrev = {
+    'Reatividade Emocional': 'RE', 'Ansiedade/Depress\u00e3o': 'AD', 'Queixas Som\u00e1ticas': 'QS',
+    'Isolamento': 'ISO', 'Problemas de Sono': 'PS', 'Problemas de Aten\u00e7\u00e3o': 'PA',
+    'Comportamento Agressivo': 'CA', 'Internalizante': 'INT', 'Externalizante': 'EXT'
+  };
+  var m = {};
+  for (var i = 0; i < SCALE_DEFS.length; i++) {
+    var sc = SCALE_DEFS[i];
+    for (var j = 0; j < sc.items.length; j++) {
+      var n = sc.items[j];
+      if (!m[n]) m[n] = [];
+      m[n].push(abrev[sc.name] || sc.name);
+    }
+  }
+  return m;
+})();
+
+function escalasDoItem(n) {
+  var a = MAPA_ITEM_ESCALAS[n];
+  return a && a.length ? a.join(' \u00b7 ') : '\u2014';
 }
 
 // ====== SUBMETER ======
@@ -779,13 +831,8 @@ function verDetalhe(idx) {
     if (!sc) return null;
     var t = parseFloat(sc.tscore);
     if (isNaN(t)) return null;
-    var zona = sc.zona;
-    if (!zona || zona === 'Normal') {
-      zona = isBroad
-        ? (t >= 65 ? 'Cl\u00ednica' : t >= 60 ? 'Aten\u00e7\u00e3o' : 'Normal')
-        : (t >= 70 ? 'Cl\u00ednica' : t >= 65 ? 'Aten\u00e7\u00e3o' : 'Normal');
-    }
-    return { tscore: t, sum: sc.sum, zona: zona };
+    var zona = sc.zona || zonaDe(t, isBroad ? 'broadband' : 'syndrome');
+    return { tscore: t, sum: (sc.sum != null ? sc.sum : null), zona: zona };
   }
 
   function barra(label, scRaw, limiar, isBroad) {
@@ -840,13 +887,25 @@ function verDetalhe(idx) {
 
   var respHTML = '';
   if (sessao.respostas && sessao.respostas.length) {
-  respHTML = '<details style="margin-top:16px"><summary style="cursor:pointer;font-weight:600;color:var(--blue);padding:8px 0">Ver respostas por item</summary><div style="margin-top:12px">';
-  for (var ri = 0; ri < sessao.respostas.length; ri++) {
+  var nRespModal = sessao.respostas.filter(function(x){ return x != null && x !== ''; }).length;
+  respHTML = '<details style="margin-top:16px" open><summary style="cursor:pointer;font-weight:600;color:var(--blue);padding:8px 0">Respostas por item (' + nRespModal + ' de ' + ITEMS.length + ')</summary><div style="margin-top:12px">' +
+    '<div style="display:grid;grid-template-columns:28px 1fr 74px 24px;gap:8px;padding:5px 0;border-bottom:2px solid var(--gray);font-size:0.75rem;font-weight:700;color:var(--text-light)"><span>#</span><span>Item</span><span>Escala</span><span>R</span></div>';
+  for (var ri = 0; ri < ITEMS.length; ri++) {
     var v = sessao.respostas[ri];
+    var temV = (v != null && v !== '');
     var cor = v === 2 ? '#C0392B' : v === 1 ? '#E67E22' : '#27AE60';
-    respHTML += '<div style="display:grid;grid-template-columns:28px 1fr 24px;gap:8px;padding:5px 0;border-bottom:1px solid var(--gray);font-size:0.82rem"><span style="color:var(--text-light)">' + (ri+1) + '</span><span>' + ITEMS[ri] + '</span><span style="font-weight:700;color:' + cor + '">' + v + '</span></div>';
+    respHTML += '<div style="display:grid;grid-template-columns:28px 1fr 74px 24px;gap:8px;padding:5px 0;border-bottom:1px solid var(--gray);font-size:0.82rem">' +
+      '<span style="color:var(--text-light)">' + (ri+1) + '</span>' +
+      '<span>' + ITEMS[ri] + '</span>' +
+      '<span style="font-size:0.7rem;color:var(--text-light)">' + escalasDoItem(ri+1) + '</span>' +
+      '<span style="font-weight:700;color:' + (temV ? cor : '#9AA5B1') + '">' + (temV ? v : '\u2014') + '</span></div>';
   }
   respHTML += '</div></details>';
+  } else {
+  respHTML = '<div style="margin-top:16px;background:#FDF3E7;border-left:4px solid #E67E22;border-radius:0 6px 6px 0;padding:12px 16px;font-size:0.83rem;line-height:1.5">' +
+    '<strong>Respostas item-a-item indispon\u00edveis nesta sess\u00e3o.</strong><br>' +
+    'O registo foi importado do Sheet sem a coluna <em>Respostas</em> reconstru\u00edda. Sincronize novamente (&#8635; Sincronizar) para as recuperar; se a coluna estiver vazia no Sheet, o protocolo ter\u00e1 de ser recotado a partir do formul\u00e1rio em papel.' +
+    '</div>';
   } // end if respostas
 
   var addHTML = '';
@@ -866,7 +925,10 @@ function verDetalhe(idx) {
     '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px">' +
     '<div><div style="font-family:\'DM Serif Display\',serif;font-size:1.3rem;color:var(--blue)">' + sessao.nome + '</div>' +
     '<div style="font-size:0.82rem;color:var(--text-light);margin-top:4px">C\u00f3digo: ' + sessao.codigo + ' &middot; Data: ' + sessao.data + ' &middot; Informante: ' + sessao.informante + '</div></div>' +
-    '<button class="btn btn-secondary btn-xs" onclick="document.body.removeChild(document.querySelector(&quot;.modal-overlay&quot;))">&#10005; Fechar</button></div>' +
+    '<div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end">' +
+    '<button class="btn btn-secondary btn-xs" onclick="exportarRespostasPDF(sessaoActual)">&#128203; Respostas PDF</button>' +
+    '<button class="btn btn-secondary btn-xs" onclick="exportarInterpretacaoPDF(sessaoActual)">&#128202; Relat&oacute;rio Completo PDF</button>' +
+    '<button class="btn btn-secondary btn-xs" onclick="document.body.removeChild(document.querySelector(&quot;.modal-overlay&quot;))">&#10005; Fechar</button></div></div>' +
     '<div style="background:var(--blue-xpale);border-radius:8px;padding:14px 16px;margin-bottom:20px;font-size:0.88rem;line-height:1.6">' + interp + '</div>' +
     '<div style="font-weight:700;color:var(--blue);margin-bottom:12px;font-size:0.95rem">Perfil de T-scores &mdash; S\u00edndromes</div>' +
     scoresHTML +
@@ -885,6 +947,11 @@ function verDetalhe(idx) {
 function imprimirRelatorio() {
   var sessao = sessaoActual;
   if (!sessao) return;
+  /* Defensivo — sessoes importadas sem cotacao local sao recotadas a partir dos itens */
+  if ((!sessao.scores || !sessao.scores['Total']) && Array.isArray(sessao.respostas) && sessao.respostas.length) {
+    sessao.scores = calcScores(sessao.respostas);
+  }
+  if (!sessao.scores) sessao.scores = {};
   var dt = sessao.data || '';
   var nomeCrianca = sessao.nome || '';
   var nomeInformante = sessao.informante || '';
@@ -894,13 +961,13 @@ function imprimirRelatorio() {
   var linhasSindromes = '';
   syndromeNames.forEach(function(n) {
     var sc = sessao.scores[n];
-    if (!sc || !sc.tscore) return;
-    var zona = sc.zona || (sc.tscore >= 70 ? 'Cl\u00ednica' : sc.tscore >= 65 ? 'Aten\u00e7\u00e3o' : 'Normativo');
+    if (!sc || sc.tscore == null) return;
+    var zona = sc.zona || zonaDe(sc.tscore, 'syndrome');
     var cor = zona === 'Cl\u00ednica' ? '#C0392B' : zona === 'Aten\u00e7\u00e3o' ? '#E67E22' : '#27AE60';
-    var pct = Math.min(100, Math.round(((sc.tscore - 40) / 60) * 100));
+    var pct = Math.min(100, Math.max(0, Math.round(((sc.tscore - 40) / 60) * 100)));
     linhasSindromes += '<tr>' +
       '<td style="padding:5px 8px;border-bottom:1px solid #eee;">' + n + '</td>' +
-      '<td style="padding:5px 8px;border-bottom:1px solid #eee;text-align:center;">' + (sc.sum || '-') + '</td>' +
+      '<td style="padding:5px 8px;border-bottom:1px solid #eee;text-align:center;">' + (sc.sum != null ? sc.sum : '\u2014') + '</td>' +
       '<td style="padding:5px 8px;border-bottom:1px solid #eee;text-align:center;font-weight:700;color:' + cor + ';">T=' + sc.tscore + '</td>' +
       '<td style="padding:5px 8px;border-bottom:1px solid #eee;">' +
         '<div style="background:#eee;border-radius:3px;height:8px;width:120px;display:inline-block;vertical-align:middle">' +
@@ -914,12 +981,12 @@ function imprimirRelatorio() {
   var linhasCompostos = '';
   broadNames.forEach(function(n) {
     var sc = sessao.scores[n];
-    if (!sc || !sc.tscore) return;
-    var zona = sc.zona || (sc.tscore >= 65 ? 'Cl\u00ednica' : sc.tscore >= 60 ? 'Aten\u00e7\u00e3o' : 'Normativo');
+    if (!sc || sc.tscore == null) return;
+    var zona = sc.zona || zonaDe(sc.tscore, n === 'Total' ? 'total' : 'broadband');
     var cor = zona === 'Cl\u00ednica' ? '#C0392B' : zona === 'Aten\u00e7\u00e3o' ? '#E67E22' : '#27AE60';
     linhasCompostos += '<tr>' +
       '<td style="padding:5px 8px;border-bottom:1px solid #eee;font-weight:' + (n==='Total'?'700':'400') + ';">' + n + '</td>' +
-      '<td style="padding:5px 8px;border-bottom:1px solid #eee;text-align:center;">' + (sc.sum || '-') + '</td>' +
+      '<td style="padding:5px 8px;border-bottom:1px solid #eee;text-align:center;">' + (sc.sum != null ? sc.sum : '\u2014') + '</td>' +
       '<td style="padding:5px 8px;border-bottom:1px solid #eee;text-align:center;font-weight:700;color:' + cor + ';">T=' + sc.tscore + '</td>' +
       '<td style="padding:5px 8px;border-bottom:1px solid #eee;color:' + cor + ';font-weight:600;">' + zona + '</td>' +
       '</tr>';
@@ -941,22 +1008,32 @@ function imprimirRelatorio() {
   var respostasHTML = '';
   if (sessao.respostas && sessao.respostas.length) {
     var itensHTML = '';
-    for (var ri = 0; ri < sessao.respostas.length; ri++) {
+    var nRespRel = 0;
+    for (var ri = 0; ri < ITEMS.length; ri++) {
       var v = sessao.respostas[ri];
+      var temV = (v != null && v !== '');
+      if (temV) nRespRel++;
       var corR = v === 2 ? '#C0392B' : v === 1 ? '#E67E22' : '#27AE60';
       var itemLabel = (typeof ITEMS !== 'undefined' && ITEMS[ri]) ? ITEMS[ri] : 'Item ' + (ri+1);
-      itensHTML += '<tr>' +
+      itensHTML += '<tr' + (v === 2 ? ' style="background:#FCF0EE;"' : '') + '>' +
         '<td style="padding:4px 8px;border-bottom:1px solid #eee;text-align:center;color:#999;">' + (ri+1) + '</td>' +
         '<td style="padding:4px 8px;border-bottom:1px solid #eee;font-size:0.85rem;">' + itemLabel + '</td>' +
-        '<td style="padding:4px 8px;border-bottom:1px solid #eee;text-align:center;font-weight:700;color:' + corR + ';">' + v + '</td>' +
+        '<td style="padding:4px 8px;border-bottom:1px solid #eee;font-size:0.72rem;color:#7a8795;text-align:center;">' + escalasDoItem(ri+1) + '</td>' +
+        '<td style="padding:4px 8px;border-bottom:1px solid #eee;text-align:center;font-weight:700;color:' + (temV ? corR : '#bbb') + ';">' + (temV ? v : '\u2014') + '</td>' +
         '</tr>';
     }
-    respostasHTML = '<h2 style="font-size:1rem;color:#1a4a8a;margin:24px 0 10px;padding-bottom:4px;border-bottom:2px solid #e0e8f0;">Respostas por Item</h2>' +
+    respostasHTML = '<h2 style="font-size:1rem;color:#1a4a8a;margin:24px 0 10px;padding-bottom:4px;border-bottom:2px solid #e0e8f0;">Respostas por Item (' + nRespRel + ' de ' + ITEMS.length + ')</h2>' +
       '<table style="width:100%;border-collapse:collapse;font-size:0.85rem;">' +
       '<thead><tr><th style="padding:5px 8px;text-align:center;background:#f0f4f8;">#</th>' +
       '<th style="padding:5px 8px;text-align:left;background:#f0f4f8;">Item</th>' +
+      '<th style="padding:5px 8px;text-align:center;background:#f0f4f8;">Escala</th>' +
       '<th style="padding:5px 8px;text-align:center;background:#f0f4f8;">Resp.</th></tr></thead>' +
-      '<tbody>' + itensHTML + '</tbody></table>';
+      '<tbody>' + itensHTML + '</tbody></table>' +
+      '<p style="font-size:0.72rem;color:#999;margin-top:6px;">0 = N\u00e3o \u00e9 verdade &nbsp;|&nbsp; 1 = \u00c0s vezes / um pouco verdade &nbsp;|&nbsp; 2 = Muitas vezes / muito verdade. ' +
+      'Escalas: RE Reatividade Emocional &middot; AD Ansiedade/Depress\u00e3o &middot; QS Queixas Som\u00e1ticas &middot; ISO Isolamento &middot; PS Problemas de Sono &middot; PA Problemas de Aten\u00e7\u00e3o &middot; CA Comportamento Agressivo &middot; INT Internalizante &middot; EXT Externalizante.</p>';
+  } else {
+    respostasHTML = '<h2 style="font-size:1rem;color:#1a4a8a;margin:24px 0 10px;padding-bottom:4px;border-bottom:2px solid #e0e8f0;">Respostas por Item</h2>' +
+      '<p style="font-size:0.85rem;color:#C0392B;">Respostas item-a-item indispon\u00edveis para esta sess\u00e3o (registo importado sem a coluna <em>Respostas</em>). Sincronize novamente o painel para as recuperar.</p>';
   }
 
   var html = '<!DOCTYPE html><html lang="pt"><head><meta charset="UTF-8">' +
@@ -1001,11 +1078,24 @@ function imprimirRelatorio() {
 function exportarCSV() {
   var sessions = getSessions();
   if (!sessions.length) { alert('Sem dados para exportar.'); return; }
-  var cols = ['Data','Codigo','Nome','Sexo','Informante','T_Reatividade','T_Ansiedade','T_Somaticas','T_Isolamento','T_Sono','T_Atencao','T_Agressivo','T_Internalizante','T_Externalizante','T_Total'];
   var snames = ['Reatividade Emocional','Ansiedade/Depress\u00e3o','Queixas Som\u00e1ticas','Isolamento','Problemas de Sono','Problemas de Aten\u00e7\u00e3o','Comportamento Agressivo','Internalizante','Externalizante','Total'];
+  var sabrev = ['Reatividade','Ansiedade','Somaticas','Isolamento','Sono','Atencao','Agressivo','Internalizante','Externalizante','Total'];
+  var cols = ['Data','Codigo','Nome','Sexo','Informante','NomeInformante'];
+  sabrev.forEach(function(a){ cols.push('B_' + a); });   /* brutos */
+  sabrev.forEach(function(a){ cols.push('T_' + a); });   /* T-scores */
+  cols.push('N_Respondidos');
+  for (var ic = 1; ic <= ITEMS.length; ic++) cols.push('I' + ic);  /* respostas item-a-item */
   var rows = sessions.map(function(s) {
-    var base = [s.data, s.codigo, '"' + s.nome + '"', s.sexo, s.informante];
-    snames.forEach(function(n){ base.push((s.scores[n] || {}).tscore || ''); });
+    var sc = s.scores || {};
+    var base = [s.data, s.codigo, '"' + (s.nome || '') + '"', s.sexo, s.informante, '"' + (s.nome_informante || '') + '"'];
+    snames.forEach(function(n){ var o = sc[n] || {}; base.push(o.sum != null ? o.sum : ''); });
+    snames.forEach(function(n){ var o = sc[n] || {}; base.push(o.tscore != null ? o.tscore : ''); });
+    var resp = Array.isArray(s.respostas) ? s.respostas : [];
+    base.push(resp.filter(function(x){ return x != null && x !== ''; }).length);
+    for (var ii = 0; ii < ITEMS.length; ii++) {
+      var v = resp[ii];
+      base.push((v == null || v === '') ? '' : v);
+    }
     return base.join(',');
   });
   var csv = [cols.join(',')].concat(rows).join('\n');
@@ -1022,6 +1112,90 @@ function limparDados() {
   renderTabela();
 }
 
+/* ── Leitura de coluna com variantes de nome (o Sheet devolve cabecalhos em PT) ── */
+function colSheet(row, nomes) {
+  for (var i = 0; i < nomes.length; i++) {
+    var v = row[nomes[i]];
+    if (v !== undefined && v !== null && v !== '') return v;
+  }
+  return '';
+}
+
+/* ── Reconstrucao das respostas item-a-item vindas do Sheet ──────────────────
+   A coluna `Respostas` pode chegar em varios formatos consoante o Apps Script
+   e a formatacao da celula: array real, JSON "[0,1,2]", JSON duplamente
+   codificado, objecto {"1":0,...} ou string delimitada "0,1,2" / "0|1|2" /
+   "0;1;2" / "0 1 2". A versao anterior so aceitava JSON, pelo que qualquer
+   outro formato devolvia [] e o relatorio ficava sem os itens. */
+function parseRespostasSheet(raw) {
+  if (raw == null || raw === '') return [];
+  var v = raw;
+  for (var passo = 0; passo < 3; passo++) {
+    if (Array.isArray(v)) break;
+    if (typeof v === 'object') break;
+    if (typeof v !== 'string') { v = String(v); }
+    var s = v.trim();
+    if (!s) return [];
+    if (s.charAt(0) === '[' || s.charAt(0) === '{' || s.charAt(0) === '"') {
+      try { v = JSON.parse(s); continue; } catch(e) { /* segue para delimitadores */ }
+    }
+    var partes = s.split(/[\s,;|]+/).filter(function(x){ return x !== ''; });
+    if (partes.length > 1) { v = partes; break; }
+    return [];
+  }
+  var arr = [];
+  if (Array.isArray(v)) {
+    arr = v;
+  } else if (v && typeof v === 'object') {
+    /* objecto indexado pelo numero do item (1..99) */
+    arr = new Array(ITEMS.length);
+    for (var k in v) {
+      if (!Object.prototype.hasOwnProperty.call(v, k)) continue;
+      var idx = parseInt(k, 10);
+      if (!isNaN(idx) && idx >= 1 && idx <= ITEMS.length) arr[idx - 1] = v[k];
+    }
+  } else {
+    return [];
+  }
+  var out = [];
+  for (var i = 0; i < arr.length; i++) {
+    var n = parseInt(arr[i], 10);
+    out.push(isNaN(n) ? null : n);
+  }
+  while (out.length && out[out.length - 1] == null) out.pop();
+  return out;
+}
+
+function normalizarDataSheet(d) {
+  var s = String(d == null ? '' : d);
+  if (s.indexOf('T') > -1 && s.indexOf('-') > -1) {
+    var dt = new Date(s);
+    if (!isNaN(dt.getTime())) return dt.toISOString().split('T')[0];
+  }
+  return s;
+}
+
+/* Reconstroi scores a partir das colunas T_* quando NAO ha respostas item-a-item */
+function scoresDeColunas(row) {
+  function mk(nomes, type) {
+    var v = parseFloat(String(colSheet(row, nomes)).replace(',', '.'));
+    if (isNaN(v)) return null;
+    return { tscore: v, sum: null, zona: zonaDe(v, type), type: type, nResp: null, completo: false };
+  }
+  return {
+    'Reatividade Emocional':   mk(['T_Reatividade','T_RE','T_Reatividade_Emocional'], 'syndrome'),
+    'Ansiedade/Depress\u00e3o': mk(['T_Ansiedade','T_AD','T_Ansiedade_Depressao'], 'syndrome'),
+    'Queixas Som\u00e1ticas':   mk(['T_Somaticas','T_QS','T_Queixas_Somaticas'], 'syndrome'),
+    'Isolamento':              mk(['T_Isolamento','T_Retraimento','T_ISO','T_Retracao'], 'syndrome'),
+    'Problemas de Sono':       mk(['T_Sono','T_PS','T_Problemas_Sono'], 'syndrome'),
+    'Problemas de Aten\u00e7\u00e3o': mk(['T_Atencao','T_PA','T_Problemas_Atencao'], 'syndrome'),
+    'Comportamento Agressivo': mk(['T_Agressivo','T_CA','T_Comportamento_Agressivo'], 'syndrome'),
+    'Internalizante':          mk(['T_Internalizante','T_INT'], 'broadband'),
+    'Externalizante':          mk(['T_Externalizante','T_EXT'], 'broadband'),
+    'Total':                   mk(['T_Total','T_TOT'], 'total')
+  };
+}
+
 async function carregarDados() {
   if (!RC_SHEET_URL) return;
   try {
@@ -1030,66 +1204,86 @@ async function carregarDados() {
     var rows = Array.isArray(data) ? data : (data && data.rows ? data.rows : []);
     if (!rows.length) { alert('Sem dados no Sheet.'); return; }
     var all = getSessions() || [];
-    var added = 0;
+    var added = 0, atualizados = 0, semRespostas = 0;
     rows.forEach(function(row) {
-      var code = row['Código'] || row['codigo'] || row['patientCode'] || '';
-      var date = row['Data'] || row['data'] || '';
+      var code = colSheet(row, ['C\u00f3digo','Codigo','codigo','C\u00f3digo Paciente','patientCode']);
       if (!code) return;
-      // ── Chave de deduplicação alargada (corrige bug: 2 pais a preencherem
-      // no mesmo dia para a mesma criança eram tratados como duplicados) ──
-      var infoTipo = row['Informante']     || row['informante']     || '';
-      var infoNome = row['NomeInformante'] || row['nome_informante'] || row['NomeInf'] || '';
-      if (!all.find(function(s){
+      var date = normalizarDataSheet(colSheet(row, ['Data','data','DataPreenchimento']));
+      // ── Chave de deduplicação de 4 elementos (código + data + tipo + nome do respondente) ──
+      var infoTipo = colSheet(row, ['Informante','informante','PreenchidoPor','Relacao']);
+      var infoNome = colSheet(row, ['NomeInformante','nome_informante','NomeInf','NomePreenche','NomeRespondente']);
+      var respostas = parseRespostasSheet(colSheet(row, ['Respostas','respostas','Itens','ItensRespostas']));
+      var temResp = respostas.length > 0;
+      if (!temResp) semRespostas++;
+
+      var existente = all.find(function(s){
         return s.codigo === code &&
                s.data === date &&
                (s.informante || '') === infoTipo &&
                (s.nome_informante || '') === infoNome;
-      })) {
-        function mkScore(t, isBroad) {
-          var v = parseFloat(t);
-          if (isNaN(v) || t === '') return null;
-          var zona = isBroad
-            ? (v >= 65 ? 'Clínica' : v >= 60 ? 'Atenção' : 'Normal')
-            : (v >= 70 ? 'Clínica' : v >= 65 ? 'Atenção' : 'Normal');
-          return { tscore: v, sum: '', zona: zona };
+      });
+
+      if (existente) {
+        // ── Registo ja sincronizado: completar respostas em falta e recotar ──
+        // (sem isto, um registo importado antes desta correccao ficava para sempre
+        //  sem itens e com os T antigos, desalinhados)
+        var faltam = !Array.isArray(existente.respostas) || existente.respostas.length === 0;
+        if (temResp && faltam) {
+          existente.respostas = respostas;
+          existente.scores = calcScores(respostas);
+          atualizados++;
         }
-        all.push({
-          id: Date.now() + added,
-          codigo: code,
-          data: date,
-          nome: row['Nome'] || row['nome'] || '',
-          sexo: row['Sexo'] || row['sexo'] || '',
-          informante: infoTipo,
-          nome_informante: infoNome,
-          respostas: (function(){
-            try {
-              var r = row['Respostas'] || row['respostas'] || '';
-              if (r && typeof r === 'string' && (r.startsWith('{') || r.startsWith('['))) {
-                var parsed = JSON.parse(r);
-                return Array.isArray(parsed) ? parsed : [];
-              }
-            } catch(e) {}
-            return [];
-          })(),
-          scores: {
-            'Reatividade Emocional': mkScore(row['T_Reatividade'], false),
-            'Ansiedade/Depressão':   mkScore(row['T_Ansiedade'],   false),
-            'Queixas Somáticas':     mkScore(row['T_Somaticas'],   false),
-            'Isolamento':            mkScore(row['T_Retraimento'],  false),
-            'Problemas de Sono':     mkScore(row['T_Sono'],        false),
-            'Problemas de Atenção':  mkScore(row['T_Atencao'],     false),
-            'Comportamento Agressivo': mkScore(row['T_Agressivo'], false),
-            'Internalizante':        mkScore(row['T_Internalizante'], true),
-            'Externalizante':        mkScore(row['T_Externalizante'], true),
-            'Total':                 mkScore(row['T_Total'],          true)
-          }
-        });
-        added++;
+        return;
       }
+
+      all.push({
+        id: Date.now() + added,
+        codigo: code,
+        data: date,
+        nome: colSheet(row, ['Nome','nome','NomeCrian\u00e7a','NomeCrianca']),
+        sexo: colSheet(row, ['Sexo','sexo','G\u00e9nero','Genero']),
+        informante: infoTipo,
+        nome_informante: infoNome,
+        respostas: respostas,
+        // ── Recotacao local a partir dos itens (nunca confiar nas colunas T_* do
+        //    Sheet, calculadas por versoes anteriores com o indice desalinhado) ──
+        scores: temResp ? calcScores(respostas) : scoresDeColunas(row),
+        doenca: colSheet(row, ['Doenca','Doen\u00e7a']),
+        doencaDesc: colSheet(row, ['DoencaDesc','Doenca_Desc','Doen\u00e7aDescricao']),
+        preocupa: colSheet(row, ['Preocupa','Preocupacao','Preocupa\u00e7\u00e3o']),
+        melhor: colSheet(row, ['Melhor','PontosFortes','Pontos_Fortes']),
+        fromSheet: true
+      });
+      added++;
     });
-    if (added > 0) { saveSessions(all); renderTabela(); }
-    alert('Sincronizado! ' + added + ' novo(s) registo(s) adicionado(s).');
+    if (added > 0 || atualizados > 0) { saveSessions(all); renderTabela(); }
+    alert('Sincronizado!\n' + added + ' novo(s) registo(s).\n' +
+          atualizados + ' registo(s) actualizado(s) com as respostas item-a-item.' +
+          (semRespostas ? '\n\n\u26a0 ' + semRespostas + ' linha(s) do Sheet sem coluna "Respostas" preenchida — nesses casos o relat\u00f3rio n\u00e3o pode incluir os itens.' : ''));
   } catch(e) { alert('Erro ao sincronizar: ' + e.message); }
+}
+
+/* ── Recotacao das sessoes locais a partir das respostas item-a-item ──────────
+   Necessaria uma unica vez, para corrigir os protocolos cotados antes da
+   correccao do indice em calcScores. */
+function recotarSessoes() {
+  var sessions = getSessions();
+  if (!sessions.length) { alert('Sem sess\u00f5es locais para recotar.'); return; }
+  if (!confirm('Recalcular as pontua\u00e7\u00f5es de todas as sess\u00f5es a partir das respostas item-a-item?\n\nOs registos sem respostas guardadas ficam inalterados.')) return;
+  var recotadas = 0, semItens = 0;
+  for (var i = 0; i < sessions.length; i++) {
+    var s = sessions[i];
+    if (Array.isArray(s.respostas) && s.respostas.length) {
+      s.scores = calcScores(s.respostas);
+      recotadas++;
+    } else {
+      semItens++;
+    }
+  }
+  saveSessions(sessions);
+  renderTabela();
+  alert(recotadas + ' sess\u00e3o(\u00f5es) recotada(s).' +
+        (semItens ? '\n' + semItens + ' sem respostas guardadas — sincronize com o Sheet para as recuperar.' : ''));
 }
 
 async function syncToSheets() {
@@ -1110,8 +1304,10 @@ async function syncToSheets() {
           nome: s.nome || '',
           sexo: s.sexo || '',
           informante: s.informante || '',
+          nome_informante: s.nome_informante || '',
           scores: s.scores,
-          respostas: JSON.stringify(Array.isArray(s.respostas) ? s.respostas : [])
+          /* mesmo formato de submeterForm (array), para o Apps Script serializar uma so vez */
+          respostas: Array.isArray(s.respostas) ? s.respostas : []
         })
       });
       enviados++;
@@ -1158,13 +1354,21 @@ function importarDados() {
 function exportarRespostasPDF(sessao) {
   if (!sessao) { alert('Seleccione primeiro uma sess\u00e3o (clique em "Ver detalhes").'); return; }
   var resps = sessao.respostas || [];
-  var linhas = resps.map(function(r, i) {
+  if (!resps.length) {
+    alert('Esta sess\u00e3o n\u00e3o tem respostas item-a-item guardadas.\n\nSincronize o painel com o Sheet (\u21bb Sincronizar) para as recuperar.');
+    return;
+  }
+  var linhas = '';
+  for (var i = 0; i < ITEMS.length; i++) {
+    var r = resps[i];
+    var temR = (r != null && r !== '');
     var n = i+1;
     var txt = (ITEMS && ITEMS[i]) ? ITEMS[i].replace(/&[^;]+;/g,'') : 'Item '+n;
-    return '<tr><td style="padding:3px 8px;border-bottom:1px solid #eee;color:#999;text-align:center;width:30px;">'+n+'</td>' +
+    linhas += '<tr><td style="padding:3px 8px;border-bottom:1px solid #eee;color:#999;text-align:center;width:30px;">'+n+'</td>' +
       '<td style="padding:3px 8px;border-bottom:1px solid #eee;font-size:11px;">'+txt+'</td>' +
-      '<td style="padding:3px 8px;border-bottom:1px solid #eee;text-align:center;font-weight:700;width:40px;">'+r+'</td></tr>';
-  }).join('');
+      '<td style="padding:3px 8px;border-bottom:1px solid #eee;font-size:9px;color:#7a8795;text-align:center;width:90px;">'+escalasDoItem(n)+'</td>' +
+      '<td style="padding:3px 8px;border-bottom:1px solid #eee;text-align:center;font-weight:700;width:40px;color:'+(temR?'#333':'#bbb')+';">'+(temR?r:'\u2014')+'</td></tr>';
+  }
   var dt = sessao.data || '\u2014';
   var html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Respostas</title>' +
     '<style>body{font-family:Arial,sans-serif;font-size:12px;padding:24px;max-width:900px;margin:0 auto;}' +
@@ -1176,9 +1380,10 @@ function exportarRespostasPDF(sessao) {
     '<p>C\u00f3digo: <strong>'+(sessao.codigo||'')+'</strong>' +
     (sessao.nome?' &nbsp;|&nbsp; Crian\u00e7a: <strong>'+sessao.nome+'</strong>':'') +
     ' &nbsp;|&nbsp; Data: '+dt+' &nbsp;|&nbsp; Ricardina Correia \u00b7 C\u00e9dula 8233</p>' +
-    '<table><thead><tr><th style="text-align:center">#</th><th>Item</th><th style="text-align:center">Resp.</th></tr></thead>' +
+    '<table><thead><tr><th style="text-align:center">#</th><th>Item</th><th style="text-align:center">Escala</th><th style="text-align:center">Resp.</th></tr></thead>' +
     '<tbody>'+linhas+'</tbody></table>' +
-    '<p style="margin-top:14px;font-size:10px;color:#999;">0=N\u00e3o se aplica &nbsp;|&nbsp; 1=\u00c0s vezes &nbsp;|&nbsp; 2=Muitas vezes</p>' +
+    '<p style="margin-top:14px;font-size:10px;color:#999;">0 = N\u00e3o \u00e9 verdade &nbsp;|&nbsp; 1 = \u00c0s vezes / um pouco verdade &nbsp;|&nbsp; 2 = Muitas vezes / muito verdade<br>' +
+    'RE Reatividade Emocional &middot; AD Ansiedade/Depress\u00e3o &middot; QS Queixas Som\u00e1ticas &middot; ISO Isolamento &middot; PS Problemas de Sono &middot; PA Problemas de Aten\u00e7\u00e3o &middot; CA Comportamento Agressivo &middot; INT Internalizante &middot; EXT Externalizante</p>' +
     '</body></html>';
   var w=window.open('','_blank');
   if(!w){alert('Pop-up bloqueado.');return;}
@@ -1187,17 +1392,25 @@ function exportarRespostasPDF(sessao) {
 
 function exportarInterpretacaoPDF(sessao) {
   if (!sessao) { alert('Seleccione primeiro uma sess\u00e3o (clique em "Ver detalhes").'); return; }
-  var scores = sessao.scores || (sessao.respostas ? calcScores(sessao.respostas) : {});
+  /* Recotacao local sempre que existam itens — as colunas T_* do Sheet podem vir
+     de versoes anteriores, com o indice desalinhado */
+  var scores = (Array.isArray(sessao.respostas) && sessao.respostas.length)
+    ? calcScores(sessao.respostas)
+    : (sessao.scores || {});
   var syndromeNames = ['Reatividade Emocional','Ansiedade/Depress\u00e3o','Queixas Som\u00e1ticas','Isolamento','Problemas de Sono','Problemas de Aten\u00e7\u00e3o','Comportamento Agressivo'];
-  var syndromeKeys = ['RE','AD','QS','ISO','PS','PA','CA'];
+  /* ⚠ As chaves de `scores` sao os nomes completos das escalas. A versao anterior
+     procurava 'RE','AD','INT','TOT'..., que nunca existiram: as duas tabelas do
+     relatorio saiam vazias e so restavam as respostas. */
+  var syndromeKeys = syndromeNames;
   var compositeNames = ['Internalizante','Externalizante','Total'];
-  var compositeKeys  = ['INT','EXT','TOT'];
+  var compositeKeys  = compositeNames;
 
   function row(label, sc, bold) {
     if (!sc) return '';
-    var t = sc.tscore || sc.T || sc.t || null;
+    var t = sc.tscore != null ? sc.tscore : (sc.T != null ? sc.T : (sc.t != null ? sc.t : null));
     var raw = sc.sum !== undefined ? sc.sum : (sc.raw !== undefined ? sc.raw : null);
-    var zona = sc.zona || (t ? (t>=65?'Cl\u00ednica':t>=60?'Aten\u00e7\u00e3o':'Normal') : '\u2014');
+    var tipo = (label === 'Total') ? 'total' : (label === 'Internalizante' || label === 'Externalizante') ? 'broadband' : 'syndrome';
+    var zona = sc.zona || (t != null ? zonaDe(t, tipo) : '\u2014');
     var cor = zona==='Cl\u00ednica'?'#C0392B':zona==='Aten\u00e7\u00e3o'?'#E67E22':'#27AE60';
     var pct = t ? Math.min(100,Math.round(((t-30)/70)*100)) : 0;
     return '<tr'+(bold?' style="background:#EBF2F8;"':'')+'>' +
@@ -1209,16 +1422,27 @@ function exportarInterpretacaoPDF(sessao) {
       '</td><td style="padding:5px 8px;border-bottom:1px solid #eee;color:'+cor+';font-weight:600;">'+zona+'</td></tr>';
   }
 
-  var synRows = syndromeKeys.map(function(k,i){return row(syndromeNames[i], scores[k]||scores['S'+(i+1)], false);}).join('');
-  var compRows = compositeKeys.map(function(k,i){return row(compositeNames[i], scores[k], k==='TOT');}).join('');
+  var synRows = syndromeKeys.map(function(k,i){return row(syndromeNames[i], scores[k], false);}).join('');
+  var compRows = compositeKeys.map(function(k,i){return row(compositeNames[i], scores[k], k==='Total');}).join('');
 
   var resps = sessao.respostas || [];
-  var respRows = resps.map(function(r,i){
-    var txt = (ITEMS && ITEMS[i]) ? ITEMS[i].replace(/&[^;]+;/g,'') : 'Item '+(i+1);
-    return '<tr><td style="padding:3px 6px;border-bottom:1px solid #f0f0f0;color:#999;text-align:center;width:30px;">'+(i+1)+'</td>' +
-      '<td style="padding:3px 6px;border-bottom:1px solid #f0f0f0;font-size:10px;">'+txt+'</td>' +
-      '<td style="padding:3px 6px;border-bottom:1px solid #f0f0f0;text-align:center;font-weight:700;width:40px;">'+r+'</td></tr>';
-  }).join('');
+  var nRespPdf = 0;
+  var respRows = '';
+  if (resps.length) {
+    for (var ir = 0; ir < ITEMS.length; ir++) {
+      var r = resps[ir];
+      var temR = (r != null && r !== '');
+      if (temR) nRespPdf++;
+      var txt = (ITEMS && ITEMS[ir]) ? ITEMS[ir].replace(/&[^;]+;/g,'') : 'Item '+(ir+1);
+      respRows += '<tr' + (r === 2 ? ' style="background:#FCF0EE;"' : '') + '>' +
+        '<td style="padding:3px 6px;border-bottom:1px solid #f0f0f0;color:#999;text-align:center;width:30px;">'+(ir+1)+'</td>' +
+        '<td style="padding:3px 6px;border-bottom:1px solid #f0f0f0;font-size:10px;">'+txt+'</td>' +
+        '<td style="padding:3px 6px;border-bottom:1px solid #f0f0f0;font-size:9px;color:#7a8795;text-align:center;width:90px;">'+escalasDoItem(ir+1)+'</td>' +
+        '<td style="padding:3px 6px;border-bottom:1px solid #f0f0f0;text-align:center;font-weight:700;width:40px;color:'+(temR?'#333':'#bbb')+';">'+(temR?r:'\u2014')+'</td></tr>';
+    }
+  } else {
+    respRows = '<tr><td colspan="4" style="padding:8px 6px;color:#C0392B;font-size:10px;">Respostas item-a-item indispon\u00edveis nesta sess\u00e3o \u2014 sincronize o painel com o Sheet para as recuperar.</td></tr>';
+  }
 
   var dt = sessao.data || '\u2014';
   var html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Interpreta\u00e7\u00e3o CBCL 1\u00bd-5</title>' +
@@ -1236,8 +1460,10 @@ function exportarInterpretacaoPDF(sessao) {
     '<table><thead><tr><th>S\u00edndrome</th><th style="text-align:center">Bruto</th><th style="text-align:center">T</th><th>Perfil</th><th>Zona</th></tr></thead><tbody>'+synRows+'</tbody></table>' +
     '<h2>Escalas Compostas</h2>' +
     '<table><thead><tr><th>Escala</th><th style="text-align:center">Bruto</th><th style="text-align:center">T</th><th>Perfil</th><th>Zona</th></tr></thead><tbody>'+compRows+'</tbody></table>' +
-    '<h2>Respostas por Item</h2>' +
-    '<table><thead><tr><th style="text-align:center">#</th><th>Item</th><th style="text-align:center">Resp.</th></tr></thead><tbody>'+respRows+'</tbody></table>' +
+    '<h2>Respostas por Item' + (resps.length ? ' (' + nRespPdf + ' de ' + ITEMS.length + ')' : '') + '</h2>' +
+    '<table><thead><tr><th style="text-align:center">#</th><th>Item</th><th style="text-align:center">Escala</th><th style="text-align:center">Resp.</th></tr></thead><tbody>'+respRows+'</tbody></table>' +
+    '<p style="font-size:10px;color:#999;margin-top:4px;">0 = N\u00e3o \u00e9 verdade &nbsp;|&nbsp; 1 = \u00c0s vezes / um pouco verdade &nbsp;|&nbsp; 2 = Muitas vezes / muito verdade. ' +
+    'RE Reatividade Emocional &middot; AD Ansiedade/Depress\u00e3o &middot; QS Queixas Som\u00e1ticas &middot; ISO Isolamento &middot; PS Problemas de Sono &middot; PA Problemas de Aten\u00e7\u00e3o &middot; CA Comportamento Agressivo &middot; INT Internalizante &middot; EXT Externalizante.</p>' +
     '<p style="margin-top:18px;font-style:italic;color:#999;font-size:10px;">Interpreta\u00e7\u00e3o autom\u00e1tica \u2014 integrar no contexto cl\u00ednico completo.</p>' +
     '</body></html>';
   var w=window.open('','_blank');
