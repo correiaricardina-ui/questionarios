@@ -6183,6 +6183,43 @@ function formatScoreSummary(scores, syncKey) {
     }
     if(_qPart.length > 0) return _qPart.join('<span style="color:var(--blue-mid);"> \u00b7 </span>');
   }
+  // ── BSI — v29.1 · referências Canavarro (2007, Quadro 6) ─────
+  // Único ponto de corte publicado: ISP ≥ 1,7 (sinalizador binário → vermelho).
+  // Abaixo do corte: azul (não é «normal», é pertença mais provável à
+  // população geral). IGS apresentado com z face à população geral
+  // (M = 0,835; DP = 0,480), sem ponto de corte. Itens críticos 9 e 39
+  // assinalados quando as respostas item-a-item estão disponíveis.
+  // Colocado antes de «// Genérico»: o ramo v29.0 (mais abaixo) fica depois
+  // do fallback genérico e nunca era alcançado — mantido intacto por regra aditiva.
+  if(syncKey === 'bsi') {
+    const ispB = scores['ISP'] ?? scores['isp'] ?? null;
+    const igsB = scores['IGS'] ?? scores['igs'] ?? null;
+    if(ispB != null && !isNaN(parseFloat(ispB))) {
+      const ispN = parseFloat(ispB);
+      const acima = ispN >= 1.7;
+      let igsTxt = '';
+      if(igsB != null && !isNaN(parseFloat(igsB))) {
+        const igsN = parseFloat(igsB);
+        const zI = (igsN - 0.835) / 0.480;
+        igsTxt = ' · IGS=' + igsN.toFixed(2) + ' (z ' + (zI >= 0 ? '+' : '−') + Math.abs(zI).toFixed(2) + ')';
+      }
+      let crit = '';
+      try {
+        let ans = scores['Answers'] ?? scores['answers'] ?? scores['Respostas'] ?? scores['respostas'] ?? null;
+        if(typeof ans === 'string') ans = ans.indexOf('|') > -1 ? ans.split('|') : (ans.trim().charAt(0) === '[' ? JSON.parse(ans) : ans.split(/[,;]/));
+        if(Array.isArray(ans) && ans.length === 53) {
+          const it = [9, 39].filter(n => parseInt(ans[n-1], 10) > 0);
+          if(it.length) crit = ' <span style="color:#C0392B;font-weight:700">⚠ Item crítico ' + it.join(', ') + '</span>';
+        }
+      } catch(e) {}
+      const cor = acima ? '#C0392B' : '#3B5A7A';
+      const peso = acima ? '700' : '600';
+      return '<span style="font-size:0.78rem;font-weight:' + peso + ';color:' + cor + '">' +
+        'ISP=' + ispN.toFixed(2) + (acima ? ' ⚠ ≥ 1,7 · Pert. emocional provável' : ' · &lt; 1,7') +
+        '</span><span style="font-size:0.78rem;color:#3B5A7A">' + igsTxt + '</span>' + crit;
+    }
+  }
+
   // Genérico
   const entries = Object.entries(scores).filter(([,v]) => v != null).slice(0,3);
   if(entries.length > 0) return `<span style="font-size:0.78rem;color:var(--blue-dark);">${entries.map(([k,v])=>k+'='+v).join(' · ')}</span>`;

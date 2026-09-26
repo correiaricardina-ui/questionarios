@@ -136,6 +136,13 @@ table.sessoes-table tbody tr:hover { background: var(--blue-xpale); }
 .badge-clinical   { background: #fdecea; color: var(--red); border-radius: 6px; padding: 2px 8px; font-size: 0.75rem; font-weight: 600; }
 .badge-borderline { background: #fef3e2; color: var(--orange); border-radius: 6px; padding: 2px 8px; font-size: 0.75rem; font-weight: 600; }
 .badge-normative  { background: #eafaf1; color: var(--green); border-radius: 6px; padding: 2px 8px; font-size: 0.75rem; font-weight: 600; }
+/* Faixas descritivas das dimensões — paleta exclusivamente azul (sem pontos de corte validados por dimensão) */
+.badge-ref0 { background: #F2F6FA; color: #5B7FA6; border-radius: 6px; padding: 2px 8px; font-size: 0.75rem; font-weight: 600; }
+.badge-ref1 { background: #D6E4F0; color: #3B5A7A; border-radius: 6px; padding: 2px 8px; font-size: 0.75rem; font-weight: 600; }
+.badge-ref2 { background: #7FA3C4; color: #FFFFFF; border-radius: 6px; padding: 2px 8px; font-size: 0.75rem; font-weight: 600; }
+.badge-ref3 { background: #2C4A68; color: #FFFFFF; border-radius: 6px; padding: 2px 8px; font-size: 0.75rem; font-weight: 600; }
+.badge-flag { background: #fdecea; color: #C0392B; border-radius: 6px; padding: 2px 8px; font-size: 0.75rem; font-weight: 700; }
+.badge-isp-abaixo { background: #D6E4F0; color: #3B5A7A; border-radius: 6px; padding: 2px 8px; font-size: 0.75rem; font-weight: 600; }
 
 /* Modal */
 .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.55);
@@ -478,34 +485,47 @@ var ESCALAS = {
 
 var OPCOES = ['Nunca','Poucas vezes','Algumas vezes','Muitas vezes','Muitíssimas vezes'];
 
-// Normas populac. em geral (Canavarro 1999) — médias para referência clínica
-// Ponto de corte IGS ≥ 1.7 (homens) / ≥ 1.7 (mulheres) como indicador perturbação (Manual)
-var NORM_MEDIA_POP = {
-  'Somatização': 0.573, 'Obsessões-Compulsões': 1.290,
-  'Sensib. Interpessoal': 0.958, 'Depressão': 0.893, 'Ansiedade': 0.942,
-  'Hostilidade': 0.894, 'Ansiedade Fóbica': 0.418, 'Ideação Paranóide': 1.063,
-  'Psicoticismo': 0.668
+// ─── VALORES DE REFERÊNCIA ──────────────────────────────────────────────────
+/* Fonte: Canavarro, M.C. (2007). Inventário de Sintomas Psicopatológicos (BSI):
+   uma revisão crítica dos estudos realizados em Portugal. In M.R. Simões,
+   C. Machado, M. Gonçalves & L.S. Almeida (Coords.), Avaliação psicológica:
+   Instrumentos validados para a população portuguesa (Vol. III, pp. 305-330).
+   Coimbra: Quarteto. — Quadro 6 (p. 316), médias POR ITEM.
+   Amostra 1: população geral, N = 404. Amostra 2: indivíduos perturbados
+   emocionalmente (Clínica Psiquiátrica dos HUC), N = 147.
+   NOTA: o Quadro 6 de Canavarro (1999, p. 105) apresenta a coluna clínica das
+   dimensões em TOTAIS de escala; a versão de 2007 apresenta-a em média por
+   item, na mesma métrica da cotação (soma ÷ n.º de itens). Usa-se a de 2007.
+   Não existem normas estratificadas por sexo, idade ou escolaridade (a autora
+   não realizou estudos de normalização — Canavarro, 2007, p. 326).          */
+var NORMAS_BSI = {
+  'Somatização':          { popM: 0.573,  popDP: 0.916,  clinM: 1.355,  clinDP: 1.004 },
+  'Obsessões-Compulsões': { popM: 1.290,  popDP: 0.878,  clinM: 1.924,  clinDP: 0.925 },
+  'Sensib. Interpessoal': { popM: 0.958,  popDP: 0.727,  clinM: 1.597,  clinDP: 1.033 },
+  'Depressão':            { popM: 0.893,  popDP: 0.722,  clinM: 1.828,  clinDP: 1.051 },
+  'Ansiedade':            { popM: 0.942,  popDP: 0.766,  clinM: 1.753,  clinDP: 0.940 },
+  'Hostilidade':          { popM: 0.894,  popDP: 0.784,  clinM: 1.411,  clinDP: 0.904 },
+  'Ansiedade Fóbica':     { popM: 0.418,  popDP: 0.663,  clinM: 1.020,  clinDP: 0.929 },
+  'Ideação Paranóide':    { popM: 1.063,  popDP: 0.789,  clinM: 1.532,  clinDP: 0.850 },
+  'Psicoticismo':         { popM: 0.668,  popDP: 0.614,  clinM: 1.403,  clinDP: 0.825 },
+  'IGS':                  { popM: 0.835,  popDP: 0.480,  clinM: 1.430,  clinDP: 0.705 },
+  'TSP':                  { popM: 26.993, popDP: 11.724, clinM: 37.349, clinDP: 12.166 },
+  'ISP':                  { popM: 1.561,  popDP: 0.385,  clinM: 2.111,  clinDP: 0.595 }
 };
-/* v2 · CORREÇÃO DE UNIDADES
-   Na v1 estes valores estavam em TOTAL da escala, enquanto NORM_MEDIA_POP
-   está em MÉDIA POR ITEM. O denominador (mediaC - mediaP) ficava ~10x maior
-   do que devia e o ratio ~10x menor, pelo que TODAS as dimensões saíam
-   «Normativo» — incluindo Ansiedade a 2,67.
-   Convertidos para média por item, dividindo pelo n.º de itens da escala.   */
-var NORM_MEDIA_PERT_TOTAL = {
-  'Somatização': 9.445, 'Obsessões-Compulsões': 11.534,
-  'Sensib. Interpessoal': 6.404, 'Depressão': 11.034, 'Ansiedade': 10.521,
-  'Hostilidade': 7.034, 'Ansiedade Fóbica': 5.082, 'Ideação Paranóide': 7.651,
-  'Psicoticismo': 7.021
-};
-var NORM_MEDIA_PERT = {};
-/* v2: média por item da população com perturbação emocional = total / n.º itens.
-   Tem de correr DEPOIS de NORM_MEDIA_PERT_TOTAL e de ESCALAS estarem
-   atribuídos — a hoisting de `var` deixa-os undefined se corrermos antes. */
-Object.keys(NORM_MEDIA_PERT_TOTAL).forEach(function(k){
-  var n = (ESCALAS[k] || []).length || 1;
-  NORM_MEDIA_PERT[k] = NORM_MEDIA_PERT_TOTAL[k] / n;
-});
+
+/* Ponto de corte: ISP ≥ 1,7 (Canavarro, 1999, 2007). Obtido pela fórmula de
+   Fisher (Angoff, 1971): [(M1+DP1) + (M2−DP2)] / 2 = (1,946 + 1,516) / 2 = 1,731,
+   arredondado por defeito a 1,7. A autora escolheu o ISP (e não o IGS) por ser o
+   índice global que melhor discrimina os dois grupos (F = 160,376).
+   É o ÚNICO ponto de corte publicado: não existe ponto de corte para o IGS,
+   para o TSP nem para as nove dimensões.                                     */
+var BSI_CORTE_ISP = 1.7;
+
+/* Itens críticos para exploração obrigatória em entrevista (Canavarro, 2007,
+   p. 324: itens de conteúdo depressivo podem informar sobre ideação suicida,
+   a avaliar por outros instrumentos/métodos). 9 = ideação autolítica;
+   39 = pensamentos sobre a morte (item adicional, só entra nos índices globais). */
+var BSI_ITENS_CRITICOS = [9, 39];
 
 // ─── CONFIG ─────────────────────────────────────────────────────────────────
 var PASSWORD    = 'CNS2024';
@@ -719,39 +739,58 @@ function calcularScores(answers){
   return { escalas: escalas, IGS: IGS, TSP: TSP, ISP: ISP };
 }
 
-function classificarIGS(igs){
-  if(igs >= 1.7) return { label: 'Perturbação emocional provável', cls: 'badge-clinical' };
-  if(igs >= 0.9) return { label: 'Atenção clínica recomendada', cls: 'badge-borderline' };
-  return { label: 'Dentro dos parâmetros normativos', cls: 'badge-normative' };
+/* Critério formal: ISP ≥ 1,7 → provável pertença ao grupo de indivíduos
+   perturbados emocionalmente. Sinalizador binário → vermelho.             */
+function classificarISP(isp){
+  if(isp >= BSI_CORTE_ISP) return { label: 'ISP ≥ 1,7 · Provável perturbação emocional', cls: 'badge-flag', acima: true };
+  return { label: 'ISP < 1,7 · Abaixo do ponto de corte', cls: 'badge-isp-abaixo', acima: false };
 }
 
-/* Ratio = posição entre a média da população geral (0) e a média da população
-   com perturbação emocional (1). Acima de 1 significa igualar ou ultrapassar
-   a média clínica na dimensão.                                              */
-function ratioEscala(nome, score){
-  var mediaP = NORM_MEDIA_POP[nome] || 0;
-  var mediaC = NORM_MEDIA_PERT[nome] || 1;
-  if(mediaC === mediaP) return 0;
-  return (score - mediaP) / (mediaC - mediaP);
+/* Mantida por compatibilidade: a classificação global passa a assentar no
+   ISP. O IGS não tem ponto de corte publicado (a zona «0,9–1,7» da v1 não
+   tinha fundamento no manual e foi eliminada).                              */
+function classificarIGS(igs, isp){
+  if(isp != null) return classificarISP(isp);
+  return { label: 'Sem ponto de corte publicado para o IGS', cls: 'badge-ref0', acima: false };
 }
+
+function zBSI(nome, x){
+  var n = NORMAS_BSI[nome];
+  if(!n || x == null || isNaN(x)) return null;
+  return (x - n.popM) / n.popDP;
+}
+
+/* Dimensões e IGS/TSP: leitura DESCRITIVA face aos dois grupos de referência
+   (sem ponto de corte validado) → paleta exclusivamente azul.
+   ref0: < M_pop + 1 DP e < M_clín
+   ref1: ≥ M_pop + 1 DP e < M_clín
+   ref2: ≥ M_clín e < M_clín + 1 DP
+   ref3: ≥ M_clín + 1 DP                                                     */
 function classificarEscala(nome, score){
-  var r = ratioEscala(nome, score);
-  if(r >= 1.0) return { label: 'Muito elevado', cls: 'badge-clinical', ratio: r };
-  if(r >= 0.6) return { label: 'Elevado',       cls: 'badge-clinical', ratio: r };
-  if(r >= 0.3) return { label: 'Moderado',      cls: 'badge-borderline', ratio: r };
-  return        { label: 'Normativo',     cls: 'badge-normative', ratio: r };
+  var n = NORMAS_BSI[nome];
+  var z = zBSI(nome, score);
+  if(!n || z == null) return { label: 'n.c.', cls: 'badge-ref0', z: null, nivel: -1 };
+  if(score >= n.clinM + n.clinDP) return { label: 'Acima de +1 DP da amostra clínica', cls: 'badge-ref3', z: z, nivel: 3 };
+  if(score >= n.clinM)            return { label: 'Ao nível da amostra clínica',      cls: 'badge-ref2', z: z, nivel: 2 };
+  if(score >= n.popM + n.popDP)   return { label: 'Acima de +1 DP da população geral', cls: 'badge-ref1', z: z, nivel: 1 };
+  return                                 { label: 'Até +1 DP da população geral',      cls: 'badge-ref0', z: z, nivel: 0 };
 }
 
-/* TSP mede extensão, ISP mede intensidade. O cruzamento distingue sofrimento
-   concentrado de mal-estar difuso — leitura que a v1 não expunha.           */
-var NORM_TSP = 26.99, NORM_ISP = 1.561;
+function fmtZ(z){
+  if(z == null) return 'n.c.';
+  return (z >= 0 ? '+' : '−') + Math.abs(z).toFixed(2);
+}
+
+/* TSP mede extensão, ISP mede intensidade. Critérios ancorados nos valores de
+   referência: extensão elevada = TSP ≥ M_pop + 1 DP (≥ 38,7 itens);
+   intensidade elevada = ISP ≥ 1,7 (ponto de corte publicado).             */
 function padraoExtensaoIntensidade(TSP, ISP){
-  var ext = TSP >= NORM_TSP * 1.25;
-  var intens = ISP >= NORM_ISP * 1.25;
-  if(!ext && intens) return 'Padrão focal-intenso — poucos sintomas endossados, mas com intensidade muito elevada. Sofrimento concentrado, não difuso.';
-  if(ext && !intens) return 'Padrão difuso-ligeiro — muitos sintomas endossados com intensidade baixa. Mal-estar generalizado de grau ligeiro.';
-  if(ext && intens)  return 'Padrão difuso e intenso — extensão e intensidade elevadas. Carga sintomática global.';
-  return 'Sem padrão assinalável no cruzamento extensão × intensidade.';
+  var ext = TSP >= NORMAS_BSI.TSP.popM + NORMAS_BSI.TSP.popDP;
+  var intens = ISP >= BSI_CORTE_ISP;
+  if(!ext && intens) return 'Padrão focal-intenso — número de sintomas endossados dentro de +1 DP da população geral (TSP < 38,7), mas intensidade média acima do ponto de corte (ISP ≥ 1,7). Sofrimento concentrado, não difuso.';
+  if(ext && !intens) return 'Padrão difuso-ligeiro — número de sintomas endossados acima de +1 DP da população geral (TSP ≥ 38,7), com intensidade média abaixo do ponto de corte (ISP < 1,7). Mal-estar generalizado de grau ligeiro.';
+  if(ext && intens)  return 'Padrão difuso e intenso — extensão acima de +1 DP da população geral (TSP ≥ 38,7) e intensidade acima do ponto de corte (ISP ≥ 1,7). Carga sintomática global.';
+  return 'Extensão (TSP < 38,7) e intensidade (ISP < 1,7) sem elevação face aos valores de referência.';
 }
 
 // ─── PAINEL CLÍNICO ──────────────────────────────────────────────────────────
@@ -805,7 +844,7 @@ function renderizarTabela(){
   }
   var html = '';
   sessoes.forEach(function(s, idx){
-    var cl = classificarIGS(s.IGS);
+    var cl = classificarISP(s.ISP);
     html += '<tr>';
     html += '<td>'+s.data+'</td>';
     html += '<td><strong>'+s.patientCode+'</strong></td>';
@@ -814,7 +853,7 @@ function renderizarTabela(){
     html += '<td>'+(s.grauParentesco||'—')+'</td>';
     html += '<td><strong>'+s.IGS.toFixed(2)+'</strong></td>';
     html += '<td>'+s.TSP+'</td>';
-    html += '<td>'+s.ISP.toFixed(2)+'</td>';
+    html += '<td>'+s.ISP.toFixed(2)+(cl.acima ? ' <span class="badge-flag">≥ 1,7</span>' : '')+'</td>';
     html += '<td class="no-print"><button class="btn btn-secondary" style="padding:4px 10px;font-size:0.78rem;" onclick="verDetalhe('+idx+')">Ver →</button></td>';
     html += '</tr>';
   });
@@ -832,16 +871,38 @@ function verDetalhe(idx){
 
   var answers = s.answers || [];
   var scores = calcularScores(answers);
-  var cl = classificarIGS(scores.IGS);
+  var cl = classificarISP(scores.ISP);
+  var clIGS = classificarEscala('IGS', scores.IGS);
+  var clTSP = classificarEscala('TSP', scores.TSP);
+  var zISP  = zBSI('ISP', scores.ISP);
+  var refTxt = function(nome){
+    var n = NORMAS_BSI[nome];
+    var d = (nome === 'TSP') ? 1 : 2;
+    return 'Pop. geral M = '+n.popM.toFixed(d)+' (DP '+n.popDP.toFixed(d)+') · Clínica M = '+n.clinM.toFixed(d)+' (DP '+n.clinDP.toFixed(d)+')';
+  };
 
   var html = '';
   // Índices globais
   html += '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px;">';
-  html += '<div class="escala-card"><div class="escala-nome">IGS (Índice Geral)</div><div class="escala-score">'+scores.IGS.toFixed(2)+'</div>';
-  html += '<div class="escala-class"><span class="'+cl.cls+'">'+cl.label+'</span></div></div>';
-  html += '<div class="escala-card"><div class="escala-nome">TSP (Total Sintomas Positivos)</div><div class="escala-score">'+scores.TSP+'</div></div>';
-  html += '<div class="escala-card"><div class="escala-nome">ISP (Índice Sintomas Positivos)</div><div class="escala-score">'+scores.ISP.toFixed(2)+'</div></div>';
+  html += '<div class="escala-card"><div class="escala-nome">ISP (Índice Sintomas Positivos) — critério</div><div class="escala-score">'+scores.ISP.toFixed(2)+'</div>';
+  html += '<div class="escala-class"><span class="'+cl.cls+'">'+cl.label+'</span></div>';
+  html += '<div style="font-size:0.7rem;color:#7095A8;margin-top:4px;">z = '+fmtZ(zISP)+' · '+refTxt('ISP')+'</div></div>';
+  html += '<div class="escala-card"><div class="escala-nome">IGS (Índice Geral de Sintomas)</div><div class="escala-score">'+scores.IGS.toFixed(2)+'</div>';
+  html += '<div class="escala-class"><span class="'+clIGS.cls+'">'+clIGS.label+'</span></div>';
+  html += '<div style="font-size:0.7rem;color:#7095A8;margin-top:4px;">z = '+fmtZ(clIGS.z)+' · '+refTxt('IGS')+'</div></div>';
+  html += '<div class="escala-card"><div class="escala-nome">TSP (Total Sintomas Positivos)</div><div class="escala-score">'+scores.TSP+'</div>';
+  html += '<div class="escala-class"><span class="'+clTSP.cls+'">'+clTSP.label+'</span></div>';
+  html += '<div style="font-size:0.7rem;color:#7095A8;margin-top:4px;">z = '+fmtZ(clTSP.z)+' · '+refTxt('TSP')+'</div></div>';
   html += '</div>';
+
+  /* Itens críticos — sinalizador binário a vermelho */
+  var criticos = BSI_ITENS_CRITICOS.filter(function(n){ return (answers[n-1] || 0) > 0; });
+  if(criticos.length){
+    html += '<div style="margin:0 0 16px;padding:12px 14px;background:#fdecea;border-left:4px solid #C0392B;border-radius:6px;font-size:0.86rem;color:#7B241C;">'
+          + '<strong>⚠ Itens críticos endossados — explorar obrigatoriamente em entrevista: </strong>'
+          + criticos.map(function(n){ return 'item '+n+' («'+ITEMS[n-1]+'») = '+OPCOES[answers[n-1]]+' ('+answers[n-1]+')'; }).join('; ')
+          + '.</div>';
+  }
 
   /* v2: leitura de padrao extensao x intensidade */
   html += '<div style="margin:14px 0 18px;padding:12px 14px;background:#EEF3F7;border-left:4px solid #3B5A7A;border-radius:6px;font-size:0.86rem;color:#2C3E50;">'
@@ -849,37 +910,54 @@ function verDetalhe(idx){
         + padraoExtensaoIntensidade(scores.TSP, scores.ISP) + '</div>';
 
   // Barras das escalas
-  html += '<div style="font-weight:600;font-size:0.9rem;color:var(--blue);margin-bottom:12px;">📊 Perfil por Dimensão</div>';
+  html += '<div style="font-weight:600;font-size:0.9rem;color:var(--blue);margin-bottom:4px;">📊 Perfil por Dimensão</div>';
+  html += '<div style="font-size:0.74rem;color:#7095A8;margin-bottom:12px;">Barra na escala 0–4 · traço fino = média da população geral · traço espesso = média da amostra clínica (Canavarro, 2007). Faixas descritivas: não existe ponto de corte publicado por dimensão.</div>';
   Object.keys(ESCALAS).forEach(function(nome){
     var score = scores.escalas[nome];
     var cl2 = classificarEscala(nome, score);
-    /* v2: barra proporcional a posicao clinica (0 = media da populacao geral,
-       100% = media da populacao com perturbacao emocional), em vez de 0-4
-       absoluto — que fazia parecer baixas dimensoes clinicamente elevadas. */
-    var pct = Math.max(0, Math.min(100, cl2.ratio * 100));
-    var cor = cl2.cls === 'badge-clinical' ? '#C0392B' : cl2.cls === 'badge-borderline' ? '#E67E22' : '#27AE60';
+    var nr = NORMAS_BSI[nome];
+    /* Barra na métrica da cotação (0–4), com marcadores das médias de
+       referência: traço fino = população geral; traço espesso = amostra clínica. */
+    var pct = Math.max(0, Math.min(100, score / 4 * 100));
+    var pPop = nr.popM / 4 * 100, pClin = nr.clinM / 4 * 100;
+    var cor = ['#A8C4D8','#7FA3C4','#5B7FA6','#2C4A68'][Math.max(0, cl2.nivel)];
     html += '<div class="bar-wrap">';
-    html += '<div class="bar-label">'+nome+' — <strong>'+score.toFixed(2)+'</strong> <span class="'+cl2.cls+'">'+cl2.label+'</span> <span style="color:#7095A8;font-size:0.78rem;">posição clínica '+Math.round(cl2.ratio*100)+'%</span></div>';
-    html += '<div class="bar-track"><div class="bar-fill" style="width:'+pct+'%;background:'+cor+';"></div></div>';
+    html += '<div class="bar-label">'+nome+' — <strong>'+score.toFixed(2)+'</strong> <span class="'+cl2.cls+'">'+cl2.label+'</span> <span style="color:#7095A8;font-size:0.78rem;">z = '+fmtZ(cl2.z)+' · M pop. '+nr.popM.toFixed(2)+' · M clín. '+nr.clinM.toFixed(2)+'</span></div>';
+    html += '<div class="bar-track" style="position:relative;"><div class="bar-fill" style="width:'+pct+'%;background:'+cor+';"></div>'
+          + '<div title="Média população geral" style="position:absolute;top:0;bottom:0;left:'+pPop+'%;width:2px;background:#2C3E50;opacity:0.55;"></div>'
+          + '<div title="Média amostra clínica" style="position:absolute;top:0;bottom:0;left:'+pClin+'%;width:4px;margin-left:-1px;background:#2C3E50;"></div></div>';
     html += '</div>';
   });
 
   // Texto interpretativo
   html += '<div class="txt-interpret" id="txt-interpret">';
   html += '<strong>Interpretação:</strong> ';
-  var cl3 = classificarIGS(scores.IGS);
-  if(cl3.cls === 'badge-clinical'){
-    html += 'O IGS de <strong>'+scores.IGS.toFixed(2)+'</strong> situa-se acima do ponto de corte clínico (≥ 1.7), sugerindo <strong>perturbação emocional clinicamente significativa</strong>. ';
-  } else if(cl3.cls === 'badge-borderline'){
-    html += 'O IGS de <strong>'+scores.IGS.toFixed(2)+'</strong> situa-se numa zona de atenção (0.9–1.7), sugerindo <strong>sintomatologia moderada</strong> que merece monitorização. ';
+  var nI = NORMAS_BSI.ISP, nG = NORMAS_BSI.IGS, nT = NORMAS_BSI.TSP;
+  if(cl.acima){
+    html += 'O ISP de <strong>'+scores.ISP.toFixed(2)+'</strong> é igual ou superior ao ponto de corte de <strong>1,7</strong> (Canavarro, 1999, 2007), valor a partir do qual é provável a pertença ao grupo de <strong>indivíduos perturbados emocionalmente</strong>. ';
   } else {
-    html += 'O IGS de <strong>'+scores.IGS.toFixed(2)+'</strong> situa-se dentro dos parâmetros normativos da população em geral (< 0.9). ';
+    html += 'O ISP de <strong>'+scores.ISP.toFixed(2)+'</strong> é inferior ao ponto de corte de <strong>1,7</strong> (Canavarro, 1999, 2007), sendo mais provável a pertença ao grupo da <strong>população geral</strong>. ';
   }
-  // Dimensões mais elevadas
-  var dims = Object.keys(ESCALAS).map(function(n){ return {nome:n, score: scores.escalas[n]}; });
-  dims.sort(function(a,b){ return b.score - a.score; });
-  html += 'As dimensões com pontuação mais elevada são: <strong>'+dims[0].nome+'</strong> ('+dims[0].score.toFixed(2)+'), <strong>'+dims[1].nome+'</strong> ('+dims[1].score.toFixed(2)+') e <strong>'+dims[2].nome+'</strong> ('+dims[2].score.toFixed(2)+').';
-  html += '<br><small style="color:var(--text-light);font-size:0.78rem;">Referência normativa: Canavarro (1999), população geral portuguesa. IGS ≥ 1.7 como ponto de corte clínico.</small>';
+  html += 'O IGS de <strong>'+scores.IGS.toFixed(2)+'</strong> corresponde a z = '+fmtZ(clIGS.z)+' face à população geral (M = '+nG.popM.toFixed(3)+'; DP = '+nG.popDP.toFixed(3)+') e situa-se '+(scores.IGS >= nG.clinM ? 'acima' : 'abaixo')+' da média da amostra clínica ('+nG.clinM.toFixed(3)+'). ';
+  html += 'Foram endossados <strong>'+scores.TSP+'</strong> sintomas (TSP; z = '+fmtZ(clTSP.z)+'; M pop. = '+nT.popM.toFixed(1)+'; M clín. = '+nT.clinM.toFixed(1)+'), com intensidade média de '+scores.ISP.toFixed(2)+' (ISP; z = '+fmtZ(zISP)+'). ';
+  // Dimensões ao nível da amostra clínica, ordenadas por z
+  var dims = Object.keys(ESCALAS).map(function(n){ var c = classificarEscala(n, scores.escalas[n]); return {nome:n, score: scores.escalas[n], z: c.z, nivel: c.nivel}; });
+  dims.sort(function(a,b){ return b.z - a.z; });
+  var clin = dims.filter(function(d){ return d.nivel >= 2; });
+  var pop1 = dims.filter(function(d){ return d.nivel === 1; });
+  if(clin.length){
+    html += 'Situam-se ao nível ou acima da média da amostra clínica: '+clin.map(function(d){ return '<strong>'+d.nome+'</strong> ('+d.score.toFixed(2)+'; z = '+fmtZ(d.z)+')'; }).join(', ')+'. ';
+  }
+  if(pop1.length){
+    html += 'Acima de +1 DP da população geral, mas abaixo da média clínica: '+pop1.map(function(d){ return d.nome+' ('+d.score.toFixed(2)+'; z = '+fmtZ(d.z)+')'; }).join(', ')+'. ';
+  }
+  if(!clin.length && !pop1.length){
+    html += 'Nenhuma dimensão ultrapassa +1 DP da média da população geral. ';
+  }
+  if(criticos.length){
+    html += '<strong style="color:#C0392B;">Itens críticos endossados ('+criticos.join(', ')+') — exigem avaliação direta do risco.</strong> ';
+  }
+  html += '<br><small style="color:var(--text-light);font-size:0.78rem;">Referência: Canavarro (1999, 2007) — Quadro 6, população geral (N = 404) e indivíduos perturbados emocionalmente (N = 147). Único ponto de corte publicado: ISP ≥ 1,7. IGS, TSP e dimensões lidos por z face à população geral e por comparação com a média clínica (faixas descritivas, sem ponto de corte validado). Valores não estratificados por sexo, idade ou escolaridade. O BSI não permite, por si só, formular diagnóstico.</small>';
   html += '</div>';
 
   // Respostas por item (agrupadas por dimensão clínica)
@@ -1046,10 +1124,17 @@ function exportarInterpretacaoPDF(sessao){
     '.badge-clinical{background:#fdecea;color:#C0392B;border-radius:4px;padding:1px 6px;font-weight:600;}'+
     '.badge-borderline{background:#fef3e2;color:#E67E22;border-radius:4px;padding:1px 6px;font-weight:600;}'+
     '.badge-normative{background:#eafaf1;color:#27AE60;border-radius:4px;padding:1px 6px;font-weight:600;}'+
+    '.badge-ref0{background:#F2F6FA;color:#5B7FA6;border-radius:4px;padding:1px 6px;font-weight:600;}'+
+    '.badge-ref1{background:#D6E4F0;color:#3B5A7A;border-radius:4px;padding:1px 6px;font-weight:600;}'+
+    '.badge-ref2{background:#7FA3C4;color:#FFFFFF;border-radius:4px;padding:1px 6px;font-weight:600;}'+
+    '.badge-ref3{background:#2C4A68;color:#FFFFFF;border-radius:4px;padding:1px 6px;font-weight:600;}'+
+    '.badge-flag{background:#fdecea;color:#C0392B;border-radius:4px;padding:1px 6px;font-weight:700;}'+
+    '.badge-isp-abaixo{background:#D6E4F0;color:#3B5A7A;border-radius:4px;padding:1px 6px;font-weight:600;}'+
+    '*{-webkit-print-color-adjust:exact;print-color-adjust:exact;}'+
     '.txt-interpret{background:#EBF2F8;border:1px solid #D6E4F0;border-radius:8px;padding:14px;line-height:1.7;margin-bottom:16px;}'+
     '.bar-wrap{margin-bottom:6px;page-break-inside:avoid;}'+
     '.bar-label{font-size:11px;color:#6B7A8D;margin-bottom:2px;}'+
-    '.bar-track{height:14px;background:#DDE3EA;border-radius:8px;overflow:hidden;}'+
+    '.bar-track{height:14px;background:#DDE3EA;border-radius:8px;overflow:hidden;position:relative;}'+
     '.bar-fill{height:100%;border-radius:8px;}'+
     '.escala-card{background:#F7FAFC;border:1px solid #E2E8F0;border-radius:8px;padding:10px 12px;text-align:center;}'+
     '.escala-nome{font-size:0.78rem;color:#6B7A8D;margin-bottom:4px;}'+
