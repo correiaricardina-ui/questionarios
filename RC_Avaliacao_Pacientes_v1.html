@@ -1596,6 +1596,29 @@ async function getSheetDataForAba(aba) {
   } catch(e) { return []; }
 }
 
+// ── Reaplicação: uma linha do Sheet só conta como resposta a uma atribuição se
+//    a sua data (coluna «Data», dia inteiro) não for anterior ao dia da atribuição.
+//    Atribuições antigas sem `assignedAt` mantêm o comportamento anterior. ──
+function _rcRowDay(row) {
+  const raw = row && (row['Data'] ?? row['data'] ?? row['Date']);
+  if(raw == null || raw === '') return null;
+  const t = String(raw).trim();
+  let m = t.match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{4})/);
+  if(m) return new Date(+m[3], +m[2]-1, +m[1]);
+  m = t.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if(m) return new Date(+m[1], +m[2]-1, +m[3]);
+  const d = new Date(t);
+  return isNaN(d.getTime()) ? null : new Date(d.getFullYear(), d.getMonth(), d.getDate());
+}
+function rowNaoAnteriorAtribuicao(row, a) {
+  if(!a || !a.assignedAt) return true;
+  const ad = new Date(a.assignedAt);
+  if(isNaN(ad.getTime())) return true;
+  const rd = _rcRowDay(row);
+  if(!rd) return true;
+  return rd.getTime() >= new Date(ad.getFullYear(), ad.getMonth(), ad.getDate()).getTime();
+}
+
 // Verifica no Google Sheets se já existe resposta para um paciente
 async function checkSheetForResponse(qid, patientCode) {
   try {
@@ -7585,6 +7608,7 @@ function renderAssignments(patientId) {
             const found = patCode.length >= 4 && (sheetData[aba]||[]).some(row => {
               const rowCod = String(row['Código'] || row['Codigo'] || row['codigo'] || row['Código Paciente'] || row['patientCode'] || '').trim().toUpperCase();
               if(rowCod.length < 4 || rowCod !== patCode) return false;
+              if(!rowNaoAnteriorAtribuicao(row, a)) return false; // reaplicação: ignora respostas anteriores à atribuição
               return matchRespondent(row, aba, recipientRaw);
             });
             if(found) {
@@ -7622,6 +7646,7 @@ function renderAssignments(patientId) {
     const btnSync     = (a.status === 'sent' || a.status === 'pending') ? `<button class="btn btn-xs btn-ghost" onclick="syncAndMark('${patientId}',${idx})" title="Verificar no Sheet">↺</button>` : '';
     const btnUndo     = a.status !== 'pending'   ? `<button class="btn btn-xs btn-ghost" onclick="setStatus('${patientId}',${idx},'pending')">↩</button>` : '';
     const btnDel      = `<button class="btn btn-xs btn-danger" onclick="removeAssignment('${patientId}',${idx})">✕</button>`;
+    const btnRepeat   = a.status === 'received' ? `<button class="btn btn-xs btn-secondary" onclick="reaplicarQuestionario('${patientId}',${idx})" title="Nova aplicação do mesmo questionário ao mesmo respondente (o resultado anterior mantém-se)">＋ Nova aplicação</button>` : '';
 
     const linkHtml = q?.link ? `<button onclick="copyFicheiro('${q.link}')" style="background:var(--blue-light);border:none;border-radius:6px;padding:2px 8px;font-size:0.72rem;color:var(--blue);cursor:pointer;">📋 Copiar link</button>` : '';
 
@@ -7653,7 +7678,7 @@ function renderAssignments(patientId) {
       </div>
       <div>${statusBadge(a.status)}</div>
       <div style="display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end;">
-        ${btnSent}${btnReceived}${btnSync}${btnUndo}${btnDel}
+        ${btnSent}${btnReceived}${btnSync}${btnRepeat}${btnUndo}${btnDel}
       </div>
       ${resultZone}
     </div>`;
@@ -7807,6 +7832,9 @@ async function confirmAssign() {
     }
   } catch(e) { /* falha silenciosa — continua com status pending */ }
 
+  // Reaplicação: se o mesmo questionário já foi atribuído ao mesmo destinatário, a resposta
+  // antiga do Sheet não pode dar a nova atribuição como recebida.
+  if(status === 'received' && (store.get('assignments_' + currentPatientId) || []).some(x => x.qid === pendingAssignQid && (x.recipientLabel || x.recipient) === fullLabel)) status = 'pending';
   const assignments = store.get('assignments_' + currentPatientId) || [];
   const now = new Date().toISOString();
   assignments.push({ qid: pendingAssignQid, recipient, recipientLabel: fullLabel, status, assignedAt: now, ...(status === 'received' ? { sentAt: now, receivedAt: now } : {}) });
@@ -8047,6 +8075,7 @@ async function syncAndMark(patientId, idx) {
       const found = sheetData[aba].some(row => {
         const rowCod = String(row['Código'] || row['Codigo'] || row['codigo'] || row['Código Paciente'] || row['patientCode'] || '').trim().toUpperCase();
         if(rowCod !== patUpper) return false;
+        if(!rowNaoAnteriorAtribuicao(row, a)) return false; // reaplicação: ignora respostas anteriores à atribuição
         return matchResp2(row, aba, smRecip);
       });
       if(found) {
@@ -8076,6 +8105,19 @@ function setStatus(patientId, idx, status) {
   store.set('assignments_' + patientId, assignments);
   renderAssignments(patientId);
   renderPatients(document.getElementById('search-input').value);
+}
+
+function reaplicarQuestionario(patientId, idx) {
+  const assignments = store.get('assignments_' + patientId) || [];
+  const a = assignments[idx];
+  if(!a) return;
+  const q = store.get('q_' + a.qid);
+  if(!confirm('Criar uma nova aplicação de «' + (q?.name || a.qid) + '» para ' + (a.recipientLabel || a.recipient) + '?\nO resultado anterior mantém-se e a nova aplicação fica pendente.')) return;
+  assignments.push({ qid: a.qid, recipient: a.recipient, recipientLabel: a.recipientLabel, status: 'pending', assignedAt: new Date().toISOString(), reaplicacao: true });
+  store.set('assignments_' + patientId, assignments);
+  renderAssignments(patientId);
+  renderAddAssignment(patientId);
+  renderPatients(document.getElementById('search-input')?.value || '');
 }
 
 function removeAssignment(patientId, idx) {
