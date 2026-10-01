@@ -66,6 +66,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--gray);color:var(--text);m
 
 /* Modal */
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:flex-start;justify-content:center;z-index:1000;padding:16px;overflow-y:auto;}
+.btn-xs{padding:5px 10px;font-size:.78rem;}
 .modal-box{background:#fff;border-radius:16px;padding:28px;max-width:860px;width:100%;box-shadow:0 12px 48px rgba(0,0,0,.25);margin:0 auto;}
 
 /* Itens */
@@ -329,8 +330,6 @@ table.sessions tr:hover{background:var(--gray);}
         <button class="btn btn-secondary" style="padding:6px 14px;font-size:0.82rem;" onclick="exportarCSV()">⬇ Exportar CSV</button>
         <button class="btn btn-secondary" style="padding:6px 14px;font-size:0.82rem;" onclick="exportarPDF()">📄 Exportar PDF</button>
         <button class="btn btn-secondary" style="padding:6px 14px;font-size:0.82rem;" onclick="window.print()">🖨 Imprimir</button>
-        <button class="btn btn-secondary" style="padding:6px 14px;font-size:0.82rem;" onclick="exportarRespostasPDF(sessaoActual)">📋 Respostas PDF</button>
-        <button class="btn btn-secondary" style="padding:6px 14px;font-size:0.82rem;" onclick="exportarInterpretacaoPDF(sessaoActual)">📊 Exportar Interpretação PDF</button>
         <input type="file" id="import-file-input" accept=".csv,.xlsx,.xls" style="display:none" onchange="processarFicheiroImportado(this)">
       </div>
       <div id="import-feedback" style="margin-bottom:12px;display:none;"></div>
@@ -915,6 +914,15 @@ function downloadCSVLocal(payload){
 }
 
 
+// Chave de deduplicação: código + data (dd/mm/aaaa) + nome do respondente
+function chaveSessao(s){
+  return [
+    String(s.codigo||'').trim().toUpperCase(),
+    formatData(s.data || s.timestamp),
+    String(s.nomeInformante||'').trim().toLowerCase()
+  ].join('|');
+}
+
 // ─────────────── CARREGAR DO SHEET ───────────────
 async function carregarDados(){
   try {
@@ -927,10 +935,11 @@ async function carregarDados(){
       Object.keys(localStorage).forEach(function(k){
         if (k.indexOf(SHEET_NAME + '_local_') === 0) {
           var l = JSON.parse(localStorage.getItem(k));
-          if (l && l.Codigo && !sessoes.find(function(s){
-            return s.codigo === l.Codigo && s.timestamp === l.timestamp;
-          })) {
-            sessoes.push(parseSessaoLocal(l));
+          // Dedupe robusto (Skill §33): código + data + nome do respondente.
+          // (o timestamp local nunca coincide com o do Sheet → duplicava a linha)
+          var lSess = (l && l.Codigo) ? parseSessaoLocal(l) : null;
+          if (lSess && !sessoes.some(function(s){ return chaveSessao(s) === chaveSessao(lSess); })) {
+            sessoes.push(lSess);
           }
         }
       });
@@ -1080,7 +1089,7 @@ function verDetalhe(idx){
   window.scrollTo(0, 0);
 }
 
-function buildDetalheHTML(s){
+function buildDetalheHTML(s, semBotoes){
   var sub = s.sub || {};
   var idx = s.indices || {};
   var pol = s.polarities || {};
@@ -1194,7 +1203,12 @@ function buildDetalheHTML(s){
           ' · Respondente: '+escapeHtml(s.nomeInformante||'—')+
         '</div>' +
       '</div>' +
-      '<button class="btn btn-secondary" onclick="fecharModal()">Fechar ✕</button>' +
+      (semBotoes ? '' :
+        '<div class="no-print" style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end">' +
+          '<button class="btn btn-secondary btn-xs" onclick="exportarRespostasPDF(sessaoActual)">📋 Respostas PDF</button>' +
+          '<button class="btn btn-secondary btn-xs" onclick="exportarInterpretacaoPDF(sessaoActual)">📊 Relatório Completo PDF</button>' +
+          '<button class="btn btn-secondary btn-xs" onclick="fecharModal()">✕ Fechar</button>' +
+        '</div>') +
     '</div>';
 
   // Perfil destacado
@@ -1376,9 +1390,7 @@ function exportarRespostasPDF(s){
 function exportarInterpretacaoPDF(s){
   if (!s) { alert('Selecione uma sessão (Ver →) primeiro.'); return; }
   // Reaproveitar buildDetalheHTML simplificado para impressão
-  var det = buildDetalheHTML(s);
-  // Remover botão "Fechar ✕"
-  det = det.replace(/<button class="btn btn-secondary" onclick="fecharModal\(\)">Fechar ✕<\/button>/, '');
+  var det = buildDetalheHTML(s, true);  // sem botões (Respostas PDF / Relatório / Fechar)
 
   var respostasHtml = '';
   if (s.respostas){
@@ -1396,7 +1408,7 @@ function exportarInterpretacaoPDF(s){
       '</tr></thead><tbody>'+rows+'</tbody></table>';
   }
 
-  var html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Interpretação — '+escapeHtml(s.codigo)+'</title>' +
+  var html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Relatório Completo — '+escapeHtml(s.codigo)+'</title>' +
              '<style>body{font-family:sans-serif;font-size:11px;color:#2C3E50;padding:20px;line-height:1.4}' +
              'h2,h3,h4{color:#3B5A7A} h2{margin-bottom:4px}' +
              '.badge{border-radius:6px;padding:2px 8px;font-size:10px;font-weight:600}' +
@@ -1407,7 +1419,7 @@ function exportarInterpretacaoPDF(s){
              'table{width:100%;border-collapse:collapse;margin-top:8px;margin-bottom:14px}' +
              '@media print{button{display:none}}</style></head><body>' +
              '<button onclick="window.print()" style="margin-bottom:14px">🖨 Imprimir / Guardar PDF</button>' +
-             '<h2>'+SHEET_NAME+' — Interpretação clínica</h2>' +
+             '<h2>'+SHEET_NAME+' — Relatório Completo</h2>' +
              '<p style="color:#6B7A8D;margin-bottom:14px">Ricardina Correia · Cédula 8233 · Psicologia Pediátrica</p>' +
              det + respostasHtml +
              '</body></html>';
