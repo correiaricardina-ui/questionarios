@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>RDP-RC — Registo Diário Prospetivo</title>
+<!-- RDP-RC v1.1 — painel clínico com modal de detalhe, 📋 Respostas PDF e 📊 Relatório Completo PDF (skill v28); leitura correcta das linhas do Sheet -->
 <style>
 :root{
   --blue:#3B5A7A; --blue-mid:#5B7FA6; --blue-pale:#D6E8F5; --blue-xpale:#EEF3F7;
@@ -100,7 +101,11 @@ table.sess-table tr:hover{background:var(--blue-xpale);cursor:pointer;}
 .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.5);display:none;align-items:flex-start;
   justify-content:center;z-index:100;overflow-y:auto;padding:40px 16px;}
 .modal-bg.show{display:flex;}
-.modal{background:#fff;border-radius:14px;max-width:720px;width:100%;padding:28px;position:relative;}
+.modal{background:#fff;border-radius:14px;max-width:860px;width:100%;padding:28px;position:relative;}
+.btn-xs{padding:6px 12px;font-size:0.8rem;}
+.btn-secondary{background:var(--blue-pale);color:var(--blue);}
+.btn-secondary:hover{background:var(--blue-xpale);}
+.badge-blue{background:var(--blue-pale);color:var(--blue);}
 .modal-btns{position:absolute;top:16px;right:16px;display:flex;gap:8px;}
 .modal-btns .btn{padding:7px 13px;font-size:0.8rem;}
 .banner-file{background:var(--red-pale);color:var(--red);border:1px solid var(--red);
@@ -220,23 +225,38 @@ table.sess-table tr:hover{background:var(--blue-xpale);cursor:pointer;}
 <div id="page-clinico" class="page">
   <div class="wrap">
     <div class="card">
-      <h2 class="sec-title">Registos</h2>
-      <div class="toolbar">
-        <button class="btn btn-ghost" onclick="sincronizar()">↺ Sincronizar</button>
-        <button class="btn btn-ghost" onclick="exportarCSV()">⬇ Exportar CSV</button>
-        <button class="btn btn-ghost" onclick="showPage('page-home')">← Início</button>
+      <h2 class="sec-title">Pacientes</h2>
+      <p class="sec-intro" style="margin-bottom:14px;">Clique em «Ver →» para abrir a análise, o gráfico diário e os relatórios de cada paciente.</p>
+      <div class="toolbar no-print">
+        <button class="btn btn-secondary btn-xs" onclick="sincronizar()">↺ Sincronizar</button>
+        <button class="btn btn-secondary btn-xs" onclick="importarCSV()">⬆ Importar</button>
+        <button class="btn btn-secondary btn-xs" onclick="exportarCSV()">⬇ Exportar CSV</button>
+        <button class="btn btn-secondary btn-xs" onclick="exportarPDF()">📄 Exportar PDF</button>
+        <button class="btn btn-secondary btn-xs" onclick="window.print()">🖨 Imprimir</button>
+        <button class="btn btn-ghost btn-xs" onclick="showPage('page-home')">← Início</button>
+        <input type="file" id="import-file-input" accept=".csv" style="display:none" onchange="processarFicheiroImportado(this)">
       </div>
-      <label class="fld-label">Analisar paciente</label>
-      <select id="sel-paciente" class="txt" onchange="renderAnalise()"></select>
-      <div id="analise"></div>
+      <div id="import-feedback" style="display:none;"></div>
+      <div style="overflow-x:auto;">
+      <table class="sess-table"><thead><tr>
+        <th>Código</th><th>Nome</th><th>Dias</th><th>Período</th><th>Ciclos</th><th>Padrão</th><th></th>
+      </tr></thead><tbody id="tbody-pacientes"></tbody></table>
+      </div>
     </div>
     <div class="card">
       <h2 class="sec-title" style="font-size:1.05rem;">Registos individuais</h2>
+      <div style="overflow-x:auto;">
       <table class="sess-table"><thead><tr>
         <th>Data</th><th>Código</th><th>Fase</th><th>Total</th><th>Interf.</th><th>SOS</th><th>Menst.</th><th>Tardio</th>
       </tr></thead><tbody id="tbody-registos"></tbody></table>
+      </div>
     </div>
   </div>
+</div>
+
+<!-- ============ MODAL DE DETALHE ============ -->
+<div id="modal-detalhe" class="modal-bg" onclick="if(event.target===this)fecharModal()">
+  <div class="modal"><div id="modal-conteudo"></div></div>
 </div>
 
 <script>
@@ -425,9 +445,7 @@ function submeter(){
   }catch(e){}
   showPage('page-obrigado');
 }
-function carregarRegistos(){
-  try{ return JSON.parse(localStorage.getItem('rdp_rc_registos')||'[]'); }catch(e){ return []; }
-}
+/* carregarRegistos: ver bloco de normalização mais abaixo (v1.1) */
 
 /* ── Fases · atribuição RETROSPETIVA ──────────────────────────────────────────
    Em ciclos de 35-40 dias a fase lutea nao e contavel a partir do inicio do
@@ -539,33 +557,115 @@ function fazerLogin(){
   else{ document.getElementById('login-error').style.display='block'; }
 }
 function entrarClinico(){ showPage('page-clinico'); sincronizar(); }
+/* ── Normalização de dados (v1.1) ─────────────────────────────────────────
+   O Sheet devolve colunas com nomes próprios ('Código', 'Data', 'Total_Criterio',
+   'Respostas'…) e datas em dd/mm/aaaa; o painel trabalha com patientCode, data ISO
+   e itens. rowParaRegisto converte as linhas do Sheet (ou de um CSV importado) para
+   o formato local, para que os registos sincronizados apareçam e entrem na análise. */
+function normDataISO(raw){
+  if(raw===undefined||raw===null) return '';
+  var s=String(raw).trim(); if(!s) return '';
+  var m=s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
+  if(m) return m[3]+'-'+('0'+m[2]).slice(-2)+'-'+('0'+m[1]).slice(-2);
+  if(/^\d{4}-\d{2}-\d{2}/.test(s)){
+    if(s.indexOf('T')>0){
+      var d=new Date(s);
+      if(!isNaN(d.getTime())) return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2);
+    }
+    return s.slice(0,10);
+  }
+  return '';
+}
+function numOu0(v){
+  if(v===undefined||v===null||v==='') return 0;
+  var n=Number(String(v).replace(',','.'));
+  return isNaN(n)?0:n;
+}
+function rowParaRegisto(row){
+  if(!row||typeof row!=='object') return null;
+  var o={}, k;
+  if(row.patientCode && row.data){
+    for(k in row) o[k]=row[k];
+    o.patientCode=String(o.patientCode).trim().toUpperCase();
+    o.data=normDataISO(row.data)||String(row.data);
+    return o;
+  }
+  var cod=String(row['Código']||row['Codigo']||row.patientCode||row.codigo||'').trim().toUpperCase();
+  var data=normDataISO(row['Data']||row.data);
+  if(!cod||!data) return null;
+  var it=(row['Respostas']!==undefined&&row['Respostas']!=='')?row['Respostas']:(row.itens||'');
+  if(it&&typeof it==='object') it=JSON.stringify(it);
+  var hs=row['Horas_Sono']; if(hs===undefined||hs===null) hs=row.horas_sono; if(hs===undefined||hs===null) hs='';
+  return {
+    patientCode:cod,
+    nome:String(row['NomeUtente']||row['NomeInformante']||row.nome||'').trim(),
+    data:data,
+    tardio:numOu0(row.tardio),
+    menstruacao:numOu0(row['Menstruacao']!==undefined?row['Menstruacao']:row.menstruacao),
+    sos:numOu0(row['SOS']!==undefined?row['SOS']:row.sos),
+    interferencia:numOu0(row['Interferencia']!==undefined?row['Interferencia']:row.interferencia),
+    total_criterio:numOu0(row['Total_Criterio']!==undefined?row['Total_Criterio']:row.total_criterio),
+    gi:numOu0(row['GI']!==undefined?row['GI']:row.gi),
+    cefaleia:numOu0(row['Cefaleia']!==undefined?row['Cefaleia']:row.cefaleia),
+    descanso:numOu0(row['Descanso']!==undefined?row['Descanso']:row.descanso),
+    horas_sono:String(hs),
+    nota:String(row['Nota']||row.nota||''),
+    itens:String(it||'{}'),
+    fromSheet:true
+  };
+}
+/* Uma linha por paciente e dia — a mesma chave do Apps Script (DEDUPE_KEYS['RDP_RC']).
+   Em caso de repetição prevalece a última (correcção do mesmo dia). */
+function dedupeRegistos(regs){
+  var idx={}, out=[];
+  regs.forEach(function(r){
+    var k=r.patientCode+'|'+r.data;
+    if(k in idx) out[idx[k]]=r; else { idx[k]=out.length; out.push(r); }
+  });
+  return out;
+}
+function carregarRegistos(){
+  var arr=[];
+  try{ arr=JSON.parse(localStorage.getItem('rdp_rc_registos')||'[]'); }catch(e){ arr=[]; }
+  return dedupeRegistos(arr.map(rowParaRegisto).filter(Boolean));
+}
+function guardarRegistos(regs){
+  localStorage.setItem('rdp_rc_registos',JSON.stringify(regs));
+}
+function mostrarFeedback(msg,erro){
+  var el=document.getElementById('import-feedback'); if(!el) return;
+  el.style.display='block';
+  el.style.cssText='display:block;margin-bottom:12px;padding:9px 12px;border-radius:6px;font-size:.84rem;'
+    +(erro?'background:var(--red-pale);color:var(--red);':'background:var(--blue-xpale);color:var(--blue);');
+  el.textContent=msg;
+}
 async function sincronizar(){
-  var local=carregarRegistos();
+  var local=carregarRegistos(), novos=0, falhou=false;
   try{
     var res=await fetch(SCRIPT_URL+'?instrumento='+ABA+'&t='+Date.now());
     var data=await res.json();
     var rows=Array.isArray(data)?data:(data&&data.rows?data.rows:[]);
-    rows.forEach(function(r){
-      if(!local.some(function(l){return l.patientCode===r.patientCode && l.data===r.data;})) local.push(r);
+    rows.forEach(function(row){
+      var r=rowParaRegisto(row); if(!r) return;
+      if(!local.some(function(l){ return l.patientCode===r.patientCode && l.data===r.data; })){ local.push(r); novos++; }
     });
-    localStorage.setItem('rdp_rc_registos',JSON.stringify(local));
-  }catch(e){}
-  preencherPacientes(); renderTabela(); renderAnalise();
+    guardarRegistos(local);
+  }catch(e){ falhou=true; }
+  renderPacientes(); renderTabela();
+  if(falhou) mostrarFeedback('Sem ligação ao Sheet — a mostrar apenas os registos guardados neste dispositivo.',true);
+  else mostrarFeedback(novos+' registo(s) novo(s) trazido(s) do Sheet · '+local.length+' no total.',false);
 }
-function preencherPacientes(){
-  var regs=carregarRegistos();
-  var cods=[]; regs.forEach(function(r){ if(cods.indexOf(r.patientCode)<0) cods.push(r.patientCode); });
-  var sel=document.getElementById('sel-paciente');
-  sel.innerHTML=cods.map(function(c){return '<option value="'+c+'">'+c+'</option>';}).join('');
-}
+
 function escHtml(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){
   return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
 
 function renderTabela(){
   var regs=carregarRegistos().slice().sort(function(a,b){return a.data<b.data?1:-1;});
-  var fases=atribuirFases(regs.slice().sort(function(a,b){return a.data<b.data?-1:1;}));
+  /* fases calculadas POR PACIENTE (a v1 misturava as datas de todos os pacientes) */
+  var fasesPor={};
+  regs.forEach(function(r){ if(!fasesPor[r.patientCode]) fasesPor[r.patientCode]=atribuirFases(regs.filter(function(x){return x.patientCode===r.patientCode;}).sort(porData)); });
   document.getElementById('tbody-registos').innerHTML = regs.map(function(r){
-    var f=fases[r.data]||'—';
+    var f=(fasesPor[r.patientCode]||{})[r.data]||'—';
     var cls=f==='lutea'?'badge-red':(f==='folicular'?'badge-som':'badge-ape');
     return '<tr><td>'+escHtml(r.data)+'</td><td>'+escHtml(r.patientCode)+'</td>'
       +'<td><span class="badge '+cls+'">'+f+'</span></td>'
@@ -577,15 +677,61 @@ function renderTabela(){
 function linha(rot,a,b){
   return '<tr><td>'+rot+'</td><td>'+(a===null?'—':a)+'</td><td>'+(b===null?'—':b)+'</td></tr>';
 }
-function renderAnalise(){
-  var sel=document.getElementById('sel-paciente');
-  var cod=sel && sel.value;
-  var box=document.getElementById('analise');
-  if(!cod){ box.innerHTML=''; return; }
-  var regs=carregarRegistos().filter(function(r){return r.patientCode===cod;});
-  var a=analisar(regs);
-  if(a.estado){ box.innerHTML='<p class="sec-intro">'+a.estado+'</p>'; return; }
-  var h='<div style="margin-top:16px;padding:14px 16px;border-radius:10px;background:var(--blue-xpale);border-left:4px solid var(--blue);">'
+/* ── Painel clínico: pacientes, modal de detalhe e relatórios (v1.1) ────── */
+var sessoes=[];          // um item por paciente: {codigo, nome, regs}
+var sessaoActual=null;
+var NOME_FASE={lutea:'Lútea',folicular:'Folicular',intermedia:'Intermédia'};
+var COR_FASE={lutea:'#3B5A7A',folicular:'#A8C4D8',intermedia:'#D5DBE3'};
+var COLS_ITENS=(function(){
+  var c=[];
+  NUCLEARES.forEach(function(x,i){ c.push({cod:'N'+(i+1),k:x.k,t:x.t}); });
+  ADICIONAIS.forEach(function(x,i){ c.push({cod:'A'+(i+1),k:x.k,t:x.t}); });
+  ESPECIFICOS.forEach(function(x,i){ c.push({cod:'E'+(i+1),k:x.k,t:x.t}); });
+  c.push({cod:'INT',k:INTERFERENCIA.k,t:INTERFERENCIA.t});
+  return c;
+})();
+function fmtDataPT(iso){
+  var m=String(iso||'').match(/^(\d{4})-(\d{2})-(\d{2})/);
+  return m?(m[3]+'/'+m[2]+'/'+m[1]):String(iso||'—');
+}
+function porData(a,b){ return a.data<b.data?-1:(a.data>b.data?1:0); }
+function pacientesLista(){
+  var regs=carregarRegistos(), mapa={}, ordem=[];
+  regs.forEach(function(r){
+    if(!mapa[r.patientCode]){ mapa[r.patientCode]=[]; ordem.push(r.patientCode); }
+    mapa[r.patientCode].push(r);
+  });
+  return ordem.sort().map(function(c){
+    var rs=mapa[c].sort(porData), nome='';
+    rs.forEach(function(r){ if(r.nome) nome=r.nome; });
+    return {codigo:c, nome:nome, regs:rs};
+  });
+}
+function padraoCod(a){ return a.estado?'—':String(a.padrao).slice(0,2); }
+function periodoTxt(rs){
+  return rs.length?(fmtDataPT(rs[0].data)+' – '+fmtDataPT(rs[rs.length-1].data)):'—';
+}
+function renderPacientes(){
+  sessoes=pacientesLista();
+  var tb=document.getElementById('tbody-pacientes');
+  if(!sessoes.length){
+    tb.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--text-light);padding:24px;">Sem registos. Clique em ↺ Sincronizar.</td></tr>';
+    return;
+  }
+  tb.innerHTML=sessoes.map(function(p,idx){
+    var a=analisar(p.regs), cod=padraoCod(a);
+    var cls=(cod==='R0')?'badge-red':'badge-blue';
+    return '<tr><td><strong>'+escHtml(p.codigo)+'</strong></td><td>'+escHtml(p.nome||'—')+'</td>'
+      +'<td>'+p.regs.length+'</td><td style="font-size:.82rem;">'+periodoTxt(p.regs)+'</td>'
+      +'<td>'+(a.ciclos||0)+'</td><td><span class="badge '+cls+'">'+cod+'</span></td>'
+      +'<td><button class="btn btn-secondary btn-xs" onclick="verPaciente('+idx+')">Ver →</button></td></tr>';
+  }).join('');
+}
+
+/* ── Análise (mesmo conteúdo que a v1, agora devolvido como HTML) ───────── */
+function htmlAnalise(a){
+  if(a.estado) return '<p class="sec-intro">'+a.estado+'</p>';
+  var h='<div style="margin-top:6px;padding:14px 16px;border-radius:10px;background:var(--blue-xpale);border-left:4px solid var(--blue);">'
       +'<strong>'+escHtml(a.padrao)+'</strong></div>';
   h+='<p class="sec-intro" style="margin-top:14px;">'+a.dias+' dias registados · '+a.inicios+' inícios de fluxo · '
     +a.ciclos+' ciclos completos · '+a.nLut+' dias lúteos · '+a.nFol+' dias foliculares'
@@ -606,8 +752,226 @@ function renderAnalise(){
       +a.itensLutea.map(function(k){return escHtml(ROTULOS[k]);}).join(' · ')+'</p>';
   }
   h+='<p style="font-size:.78rem;color:var(--text-light);margin-top:16px;">Horas de sono, descanso ao acordar, sintomas digestivos e cefaleia seguem em paralelo e não entram no critério. Instrumento de construção própria, sem validação psicométrica — observação, não conclusão. Ricardina Correia · Cédula 8233.</p>';
-  box.innerHTML=h;
+  return h;
 }
+
+/* ── Gráfico diário: total de critério por dia, cor = fase do ciclo ─────── */
+function graficoDiario(regs){
+  if(!regs.length) return '';
+  var fases=atribuirFases(regs);
+  var n=regs.length, W=760, H=176, ml=30, mr=8, mt=10, mb=36;
+  var pw=W-ml-mr, ph=H-mt-mb, MAX=CRITERIO.length*3, bw=pw/n, gap=Math.min(2,bw*0.2);
+  var s='<svg viewBox="0 0 '+W+' '+H+'" width="100%" role="img" '
+    +'aria-label="Total de critério por dia registado, colorido pela fase do ciclo" style="display:block;font-family:inherit;">';
+  [0,11,22,33].forEach(function(v){
+    var y=mt+ph-(v/MAX)*ph;
+    s+='<line x1="'+ml+'" x2="'+(W-mr)+'" y1="'+y+'" y2="'+y+'" stroke="#DDE3EA" stroke-width="1"/>'
+      +'<text x="'+(ml-5)+'" y="'+(y+3)+'" text-anchor="end" font-size="9" fill="#7F8C9B">'+v+'</text>';
+  });
+  var passo=Math.max(1,Math.ceil(n/10));
+  regs.forEach(function(r,i){
+    var t=Math.max(0,Math.min(MAX,Number(r.total_criterio)||0));
+    var h=(t/MAX)*ph, x=ml+i*bw, f=fases[r.data]||'intermedia';
+    s+='<rect x="'+(x+gap/2).toFixed(2)+'" y="'+(mt+ph-h).toFixed(2)+'" width="'+Math.max(1,bw-gap).toFixed(2)+'" height="'+Math.max(h,t>0?1:0).toFixed(2)+'" fill="'+COR_FASE[f]+'">'
+      +'<title>'+fmtDataPT(r.data)+' · '+NOME_FASE[f]+' · total '+t+'</title></rect>';
+    if(r.menstruacao==1) s+='<rect x="'+(x+gap/2).toFixed(2)+'" y="'+(mt+ph+3)+'" width="'+Math.max(1,bw-gap).toFixed(2)+'" height="5" fill="#C0392B"/>';
+    if(i%passo===0) s+='<text x="'+(x+bw/2).toFixed(1)+'" y="'+(H-8)+'" text-anchor="middle" font-size="9" fill="#7F8C9B">'+fmtDataPT(r.data).slice(0,5)+'</text>';
+  });
+  s+='</svg>';
+  var leg='<div style="display:flex;gap:14px;flex-wrap:wrap;font-size:.78rem;color:#7F8C9B;margin-top:6px;">';
+  ['lutea','folicular','intermedia'].forEach(function(f){
+    leg+='<span><span style="display:inline-block;width:10px;height:10px;background:'+COR_FASE[f]+';margin-right:5px;border-radius:2px;"></span>'+NOME_FASE[f]+'</span>';
+  });
+  leg+='<span><span style="display:inline-block;width:10px;height:5px;background:#C0392B;margin-right:5px;"></span>Dia de menstruação</span>'
+     +'<span>Cada barra é um dia registado; eixo vertical: total de critério (0–'+MAX+').</span></div>';
+  return s+leg;
+}
+
+/* ── Tabela item-a-item (modal e PDF) ──────────────────────────────────── */
+function tabelaRespostas(regs){
+  var fases=atribuirFases(regs);
+  var th='<th>Data</th><th>Fase</th><th>M</th><th>SOS</th>';
+  COLS_ITENS.forEach(function(c){ th+='<th style="text-align:center;">'+c.cod+'</th>'; });
+  th+='<th style="text-align:center;">Total</th>';
+  var tr=regs.map(function(r){
+    var it={}; try{ it=JSON.parse(r.itens)||{}; }catch(e){}
+    var td='<td>'+fmtDataPT(r.data)+'</td><td>'+NOME_FASE[fases[r.data]||'intermedia']+'</td>'
+      +'<td>'+(r.menstruacao==1?'●':'')+'</td><td>'+(r.sos==1?'●':'')+'</td>';
+    COLS_ITENS.forEach(function(c){
+      var v=it[c.k];
+      td+='<td style="text-align:center;font-weight:'+(v>=2?'700':'400')+';">'+(v===undefined?'·':v)+'</td>';
+    });
+    return '<tr>'+td+'<td style="text-align:center;font-weight:700;">'+(Number(r.total_criterio)||0)+'</td></tr>';
+  }).join('');
+  return '<table class="sess-table" style="font-size:.78rem;"><thead><tr>'+th+'</tr></thead><tbody>'+tr+'</tbody></table>';
+}
+function legendaRespostas(){
+  var h='<p style="font-size:.76rem;color:#7F8C9B;line-height:1.55;margin-top:10px;">'
+    +'<strong>Escala:</strong> '+NIVEIS.map(function(n,i){return i+' = '+n;}).join(' · ')+'. '
+    +'<strong>·</strong> = item não apresentado nesse dia (versão curta: os restantes só surgem quando algum item nuclear é assinalado em 2 ou mais). '
+    +'<strong>M</strong> = menstruação · <strong>SOS</strong> = medicação em SOS. Os itens E1–E3 e INT não entram no total de critério.<br>';
+  h+=COLS_ITENS.map(function(c){ return '<strong>'+c.cod+'</strong> '+escHtml(c.t); }).join(' · ')+'</p>';
+  return h;
+}
+
+/* ── Modal de detalhe ──────────────────────────────────────────────────── */
+function clusterModal(idx){
+  return '<div class="no-print" style="display:flex;justify-content:flex-end;gap:6px;margin-bottom:8px;flex-wrap:wrap;">'
+    +'<button class="btn btn-secondary btn-xs" onclick="exportarRespostasPDF(sessoes['+idx+'])">📋 Respostas PDF</button>'
+    +'<button class="btn btn-secondary btn-xs" onclick="exportarInterpretacaoPDF(sessoes['+idx+'])">📊 Relatório Completo PDF</button>'
+    +'<button class="btn btn-secondary btn-xs" onclick="fecharModal()">✕ Fechar</button></div>';
+}
+function verPaciente(idx){
+  var p=sessoes[idx]; if(!p) return;
+  sessaoActual=p;
+  var a=analisar(p.regs);
+  var html=clusterModal(idx)
+    +'<h2 class="sec-title">Detalhe · '+escHtml(p.codigo)+(p.nome?' — '+escHtml(p.nome):'')+'</h2>'
+    +'<p class="sec-intro" style="margin-bottom:14px;">'+p.regs.length+' dias registados · '+periodoTxt(p.regs)+'</p>'
+    +htmlAnalise(a)
+    +'<h3 style="font-size:.95rem;color:var(--blue);margin:22px 0 8px;">Evolução diária</h3>'
+    +graficoDiario(p.regs)
+    +'<div style="margin-top:18px;">'
+    +'<button class="btn btn-secondary btn-xs" onclick="toggleRespostasDetalhadas(this)">Ver respostas detalhadas ▼</button>'
+    +'<div style="display:none;margin-top:12px;"><div style="overflow-x:auto;">'+tabelaRespostas(p.regs)+'</div>'+legendaRespostas()+'</div></div>';
+  document.getElementById('modal-conteudo').innerHTML=html;
+  document.getElementById('modal-detalhe').classList.add('show');
+}
+function fecharModal(){ document.getElementById('modal-detalhe').classList.remove('show'); }
+function toggleRespostasDetalhadas(btn){
+  var box=btn.nextElementSibling;
+  var abrir=(box.style.display==='none');
+  box.style.display=abrir?'block':'none';
+  btn.textContent=abrir?'Ocultar respostas detalhadas ▲':'Ver respostas detalhadas ▼';
+}
+
+/* ── PDF: janela de impressão ──────────────────────────────────────────── */
+var CSS_PDF='body{font-family:Arial,sans-serif;font-size:12px;color:#2C3E50;padding:22px;max-width:980px;margin:0 auto;}'
+  +'h1{color:#3B5A7A;font-size:16px;margin-bottom:4px;}'
+  +'h2{color:#3B5A7A;font-size:13px;margin:18px 0 8px;border-bottom:2px solid #D6E4F0;padding-bottom:4px;}'
+  +'p{color:#6B7A8D;margin-bottom:10px;font-size:11px;line-height:1.5;}'
+  +'table{width:100%;border-collapse:collapse;margin-bottom:12px;}'
+  +'th{background:#D6E4F0;padding:5px 6px;text-align:left;color:#3B5A7A;font-size:10px;}'
+  +'td{padding:4px 6px;border-bottom:1px solid #eee;font-size:10px;}'
+  +'.caixa{background:#EEF3F7;border-left:4px solid #3B5A7A;border-radius:6px;padding:10px 12px;color:#2C3E50;font-size:11px;line-height:1.5;margin-bottom:12px;}'
+  +'.no-print{margin-bottom:12px;}'
+  +'@page{size:A4 landscape;margin:12mm;}'
+  +'@media print{.no-print{display:none;}body{padding:0;}}';
+function abrirPDF(titulo,corpo){
+  var html='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>'+escHtml(titulo)+'</title><style>'+CSS_PDF+'</style></head><body>'
+    +'<div class="no-print"><button onclick="window.print()" style="padding:6px 14px;cursor:pointer;">🖨 Imprimir / Guardar PDF</button></div>'
+    +corpo+'</body></html>';
+  var w=window.open('','_blank');
+  if(!w){ alert('Pop-up bloqueado. Permita pop-ups para este site.'); return; }
+  w.document.write(html); w.document.close();
+}
+function cabecalhoPDF(titulo,p){
+  return '<h1>'+titulo+'</h1><p>Código: <strong>'+escHtml(p.codigo)+'</strong>'
+    +(p.nome?' · Nome: <strong>'+escHtml(p.nome)+'</strong>':'')
+    +' · Período: '+periodoTxt(p.regs)+' · '+p.regs.length+' dias · Emitido em '+new Date().toLocaleDateString('pt-PT')
+    +' · Ricardina Correia · Cédula 8233 · Psicologia Pediátrica</p>';
+}
+function exportarRespostasPDF(sessao){
+  if(!sessao||!sessao.regs||!sessao.regs.length){ alert('Sem respostas para exportar.'); return; }
+  abrirPDF('RDP-RC — Respostas — '+sessao.codigo,
+    cabecalhoPDF('RDP-RC — Respostas por Item e por Dia',sessao)+tabelaRespostas(sessao.regs)+legendaRespostas());
+}
+function exportarInterpretacaoPDF(sessao){
+  if(!sessao||!sessao.regs||!sessao.regs.length){ alert('Sem dados para exportar.'); return; }
+  var a=analisar(sessao.regs), c='';
+  c+=cabecalhoPDF('RDP-RC — Relatório Completo',sessao);
+  c+='<h2>1. Padrão observado</h2><div class="caixa"><strong>'+escHtml(a.padrao||a.estado)+'</strong></div>';
+  if(!a.estado){
+    c+='<h2>2. Recolha</h2><p style="color:#2C3E50;">'+a.dias+' dias registados · '+a.inicios+' inícios de fluxo · '+a.ciclos
+      +' ciclos completos · '+a.nLut+' dias lúteos · '+a.nFol+' dias foliculares'+(a.tardios?' · '+a.tardios+' registos tardios':'')+'.</p>'
+      +'<div class="caixa">'+escHtml(a.completude)+'</div>';
+    c+='<h2>3. Comparação entre fases (médias por dia)</h2>'
+      +'<table><thead><tr><th></th><th>Lútea</th><th>Folicular</th></tr></thead><tbody>'
+      +linha('Total de critério (0–'+(CRITERIO.length*3)+')',a.mediaLutea,a.mediaFolicular)
+      +linha('Interferência funcional',a.interfLutea,a.interfFolicular)
+      +linha('Horas de sono',a.horasLutea,a.horasFolicular)
+      +linha('Acordar sem descanso',a.descansoLutea,a.descansoFolicular)
+      +linha('Sintomas digestivos',a.giLutea,a.giFolicular)
+      +linha('Cefaleia',a.cefaleiaLutea,a.cefaleiaFolicular)
+      +linha('Proporção de dias com SOS',a.sosLutea,a.sosFolicular)
+      +'</tbody></table>';
+    c+='<p style="color:#2C3E50;"><strong>Itens presentes em ≥50% dos dias lúteos:</strong> '
+      +(a.itensLutea.length?a.itensLutea.map(function(k){return escHtml(ROTULOS[k]);}).join(' · '):'nenhum')
+      +'. Destes, nucleares: '+(a.nuclearesLutea.length?a.nuclearesLutea.map(function(k){return escHtml(ROTULOS[k]);}).join(' · '):'nenhum')+'.</p>';
+  }
+  c+='<h2>4. Evolução diária</h2>'+graficoDiario(sessao.regs);
+  c+='<h2>5. Critérios de leitura</h2><p>Fase lútea tardia: os 7 dias anteriores ao início do fluxo seguinte. Fase folicular: dias 4 a 10 após o início do fluxo. '
+    +'A fase é atribuída retrospetivamente, pelo que só é determinável depois de registado o início da menstruação seguinte. '
+    +'O padrão R3 exige agravamento lúteo ≥ '+LIMIAR_DISSOCIACAO+'%, pelo menos '+MIN_ITENS+' itens com intensidade ≥ '+LIMIAR_ITEM
+    +' em metade ou mais dos dias lúteos (um deles nuclear) e média por item folicular < '+LIMIAR_BASAL.toFixed(1)
+    +'; o DSM-5-TR exige dois ciclos prospetivos completos (três inícios de fluxo).</p>';
+  var notas=sessao.regs.filter(function(r){return r.nota;});
+  if(notas.length){
+    c+='<h2>6. Notas do dia</h2><table><thead><tr><th style="width:90px;">Data</th><th>Nota</th></tr></thead><tbody>'
+      +notas.map(function(r){return '<tr><td>'+fmtDataPT(r.data)+'</td><td>'+escHtml(r.nota)+'</td></tr>';}).join('')+'</tbody></table>';
+  }
+  c+='<h2>'+(notas.length?'7':'6')+'. Respostas por item e por dia</h2>'+tabelaRespostas(sessao.regs)+legendaRespostas();
+  c+='<p style="margin-top:18px;font-style:italic;color:#999;">Instrumento de construção própria, sem validação psicométrica — observação, não conclusão. '
+    +'A leitura deve ser integrada no contexto clínico completo; a confirmação diagnóstica e a decisão terapêutica competem à Psiquiatria.</p>';
+  abrirPDF('RDP-RC — Relatório — '+sessao.codigo,c);
+}
+function exportarPDF(){
+  if(!sessoes.length){ alert('Sem dados para exportar.'); return; }
+  var tr=sessoes.map(function(p){
+    var a=analisar(p.regs);
+    return '<tr><td><strong>'+escHtml(p.codigo)+'</strong></td><td>'+escHtml(p.nome||'')+'</td><td>'+p.regs.length+'</td>'
+      +'<td>'+periodoTxt(p.regs)+'</td><td>'+(a.ciclos||0)+'</td><td>'+escHtml(a.padrao||a.estado)+'</td></tr>';
+  }).join('');
+  abrirPDF('RDP-RC — Painel Clínico',
+    '<h1>RDP-RC — Painel Clínico</h1><p>Ricardina Correia · Cédula 8233 · '+new Date().toLocaleDateString('pt-PT')+' · '+sessoes.length+' paciente(s)</p>'
+    +'<table><thead><tr><th>Código</th><th>Nome</th><th>Dias</th><th>Período</th><th>Ciclos</th><th>Padrão</th></tr></thead><tbody>'+tr+'</tbody></table>');
+}
+
+/* ── Importar CSV ──────────────────────────────────────────────────────── */
+function importarCSV(){ document.getElementById('import-file-input').click(); }
+function parseCSV(text,sep){
+  var rows=[], row=[], cur='', q=false, i, c;
+  for(i=0;i<text.length;i++){
+    c=text.charAt(i);
+    if(q){
+      if(c==='"'){ if(text.charAt(i+1)==='"'){ cur+='"'; i++; } else q=false; }
+      else cur+=c;
+    } else if(c==='"'){ q=true; }
+    else if(c===sep){ row.push(cur); cur=''; }
+    else if(c==='\n'||c==='\r'){
+      if(c==='\r'&&text.charAt(i+1)==='\n') i++;
+      row.push(cur); cur='';
+      if(row.length>1||row[0]!=='') rows.push(row);
+      row=[];
+    } else cur+=c;
+  }
+  if(cur!==''||row.length){ row.push(cur); rows.push(row); }
+  return rows;
+}
+function processarFicheiroImportado(input){
+  var file=input.files&&input.files[0]; if(!file) return;
+  var reader=new FileReader();
+  reader.onload=function(e){
+    var text=String(e.target.result).replace(/^﻿/,'');
+    var primeira=text.split('\n')[0]||'';
+    var rows=parseCSV(text, primeira.indexOf(';')>=0?';':',');
+    if(rows.length<2){ mostrarFeedback('Ficheiro vazio ou sem linhas de dados.',true); return; }
+    var cab=rows[0], local=carregarRegistos(), novos=0, dup=0, ign=0;
+    rows.slice(1).forEach(function(vals){
+      var obj={}; cab.forEach(function(h,i){ obj[h.trim()]=vals[i]===undefined?'':vals[i]; });
+      var r=rowParaRegisto(obj);
+      if(!r){ ign++; return; }
+      if(local.some(function(l){ return l.patientCode===r.patientCode && l.data===r.data; })){ dup++; return; }
+      local.push(r); novos++;
+    });
+    guardarRegistos(local);
+    renderPacientes(); renderTabela();
+    mostrarFeedback(novos+' registo(s) importado(s) · '+dup+' duplicado(s) ignorado(s)'+(ign?' · '+ign+' linha(s) inválida(s)':'')+'.',false);
+  };
+  reader.readAsText(file,'UTF-8');
+  input.value='';
+}
+
 function exportarCSV(){
   var regs=carregarRegistos();
   var cols=['patientCode','nome','data','tardio','menstruacao','sos','interferencia','total_criterio','gi','cefaleia','descanso','horas_sono','nota','itens'];

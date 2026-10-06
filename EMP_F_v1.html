@@ -6,6 +6,7 @@
   Interpretação por média/item com thresholds específicos de cada subescala
 -->
 <html lang="pt-PT">
+<!-- EMP-F v1.1 — botões 📋/📊 movidos para o modal (skill v28, Sec. 14); dedupe de 4 elementos (Sec. 33) -->
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -364,8 +365,6 @@ table.data-tbl tr:hover td{background:var(--blue-xpale)}
         <button class="btn btn-secondary btn-xs" onclick="exportarCSV()">⬇ Exportar CSV</button>
         <button class="btn btn-secondary btn-xs" onclick="exportarPDF()">📄 Exportar PDF</button>
         <button class="btn btn-secondary btn-xs" onclick="window.print()">🖨 Imprimir</button>
-        <button class="btn btn-secondary btn-xs" onclick="exportarRespostasPDF(sessaoActual)">📋 Respostas PDF</button>
-        <button class="btn btn-secondary btn-xs" onclick="exportarInterpretacaoPDF(sessaoActual)">📊 Exportar Interpretação PDF</button>
         <input type="file" id="import-file-input" accept=".csv" style="display:none" onchange="processarFicheiroImportado(this)">
       </div>
       <div id="import-feedback" style="margin-bottom:12px;display:none"></div>
@@ -387,7 +386,11 @@ table.data-tbl tr:hover td{background:var(--blue-xpale)}
         <h3 id="modal-titulo" style="font-family:'DM Serif Display',serif;color:var(--blue);font-size:1.3rem"></h3>
         <p id="modal-subtitulo" style="font-size:.82rem;color:var(--text-light);margin-top:2px"></p>
       </div>
-      <button class="btn btn-secondary btn-xs" onclick="fecharModal()">Fechar</button>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end" class="no-print">
+        <button class="btn btn-secondary btn-xs" onclick="exportarRespostasPDF(sessaoActual)">📋 Respostas PDF</button>
+        <button class="btn btn-secondary btn-xs" onclick="exportarInterpretacaoPDF(sessaoActual)">📊 Relatório Completo PDF</button>
+        <button class="btn btn-secondary btn-xs" onclick="fecharModal()">Fechar ✕</button>
+      </div>
     </div>
     <div id="modal-conteudo"></div>
   </div>
@@ -729,6 +732,26 @@ function tentarLogin(){
 // ═════════════════════════════════════════════════════════════
 // CARREGAR DADOS
 // ═════════════════════════════════════════════════════════════
+// Chave de deduplicação (skill v28, Secção 33): código + dia + tipo + nome do respondente.
+// O EMP-F não tem coluna de tipo de respondente, pelo que o tipo entra vazio e o nome desempata.
+function normNome(n){ return String(n || '').trim().toLowerCase().replace(/\s+/g, ' '); }
+function diaDe(s){
+  var dd = s.dateDisplay || '';
+  if(dd && dd.indexOf('/') > 0){
+    var p = dd.split('/');
+    if(p.length === 3) return p[2].slice(0,4) + '-' + p[1].padStart(2,'0') + '-' + p[0].padStart(2,'0');
+  }
+  var d = s.date || '';
+  if(d.indexOf('T') > 0){
+    var t = new Date(d);
+    if(!isNaN(t)) return t.getFullYear() + '-' + String(t.getMonth()+1).padStart(2,'0') + '-' + String(t.getDate()).padStart(2,'0');
+  }
+  return d.slice(0, 10);
+}
+function chaveSessao(s){
+  return (s.codigo || '') + '|' + diaDe(s) + '|' + (s.informante || '') + '|' + normNome(s.nome_informante);
+}
+
 async function carregarDados(){
   var localSessoes = [];
   try { localSessoes = JSON.parse(localStorage.getItem(LS_KEY) || '[]'); } catch(e){ localSessoes = []; }
@@ -743,7 +766,7 @@ async function carregarDados(){
 
   var map = {};
   function add(s){
-    var k = (s.codigo || '') + '|' + (s.date || '').slice(0, 10);
+    var k = chaveSessao(s);
     if(!map[k]) map[k] = s;
   }
   remotas.forEach(add);
@@ -1274,7 +1297,7 @@ function processarFicheiroImportado(input){
     var localSessoes = [];
     try { localSessoes = JSON.parse(localStorage.getItem(LS_KEY) || '[]'); } catch(e){}
     var existingKeys = {};
-    localSessoes.forEach(function(s){ existingKeys[(s.codigo||'') + '|' + (s.date||'').slice(0,10)] = true; });
+    localSessoes.forEach(function(s){ existingKeys[chaveSessao(s)] = true; });
 
     for(var i = 1; i < rows.length; i++){
       var vals = parseCSVLine(rows[i], sep);
@@ -1288,8 +1311,10 @@ function processarFicheiroImportado(input){
         var p = dt.split('/');
         if(p.length === 3) dtISO = p[2] + '-' + p[1].padStart(2,'0') + '-' + p[0].padStart(2,'0');
       }
-      var k = code + '|' + dtISO.slice(0,10);
+      var nomeResp = obj['NomeRespondente'] || '';
+      var k = chaveSessao({ codigo: code, dateDisplay: dt, date: dtISO, informante: '', nome_informante: nomeResp });
       if(existingKeys[k]){ duplicadas++; continue; }
+      existingKeys[k] = true;
 
       var raw = {
         CM: parseFloat(obj['CM_raw'] || 0),
@@ -1308,13 +1333,20 @@ function processarFicheiroImportado(input){
         O:  parseFloat(obj['O_media']  || 0)
       };
 
+      // Respostas: JSON {item1:..} (Sheet) ou 'a|b|c' (CSV offline)
+      var rawResp = obj['Respostas'] || '';
+      var respObj = {}, ansStr = '';
+      if(rawResp.charAt(0) === '{'){ try { respObj = JSON.parse(rawResp); } catch(e){ respObj = {}; } }
+      else { ansStr = rawResp; }
+
       localSessoes.push({
         date: dtISO, dateDisplay: dt, codigo: code,
         nome_crianca: obj['NomeCrianca'] || obj['NomeCriança'] || '',
-        nome_informante: obj['NomeRespondente'] || '',
+        nome_informante: nomeResp,
         idade: obj['Idade'] || '', sexo: obj['Sexo'] || '',
         scores: { raw: raw, media: media },
-        answers: obj['Respostas'] || '',
+        answers: ansStr,
+        respostas: respObj,
         imported: true
       });
       importadas++;

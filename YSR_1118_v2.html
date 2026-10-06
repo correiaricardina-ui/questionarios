@@ -1006,44 +1006,51 @@ function rawsFromAnswers(ans){
 }
 
 // ═══════════ T-TABLES ═══════════
+// Transcritas do Perfil YSR 11-18 para Rapazes e Raparigas (ASEBA, Achenbach & Rescorla 2000;
+// Psiquilíbrios Edições, 2014). Cada array é indexado pelo BRUTO (posição 0 = bruto 0) e devolve o T.
+// Escalas I–VIII: bruto → T lido da grelha do perfil (bruto ≤ limite inferior → T50).
+// INT / EXT / Total: tabelas explícitas de conversão do perfil (intervalos de bruto expandidos).
+// Verificação: continuidade total dos intervalos (0 → máximo teórico: INT 62, EXT 64, TOT 210) e
+// contagem de valores por coluna = máximo − limite inferior + 1. NÃO ALTERAR sem reverificar com o perfil.
 const TF = {
-  I: [50, 50, 50, 52, 54, 56, 58, 60, 62, 64, 66, 68, 70, 72, 74, 76, 78, 80, 82, 84, 86, 88, 90, 92, 94, 96, 98],
-  II: [50, 50, 50, 52, 55, 58, 61, 64, 67, 70, 73, 76, 79, 82, 85, 88, 91],
-  III: [50, 50, 52, 54, 56, 58, 60, 62, 64, 66, 68, 70, 72, 74, 76, 78, 80, 82, 84, 86, 88, 90, 92],
-  IV: [50, 56, 61, 63, 66, 68, 71, 73, 75, 78, 80, 83, 85, 87, 90, 92, 95, 97, 99],
-  V: [50, 50, 50, 50, 50, 50, 53, 55, 58, 60, 63, 65, 68, 70, 73, 75, 78, 80, 83, 85, 88, 90, 93, 95, 98, 100, 100, 100, 100, 100, 100, 100, 100],
-  VI: [50, 50, 51, 54, 56, 59, 61, 64, 66, 69, 71, 74, 76, 79, 81, 84, 86, 89, 91, 94, 96],
-  VII: [50, 50, 50, 50, 53, 55, 58, 60, 63, 65, 68, 70, 73, 75, 78, 80, 83, 85, 88, 90, 93, 95, 98, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100],
-  VIII: [50, 50, 50, 51, 53, 54, 55, 56, 58, 59, 60, 61, 63, 64, 65, 66, 68, 69, 70, 71, 73, 74, 75, 76, 78, 79, 80, 81, 83, 84, 85, 86, 88, 89, 90, 91, 93],
-  INT: [50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 100, 100, 100],
-  EXT: [50, 51, 51, 52, 53, 54, 54, 55, 56, 56, 57, 58, 59, 59, 60, 61, 61, 62, 63, 63, 64, 65, 66, 66, 67, 68, 68, 69, 70, 71, 71, 72, 73, 73, 74, 75, 76, 76, 77, 78, 78, 79, 80, 81, 81, 82, 83, 83, 84, 85, 86, 86, 87, 88, 88, 89, 90, 90, 91, 92, 93, 93, 94, 95, 95, 96, 97, 98, 98, 99, 100],
-  TOT: [50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 51, 51, 51, 52, 52, 53, 53, 53, 54, 54, 54, 55, 55, 55, 56, 56, 56, 57, 57, 58, 58, 58, 59, 59, 59, 60, 60, 60, 61, 61, 62, 62, 62, 63, 63, 63, 64, 64, 64, 65, 65, 65, 66, 66, 67, 67, 67, 68, 68, 68, 69, 69, 69, 70, 70, 71, 71, 71, 72, 72, 72, 73, 73, 73, 74, 74, 74, 75, 75, 76, 76, 76, 77, 77, 77, 78, 78, 78, 79, 79, 80, 80, 80, 81, 81, 81, 82, 82, 82, 83, 83, 83, 84, 84, 85, 85, 85, 86, 86, 86, 87, 87, 87, 88, 88, 89, 89, 89, 90, 90, 90, 91, 91, 91, 92, 92, 92, 93, 93, 94, 94, 94, 95, 95, 95, 96, 96, 96, 97, 97, 98, 98, 98, 99, 99, 99, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100],
+  I: [50, 50, 50, 50, 51, 52, 54, 56, 59, 60, 62, 64, 65, 66, 68, 70, 73, 75, 78, 81, 84, 86, 89, 92, 95, 97, 100],
+  II: [50, 50, 51, 52, 55, 58, 61, 64, 66, 69, 72, 78, 82, 87, 91, 96, 100],
+  III: [50, 50, 51, 52, 54, 57, 60, 63, 65, 66, 68, 69, 71, 75, 78, 82, 85, 89, 92, 97, 100],
+  IV: [50, 50, 51, 52, 55, 58, 61, 64, 66, 68, 70, 72, 74, 77, 79, 82, 84, 87, 89, 92, 94, 98, 100],
+  V: [50, 50, 51, 52, 54, 56, 58, 61, 63, 64, 66, 67, 69, 70, 73, 75, 77, 80, 83, 85, 88, 91, 94, 96, 100],
+  VI: [50, 50, 50, 51, 52, 53, 54, 57, 60, 63, 66, 69, 73, 77, 81, 86, 90, 95, 100],
+  VII: [50, 50, 51, 52, 54, 57, 59, 61, 63, 65, 66, 67, 68, 69, 70, 72, 74, 76, 78, 79, 81, 83, 85, 87, 89, 91, 93, 94, 96, 98, 100],
+  VIII: [50, 50, 50, 50, 50, 51, 52, 53, 55, 57, 59, 60, 62, 63, 65, 67, 68, 69, 70, 72, 74, 76, 78, 79, 81, 83, 85, 87, 89, 91, 93, 94, 96, 98, 100],
+  INT: [27, 32, 36, 38, 40, 42, 44, 45, 47, 48, 49, 51, 52, 54, 55, 56, 57, 58, 59, 60, 61, 62, 62, 63, 64, 65, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100],
+  EXT: [29, 34, 37, 40, 42, 44, 46, 47, 49, 51, 52, 54, 55, 56, 57, 58, 60, 61, 61, 62, 63, 65, 66, 66, 67, 68, 68, 69, 70, 70, 71, 72, 72, 73, 74, 75, 76, 76, 77, 78, 79, 80, 80, 81, 82, 83, 83, 84, 85, 86, 87, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100],
+  TOT: [26, 26, 26, 28, 30, 31, 32, 33, 34, 35, 36, 37, 37, 38, 38, 40, 40, 41, 42, 42, 42, 43, 43, 44, 44, 45, 45, 46, 46, 47, 48, 48, 49, 49, 50, 50, 51, 51, 52, 52, 53, 53, 53, 53, 54, 54, 55, 55, 56, 56, 56, 57, 57, 58, 58, 59, 59, 60, 60, 60, 61, 61, 61, 62, 62, 62, 62, 63, 63, 63, 64, 64, 64, 65, 65, 65, 65, 65, 66, 66, 66, 67, 67, 67, 67, 68, 69, 69, 69, 69, 70, 70, 70, 70, 70, 71, 71, 71, 72, 72, 72, 73, 73, 73, 74, 74, 74, 75, 75, 75, 75, 76, 76, 76, 77, 77, 77, 78, 78, 78, 79, 79, 79, 80, 80, 80, 81, 81, 81, 82, 82, 82, 83, 83, 83, 84, 84, 84, 84, 85, 85, 85, 86, 86, 86, 87, 87, 87, 88, 88, 88, 89, 89, 90, 90, 90, 91, 91, 91, 91, 91, 91, 92, 92, 92, 92, 92, 92, 93, 93, 93, 93, 93, 94, 94, 94, 94, 94, 94, 95, 95, 95, 95, 95, 95, 96, 96, 96, 96, 96, 96, 97, 97, 97, 97, 97, 98, 98, 98, 98, 98, 98, 99, 99, 99, 99, 99, 99, 100, 100, 100],
 };
 const TM = {
-  I: [50, 51, 53, 55, 57, 59, 61, 64, 66, 68, 70, 72, 74, 77, 79, 81, 83, 85, 87, 90, 92, 94, 96, 98, 98, 98, 98],
-  II: [50, 50, 50, 53, 56, 59, 62, 65, 68, 71, 74, 77, 80, 83, 86, 89, 91],
-  III: [50, 52, 54, 57, 59, 61, 64, 66, 68, 71, 73, 75, 78, 80, 82, 85, 87, 89, 92, 92, 92, 92, 92],
-  IV: [50, 56, 61, 64, 67, 69, 72, 74, 77, 79, 82, 85, 87, 90, 92, 95, 97, 99, 99],
-  V: [50, 50, 50, 50, 50, 51, 53, 55, 58, 60, 63, 65, 68, 70, 73, 75, 78, 80, 83, 85, 88, 90, 93, 95, 98, 100, 100, 100, 100, 100, 100, 100, 100],
-  VI: [50, 50, 51, 54, 56, 59, 61, 63, 65, 68, 70, 73, 75, 77, 80, 82, 84, 86, 89, 91, 94],
-  VII: [50, 50, 50, 50, 51, 53, 55, 58, 60, 62, 64, 67, 69, 71, 73, 75, 78, 80, 82, 84, 87, 89, 91, 93, 95, 98, 100, 100, 100, 100, 100, 100, 100, 100, 100],
-  VIII: [50, 50, 51, 52, 54, 55, 56, 57, 59, 60, 60, 62, 63, 64, 65, 67, 68, 69, 70, 71, 73, 74, 75, 76, 78, 79, 80, 81, 83, 84, 85, 86, 87, 89, 90, 91, 92],
-  INT: [50, 50, 50, 50, 50, 50, 50, 50, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 93, 94, 95, 96, 97, 98, 99, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100],
-  EXT: [51, 51, 52, 53, 53, 54, 54, 55, 56, 56, 57, 58, 59, 59, 60, 61, 61, 61, 62, 63, 63, 64, 65, 66, 66, 67, 68, 68, 68, 69, 70, 71, 71, 72, 73, 73, 74, 75, 76, 76, 77, 77, 78, 78, 79, 80, 81, 81, 82, 83, 83, 84, 85, 85, 86, 86, 87, 88, 88, 89, 90, 90, 91, 92, 93, 93, 93, 94, 95, 95, 96],
-  TOT: [50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 51, 51, 51, 52, 52, 52, 53, 53, 53, 54, 54, 54, 55, 55, 55, 56, 56, 56, 57, 57, 58, 58, 58, 59, 59, 59, 60, 60, 60, 61, 61, 62, 62, 62, 63, 63, 63, 64, 64, 64, 65, 65, 65, 65, 66, 66, 67, 67, 67, 68, 68, 68, 69, 69, 69, 70, 70, 71, 71, 71, 72, 72, 72, 73, 73, 73, 74, 74, 74, 75, 75, 76, 76, 76, 77, 77, 77, 78, 78, 78, 79, 79, 79, 80, 80, 80, 81, 81, 81, 82, 82, 82, 83, 83, 83, 84, 84, 85, 85, 85, 86, 86, 86, 87, 87, 87, 88, 88, 89, 89, 89, 90, 90, 90, 91, 91, 91, 92, 92, 92, 93, 93, 93, 94, 94, 94, 95, 95, 95, 96, 96, 96, 97, 97, 98, 98, 98, 99, 99, 99, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100],
+  I: [50, 50, 51, 52, 54, 57, 60, 62, 64, 65, 67, 69, 70, 72, 74, 76, 79, 81, 83, 85, 87, 89, 91, 94, 96, 98, 100],
+  II: [50, 50, 51, 54, 57, 60, 63, 65, 68, 70, 74, 79, 83, 87, 91, 96, 100],
+  III: [50, 51, 52, 55, 58, 61, 64, 67, 70, 72, 74, 77, 79, 82, 84, 87, 89, 92, 94, 98, 100],
+  IV: [50, 50, 51, 54, 57, 59, 61, 63, 66, 68, 70, 72, 74, 77, 79, 82, 84, 87, 89, 92, 94, 98, 100],
+  V: [50, 50, 51, 53, 55, 58, 60, 62, 64, 67, 68, 70, 72, 74, 76, 78, 81, 83, 85, 87, 90, 92, 94, 98, 100],
+  VI: [50, 50, 50, 50, 51, 52, 54, 57, 60, 63, 66, 68, 73, 76, 81, 85, 90, 94, 100],
+  VII: [50, 50, 50, 51, 53, 56, 58, 60, 62, 64, 66, 68, 69, 70, 72, 74, 75, 77, 79, 81, 82, 84, 86, 88, 89, 91, 93, 95, 96, 98, 100],
+  VIII: [50, 50, 50, 50, 50, 51, 52, 54, 56, 58, 60, 61, 63, 66, 67, 68, 70, 72, 73, 75, 77, 78, 80, 82, 83, 85, 87, 88, 90, 92, 93, 95, 97, 98, 100],
+  INT: [30, 35, 39, 42, 44, 46, 48, 50, 51, 53, 54, 56, 58, 59, 60, 61, 62, 63, 64, 65, 66, 66, 67, 68, 69, 71, 72, 72, 73, 73, 74, 75, 75, 76, 77, 77, 78, 78, 79, 80, 80, 81, 82, 82, 83, 83, 84, 85, 85, 86, 87, 87, 88, 88, 89, 90, 92, 93, 95, 96, 97, 99, 100],
+  EXT: [29, 34, 37, 40, 42, 44, 46, 47, 49, 51, 52, 53, 55, 56, 57, 58, 59, 60, 61, 62, 64, 65, 66, 67, 68, 69, 70, 71, 71, 72, 73, 73, 74, 75, 75, 76, 77, 77, 78, 79, 79, 80, 80, 81, 82, 82, 83, 84, 84, 85, 86, 86, 87, 88, 88, 89, 90, 91, 93, 94, 95, 96, 98, 99, 100],
+  TOT: [26, 26, 26, 28, 31, 32, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 42, 43, 43, 44, 45, 45, 46, 47, 47, 48, 48, 49, 49, 50, 50, 51, 51, 51, 52, 52, 53, 53, 54, 54, 55, 55, 56, 56, 57, 57, 58, 59, 59, 59, 60, 60, 60, 61, 61, 61, 62, 62, 63, 63, 63, 64, 64, 65, 65, 66, 66, 66, 67, 67, 67, 67, 68, 68, 68, 69, 69, 69, 70, 70, 70, 71, 71, 71, 71, 71, 72, 72, 72, 72, 72, 73, 73, 73, 73, 74, 74, 74, 74, 74, 75, 75, 75, 75, 75, 76, 76, 76, 76, 76, 77, 77, 77, 77, 77, 78, 78, 78, 78, 78, 79, 79, 79, 79, 80, 80, 80, 80, 80, 81, 81, 81, 81, 81, 82, 82, 82, 82, 82, 83, 83, 83, 83, 83, 84, 84, 84, 84, 84, 85, 85, 85, 85, 85, 86, 86, 86, 86, 87, 87, 87, 87, 87, 88, 88, 88, 88, 88, 89, 89, 89, 90, 90, 91, 91, 91, 91, 92, 92, 92, 92, 93, 93, 93, 93, 94, 94, 94, 94, 95, 95, 95, 96, 96, 96, 96, 97, 97, 97, 97, 98, 98, 98, 98, 99, 99, 99, 99, 100, 100],
 };
 
-// ⚠ NORMAS NÃO VALIDADAS ⚠
-// As tabelas TF/TM abaixo não correspondem ao perfil publicado: têm incremento constante
-// ao longo de toda a tabela (TF.I +2, TF.II +3, TF.INT +1) e amplitudes que não batem com
-// nenhuma contagem real de itens (TOT máx 240 = 120 itens; o YSR cota 105 → máx 210).
-// São sintéticas. Enquanto NORMAS_VALIDADAS for false, o painel mostra brutos e omite T.
-// Para reactivar: transcrever as 11 tabelas do perfil em papel e pôr a flag a true.
-const NORMAS_VALIDADAS = false;
+const NORMAS_VALIDADAS = true;
+function normSex(x){
+  const s=String(x==null?'':x).trim().toUpperCase();
+  if(s==='F'||s.indexOf('FEM')===0||s.indexOf('RAPARIGA')===0)return 'F';
+  if(s==='M'||s.indexOf('MASC')===0||s.indexOf('RAPAZ')===0)return 'M';
+  return null;
+}
 function getT(raw,sc,sex){
   if(!NORMAS_VALIDADAS) return null;
-  const a=(sex==='F'?TF:TM)[sc];if(!a)return 50;
-  if(raw >= a.length) return null;   // fora de amplitude: não extrapolar silenciosamente
+  const sx=normSex(sex); if(!sx) return null;   // sem sexo conhecido não há T (tabelas distintas)
+  const a=(sx==='F'?TF:TM)[sc]; if(!a) return null;
+  if(raw==null || raw<0 || raw>=a.length) return null;   // fora de amplitude: não extrapolar
   return a[raw];
 }
 // Limiares conforme Manual pp.32-33: síndromes borderline percentil 93-97 (T65-69), clínico T>=70;
@@ -1152,11 +1159,18 @@ function updateProgress(){
 
 // ═══════════ SUBMIT ═══════════
 function submitYSR(){
-  const miss=ITEMS.filter(i=>answers[i.n]===undefined).length;
-  if(miss>0){
-    document.getElementById('miss-count').textContent=miss;
-    document.getElementById('modal-confirm').classList.add('open');
-  } else doSubmit();
+  // v2.1 — resposta a todos os itens obrigatória (sem submissão parcial)
+  const faltam=ITEMS.filter(i=>answers[i.n]===undefined);
+  document.querySelectorAll('.item-row').forEach(function(r){r.style.outline='';});
+  if(faltam.length>0){
+    faltam.forEach(function(i){var r=document.getElementById('row-'+i.n);if(r)r.style.outline='2px solid #C0392B';});
+    var nums=faltam.map(function(i){return i.n;}).join(', ');
+    alert('Por favor responda a todos os itens antes de submeter.\nItens em falta ('+faltam.length+'): '+nums);
+    var r0=document.getElementById('row-'+faltam[0].n);
+    if(r0&&r0.offsetParent!==null)r0.scrollIntoView({block:'center',behavior:'smooth'});
+    return;
+  }
+  doSubmit();
 }
 
 function doSubmit(){
@@ -1257,28 +1271,34 @@ function doSubmit(){
 
   goTo('screen-confirmation');
 }
-function computeScores(){
-  const sex=sessionMeta.sex||'F';
+function scoreFromAnswers(ans,sexIn){
+  ans=ans||{};
+  const sex=normSex(sexIn);
+  const val=it=>{const v=ans[it];return (v!==undefined&&v!==null&&v!=='')?(Number(v)||0):0;};
   const scales={};
-  let intR=0,extR=0,totR=0;
-  let outrosR=0;
-  for(const it of OUTROS_PROB.items){const v=answers[it];if(v!==undefined)outrosR+=v;}
+  let intR=0,extR=0;
   for(const [k,sc] of Object.entries(SCALES)){
-    let raw=0;
-    for(const it of sc.items){const v=answers[it];if(v!==undefined)raw+=v;}
+    const raw=sc.items.reduce((a,it)=>a+val(it),0);
     const T=getT(raw,k,sex);
     scales[k]={name:sc.name,raw,T,class:classify(T,false)};
     if(['I','II','III'].includes(k))intR+=raw;
     if(['VII','VIII'].includes(k))extR+=raw;
   }
+  const outrosR=OUTROS_PROB.items.reduce((a,it)=>a+val(it),0);
   // Total de Problemas = (a)+(b)+(c), com (c) = IV + V + VI + Outros Problemas — caixa Cálculos do perfil.
-  totR = intR + extR + scales.IV.raw + scales.V.raw + scales.VI.raw + outrosR;
+  const totR=intR+extR+scales.IV.raw+scales.V.raw+scales.VI.raw+outrosR;
   const intT=getT(intR,'INT',sex),extT=getT(extR,'EXT',sex),totT=getT(totR,'TOT',sex);
   return {scales,
     OUT:{name:OUTROS_PROB.name,raw:outrosR,T:null,class:'unknown'},
     INT:{raw:intR,T:intT,class:classify(intT,true)},
     EXT:{raw:extR,T:extT,class:classify(extT,true)},
     TOT:{raw:totR,T:totT,class:classify(totT,true)}};
+}
+function computeScores(){ return scoreFromAnswers(answers,sessionMeta.sex||'F'); }
+// As respostas são a única fonte de verdade: o T é sempre recalculado com as normas actuais.
+function freshScores(sess){
+  if(sess && sess.answers && Object.keys(sess.answers).length) return scoreFromAnswers(sess.answers,sess.sex);
+  return (sess&&sess.scores)||null;
 }
 
 // ═══════════ CLINICAL LOGIN ═══════════
@@ -1305,7 +1325,7 @@ async function syncToSheets() {
   let enviados = 0;
   for (const s of entries) {
     if (!s.scores) continue;
-    const sc = s.scores;
+    const sc = freshScores(s);
     try {
       const _sc = sc || {};
       const _ts = (_sc.scales) || {};
@@ -1686,7 +1706,7 @@ function buildCompetencesHTML(comp){
 }
 
 function buildResultsHTML(sess){
-  const sc=sess.scores;
+  const sc=freshScores(sess);
   const bar=(T,comp)=>{
     const pct=Math.min(100,Math.round((T-40)/60*100));
     const lim=comp?((65-40)/60*100):((70-40)/60*100);
@@ -1854,6 +1874,13 @@ function verDetalheSheet(idx, arr) {
   // Brutos recalculados a partir das respostas — nunca ler brutos/T gravados no Sheet.
   var _ans = {}; try { _ans = JSON.parse(row['Respostas'] || row.answers || '{}'); } catch(e) {}
   var _raw = Object.keys(_ans).length ? rawsFromAnswers(_ans) : null;
+  var _sx = normSex(row['Sexo'] || row.sexo);
+  var _fs = _raw ? scoreFromAnswers(_ans, _sx) : null;
+  function tTag(o){
+    if(!o || o.T==null) return '';
+    var cor = o.class==='clinical'?'var(--red)':o.class==='borderline'?'var(--borderline)':'var(--green)';
+    return ' <span style="color:'+cor+';font-weight:700;">T'+o.T+' · '+classLabel(o.class)+'</span>';
+  }
   var scaleLbls = [['I','Ansiedade/Depressão'],['II','Isolamento/Depressão'],['III','Queixas Somáticas'],
     ['IV','Problemas Sociais'],['V','Problemas de Pensamento'],['VI','Problemas de Atenção'],
     ['VII','Comp. Delinquente'],['VIII','Comp. Agressivo']];
@@ -1862,7 +1889,7 @@ function verDetalheSheet(idx, arr) {
     return '<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--gray-bdr);font-size:0.85rem;">' +
       '<span><strong>' + k + '</strong> — ' + lbl + '</span>' +
       '<span style="font-weight:700;">bruto ' + _raw[k] +
-      ' <span style="font-weight:400;color:var(--text-light);">/ ' + maxRaw + '</span></span></div>';
+      ' <span style="font-weight:400;color:var(--text-light);">/ ' + maxRaw + '</span>' + tTag(_fs && _fs.scales[k]) + '</span></div>';
   }).join('') +
   '<div style="display:flex;justify-content:space-between;padding:5px 0;font-size:0.85rem;">' +
   '<span>Outros Problemas</span><span style="font-weight:700;">bruto ' + _raw.OUT +
@@ -1870,14 +1897,13 @@ function verDetalheSheet(idx, arr) {
   var html = '<div style="margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--blue-pale);">' +
     '<div style="font-size:1.1rem;font-weight:700;color:var(--blue);">' + nome + '</div>' +
     '<div style="font-size:0.83rem;color:var(--text-light);">' + data + ' · ' + code + '</div></div>' +
-    '<div style="background:#FFF4E5;border-left:3px solid #E67E22;padding:10px 14px;border-radius:0 8px 8px 0;font-size:0.8rem;margin-bottom:16px;">' +
-    '<strong>Notas T suspensas</strong> — as tabelas normativas do ficheiro não correspondem ao perfil publicado. ' +
-    'Ler o T no perfil em papel a partir dos brutos abaixo.</div>' +
+    (_sx ? '<div style="background:var(--blue-pale);border-left:3px solid var(--blue-mid);padding:10px 14px;border-radius:0 8px 8px 0;font-size:0.8rem;color:var(--text-light);margin-bottom:16px;">Notas T calculadas a partir das respostas com o Perfil YSR 11-18 (' + (_sx==='F'?'raparigas':'rapazes') + '). Escalas: T≥70 Clínico · T65–69 Borderline | Compostos: T≥64 Clínico · T60–63 Borderline</div>' :
+     '<div style="background:#FFF4E5;border-left:3px solid #E67E22;padding:10px 14px;border-radius:0 8px 8px 0;font-size:0.8rem;margin-bottom:16px;"><strong>Sexo não identificado</strong> — as tabelas T são distintas por sexo; só os brutos são apresentados.</div>') +
     (!_raw ? '<div style="font-size:0.85rem;color:var(--text-light);">Sem respostas item-a-item neste registo — brutos não recalculáveis.</div>' :
     '<div style="margin-bottom:16px;">' +
-    '<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--gray-bdr);"><span>Internalização <span style="color:var(--text-light);font-size:0.78rem;">I+II+III</span></span><span style="font-weight:700;">bruto ' + _raw.INT + ' <span style="font-weight:400;color:var(--text-light);">/ 62</span></span></div>' +
-    '<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--gray-bdr);"><span>Externalização <span style="color:var(--text-light);font-size:0.78rem;">VII+VIII</span></span><span style="font-weight:700;">bruto ' + _raw.EXT + ' <span style="font-weight:400;color:var(--text-light);">/ 64</span></span></div>' +
-    '<div style="display:flex;justify-content:space-between;padding:8px 0;"><span><strong>Total de Problemas</strong></span><span style="font-weight:700;">bruto ' + _raw.TOT + ' <span style="font-weight:400;color:var(--text-light);">/ 210</span></span></div>' +
+    '<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--gray-bdr);"><span>Internalização <span style="color:var(--text-light);font-size:0.78rem;">I+II+III</span></span><span style="font-weight:700;">bruto ' + _raw.INT + ' <span style="font-weight:400;color:var(--text-light);">/ 62</span>' + tTag(_fs && _fs.INT) + '</span></div>' +
+    '<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--gray-bdr);"><span>Externalização <span style="color:var(--text-light);font-size:0.78rem;">VII+VIII</span></span><span style="font-weight:700;">bruto ' + _raw.EXT + ' <span style="font-weight:400;color:var(--text-light);">/ 64</span>' + tTag(_fs && _fs.EXT) + '</span></div>' +
+    '<div style="display:flex;justify-content:space-between;padding:8px 0;"><span><strong>Total de Problemas</strong></span><span style="font-weight:700;">bruto ' + _raw.TOT + ' <span style="font-weight:400;color:var(--text-light);">/ 210</span>' + tTag(_fs && _fs.TOT) + '</span></div>' +
     '</div>') + scaleRows;
   // Secção item a item (dados do Sheet)
   var answersRawSheet = '';
@@ -2032,7 +2058,7 @@ function exportarInterpretacaoPDF(sessaoParam) {
   if (!s) { alert('Seleccione primeiro uma sess\u00e3o (clique em "Ver").'); return; }
   if (!s.scores) { alert('Esta sess\u00e3o n\u00e3o tem scores calculados.'); return; }
 
-  const sc = s.scores;
+  const sc = freshScores(s);
   const syndromeNames = {
     I:'Ansiedade/Depress\u00e3o', II:'Isolamento/Depress\u00e3o', III:'Queixas Som\u00e1ticas',
     IV:'Problemas Sociais', V:'Problemas de Pensamento', VI:'Problemas de Aten\u00e7\u00e3o',
