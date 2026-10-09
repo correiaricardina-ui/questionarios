@@ -158,7 +158,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--gray);color:var(--text);m
         <div style="margin-bottom:16px">
           <label class="field-label">Código do utente <span style="font-weight:400">(fornecido pela psicóloga)</span></label>
           <input type="text" id="patient-code" class="login-input" placeholder="ex: MV14061985"
-                 style="text-transform:uppercase" oninput="this.value=this.value.toUpperCase()">
+                 style="text-transform:uppercase"
+                 oninput="this.value=this.value.toUpperCase(); derivarIdadeDoCodigo();">
           <div style="font-size:.75rem;color:var(--text-light);margin-top:4px">
             Iniciais + data de nascimento (DDMMAAAA). Ex: <em>MV14061985</em>
           </div>
@@ -196,7 +197,9 @@ body{font-family:'DM Sans',sans-serif;background:var(--gray);color:var(--text);m
         <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px">
           <div style="flex:1;min-width:110px">
             <label class="field-label">Idade do utente (anos)</label>
-            <input type="number" id="idade" class="login-input" min="16" max="110" placeholder="ex: 34">
+            <input type="number" id="idade" class="login-input" min="16" max="110" placeholder="ex: 34"
+                   oninput="avisarIdadeDivergente()">
+            <div id="idade-nota" style="font-size:.72rem;color:var(--text-light);margin-top:4px"></div>
           </div>
           <div style="flex:1;min-width:120px">
             <label class="field-label">Sexo <span style="font-weight:400">(opcional)</span></label>
@@ -692,6 +695,50 @@ function subst(t){
   var prob = document.getElementById('problema').value.trim() || 'as dificuldades';
   var nome = document.getElementById('nome-crianca').value.trim() || 'o utente';
   return t.split('{P}').join(prob).split('{N}').join(nome);
+}
+
+/* v1.1 — A idade passa a ser derivada da data de nascimento contida no
+   proprio codigo do utente (2-3 iniciais + DDMMAAAA), em vez de depender de
+   introducao manual. O campo continua editavel, mas uma divergencia face ao
+   codigo e assinalada no momento do preenchimento. */
+function idadeDoCodigo(code){
+  var m = String(code||'').trim().toUpperCase().match(/^[A-Z]{2,3}(\d{2})(\d{2})(\d{4})$/);
+  if (!m) return null;
+  var d = parseInt(m[1],10), mo = parseInt(m[2],10), a = parseInt(m[3],10);
+  var nasc = new Date(a, mo-1, d);
+  if (nasc.getDate()!==d || nasc.getMonth()!==mo-1 || nasc.getFullYear()!==a) return null;
+  var hoje = new Date();
+  var idade = hoje.getFullYear() - a;
+  var m2 = hoje.getMonth() - (mo-1);
+  if (m2 < 0 || (m2 === 0 && hoje.getDate() < d)) idade--;
+  return (idade >= 0 && idade <= 120) ? idade : null;
+}
+function derivarIdadeDoCodigo(){
+  var cod = document.getElementById('patient-code').value;
+  var el  = document.getElementById('idade');
+  var nota= document.getElementById('idade-nota');
+  var id  = idadeDoCodigo(cod);
+  if (id === null){ if(nota) nota.textContent=''; return; }
+  el.value = id;
+  el.dataset.derivada = id;
+  if (nota){
+    nota.textContent = 'Derivada do código do utente (' + id + ' anos).';
+    nota.style.color = 'var(--text-light)';
+  }
+}
+function avisarIdadeDivergente(){
+  var el = document.getElementById('idade');
+  var nota = document.getElementById('idade-nota');
+  if (!nota || !el.dataset.derivada) return;
+  var der = parseInt(el.dataset.derivada,10);
+  var val = parseInt(el.value,10);
+  if (!isNaN(val) && val !== der){
+    nota.textContent = 'Divergente do código do utente, que indica ' + der + ' anos. Confirme antes de prosseguir.';
+    nota.style.color = 'var(--red)';
+  } else {
+    nota.textContent = 'Derivada do código do utente (' + der + ' anos).';
+    nota.style.color = 'var(--text-light)';
+  }
 }
 
 function avancarParaQuestoes(){

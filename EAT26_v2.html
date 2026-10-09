@@ -956,7 +956,12 @@ function exportarRelatorioPDF(idx){
       var oi=answersArr[i];
       var sc=calcScore(oi,i+1);
       var isInv=(i===25);
-      var label=['','Nunca','Raramente','Às vezes','Muitas vezes','Normalmente','Sempre'][oi]||oi;
+      /* v3 · CORRECAO DE ROTULOS
+   A lista anterior estava desalinhada face a OPTS: o indice guardado em
+   answers e o indice em OPTS (0=Sempre ... 5=Nunca), mas era lido contra
+   uma lista 1-indexada e de ordem inversa. A cotacao estava correta; os
+   rotulos impressos no relatorio e que estavam trocados. */
+      var label=(oi===null||oi===undefined||isNaN(oi))?'—':(OPTS[oi]||oi);
       itensRows+='<tr style="background:'+(i%2===0?'#f8f9fa':'#fff')+'">'
         +'<td style="padding:4px 8px;font-size:11px;color:#3B5A7A;font-weight:700">'+(i+1)+(isInv?'★':'')+'</td>'
         +'<td style="padding:4px 8px;font-size:11px">'+ITEMS[i]+'</td>'
