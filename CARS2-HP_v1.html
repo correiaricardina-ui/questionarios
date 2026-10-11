@@ -1304,13 +1304,18 @@ function renderPainel() {
 function abrirDetalhe(idx) {
   sessaoActual = sessoes[idx];
   if (!sessaoActual) return;
-  var modal = document.getElementById('detalhe-modal');
-  document.getElementById('detalhe-conteudo').innerHTML = construirHTMLDetalhe(sessaoActual);
-  modal.classList.add('active');
+  var modal = document.getElementById('modal-detalhe');
+  document.getElementById('modal-conteudo').innerHTML = construirHTMLDetalhe(sessaoActual);
+  var tit = document.getElementById('modal-titulo');
+  var sub = document.getElementById('modal-subtitulo');
+  if (tit) tit.textContent = 'Detalhe da cota\u00e7\u00e3o';
+  if (sub) sub.textContent = [sessaoActual.codigo, sessaoActual.nome_avaliando].filter(Boolean).join(' \u00b7 ');
+  modal.style.display = 'flex';
+  modal.scrollTop = 0;
 }
 
 function fecharModal() {
-  document.getElementById('detalhe-modal').classList.remove('active');
+  document.getElementById('modal-detalhe').style.display = 'none';
   sessaoActual = null;
 }
 

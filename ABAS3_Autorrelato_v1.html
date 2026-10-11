@@ -710,7 +710,7 @@ function carregarDados() {
       sessoes = rows.map(parseSessao);
       if (window._clinico_sessions) {
         window._clinico_sessions.forEach(function(s) {
-          var exists = sessoes.some(function(x){ return x.patientCode===s.patientCode && x.date===s.date; });
+          var exists = sessoes.some(function(x){ return x.patientCode===s.patientCode && _diaChave(x.date)===_diaChave(s.date); });
           if (!exists) sessoes.unshift(s);
         });
       }
@@ -724,24 +724,51 @@ function carregarDados() {
     });
 }
 
+// Lê o 1.º valor não vazio de uma linha do Sheet, tolerando variações de cabeçalho
+// (cabeçalhos reais da aba ABAS3_ADULT: Data, Código, NomePróprio, TipoRespondente,
+//  Idade, SituaçãoLaboral, GAC, CC, SC, PC, XX_SB, XX_SS …, Respostas).
+function _pick(row, keys) {
+  for (var i = 0; i < keys.length; i++) {
+    var v = row[keys[i]];
+    if (v !== undefined && v !== null && String(v).trim() !== '') return v;
+  }
+  return '';
+}
+// Converte dd/mm/aaaa ou ISO em ISO, para que new Date(...) funcione em todo o ficheiro
+function _normData(v) {
+  if (!v) return '';
+  var t = String(v).trim();
+  var m = t.match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{4})/);
+  if (m) return m[3] + '-' + ('0'+m[2]).slice(-2) + '-' + ('0'+m[1]).slice(-2) + 'T12:00:00';
+  return t;
+}
+function _diaChave(v) {
+  var d = new Date(_normData(v));
+  return isNaN(d) ? String(v||'') : d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate();
+}
+
 function parseSessao(row) {
   var s = {
-    patientCode: row.patientCode||'—',
-    date: row.date||'',
-    nomeCrianca: row.nomeCrianca||'',
-    nomeInformante: row.nomeInformante||'',
-    idade: row.idade||'—',
-    situacao: row.situacao||'—',
-    answers: row.answers||'',
+    patientCode: String(_pick(row, ['Código','Codigo','patientCode','codigo']) || '—').toUpperCase(),
+    date: _normData(_pick(row, ['Data','date','data','Timestamp'])),
+    nomeCrianca: String(_pick(row, ['NomePróprio','NomeProprio','Nome','NomeCriança','nomeCrianca']) || ''),
+    nomeInformante: String(_pick(row, ['TipoRespondente','NomeInformante','nomeInformante','Informante']) || ''),
+    idade: _pick(row, ['Idade','idade']) || '—',
+    situacao: _pick(row, ['SituaçãoLaboral','SituacaoLaboral','Situação','Situacao','situacao']) || '—',
+    answers: String(_pick(row, ['answers','Respostas','respostas']) || ''),
     sb:{}, ss:{}, cc:0, sc:0, pc:0, gac:0
   };
-  if (s.answers) {
+  // Se o campo de respostas for a cadeia "a|b|c" original, recalcula; caso contrário usa as colunas gravadas
+  if (s.answers && s.answers.indexOf('|') > -1) {
     var r = calcularResultados(s.answers.split('|'));
     s.sb=r.sb; s.ss=r.ss; s.cc=r.cc; s.sc=r.sc; s.pc=r.pc; s.gac=r.gac;
   } else {
-    DOMAINS.forEach(function(d){ s.ss[d.code]=parseInt(row[d.code+'_SS'])||0; });
-    s.cc=parseInt(row.CC)||0; s.sc=parseInt(row.SC)||0;
-    s.pc=parseInt(row.PC)||0; s.gac=parseInt(row.GAC)||0;
+    DOMAINS.forEach(function(d){
+      s.sb[d.code]=parseInt(row[d.code+'_SB'])||0;
+      s.ss[d.code]=parseInt(row[d.code+'_SS'])||0;
+    });
+    s.cc=parseInt(_pick(row,['CC','cc']))||0; s.sc=parseInt(_pick(row,['SC','sc']))||0;
+    s.pc=parseInt(_pick(row,['PC','pc']))||0; s.gac=parseInt(_pick(row,['GAC','gac','CAG','cag']))||0;
   }
   return s;
 }
