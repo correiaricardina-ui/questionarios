@@ -341,14 +341,14 @@ document.getElementById('logo-img').src = LOGO_B64;
 const ITEMS = [
   { id:1,  text:"Muitas vezes estou confuso(a) sobre qual a emoção que estou a sentir.", f:'F1' },
   { id:2,  text:"Tenho dificuldade em encontrar as palavras certas para descrever os meus sentimentos.", f:'F2' },
-  { id:3,  text:"Tenho sensações físicas que os médicos não entendem.", f:'F3' },
+  { id:3,  text:"Tenho sensações físicas que os médicos não entendem.", f:'F1' },
   { id:4,  text:"Sou capaz de descrever facilmente os meus sentimentos.", f:'F2', inv:true },
   { id:5,  text:"Prefiro analisar os problemas em vez de apenas os descrever.", f:'F3', inv:true },
   { id:6,  text:"Quando me sinto mal, não sei se estou triste, assustado(a) ou zangado(a).", f:'F1' },
   { id:7,  text:"Muitas vezes fico confuso(a) com as sensações do meu corpo.", f:'F1' },
   { id:8,  text:"Prefiro deixar as coisas acontecerem em vez de perceber porque aconteceram.", f:'F3' },
   { id:9,  text:"Tenho sentimentos que não consigo identificar.", f:'F1' },
-  { id:10, text:"É essencial estar em contacto com as emoções.", f:'F2', inv:true },
+  { id:10, text:"É essencial estar em contacto com as emoções.", f:'F3', inv:true },
   { id:11, text:"Acho difícil descrever como me sinto em relação às pessoas.", f:'F2' },
   { id:12, text:"As pessoas pedem-me que descreva melhor os meus sentimentos.", f:'F2' },
   { id:13, text:"Não sei o que se passa dentro de mim.", f:'F1' },
@@ -357,7 +357,7 @@ const ITEMS = [
   { id:16, text:"Prefiro ver programas de entretenimento a programas psicológicos.", f:'F3' },
   { id:17, text:"É difícil para mim revelar os meus sentimentos mais íntimos, mesmo a amigos próximos.", f:'F2' },
   { id:18, text:"Consigo sentir-me próximo(a) de alguém, mesmo em momentos de silêncio.", f:'F3', inv:true },
-  { id:19, text:"Acho que examinar os meus sentimentos é útil para resolver problemas pessoais.", f:'F2', inv:true },
+  { id:19, text:"Acho que examinar os meus sentimentos é útil para resolver problemas pessoais.", f:'F3', inv:true },
   { id:20, text:"Procurar o sentido de filmes incomoda-me.", f:'F3' },
 ];
 
@@ -843,8 +843,8 @@ function verDetalhe(i){
     +(function(){
       var subs=[
         {label:'F1 — Identificar (DIF)',val:f1,max:35,tier:iDIF},
-        {label:'F2 — Descrever (DDF)',val:f2,max:35,tier:iDDF},
-        {label:'F3 — Exterior (EOT)',val:f3,max:35,tier:iEOT},
+        {label:'F2 — Descrever (DDF)',val:f2,max:25,tier:iDDF},
+        {label:'F3 — Exterior (EOT)',val:f3,max:40,tier:iEOT},
         {label:'TOTAL TAS-20',val:total,max:100,
          tier:cls.cls==='clinical'?{c:'#C0392B',z:'Clínica'}:cls.cls==='borderline'?{c:'#E67E22',z:'Atenção'}:{c:'#27AE60',z:'Normal'},
          sep:true}
