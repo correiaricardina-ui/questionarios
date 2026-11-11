@@ -653,12 +653,30 @@ const RC_SHEET_URL = 'https://script.google.com/macros/s/AKfycbxX2_Ry7VRH6jr7eGB
 
 // Mapeamento: id do questionário → aba no Sheet central
 const QID_TO_ABA = {
+  // ── SDQ-Por · 5 versões ──
+  'q_sdq_p24': 'SDQ_P24',
+  'q_sdq_p417': 'SDQ_P417',
+  'q_sdq_t24': 'SDQ_T24',
+  'q_sdq_t417': 'SDQ_T417',
+  'q_sdq_a': 'SDQ_A',
+  // ── Escala de Vanderbilt · Pais e Professores (PHDA, 6–12 anos) ──
+  'q_vanderbilt_p': 'Vanderbilt_Pais',
+  'q_vanderbilt_t': 'Vanderbilt_Prof',
   // ── EAFE-CA · Funcionamento Executivo em Crianças e Adolescentes (v138) ──
   // Três formas, três abas: a comparação entre informantes exige linhas
   // independentes, as faixas etárias diferem e só a forma de Professores
   // preenche os campos de contexto escolar.
   // ⚠ NÃO confundir com 'q_eafe' (EAFE — Entrevista de Análise Funcional do
   //   Estudo), instrumento DISTINTO que continua a apontar para a aba 'EAFE'.
+  // ── MDQ-A · Mood Disorder Questionnaire para Adolescentes (v139) ──
+  // ── EIR-14 · Escala de Irritabilidade (v141) ──
+  'q_eir14':      'EIR14',
+  // ── PHQ-15 · Questionário de Sintomas Somáticos (v140) ──
+  'q_phq15_p':   'PHQ15_P',
+  'q_phq15_j':   'PHQ15_J',
+  'q_phq15_a':   'PHQ15_A',
+  'q_mdqa_p':     'MDQA_P',
+  'q_mdqa_a':     'MDQA_A',
   'q_eafeca_p':   'EAFECA_P',
   'q_eafeca_a':   'EAFECA_A',
   'q_eafeca_t':   'EAFECA_T',
@@ -934,6 +952,37 @@ const QID_TO_ABA = {
 
 
 const SYNC_KEY_TO_ABA = {
+  // ── SDQ-Por · 5 versões ──
+  'sdq_p24': 'SDQ_P24',
+  'SDQ_P24': 'SDQ_P24',
+  'sdq_p417': 'SDQ_P417',
+  'SDQ_P417': 'SDQ_P417',
+  'sdq_t24': 'SDQ_T24',
+  'SDQ_T24': 'SDQ_T24',
+  'sdq_t417': 'SDQ_T417',
+  'SDQ_T417': 'SDQ_T417',
+  'sdq_a': 'SDQ_A',
+  'SDQ_A': 'SDQ_A',
+  // ── Escala de Vanderbilt · Pais e Professores ──
+  'vanderbilt_p':  'Vanderbilt_Pais',
+  'Vanderbilt_Pais': 'Vanderbilt_Pais',
+  'vanderbilt_t':  'Vanderbilt_Prof',
+  'Vanderbilt_Prof': 'Vanderbilt_Prof',
+  // ── MDQ-A · Mood Disorder Questionnaire para Adolescentes (v139) ──
+  // ── EIR-14 (v141) ──
+  'eir14':         'EIR14',
+  'EIR14':         'EIR14',
+  // ── PHQ-15 · Questionário de Sintomas Somáticos (v140) ──
+  'phq15_p':      'PHQ15_P',
+  'PHQ15_P':      'PHQ15_P',
+  'phq15_j':      'PHQ15_J',
+  'PHQ15_J':      'PHQ15_J',
+  'phq15_a':      'PHQ15_A',
+  'PHQ15_A':      'PHQ15_A',
+  'mdqa_p':        'MDQA_P',
+  'MDQA_P':        'MDQA_P',
+  'mdqa_a':        'MDQA_A',
+  'MDQA_A':        'MDQA_A',
   // ── EAFE-CA · Funcionamento Executivo em Crianças e Adolescentes (v138) ──
   'eafeca_p':      'EAFECA_P',
   'EAFECA_P':      'EAFECA_P',
@@ -1648,6 +1697,25 @@ async function checkSheetForResponse(qid, patientCode) {
 function initCatalog() {
   const existing = store.get('catalog') || [];
   const defaults = [
+    // ── SDQ-Por · 5 versões; ageMin/ageMax em MESES ──
+    { id:'q_sdq_p24', name:'SDQ-Por · Pais (2–4 anos)', dest:['Mãe', 'Pai', 'Enc. Educação'], link:'https://correiaricardina-ui.github.io/questionarios/SDQ_Pais24_v1.html', syncKey:'sdq_p24', area:'Risco, Autolesão & Psicopatologia Geral', ageRange:'2–4 anos', objective:'Rastreio dimensional de dificuldades emocionais e comportamentais e de competências pró-sociais, com suplemento de impacto funcional, por heterorrelato dos pais ou cuidadores (2–4 anos; bandas da folha 4-17, sem normas específicas para 2–4). 25 itens (0–2) em cinco escalas de 5 itens: Sintomas Emocionais, Problemas de Comportamento, Hiperatividade, Problemas com Colegas e Comportamento Pró-social; o Total de Dificuldades (0–40) soma as quatro primeiras (a pró-social não entra). Escala válida com pelo menos 3 itens respondidos (pontuação proporcional). Versões Completo (últimos seis meses) e Follow-up (último mês; regista evolução e utilidade do tratamento). Bandas Normal / Limítrofe / Anormal das folhas de cotação, provisórias e sem normas portuguesas explícitas; é RASTREIO e NÃO diagnóstico. Paleta azul nos descritivos.', domains:['Sintomas emocionais', 'Problemas de comportamento', 'Hiperatividade', 'Problemas com colegas', 'Comportamento pró-social', 'Total de dificuldades', 'Impacto funcional'], ageMin:24, ageMax:59 },
+    { id:'q_sdq_p417', name:'SDQ-Por · Pais (4–17 anos)', dest:['Mãe', 'Pai', 'Enc. Educação'], link:'https://correiaricardina-ui.github.io/questionarios/SDQ_Pais417_v1.html', syncKey:'sdq_p417', area:'Risco, Autolesão & Psicopatologia Geral', ageRange:'4–17 anos', objective:'Rastreio dimensional de dificuldades emocionais e comportamentais e de competências pró-sociais, com suplemento de impacto funcional, por heterorrelato dos pais ou cuidadores (4–17 anos). 25 itens (0–2) em cinco escalas de 5 itens: Sintomas Emocionais, Problemas de Comportamento, Hiperatividade, Problemas com Colegas e Comportamento Pró-social; o Total de Dificuldades (0–40) soma as quatro primeiras (a pró-social não entra). Escala válida com pelo menos 3 itens respondidos (pontuação proporcional). Versões Completo (últimos seis meses) e Follow-up (último mês; regista evolução e utilidade do tratamento). Bandas Normal / Limítrofe / Anormal das folhas de cotação, provisórias e sem normas portuguesas explícitas; é RASTREIO e NÃO diagnóstico. Paleta azul nos descritivos.', domains:['Sintomas emocionais', 'Problemas de comportamento', 'Hiperatividade', 'Problemas com colegas', 'Comportamento pró-social', 'Total de dificuldades', 'Impacto funcional'], ageMin:48, ageMax:215 },
+    { id:'q_sdq_t24', name:'SDQ-Por · Educadores (2–4 anos)', dest:['Educador(a)'], link:'https://correiaricardina-ui.github.io/questionarios/SDQ_Prof24_v1.html', syncKey:'sdq_t24', area:'Risco, Autolesão & Psicopatologia Geral', ageRange:'2–4 anos', objective:'Rastreio dimensional de dificuldades emocionais e comportamentais e de competências pró-sociais, com suplemento de impacto funcional, por heterorrelato do educador (2–4 anos; bandas da folha 4-17, sem normas específicas para 2–4). 25 itens (0–2) em cinco escalas de 5 itens: Sintomas Emocionais, Problemas de Comportamento, Hiperatividade, Problemas com Colegas e Comportamento Pró-social; o Total de Dificuldades (0–40) soma as quatro primeiras (a pró-social não entra). Escala válida com pelo menos 3 itens respondidos (pontuação proporcional). Versões Completo (últimos seis meses) e Follow-up (último mês; regista evolução e utilidade do tratamento). Bandas Normal / Limítrofe / Anormal das folhas de cotação, provisórias e sem normas portuguesas explícitas; é RASTREIO e NÃO diagnóstico. Paleta azul nos descritivos.', domains:['Sintomas emocionais', 'Problemas de comportamento', 'Hiperatividade', 'Problemas com colegas', 'Comportamento pró-social', 'Total de dificuldades', 'Impacto funcional'], ageMin:24, ageMax:59 },
+    { id:'q_sdq_t417', name:'SDQ-Por · Professores (4–17 anos)', dest:['Professor(a)', 'Diretor(a) de turma'], link:'https://correiaricardina-ui.github.io/questionarios/SDQ_Prof417_v1.html', syncKey:'sdq_t417', area:'Risco, Autolesão & Psicopatologia Geral', ageRange:'4–17 anos', objective:'Rastreio dimensional de dificuldades emocionais e comportamentais e de competências pró-sociais, com suplemento de impacto funcional, por heterorrelato do professor (4–17 anos). 25 itens (0–2) em cinco escalas de 5 itens: Sintomas Emocionais, Problemas de Comportamento, Hiperatividade, Problemas com Colegas e Comportamento Pró-social; o Total de Dificuldades (0–40) soma as quatro primeiras (a pró-social não entra). Escala válida com pelo menos 3 itens respondidos (pontuação proporcional). Versões Completo (últimos seis meses) e Follow-up (último mês; regista evolução e utilidade do tratamento). Bandas Normal / Limítrofe / Anormal das folhas de cotação, provisórias e sem normas portuguesas explícitas; é RASTREIO e NÃO diagnóstico. Paleta azul nos descritivos.', domains:['Sintomas emocionais', 'Problemas de comportamento', 'Hiperatividade', 'Problemas com colegas', 'Comportamento pró-social', 'Total de dificuldades', 'Impacto funcional'], ageMin:48, ageMax:215 },
+    { id:'q_sdq_a', name:'SDQ-Por · Auto-avaliação (11–17 anos)', dest:['Paciente', 'Jovem avaliado'], link:'https://correiaricardina-ui.github.io/questionarios/SDQ_Auto1117_v1.html', syncKey:'sdq_a', area:'Risco, Autolesão & Psicopatologia Geral', ageRange:'11–17 anos', objective:'Rastreio dimensional de dificuldades emocionais e comportamentais e de competências pró-sociais, com suplemento de impacto funcional, por autorrelato do jovem (11–17 anos). 25 itens (0–2) em cinco escalas de 5 itens: Sintomas Emocionais, Problemas de Comportamento, Hiperatividade, Problemas com Colegas e Comportamento Pró-social; o Total de Dificuldades (0–40) soma as quatro primeiras (a pró-social não entra). Escala válida com pelo menos 3 itens respondidos (pontuação proporcional). Versões Completo (últimos seis meses) e Follow-up (último mês; regista evolução e utilidade do tratamento). Bandas Normal / Limítrofe / Anormal das folhas de cotação, provisórias e sem normas portuguesas explícitas; é RASTREIO e NÃO diagnóstico. Paleta azul nos descritivos.', domains:['Sintomas emocionais', 'Problemas de comportamento', 'Hiperatividade', 'Problemas com colegas', 'Comportamento pró-social', 'Total de dificuldades', 'Impacto funcional'], ageMin:132, ageMax:215 },
+    // ── Escala de Vanderbilt · Pais e Professores (PHDA, 6–12 anos); ageMin/ageMax em MESES ──
+    { id:'q_vanderbilt_p', name:'Escala de Vanderbilt para Pais (PHDA · 6–12 anos)', dest:['Mãe','Pai','Enc. Educação'], link:'https://correiaricardina-ui.github.io/questionarios/Vanderbilt_Pais_v1.html', syncKey:'vanderbilt_p', area:'Atenção, PHDA & Funções Executivas', ageRange:'6–12 anos', objective:'Rastreio de sintomas de PHDA e de problemas comórbidos (oposição, comportamento, ansiedade/depressão) e do seu impacto no desempenho, por heterorrelato dos pais ou cuidadores (6–12 anos; 55 itens: 47 sintomas 0–3 e 8 de desempenho 1–5). Versão portuguesa traduzida e adaptada para investigação (Oliveira, Pereira, Medeiros, Serrano & Fernandes, 2015), sem normas portuguesas. Sintoma positivo = 2 ou 3; limiares: desatenção ≥ 6, hiperatividade/impulsividade ≥ 6, oposição ≥ 4, comportamento ≥ 3, ansiedade/depressão ≥ 3; rastreio positivo exige limiar sintomático E pelo menos um item de desempenho com 4 ou 5. Apresentação: combinada, predominantemente desatenta ou hiperativa/impulsiva. Itens 34, 36, 37 e 40 são sinalizados à parte. É RASTREIO e NÃO diagnóstico; requer informação de várias fontes. Paleta azul; o vermelho aparece apenas na sinalização binária de itens de alerta.', domains:['Desatenção','Hiperatividade/Impulsividade','Oposição e desafio','Perturbação do comportamento','Ansiedade/Depressão','Desempenho','Itens de alerta','Apresentação'], ageMin:72, ageMax:155 },
+    { id:'q_vanderbilt_t', name:'Escala de Vanderbilt para Professores (PHDA · 6–12 anos)', dest:['Professor(a)','Diretor(a) de turma'], link:'https://correiaricardina-ui.github.io/questionarios/Vanderbilt_Prof_v1.html', syncKey:'vanderbilt_t', area:'Atenção, PHDA & Funções Executivas', ageRange:'6–12 anos', objective:'Rastreio de sintomas de PHDA e de problemas comórbidos (oposição/conduta, ansiedade/depressão) e do seu impacto no funcionamento escolar, por heterorrelato do professor (6–12 anos; 43 itens: 35 sintomas 0–3 e 8 de desempenho 1–5). Versão portuguesa traduzida e adaptada para investigação (Oliveira, Pereira, Medeiros, Serrano & Fernandes, 2015), sem normas portuguesas. Sintoma positivo = 2 ou 3; limiares: desatenção ≥ 6, hiperatividade/impulsividade ≥ 6, oposição/conduta ≥ 3, ansiedade/depressão ≥ 3; rastreio positivo exige limiar sintomático E pelo menos um item de desempenho com 4 ou 5. O rastreio de dificuldades de aprendizagem exige apenas valor 5 em pelo menos um dos itens 36–38. É RASTREIO e NÃO diagnóstico; requer informação de várias fontes. Paleta azul; o vermelho aparece apenas na sinalização binária de dificuldades de aprendizagem.', domains:['Desatenção','Hiperatividade/Impulsividade','Oposição/Conduta','Ansiedade/Depressão','Desempenho escolar','Dificuldades de aprendizagem','Apresentação'], ageMin:72, ageMax:155 },
+    // ── MDQ-A · Mood Disorder Questionnaire para Adolescentes (v139) ──
+    // Adaptação inspirada (Via B) a partir de Wagner et al. (2006). RASTREIO e não diagnóstico.
+    // Duas versões (parental e autorrelato) com cotação idêntica; ageMin/ageMax em MESES.
+    { id:'q_eir14', name:'EIR-14 — Escala de Irritabilidade (14 itens, autorrelato)', dest:['Paciente','Jovem avaliado'], link:'https://correiaricardina-ui.github.io/questionarios/EIR14_v1.html', syncKey:'eir14', area:'Regulação Emocional & Coping', ageRange:'10 ou mais anos', objective:'Autorrelato de irritabilidade (14 itens, escala 0–3, janela dos últimos 7 dias) com 2 itens de controlo (ICR), 5 EVA de carga funcional e 2 EVA de estado e traço. Adaptação INSPIRADA (Via B) da Born-Steiner Irritability Scale (Born et al., 2008), com itens originais redigidos em português europeu: NÃO é a BSIS nem tradução da mesma. Estrutura unifatorial (só o Total é interpretável); sem normas portuguesas — as referências são provisórias e externas (Grassi et al., 2023). Admite até 2 omissões; acima disso o protocolo é inválido. Paleta azul.', domains:['Total prorrateado (0–42)','Agrupamentos racionais: tónico, fásico e repercussão','Índice de Controlo (ICR)','Índice de Carga funcional','Estado vs. traço (EVA)','Validade do protocolo','Posicionamento relativo (referências provisórias)'], ageMin:120, ageMax:1188 },
+    // ── PHQ-15 · Questionário de Sintomas Somáticos (v140) — 3 versões; ageMin/ageMax em MESES ──
+    { id:'q_phq15_p', name:'PHQ-15 — Questionário de Sintomas Somáticos (Parental · Pais/Cuidadores)', dest:['Mãe','Pai','Enc. Educação'], link:'https://correiaricardina-ui.github.io/questionarios/PHQ15_Pais_v1.html', syncKey:'phq15_p', area:'Ansiedade, Depressão & Internalização', ageRange:'6–17 anos', objective:'Rastreio e caracterização de sintomas somáticos (PHQ-15; Kroenke, Spitzer & Williams, 2002): 15 sintomas físicos (14 na versão masculina/pediátrica conforme aplicável) avaliados nos últimos 7 dias em três níveis (0 = nada, 1 = pouco, 2 = muito incomodado). Pontuação bruta 0–30 (proporcional 0–30 quando há itens em falta, válida com no máximo 25% de itens em falta); níveis 0–4 mínima, 5–9 baixa, 10–14 média, 15–30 elevada. É RASTREIO e NÃO diagnóstico. Em adultos, ≥ 3 itens «muito incomodado(a)» é indicador associado a perturbação somatoforme (sensibilidade 78%, especificidade 71%); em idade pediátrica é meramente descritivo e a sua validade não foi verificada. Agrupamentos de sintomas (dor, gastrointestinal, cardiorrespiratório/autonómico, fadiga e sono, ginecológico/sexual) são descritivos. Paleta azul; o vermelho aparece apenas na sinalização binária do indicador de 3 ou mais itens no adulto.', domains:['Pontuação bruta (0–30)','Proporcional (0–30)','Nível de gravidade','Itens «muito incomodado(a)»','Indicador ≥ 3 itens','Agrupamentos de sintomas'], ageMin:72, ageMax:215 },
+    { id:'q_phq15_j', name:'PHQ-15 — Questionário de Sintomas Somáticos (Autorrelato · Jovem (11–17 anos))', dest:['Paciente','Jovem avaliado'], link:'https://correiaricardina-ui.github.io/questionarios/PHQ15_Jovem_v1.html', syncKey:'phq15_j', area:'Ansiedade, Depressão & Internalização', ageRange:'11–17 anos', objective:'Rastreio e caracterização de sintomas somáticos (PHQ-15; Kroenke, Spitzer & Williams, 2002): 15 sintomas físicos (14 na versão masculina/pediátrica conforme aplicável) avaliados nos últimos 7 dias em três níveis (0 = nada, 1 = pouco, 2 = muito incomodado). Pontuação bruta 0–30 (proporcional 0–30 quando há itens em falta, válida com no máximo 25% de itens em falta); níveis 0–4 mínima, 5–9 baixa, 10–14 média, 15–30 elevada. É RASTREIO e NÃO diagnóstico. Em adultos, ≥ 3 itens «muito incomodado(a)» é indicador associado a perturbação somatoforme (sensibilidade 78%, especificidade 71%); em idade pediátrica é meramente descritivo e a sua validade não foi verificada. Agrupamentos de sintomas (dor, gastrointestinal, cardiorrespiratório/autonómico, fadiga e sono, ginecológico/sexual) são descritivos. Paleta azul; o vermelho aparece apenas na sinalização binária do indicador de 3 ou mais itens no adulto.', domains:['Pontuação bruta (0–30)','Proporcional (0–30)','Nível de gravidade','Itens «muito incomodado(a)»','Indicador ≥ 3 itens','Agrupamentos de sintomas'], ageMin:132, ageMax:215 },
+    { id:'q_phq15_a', name:'PHQ-15 — Questionário de Sintomas Somáticos (Autorrelato · Adulto (18+ anos))', dest:['Próprio'], link:'https://correiaricardina-ui.github.io/questionarios/PHQ15_Adulto_v1.html', syncKey:'phq15_a', area:'Ansiedade, Depressão & Internalização', ageRange:'18 ou mais anos', objective:'Rastreio e caracterização de sintomas somáticos (PHQ-15; Kroenke, Spitzer & Williams, 2002): 15 sintomas físicos (14 na versão masculina/pediátrica conforme aplicável) avaliados nos últimos 7 dias em três níveis (0 = nada, 1 = pouco, 2 = muito incomodado). Pontuação bruta 0–30 (proporcional 0–30 quando há itens em falta, válida com no máximo 25% de itens em falta); níveis 0–4 mínima, 5–9 baixa, 10–14 média, 15–30 elevada. É RASTREIO e NÃO diagnóstico. Em adultos, ≥ 3 itens «muito incomodado(a)» é indicador associado a perturbação somatoforme (sensibilidade 78%, especificidade 71%); em idade pediátrica é meramente descritivo e a sua validade não foi verificada. Agrupamentos de sintomas (dor, gastrointestinal, cardiorrespiratório/autonómico, fadiga e sono, ginecológico/sexual) são descritivos. Paleta azul; o vermelho aparece apenas na sinalização binária do indicador de 3 ou mais itens no adulto.', domains:['Pontuação bruta (0–30)','Proporcional (0–30)','Nível de gravidade','Itens «muito incomodado(a)»','Indicador ≥ 3 itens','Agrupamentos de sintomas'], ageMin:216, ageMax:1188 },
+    { id:'q_mdqa_p', name:'MDQ-A — Mood Disorder Questionnaire para Adolescentes (Parental)', dest:['Mãe','Pai','Enc. Educação'], link:'https://correiaricardina-ui.github.io/questionarios/MDQA_Pais_v1.html', syncKey:'mdqa_p', area:'Risco, Autolesão & Psicopatologia Geral', ageRange:'12–17 anos', objective:'Rastreio de perturbações do espectro bipolar em adolescentes (MDQ-A): 13 itens Sim/Não de sintomas maníacos/hipomaníacos, uma pergunta de coocorrência temporal (Parte 2) e uma de impacto funcional (Parte 3, 0–3). Critérios de rastreio: Parte 1 ≥ 5 + Parte 2 = Sim + Parte 3 ≥ moderado (Wagner et al., 2006). ADAPTAÇÃO INSPIRADA (Via B) em português europeu, sem validação para Portugal e sem normas portuguesas; é RASTREIO e NÃO diagnóstico — um resultado positivo obriga a avaliação diagnóstica estruturada e um resultado negativo não exclui perturbação do humor (sensibilidade 0,72 no relato parental e 0,38 no autorrelato na validação original). Os subtotais fatoriais e as categorias «critérios parciais» e «sintomas subliminares» são exploratórios/descritivos. Paleta azul; o vermelho aparece apenas nas sinalizações binárias dos itens 6, 11 e 13. Aplicar as duas versões (parental e autorrelato) para leitura da concordância entre informantes.', domains:['Total Parte 1 (0–13)','Coocorrência temporal (P2)','Impacto funcional (P3)','Categoria de rastreio','F1 Ativação / desregulação comportamental','F2 Elevação do humor e da energia','F3 Risco (itens 6 e 11)','Sinalização de itens isolados (6, 11, 13)','Concordância entre informantes'], ageMin:144, ageMax:215 },
+    { id:'q_mdqa_a', name:'MDQ-A — Mood Disorder Questionnaire para Adolescentes (Autorrelato)', dest:['Paciente','Jovem avaliado'], link:'https://correiaricardina-ui.github.io/questionarios/MDQA_Auto_v1.html', syncKey:'mdqa_a', area:'Risco, Autolesão & Psicopatologia Geral', ageRange:'12–17 anos', objective:'Rastreio de perturbações do espectro bipolar em adolescentes (MDQ-A): 13 itens Sim/Não de sintomas maníacos/hipomaníacos, uma pergunta de coocorrência temporal (Parte 2) e uma de impacto funcional (Parte 3, 0–3). Critérios de rastreio: Parte 1 ≥ 5 + Parte 2 = Sim + Parte 3 ≥ moderado (Wagner et al., 2006). ADAPTAÇÃO INSPIRADA (Via B) em português europeu, sem validação para Portugal e sem normas portuguesas; é RASTREIO e NÃO diagnóstico — um resultado positivo obriga a avaliação diagnóstica estruturada e um resultado negativo não exclui perturbação do humor (sensibilidade 0,72 no relato parental e 0,38 no autorrelato na validação original). Os subtotais fatoriais e as categorias «critérios parciais» e «sintomas subliminares» são exploratórios/descritivos. Paleta azul; o vermelho aparece apenas nas sinalizações binárias dos itens 6, 11 e 13. Aplicar as duas versões (parental e autorrelato) para leitura da concordância entre informantes.', domains:['Total Parte 1 (0–13)','Coocorrência temporal (P2)','Impacto funcional (P3)','Categoria de rastreio','F1 Ativação / desregulação comportamental','F2 Elevação do humor e da energia','F3 Risco (itens 6 e 11)','Sinalização de itens isolados (6, 11, 13)','Concordância entre informantes'], ageMin:144, ageMax:215 },
     // ── EAIR · Escala de Avaliação da Ira e da sua Regulação (v136) ──
     // Instrumento ORIGINAL de construção própria (Via B), quatro formas
     // isomórficas de 24 itens em escala 1–4, quatro dimensões de seis itens e
@@ -3081,6 +3149,24 @@ function initCatalog() {
   } else {
     // Forçar links e syncKeys actualizados
     const META = {
+      // ── SDQ-Por · 5 versões ──
+      'q_sdq_p24': { link:'https://correiaricardina-ui.github.io/questionarios/SDQ_Pais24_v1.html', syncKey:'sdq_p24' },
+      'q_sdq_p417': { link:'https://correiaricardina-ui.github.io/questionarios/SDQ_Pais417_v1.html', syncKey:'sdq_p417' },
+      'q_sdq_t24': { link:'https://correiaricardina-ui.github.io/questionarios/SDQ_Prof24_v1.html', syncKey:'sdq_t24' },
+      'q_sdq_t417': { link:'https://correiaricardina-ui.github.io/questionarios/SDQ_Prof417_v1.html', syncKey:'sdq_t417' },
+      'q_sdq_a': { link:'https://correiaricardina-ui.github.io/questionarios/SDQ_Auto1117_v1.html', syncKey:'sdq_a' },
+      // ── Escala de Vanderbilt · Pais e Professores ──
+      'q_vanderbilt_p': { link:'https://correiaricardina-ui.github.io/questionarios/Vanderbilt_Pais_v1.html', syncKey:'vanderbilt_p' },
+      'q_vanderbilt_t': { link:'https://correiaricardina-ui.github.io/questionarios/Vanderbilt_Prof_v1.html', syncKey:'vanderbilt_t' },
+      // ── MDQ-A · Mood Disorder Questionnaire para Adolescentes (v139) ──
+      // ── EIR-14 (v141) ──
+      'q_eir14':      { link:'https://correiaricardina-ui.github.io/questionarios/EIR14_v1.html', syncKey:'eir14' },
+      // ── PHQ-15 (v140) ──
+      'q_phq15_p':   { link:'https://correiaricardina-ui.github.io/questionarios/PHQ15_Pais_v1.html', syncKey:'phq15_p' },
+      'q_phq15_j':   { link:'https://correiaricardina-ui.github.io/questionarios/PHQ15_Jovem_v1.html', syncKey:'phq15_j' },
+      'q_phq15_a':   { link:'https://correiaricardina-ui.github.io/questionarios/PHQ15_Adulto_v1.html', syncKey:'phq15_a' },
+      'q_mdqa_p':     { link:'https://correiaricardina-ui.github.io/questionarios/MDQA_Pais_v1.html', syncKey:'mdqa_p' },
+      'q_mdqa_a':     { link:'https://correiaricardina-ui.github.io/questionarios/MDQA_Auto_v1.html', syncKey:'mdqa_a' },
       // ── EAFE-CA · Funcionamento Executivo em Crianças e Adolescentes (v138) ──
       'q_eafeca_p':   { link:'https://correiaricardina-ui.github.io/questionarios/EAFECA_Pais_v1.html', syncKey:'eafeca_p' },
       'q_eafeca_a':   { link:'https://correiaricardina-ui.github.io/questionarios/EAFECA_Auto_v1.html', syncKey:'eafeca_a' },
@@ -3438,6 +3524,132 @@ function initCatalog() {
         }
       }
     });
+    // ── EIR-14 · Escala de Irritabilidade (v141) ──
+    if(!catalog.includes('q_eir14')) {
+      const _eiDefault = defaults.find(d => d.id === 'q_eir14');
+      if(_eiDefault) {
+        store.set('q_eir14', _eiDefault);
+        store.set('q_' + 'q_eir14', _eiDefault);
+        catalog.push('q_eir14');
+        store.set('catalog', catalog);
+      }
+    }
+    // ── PHQ-15 · Questionário de Sintomas Somáticos (v140) ──
+    // Garante o aparecimento das três ligações em instâncias já instaladas (dupla chave, Secção 26).
+    if(!catalog.includes('q_phq15_p')) {
+      const _phPDefault = defaults.find(d => d.id === 'q_phq15_p');
+      if(_phPDefault) {
+        store.set('q_phq15_p', _phPDefault);
+        store.set('q_' + 'q_phq15_p', _phPDefault);
+        catalog.push('q_phq15_p');
+        store.set('catalog', catalog);
+      }
+    }
+    if(!catalog.includes('q_phq15_j')) {
+      const _phJDefault = defaults.find(d => d.id === 'q_phq15_j');
+      if(_phJDefault) {
+        store.set('q_phq15_j', _phJDefault);
+        store.set('q_' + 'q_phq15_j', _phJDefault);
+        catalog.push('q_phq15_j');
+        store.set('catalog', catalog);
+      }
+    }
+    if(!catalog.includes('q_phq15_a')) {
+      const _phADefault = defaults.find(d => d.id === 'q_phq15_a');
+      if(_phADefault) {
+        store.set('q_phq15_a', _phADefault);
+        store.set('q_' + 'q_phq15_a', _phADefault);
+        catalog.push('q_phq15_a');
+        store.set('catalog', catalog);
+      }
+    }
+    // ── MDQ-A · Mood Disorder Questionnaire para Adolescentes (v139) ──
+    // Garante o aparecimento das duas ligações em instâncias já instaladas (dupla chave, Secção 26).
+    if(!catalog.includes('q_mdqa_p')) {
+      const _mdPDefault = defaults.find(d => d.id === 'q_mdqa_p');
+      if(_mdPDefault) {
+        store.set('q_mdqa_p', _mdPDefault);
+        store.set('q_' + 'q_mdqa_p', _mdPDefault);
+        catalog.push('q_mdqa_p');
+        store.set('catalog', catalog);
+      }
+    }
+    if(!catalog.includes('q_mdqa_a')) {
+      const _mdADefault = defaults.find(d => d.id === 'q_mdqa_a');
+      if(_mdADefault) {
+        store.set('q_mdqa_a', _mdADefault);
+        store.set('q_' + 'q_mdqa_a', _mdADefault);
+        catalog.push('q_mdqa_a');
+        store.set('catalog', catalog);
+      }
+    }
+    // ── SDQ-Por · 5 versões ──
+    // Garante o aparecimento das cinco ligações em instâncias já instaladas (dupla chave, Secção 26).
+    if(!catalog.includes('q_sdq_p24')) {
+      const _sdq_p24Default = defaults.find(d => d.id === 'q_sdq_p24');
+      if(_sdq_p24Default) {
+        store.set('q_sdq_p24', _sdq_p24Default);
+        store.set('q_' + 'q_sdq_p24', _sdq_p24Default);
+        catalog.push('q_sdq_p24');
+        store.set('catalog', catalog);
+      }
+    }
+    if(!catalog.includes('q_sdq_p417')) {
+      const _sdq_p417Default = defaults.find(d => d.id === 'q_sdq_p417');
+      if(_sdq_p417Default) {
+        store.set('q_sdq_p417', _sdq_p417Default);
+        store.set('q_' + 'q_sdq_p417', _sdq_p417Default);
+        catalog.push('q_sdq_p417');
+        store.set('catalog', catalog);
+      }
+    }
+    if(!catalog.includes('q_sdq_t24')) {
+      const _sdq_t24Default = defaults.find(d => d.id === 'q_sdq_t24');
+      if(_sdq_t24Default) {
+        store.set('q_sdq_t24', _sdq_t24Default);
+        store.set('q_' + 'q_sdq_t24', _sdq_t24Default);
+        catalog.push('q_sdq_t24');
+        store.set('catalog', catalog);
+      }
+    }
+    if(!catalog.includes('q_sdq_t417')) {
+      const _sdq_t417Default = defaults.find(d => d.id === 'q_sdq_t417');
+      if(_sdq_t417Default) {
+        store.set('q_sdq_t417', _sdq_t417Default);
+        store.set('q_' + 'q_sdq_t417', _sdq_t417Default);
+        catalog.push('q_sdq_t417');
+        store.set('catalog', catalog);
+      }
+    }
+    if(!catalog.includes('q_sdq_a')) {
+      const _sdq_aDefault = defaults.find(d => d.id === 'q_sdq_a');
+      if(_sdq_aDefault) {
+        store.set('q_sdq_a', _sdq_aDefault);
+        store.set('q_' + 'q_sdq_a', _sdq_aDefault);
+        catalog.push('q_sdq_a');
+        store.set('catalog', catalog);
+      }
+    }
+    // ── Escala de Vanderbilt · Pais e Professores ──
+    // Garante o aparecimento das duas ligações em instâncias já instaladas (dupla chave, Secção 26).
+    if(!catalog.includes('q_vanderbilt_p')) {
+      const _vbPDefault = defaults.find(d => d.id === 'q_vanderbilt_p');
+      if(_vbPDefault) {
+        store.set('q_vanderbilt_p', _vbPDefault);
+        store.set('q_' + 'q_vanderbilt_p', _vbPDefault);
+        catalog.push('q_vanderbilt_p');
+        store.set('catalog', catalog);
+      }
+    }
+    if(!catalog.includes('q_vanderbilt_t')) {
+      const _vbTDefault = defaults.find(d => d.id === 'q_vanderbilt_t');
+      if(_vbTDefault) {
+        store.set('q_vanderbilt_t', _vbTDefault);
+        store.set('q_' + 'q_vanderbilt_t', _vbTDefault);
+        catalog.push('q_vanderbilt_t');
+        store.set('catalog', catalog);
+      }
+    }
     // ── EBIP-7 · Escala Breve de Irritabilidade Pediátrica (v134) — 2 versões ──
     // Garante o aparecimento das ligações em instâncias do RC já instaladas.
     // ── EAFE-CA · Funcionamento Executivo em Crianças e Adolescentes (v138) ──
@@ -4492,6 +4704,63 @@ function getResultSummary(qid, patientCode, recipient) {
 
 function formatScoreSummary(scores, syncKey) {
   if(!scores) return null;
+  // ── MDQ-A · Mood Disorder Questionnaire para Adolescentes (v139) ───────
+  // Guardas `!= null` (nunca `||`): total 0 e P3 0 são resultados clínicos.
+  // ⚠ Paleta EXCLUSIVAMENTE AZUL: sem normas portuguesas nem base normativa
+  //   para graduar gravidade por cor. O VERMELHO aparece apenas nas
+  //   sinalizações binárias dos itens 6, 11 e 13.
+  if(syncKey === 'mdqa_p' || syncKey === 'mdqa_a') {
+    const _mdT = scores['Total_P1'] != null ? scores['Total_P1'] : scores['total_p1'];
+    const _mdC = scores['Categoria'] != null ? scores['Categoria'] : scores['categoria'];
+    const _mdF = [scores['Flag6'], scores['Flag11'], scores['Flag13']];
+    const _mdPartes = [];
+    if(_mdT != null && _mdT !== '') {
+      _mdPartes.push('<span style="font-size:0.78rem;color:var(--blue);font-weight:700;">Total = ' + _mdT + '/13</span>');
+    }
+    if(_mdC != null && _mdC !== '') {
+      _mdPartes.push('<span style="font-size:0.75rem;color:var(--text-light);">' + _mdC + '</span>');
+    }
+    if(_mdF.some(function(f){ return f != null && String(f) === '1'; })) {
+      _mdPartes.push('<span style="font-size:0.75rem;color:#C0392B;font-weight:700;">sinaliza&ccedil;&atilde;o de item isolado</span>');
+    }
+    if(_mdPartes.length) return _mdPartes.join(' &middot; ');
+  }
+  // ── EIR-14 · Escala de Irritabilidade (v141) ───────────────────────────
+  // Guardas `!= null` (nunca `||`): o ZERO é resultado clínico. Paleta azul
+  // (referências provisórias, sem normas portuguesas).
+  if(syncKey === 'eir14') {
+    const _eiT = scores['Total'] != null ? scores['Total'] : scores['total'];
+    const _eiV = scores['Validade'] != null ? scores['Validade'] : scores['validade'];
+    const _eiN = scores['Nivel'] != null ? scores['Nivel'] : scores['nivel'];
+    const _eiP = [];
+    if(_eiT != null && _eiT !== '') _eiP.push('<span style="font-size:0.78rem;color:var(--blue);font-weight:700;">Total = ' + _eiT + '/42</span>');
+    if(_eiN != null && _eiN !== '') _eiP.push('<span style="font-size:0.75rem;color:var(--text-light);">' + _eiN + '</span>');
+    else if(_eiV != null && _eiV !== '') _eiP.push('<span style="font-size:0.75rem;color:var(--text-light);">' + _eiV + '</span>');
+    if(_eiP.length) return _eiP.join(' &middot; ');
+  }
+  // ── PHQ-15 · Questionário de Sintomas Somáticos (v140) ─────────────────
+  // Inserido ANTES de «// Genérico». Guardas `!= null` (nunca `||`): o ZERO é
+  // resultado clínico. Paleta EXCLUSIVAMENTE AZUL; vermelho só no indicador
+  // binário de 3 ou mais itens «muito incomodado(a)» (adultos).
+  if(syncKey === 'phq15_p' || syncKey === 'phq15_j' || syncKey === 'phq15_a') {
+    const _phB = scores['Bruta'] != null ? scores['Bruta'] : scores['bruta'];
+    const _phP = scores['Prop'] != null ? scores['Prop'] : scores['prop'];
+    const _phN = scores['Nivel'] != null ? scores['Nivel'] : scores['nivel'];
+    const _phI = scores['Indicador3'] != null ? scores['Indicador3'] : scores['indicador3'];
+    const _phPartes = [];
+    if(_phB != null && _phB !== '') {
+      let _phT = 'Bruta = ' + _phB + '/' + (scores['N_Aplic'] != null && scores['N_Aplic'] !== '' ? Number(scores['N_Aplic']) * 2 : 30);
+      if(_phP != null && _phP !== '') _phT += ' (prop. ' + _phP + ')';
+      _phPartes.push('<span style="font-size:0.78rem;color:var(--blue);font-weight:700;">' + _phT + '</span>');
+    }
+    if(_phN != null && _phN !== '') {
+      _phPartes.push('<span style="font-size:0.75rem;color:var(--text-light);">' + _phN + '</span>');
+    }
+    if(syncKey === 'phq15_a' && _phI != null && (String(_phI) === '1' || String(_phI).toLowerCase() === 'true' || String(_phI).toLowerCase() === 'sim')) {
+      _phPartes.push('<span style="font-size:0.75rem;color:#C0392B;font-weight:700;">&ge; 3 itens &laquo;muito&raquo;</span>');
+    }
+    if(_phPartes.length) return _phPartes.join(' &middot; ');
+  }
   // ── EAFE-CA · Funcionamento Executivo em Crianças e Adolescentes ───────
   // Inserida ANTES do fallback genérico (que preempta qualquer branch posterior).
   // Guardas `!= null` (nunca `||`): o ZERO é clinicamente substantivo — uma
@@ -6243,6 +6512,47 @@ function formatScoreSummary(scores, syncKey) {
     }
   }
 
+  // ── SDQ-Por · 5 versões ────────────────────────────────────────────────
+  // Inserido ANTES do ramo Vanderbilt. Guardas `!= null` (nunca `||`): o ZERO é
+  // resultado clínico. Paleta AZUL; sem vermelho (não há sinalização binária).
+  if(syncKey === 'sdq_p24' || syncKey === 'sdq_p417' || syncKey === 'sdq_t24' || syncKey === 'sdq_t417' || syncKey === 'sdq_a') {
+    const _sdG = function(a, b) { const v = scores[a] != null ? scores[a] : scores[b]; return (v == null || v === '') ? null : v; };
+    const _sdTD = _sdG('TD_Pont', 'td_pont');
+    const _sdCl = _sdG('TD_Classe', 'td_classe');
+    const _sdIm = _sdG('Imp_Pont', 'imp_pont');
+    const _sdMo = _sdG('Modo', 'modo');
+    const _sdPartes = [];
+    if(_sdTD != null) _sdPartes.push('<span style="font-size:0.78rem;color:var(--blue);font-weight:700;">TD ' + _sdTD + '/40' + (_sdCl != null ? ' &middot; ' + _sdCl : '') + '</span>');
+    if(_sdIm != null) _sdPartes.push('<span style="font-size:0.75rem;color:var(--text-light);">Impacto: ' + _sdIm + '</span>');
+    if(_sdMo != null) _sdPartes.push('<span style="font-size:0.75rem;color:var(--text-light);">' + _sdMo + '</span>');
+    if(_sdPartes.length) return _sdPartes.join(' &middot; ');
+  }
+  // ── Escala de Vanderbilt · Pais e Professores (PHDA) ───────────────────
+  // Inserido ANTES de «// Genérico». Guardas `!= null` (nunca `||`): o ZERO é
+  // resultado clínico. Paleta AZUL nos descritivos; vermelho só nas
+  // sinalizações binárias (itens de alerta nos Pais; dificuldades de
+  // aprendizagem nos Professores).
+  if(syncKey === 'vanderbilt_p' || syncKey === 'vanderbilt_t') {
+    const _vbG = function(a, b) { const v = scores[a] != null ? scores[a] : scores[b]; return (v == null || v === '') ? null : v; };
+    const _vbAp = _vbG('Apresentacao', 'apresentacao');
+    const _vbD = _vbG('DES_n', 'des_n');
+    const _vbH = _vbG('HIP_n', 'hip_n');
+    const _vbF = _vbG('Func_n45', 'func_n45');
+    const _vbPartes = [];
+    if(_vbAp != null) _vbPartes.push('<span style="font-size:0.78rem;color:var(--blue);font-weight:700;">' + _vbAp + '</span>');
+    if(_vbD != null || _vbH != null) {
+      _vbPartes.push('<span style="font-size:0.75rem;color:var(--text-light);">Des. ' + (_vbD != null ? _vbD : '–') + '/9 &middot; Hip./Imp. ' + (_vbH != null ? _vbH : '–') + '/9</span>');
+    }
+    if(_vbF != null) _vbPartes.push('<span style="font-size:0.75rem;color:var(--text-light);">Desempenho 4&ndash;5: ' + _vbF + '</span>');
+    if(syncKey === 'vanderbilt_p') {
+      const _vbA = _vbG('N_Alertas', 'n_alertas');
+      if(_vbA != null && Number(_vbA) >= 1) _vbPartes.push('<span style="font-size:0.75rem;color:#C0392B;font-weight:700;">' + _vbA + ' item(ns) de alerta</span>');
+    } else {
+      const _vbL = _vbG('LD_Estado', 'ld_estado');
+      if(_vbL != null && String(_vbL).toUpperCase() === 'SIM') _vbPartes.push('<span style="font-size:0.75rem;color:#C0392B;font-weight:700;">dif. aprendizagem: positivo</span>');
+    }
+    if(_vbPartes.length) return _vbPartes.join(' &middot; ');
+  }
   // Genérico
   const entries = Object.entries(scores).filter(([,v]) => v != null).slice(0,3);
   if(entries.length > 0) return `<span style="font-size:0.78rem;color:var(--blue-dark);">${entries.map(([k,v])=>k+'='+v).join(' · ')}</span>`;
@@ -7219,12 +7529,30 @@ function renderAssignments(patientId) {
             // ── Verificação nome-primeiro, relação como fallback ──
             function matchRespondent(row, aba, recip) {
               const NC = {
+                // ── SDQ-Por · cinco abas (nome primeiro; tipo como fallback) ──
+                'SDQ_P24':['NomeInformante','Informante'],
+                'SDQ_P417':['NomeInformante','Informante'],
+                'SDQ_T24':['NomeInformante','Informante'],
+                'SDQ_T417':['NomeInformante','Informante'],
+                'SDQ_A':['NomeInformante','Informante'],
+                // ── Escala de Vanderbilt · duas abas (nome primeiro; tipo como fallback) ──
+                'Vanderbilt_Pais':['NomeInformante','Relacao'],
+                'Vanderbilt_Prof':['NomeInformante','Relacao'],
                 // ── EAFE-CA · três abas (nome primeiro; tipo como fallback) ──
                 // Nas formas de heterorrelato mãe e pai, ou dois professores
                 // de disciplinas diferentes, podem responder no mesmo dia para
                 // a mesma criança e a comparação entre informantes é leitura
                 // clínica do instrumento; no autorrelato o tipo é constante e
                 // o NOME é o discriminante efectivo.
+                // ── EIR-14 (v141) ──
+                'EIR14':['NomeInformante','Informante'],
+                // ── PHQ-15 · três abas (nome primeiro; tipo como fallback) ──
+                'PHQ15_P':['NomeInformante','Informante','Relacao'],
+                'PHQ15_J':['NomeInformante','Informante'],
+                'PHQ15_A':['NomeInformante','Informante'],
+                // ── MDQ-A · duas abas (nome primeiro; tipo como fallback) ──
+                'MDQA_P':['NomeInformante','Informante','Relacao'],
+                'MDQA_A':['NomeInformante','Informante'],
                 'EAFECA_P':['NomeInformante','Informante','Relacao'],
                 'EAFECA_A':['NomeInformante','Informante'],
                 'EAFECA_T':['NomeInformante','Informante','Disciplina'],
@@ -7865,7 +8193,25 @@ async function syncAndMark(patientId, idx) {
       const patUpper = String(patient.code).trim().toUpperCase();
       function matchResp2(row, aba2, recip) {
         const NC2 = {
+          // ── SDQ-Por · cinco abas (nome primeiro; tipo como fallback) ──
+          'SDQ_P24':['NomeInformante','Informante'],
+          'SDQ_P417':['NomeInformante','Informante'],
+          'SDQ_T24':['NomeInformante','Informante'],
+          'SDQ_T417':['NomeInformante','Informante'],
+          'SDQ_A':['NomeInformante','Informante'],
+          // ── Escala de Vanderbilt · duas abas (nome primeiro; tipo como fallback) ──
+          'Vanderbilt_Pais':['NomeInformante','Relacao'],
+          'Vanderbilt_Prof':['NomeInformante','Relacao'],
           // ── EAFE-CA · três abas (nome primeiro; tipo como fallback) ──
+          // ── EIR-14 (v141) ──
+          'EIR14':['NomeInformante','Informante'],
+          // ── PHQ-15 · três abas (nome primeiro; tipo como fallback) ──
+          'PHQ15_P':['NomeInformante','Informante','Relacao'],
+          'PHQ15_J':['NomeInformante','Informante'],
+          'PHQ15_A':['NomeInformante','Informante'],
+          // ── MDQ-A · duas abas (nome primeiro; tipo como fallback) ──
+          'MDQA_P':['NomeInformante','Informante','Relacao'],
+          'MDQA_A':['NomeInformante','Informante'],
           'EAFECA_P':['NomeInformante','Informante','Relacao'],
           'EAFECA_A':['NomeInformante','Informante'],
           'EAFECA_T':['NomeInformante','Informante','Disciplina'],

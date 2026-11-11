@@ -3,6 +3,82 @@
 // Ricardina Correia · Psicologia Pediátrica · Cédula 8233
 // Versão 72.0 — maio 2026
 //
+// ════════════════════════════════════════════════════════════════════════
+// ALTERAÇÕES v142.0 — SDQ-Por (Questionário de Capacidades e de Dificuldades)
+//   · 5 versões, 5 abas: SDQ_P24 (Pais 2-4), SDQ_P417 (Pais 4-17), SDQ_T24
+//     (Professores/Educadores 2-4), SDQ_T417 (Professores 4-17), SDQ_A
+//     (Auto-avaliação 11-17). Cada ficheiro HTML tem modo Completo/Follow-up.
+//   · HEADERS — 5 entradas com o mesmo cabeçalho de 37 colunas (cotação por
+//     escala E/C/H/P/S, TD, impacto, duração, sobrecarga, evolução, utilidade,
+//     comentário, Respostas em JSON). A coluna 'Informante' guarda o tipo de
+//     respondente (Mãe/Pai/Professor/Auto/...).
+//   · ABA — aliases 'SDQ_P24'/'sdq_p24'/'SDQ_Pais24' e equivalentes.
+//   · DEDUPE_KEYS nas cinco abas — chave de QUATRO elementos (Secção 33):
+//     Código + Data + Informante + NomeInformante (aliases já existentes).
+//   · buildRow — ramo ÚNICO para as cinco abas, guarda != null.
+//   · Diff ESTRITAMENTE ADITIVO — nada do v141.0 foi removido ou alterado.
+// ⚠ Todos os outros instrumentos (HEADERS, ABA, buildRow, DEDUPE_KEYS) intactos.
+//
+// ════════════════════════════════════════════════════════════════════════
+// ALTERAÇÕES v141.0 — Escala de Vanderbilt (PHDA) · Pais e Professores, 6–12
+//   anos. Diff ESTRITAMENTE ADITIVO — nada do v140.0 foi removido ou alterado.
+//   · HEADERS['Vanderbilt_Pais'] (28 colunas) e HEADERS['Vanderbilt_Prof']
+//     (26 colunas). Duas abas, porque a concordância pais–professor exige
+//     linhas independentes. 'Medicacao' (Pais) e 'TempoObservacao' (Prof)
+//     guardam o campo extra de identificação.
+//   · ABA — aliases 'Vanderbilt_Pais'/'vanderbilt_pais'/'VB_P' e
+//     'Vanderbilt_Prof'/'vanderbilt_prof'/'VB_T'.
+//   · DEDUPE_KEYS nas duas abas — chave de QUATRO elementos (Secção 33):
+//     Código + Data + Relacao + NomePreenche (aliases já existentes).
+//   · buildRow — ramo ÚNICO para as duas abas, guarda != null (o ZERO é
+//     resultado clínico; item não respondido nunca é convertido em zero).
+//     'Func_Media' chega como texto com vírgula decimal.
+//   · doPost — garantirColunaTexto_(sh,'Func_Media') SÓ para as duas abas
+//     Vanderbilt (evita coerção pt-PT de "3,5"); nenhum outro instrumento muda.
+// ⚠ Todos os outros instrumentos (HEADERS, ABA, buildRow, DEDUPE_KEYS) intactos.
+//
+// ═══════════════════════════════════════════════════════════════════════════
+// ALTERAÇÕES v140.0 — PHQ-15 · Questionário de Sintomas Somáticos, em TRÊS
+//   formas: Pais/Cuidadores (6–17), Jovem (11–17) e Adulto (18+). Diff
+//   ESTRITAMENTE ADITIVO — nada do v139.0 foi removido ou alterado.
+//   · HEADERS['PHQ15_P'], ['PHQ15_J'] e ['PHQ15_A'] — 24 colunas, cabeçalho
+//     IDÊNTICO nas três abas.
+//   · ABA — aliases 'PHQ15_P'/'phq15_p'/'PHQ15_Pais', 'PHQ15_J'/'phq15_j'/
+//     'PHQ15_Jovem' e 'PHQ15_A'/'phq15_a'/'PHQ15_Adulto'.
+//   · DEDUPE_KEYS nas três abas — chave de QUATRO elementos (Secção 33).
+//   · buildRow — ramo ÚNICO para as três abas, guarda != null (o ZERO é
+//     resultado clínico). 'Prop' chega como texto com vírgula decimal.
+//   · doPost — garantirColunaTexto_(sh,'Prop') SÓ para as três abas PHQ-15
+//     (evita coerção pt-PT de "18,2"); nenhum outro instrumento muda.
+// ⚠ Todos os outros instrumentos (HEADERS, ABA, buildRow, DEDUPE_KEYS) intactos.
+//
+// ═════════════════════════════════════════════════════════════
+// ALTERAÇÕES v139.0 — MDQ-A · Mood Disorder Questionnaire para Adolescentes,
+//   nas DUAS formas: Parental (heterorrelato, pais/cuidadores) e Autorrelato
+//   (adolescente). Adaptação inspirada (Via B) em português europeu a partir de
+//   Wagner et al. (2006); sem validação nem normas para Portugal. RASTREIO e
+//   NÃO diagnóstico. Cotação: 13 itens Sim/Não (Parte 1), coocorrência (Parte 2)
+//   e impacto funcional 0–3 (Parte 3); critério Parte 1 ≥ 5 + Parte 2 = Sim +
+//   Parte 3 ≥ 2.
+//
+// Integração ADITIVA. Nenhuma linha das versões anteriores foi removida ou
+// alterada.
+//
+//   · HEADERS['MDQA_P'] e ['MDQA_A'] — 25 colunas, cabeçalho IDÊNTICO nas duas
+//     abas (o payload das duas formas tem a mesma forma). Abas separadas porque
+//     a comparação entre informantes exige linhas independentes. A coluna
+//     'Relacao' só é preenchida na forma parental e 'Ano' só no autorrelato.
+//   · ABA — aliases 'MDQA_P', 'mdqa_p', 'MDQA_Pais', 'MDQA_A', 'mdqa_a' e
+//     'MDQA_Auto'. Nenhum alias existente foi criado, alterado ou reapontado.
+//     NÃO confundir com 'MDQ' (adultos), cuja aba e aliases permanecem INTACTOS.
+//   · DEDUPE_KEYS nas duas abas — chave de QUATRO elementos (Secção 33): Código
+//     + Data + tipo de respondente + nome, resolvida pelos DEDUPE_ALIASES JÁ
+//     EXISTENTES ('PreenchidoPor' → 'Informante' · 'NomePreenche' →
+//     'NomeInformante'). Nenhum alias foi criado ou alterado.
+//   · buildRow — ramo ÚNICO que serve as duas abas. Guarda != null OBRIGATÓRIA
+//     (nunca ||): o ZERO é resultado clínico (Total_P1 = 0, P3 = 0, flags = 0).
+// ═══════════════════════════════════════════════════════════════════════════
+
 // ═══════════════════════════════════════════════════════════════════════════
 // ALTERAÇÕES v138.0 — EAFE-CA · Escala de Avaliação do Funcionamento
 //   Executivo em Crianças e Adolescentes, nas TRÊS formas: Pais e Cuidadores
@@ -2406,6 +2482,28 @@
 
 // ── CABEÇALHOS POR INSTRUMENTO ──────────────────────────────
 var HEADERS = {
+  // SDQ-Por (v142.0) — 5 abas, cabeçalho idêntico (37 colunas).
+  SDQ_P24: ['Data','Código','NomeCriança','DataNasc','Idade','Sexo','Informante','NomeInformante','Modo','Versao','Coerencia','E_n','E_Pont','E_Classe','C_n','C_Pont','C_Classe','H_n','H_Pont','H_Classe','P_n','P_Pont','P_Classe','S_n','S_Pont','S_Classe','TD_Pont','TD_Classe','Imp_Inicial','Imp_Pont','Imp_Classe','Duracao','Sobrecarga','Evolucao','Utilidade','Comentario','Respostas'],
+  SDQ_P417: ['Data','Código','NomeCriança','DataNasc','Idade','Sexo','Informante','NomeInformante','Modo','Versao','Coerencia','E_n','E_Pont','E_Classe','C_n','C_Pont','C_Classe','H_n','H_Pont','H_Classe','P_n','P_Pont','P_Classe','S_n','S_Pont','S_Classe','TD_Pont','TD_Classe','Imp_Inicial','Imp_Pont','Imp_Classe','Duracao','Sobrecarga','Evolucao','Utilidade','Comentario','Respostas'],
+  SDQ_T24: ['Data','Código','NomeCriança','DataNasc','Idade','Sexo','Informante','NomeInformante','Modo','Versao','Coerencia','E_n','E_Pont','E_Classe','C_n','C_Pont','C_Classe','H_n','H_Pont','H_Classe','P_n','P_Pont','P_Classe','S_n','S_Pont','S_Classe','TD_Pont','TD_Classe','Imp_Inicial','Imp_Pont','Imp_Classe','Duracao','Sobrecarga','Evolucao','Utilidade','Comentario','Respostas'],
+  SDQ_T417: ['Data','Código','NomeCriança','DataNasc','Idade','Sexo','Informante','NomeInformante','Modo','Versao','Coerencia','E_n','E_Pont','E_Classe','C_n','C_Pont','C_Classe','H_n','H_Pont','H_Classe','P_n','P_Pont','P_Classe','S_n','S_Pont','S_Classe','TD_Pont','TD_Classe','Imp_Inicial','Imp_Pont','Imp_Classe','Duracao','Sobrecarga','Evolucao','Utilidade','Comentario','Respostas'],
+  SDQ_A: ['Data','Código','NomeCriança','DataNasc','Idade','Sexo','Informante','NomeInformante','Modo','Versao','Coerencia','E_n','E_Pont','E_Classe','C_n','C_Pont','C_Classe','H_n','H_Pont','H_Classe','P_n','P_Pont','P_Classe','S_n','S_Pont','S_Classe','TD_Pont','TD_Classe','Imp_Inicial','Imp_Pont','Imp_Classe','Duracao','Sobrecarga','Evolucao','Utilidade','Comentario','Respostas'],
+  // ── Escala de Vanderbilt (v141.0) · duas abas ──
+  Vanderbilt_Pais: ['Data','Código','NomeCriança','Relacao','NomeInformante','Medicacao','DES_n','DES_Estado','HIP_n','HIP_Estado','N_Sintomas','OPO_n','OPO_Estado','CON_n','CON_Estado','AND_n','AND_Estado','Func_n45','Func_Media','Func_Estado','Rast_DES','Rast_HIP','Rast_OPO','Rast_CON','Rast_AND','Apresentacao','N_Alertas','Respostas'],
+  Vanderbilt_Prof: ['Data','Código','NomeCriança','Relacao','NomeInformante','TempoObservacao','DES_n','DES_Estado','HIP_n','HIP_Estado','N_Sintomas','OPO_n','OPO_Estado','AND_n','AND_Estado','Func_n45','Func_Media','Func_Estado','Rast_DES','Rast_HIP','Rast_OPO','Rast_AND','Apresentacao','LD_n5','LD_Estado','Respostas'],
+  // ── PHQ-15 (v140.0) · 3 abas, cabeçalho idêntico (24 colunas) ──
+  PHQ15_P: ['Data','Código','NomeCriança','Idade','Ano','Informante','NomeInformante','Relacao','Sexo','N_Aplic','N_Resp','Valida','Bruta','Prop','Nivel','N_Muito','Indicador3','G_Dor','G_GI','G_Cardio','G_FadigaSono','G_Gineco','G_Maior','Respostas'],
+  PHQ15_J: ['Data','Código','NomeCriança','Idade','Ano','Informante','NomeInformante','Relacao','Sexo','N_Aplic','N_Resp','Valida','Bruta','Prop','Nivel','N_Muito','Indicador3','G_Dor','G_GI','G_Cardio','G_FadigaSono','G_Gineco','G_Maior','Respostas'],
+  PHQ15_A: ['Data','Código','NomeCriança','Idade','Ano','Informante','NomeInformante','Relacao','Sexo','N_Aplic','N_Resp','Valida','Bruta','Prop','Nivel','N_Muito','Indicador3','G_Dor','G_GI','G_Cardio','G_FadigaSono','G_Gineco','G_Maior','Respostas'],
+  // ── MDQ-A · Mood Disorder Questionnaire para Adolescentes (v139.0) ──
+  //   DUAS abas com cabeçalho IDÊNTICO de 25 colunas: MDQA_P (Parental) e
+  //   MDQA_A (Autorrelato). 'Informante' grava o literal da forma
+  //   ('Pais/cuidadores' · 'Adolescente') e 'NomeInformante' o nome de quem
+  //   preencheu. ⚠ Guarda != null obrigatória: o ZERO é resultado clínico.
+  //   ⚠ 'Respostas' guarda o JSON {"1":0|1,…,"13":…,"P2":0|1,"P3":0-3}.
+  MDQA_P: ['Data','Código','NomeCriança','Idade','Ano','Informante','NomeInformante','Relacao','N_Resp','Total_P1','F1','F2','F3','P2','P3','P3_Texto','Crit1','Crit2','Crit3','Categoria','Coerencia','Flag6','Flag11','Flag13','Respostas'],
+  MDQA_A: ['Data','Código','NomeCriança','Idade','Ano','Informante','NomeInformante','Relacao','N_Resp','Total_P1','F1','F2','F3','P2','P3','P3_Texto','Crit1','Crit2','Crit3','Categoria','Coerencia','Flag6','Flag11','Flag13','Respostas'],
+
 
   // ── EAFE-CA · Funcionamento Executivo em Crianças e Adolescentes (v138.0) ──
   //   TRÊS abas com cabeçalho IDÊNTICO de 39 colunas: EAFECA_P (Pais e
@@ -5263,6 +5361,47 @@ var HEADERS = {
 
 // ── MAPEAMENTO: instrumento → aba ────────────────────────────
 var ABA = {
+  // SDQ-Por (v142.0)
+  'SDQ_P24':'SDQ_P24',
+  'sdq_p24':'SDQ_P24',
+  'SDQ_Pais24':'SDQ_P24',
+  'SDQ_P417':'SDQ_P417',
+  'sdq_p417':'SDQ_P417',
+  'SDQ_Pais417':'SDQ_P417',
+  'SDQ_T24':'SDQ_T24',
+  'sdq_t24':'SDQ_T24',
+  'SDQ_Prof24':'SDQ_T24',
+  'SDQ_T417':'SDQ_T417',
+  'sdq_t417':'SDQ_T417',
+  'SDQ_Prof417':'SDQ_T417',
+  'SDQ_A':'SDQ_A',
+  'sdq_a':'SDQ_A',
+  'SDQ_Auto1117':'SDQ_A',
+  // ── Escala de Vanderbilt (v141.0) ──
+  'Vanderbilt_Pais':'Vanderbilt_Pais',
+  'vanderbilt_pais':'Vanderbilt_Pais',
+  'VB_P':'Vanderbilt_Pais',
+  'Vanderbilt_Prof':'Vanderbilt_Prof',
+  'vanderbilt_prof':'Vanderbilt_Prof',
+  'VB_T':'Vanderbilt_Prof',
+  // ── PHQ-15 (v140.0) ──
+  'PHQ15_P':'PHQ15_P',
+  'phq15_p':'PHQ15_P',
+  'PHQ15_Pais':'PHQ15_P',
+  'PHQ15_J':'PHQ15_J',
+  'phq15_j':'PHQ15_J',
+  'PHQ15_Jovem':'PHQ15_J',
+  'PHQ15_A':'PHQ15_A',
+  'phq15_a':'PHQ15_A',
+  'PHQ15_Adulto':'PHQ15_A',
+  // ── MDQ-A · Mood Disorder Questionnaire para Adolescentes (v139.0) ──
+  // Duas formas, duas abas. Nenhum alias existente foi tocado ('MDQ' = adultos).
+  'MDQA_P':      'MDQA_P',
+  'mdqa_p':      'MDQA_P',
+  'MDQA_Pais':   'MDQA_P',
+  'MDQA_A':      'MDQA_A',
+  'mdqa_a':      'MDQA_A',
+  'MDQA_Auto':   'MDQA_A',
   // ── EAFE-CA · Funcionamento Executivo em Crianças e Adolescentes (v138.0) ──
   // Três formas, três abas. Nenhum alias existente foi tocado.
   // ⚠ 'EAFE' e 'eafe' continuam a apontar para a aba 'EAFE' (Entrevista de
@@ -6411,6 +6550,23 @@ function parseData(raw) {
 // Só afeta os instrumentos listados — todos os restantes continuam a fazer
 // appendRow exatamente como antes (diff estritamente aditivo).
 var DEDUPE_KEYS = {
+  // SDQ-Por (v142.0) — dedupe de 4 elementos (Secção 33): Código + Data + Informante + NomeInformante (aliases já existentes).
+  'SDQ_P24': ['Código', 'Data', 'PreenchidoPor', 'NomePreenche'],
+  'SDQ_P417': ['Código', 'Data', 'PreenchidoPor', 'NomePreenche'],
+  'SDQ_T24': ['Código', 'Data', 'PreenchidoPor', 'NomePreenche'],
+  'SDQ_T417': ['Código', 'Data', 'PreenchidoPor', 'NomePreenche'],
+  'SDQ_A': ['Código', 'Data', 'PreenchidoPor', 'NomePreenche'],
+  // Vanderbilt (v141.0) — dedupe de 4 elementos (Secção 33) nas duas abas.
+  'Vanderbilt_Pais': ['Código', 'Data', 'Relacao', 'NomePreenche'],
+  'Vanderbilt_Prof': ['Código', 'Data', 'Relacao', 'NomePreenche'],
+  // PHQ-15 (v140.0) — dedupe de 4 elementos (Secção 33) nas três abas.
+  'PHQ15_P': ['Código', 'Data', 'PreenchidoPor', 'NomePreenche'],
+  'PHQ15_J': ['Código', 'Data', 'PreenchidoPor', 'NomePreenche'],
+  'PHQ15_A': ['Código', 'Data', 'PreenchidoPor', 'NomePreenche'],
+  // MDQ-A (v139.0) — dedupe de 4 elementos (Secção 33) nas duas abas:
+  // código + data + tipo de respondente + nome (aliases já existentes).
+  'MDQA_P':            ['Código', 'Data', 'PreenchidoPor', 'NomePreenche'],
+  'MDQA_A':            ['Código', 'Data', 'PreenchidoPor', 'NomePreenche'],
   // EAFE-CA (v138.0) — dedupe de 4 elementos (Secção 33) nas três abas:
   // código + data + tipo de respondente + nome. As colunas chamam-se
   // 'Informante' e 'NomeInformante' e resolvem pelos DEDUPE_ALIASES JÁ
@@ -6962,6 +7118,8 @@ function doPost(e) {
     // muda de comportamento. Sem isto, o locale pt-PT pode coagir a string
     // "Sim|Não;Sim|Não;..." e a grelha de convergência recebe lixo.
     if (abaNome === 'DIVA5') garantirColunaTexto_(sh, 'Respostas');
+    if (abaNome === 'PHQ15_P' || abaNome === 'PHQ15_J' || abaNome === 'PHQ15_A') garantirColunaTexto_(sh, 'Prop');
+    if (abaNome === 'Vanderbilt_Pais' || abaNome === 'Vanderbilt_Prof') garantirColunaTexto_(sh, 'Func_Media');
 
     var updated = false;
     if (DEDUPE_KEYS[abaNome]) {
@@ -6982,6 +7140,191 @@ function buildRow(abaNome, d) {
   var hoje = parseData(d.data || d.date || d.Data);
   var cod  = d.patientCode || d.CodigoPaciente || d.codigo || d.Código || '';
   var nome = d.nomeCrianca || d.NomeCrianca || d.childName || d.nome || '';
+
+  // ── SDQ-Por · 5 versões (v142.0) ──
+  // Ordem das colunas idêntica a HEADERS['SDQ_P24'] (37), igual nas 5 abas.
+  // Guarda != null OBRIGATÓRIA (nunca ||): o ZERO é resultado clínico.
+  if (abaNome === 'SDQ_P24' || abaNome === 'SDQ_P417' || abaNome === 'SDQ_T24' ||
+      abaNome === 'SDQ_T417' || abaNome === 'SDQ_A') {
+    var _sdV = function (a) { return (a !== undefined && a !== null) ? a : ''; };
+    var _sdResp = (typeof d.Respostas === 'string') ? d.Respostas
+                : ((typeof d.respostas === 'string') ? d.respostas
+                : JSON.stringify(d.Respostas || d.respostas || d.answers || {}));
+    return [
+      hoje,
+      cod,
+      _sdV(d.nomeCrianca !== undefined && d.nomeCrianca !== null ? d.nomeCrianca : (d.NomeCrianca !== undefined ? d.NomeCrianca : nome)),
+      _sdV(d.DataNasc),
+      _sdV(d.Idade),
+      _sdV(d.Sexo),
+      _sdV(d.informante !== undefined && d.informante !== null ? d.informante : d.Informante),
+      _sdV(d.nome_informante !== undefined && d.nome_informante !== null ? d.nome_informante : d.NomeInformante),
+      _sdV(d.Modo),
+      _sdV(d.Versao),
+      _sdV(d.Coerencia),
+      _sdV(d.E_n), _sdV(d.E_Pont), _sdV(d.E_Classe),
+      _sdV(d.C_n), _sdV(d.C_Pont), _sdV(d.C_Classe),
+      _sdV(d.H_n), _sdV(d.H_Pont), _sdV(d.H_Classe),
+      _sdV(d.P_n), _sdV(d.P_Pont), _sdV(d.P_Classe),
+      _sdV(d.S_n), _sdV(d.S_Pont), _sdV(d.S_Classe),
+      _sdV(d.TD_Pont), _sdV(d.TD_Classe),
+      _sdV(d.Imp_Inicial), _sdV(d.Imp_Pont), _sdV(d.Imp_Classe),
+      _sdV(d.Duracao), _sdV(d.Sobrecarga), _sdV(d.Evolucao), _sdV(d.Utilidade),
+      _sdV(d.Comentario),
+      _sdResp
+    ];
+  }
+
+  // ── Escala de Vanderbilt · Pais e Professores (v141.0) ──
+  // Ordem das colunas idêntica à de HEADERS['Vanderbilt_Pais'] (28) e
+  // ['Vanderbilt_Prof'] (26). Guarda != null OBRIGATÓRIA (nunca ||): o ZERO é
+  // resultado clínico e item não respondido nunca vira zero.
+  if (abaNome === 'Vanderbilt_Pais' || abaNome === 'Vanderbilt_Prof') {
+    var _vbV = function (a) { return (a !== undefined && a !== null) ? a : ''; };
+    var _vbResp = (typeof d.Respostas === 'string') ? d.Respostas
+                : ((typeof d.respostas === 'string') ? d.respostas
+                : JSON.stringify(d.Respostas || d.respostas || d.answers || {}));
+    var _vbHead = [
+      hoje,
+      cod,
+      _vbV(d.nomeCrianca !== undefined && d.nomeCrianca !== null ? d.nomeCrianca : (d.NomeCrianca !== undefined ? d.NomeCrianca : nome)),
+      _vbV(d.relacao !== undefined && d.relacao !== null ? d.relacao : d.Relacao),
+      _vbV(d.nome_informante !== undefined && d.nome_informante !== null ? d.nome_informante : d.NomeInformante),
+      _vbV(d.extra)
+    ];
+    if (abaNome === 'Vanderbilt_Pais') {
+      return _vbHead.concat([
+        _vbV(d.DES_n),
+        _vbV(d.DES_Estado),
+        _vbV(d.HIP_n),
+        _vbV(d.HIP_Estado),
+        _vbV(d.N_Sintomas),
+        _vbV(d.OPO_n),
+        _vbV(d.OPO_Estado),
+        _vbV(d.CON_n),
+        _vbV(d.CON_Estado),
+        _vbV(d.AND_n),
+        _vbV(d.AND_Estado),
+        _vbV(d.Func_n45),
+        _vbV(d.Func_Media),
+        _vbV(d.Func_Estado),
+        _vbV(d.Rast_DES),
+        _vbV(d.Rast_HIP),
+        _vbV(d.Rast_OPO),
+        _vbV(d.Rast_CON),
+        _vbV(d.Rast_AND),
+        _vbV(d.Apresentacao),
+        _vbV(d.N_Alertas),
+        _vbResp
+      ]);
+    }
+    return _vbHead.concat([
+      _vbV(d.DES_n),
+      _vbV(d.DES_Estado),
+      _vbV(d.HIP_n),
+      _vbV(d.HIP_Estado),
+      _vbV(d.N_Sintomas),
+      _vbV(d.OPO_n),
+      _vbV(d.OPO_Estado),
+      _vbV(d.AND_n),
+      _vbV(d.AND_Estado),
+      _vbV(d.Func_n45),
+      _vbV(d.Func_Media),
+      _vbV(d.Func_Estado),
+      _vbV(d.Rast_DES),
+      _vbV(d.Rast_HIP),
+      _vbV(d.Rast_OPO),
+      _vbV(d.Rast_AND),
+      _vbV(d.Apresentacao),
+      _vbV(d.LD_n5),
+      _vbV(d.LD_Estado),
+      _vbResp
+    ]);
+  }
+
+  // ── PHQ-15 · Questionário de Sintomas Somáticos (v140.0) ──
+  // Ordem das colunas idêntica à de HEADERS['PHQ15_P'], ['PHQ15_J'] e
+  // ['PHQ15_A'] (24) — ramo ÚNICO para as três abas. Guarda != null
+  // OBRIGATÓRIA (nunca ||): o ZERO é resultado clínico.
+  if (abaNome === 'PHQ15_P' || abaNome === 'PHQ15_J' || abaNome === 'PHQ15_A') {
+    var _phV = function (a, b) {
+      if (a !== undefined && a !== null) return a;
+      if (b !== undefined && b !== null) return b;
+      return '';
+    };
+    var _phResp = (typeof d.Respostas === 'string') ? d.Respostas
+                : ((typeof d.respostas === 'string') ? d.respostas
+                : JSON.stringify(d.Respostas || d.respostas || d.answers || {}));
+    return [
+      hoje,
+      cod,
+      _phV(d.nomeCrianca, d.NomeCrianca !== undefined ? d.NomeCrianca : nome),
+      _phV(d.idade, d.Idade),
+      _phV(d.ano, d.Ano),
+      _phV(d.informante, d.Informante),
+      _phV(d.nome_informante, d.NomeInformante),
+      _phV(d.relacao, d.Relacao),
+      _phV(d.sexo, d.Sexo),
+      _phV(d.N_Aplic, d.N_Aplic),
+      _phV(d.N_Resp, d.N_Resp),
+      _phV(d.Valida, d.Valida),
+      _phV(d.Bruta, d.Bruta),
+      _phV(d.Prop, d.Prop),
+      _phV(d.Nivel, d.Nivel),
+      _phV(d.N_Muito, d.N_Muito),
+      _phV(d.Indicador3, d.Indicador3),
+      _phV(d.G_Dor, d.G_Dor),
+      _phV(d.G_GI, d.G_GI),
+      _phV(d.G_Cardio, d.G_Cardio),
+      _phV(d.G_FadigaSono, d.G_FadigaSono),
+      _phV(d.G_Gineco, d.G_Gineco),
+      _phV(d.G_Maior, d.G_Maior),
+      _phResp
+    ];
+  }
+
+  // ── MDQ-A · Mood Disorder Questionnaire para Adolescentes (v139.0) ──
+  // Ordem das colunas idêntica à de HEADERS['MDQA_P'] e ['MDQA_A'] (25) —
+  // ramo ÚNICO para as duas abas. Guarda != null OBRIGATÓRIA (nunca ||): o
+  // ZERO é resultado clínico (Total_P1 = 0, P2 = 0, P3 = 0, flags = 0).
+  if (abaNome === 'MDQA_P' || abaNome === 'MDQA_A') {
+    var _mqV = function (a, b) {
+      if (a !== undefined && a !== null) return a;
+      if (b !== undefined && b !== null) return b;
+      return '';
+    };
+    var _mqResp = (typeof d.Respostas === 'string') ? d.Respostas
+                : ((typeof d.respostas === 'string') ? d.respostas
+                : JSON.stringify(d.Respostas || d.respostas || d.answers || {}));
+    return [
+      hoje,
+      cod,
+      _mqV(d.nomeCrianca, d.NomeCrianca !== undefined ? d.NomeCrianca : nome),
+      _mqV(d.idade, d.Idade),
+      _mqV(d.ano, d.Ano),
+      _mqV(d.informante, d.Informante),
+      _mqV(d.nome_informante, d.NomeInformante),
+      _mqV(d.relacao, d.Relacao),
+      _mqV(d.N_Resp, d.n_resp),
+      _mqV(d.Total_P1, d.total_p1),
+      _mqV(d.F1, d.f1),
+      _mqV(d.F2, d.f2),
+      _mqV(d.F3, d.f3),
+      _mqV(d.P2, d.p2),
+      _mqV(d.P3, d.p3),
+      _mqV(d.P3_Texto, d.p3_texto),
+      _mqV(d.Crit1, d.crit1),
+      _mqV(d.Crit2, d.crit2),
+      _mqV(d.Crit3, d.crit3),
+      _mqV(d.Categoria, d.categoria),
+      _mqV(d.Coerencia, d.coerencia),
+      _mqV(d.Flag6, d.flag6),
+      _mqV(d.Flag11, d.flag11),
+      _mqV(d.Flag13, d.flag13),
+      _mqResp
+    ];
+  }
+
 
   // ── EAFE-CA · Funcionamento Executivo em Crianças e Adolescentes (v138.0) ──
   // Ordem das colunas idêntica à de HEADERS['EAFECA_P'], ['EAFECA_A'] e
