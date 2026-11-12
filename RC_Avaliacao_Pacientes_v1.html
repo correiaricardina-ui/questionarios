@@ -1689,6 +1689,536 @@ function rowNaoAnteriorAtribuicao(row, a) {
   return rd.getTime() >= new Date(ad.getFullYear(), ad.getMonth(), ad.getDate()).getTime();
 }
 
+
+// ═══════════════════════════════════════════════════════
+// APLICAÇÕES MÚLTIPLAS · 1 RESPOSTA ↔ 1 APLICAÇÃO  (v149)
+// Cada resposta do Sheet (linha) só pode ser atribuída a UMA aplicação do
+// mesmo questionário/respondente. As aplicações são servidas por ordem
+// cronológica de pedido; uma reaplicação só aceita respostas com data igual
+// ou posterior ao dia em que foi pedida. A data de preenchimento mostrada é a
+// da linha do Sheet (coluna «Data»), nunca a data da sincronização.
+// ═══════════════════════════════════════════════════════
+const RC_NC_G = {
+                // ── SDQ-Por · cinco abas (nome primeiro; tipo como fallback) ──
+                'SDQ_P24':['NomeInformante','Informante'],
+                'SDQ_P417':['NomeInformante','Informante'],
+                'SDQ_T24':['NomeInformante','Informante'],
+                'SDQ_T417':['NomeInformante','Informante'],
+                'SDQ_A':['NomeInformante','Informante'],
+                // ── Escala de Vanderbilt · duas abas (nome primeiro; tipo como fallback) ──
+                'Vanderbilt_Pais':['NomeInformante','Relacao'],
+                'Vanderbilt_Prof':['NomeInformante','Relacao'],
+                // ── EAFE-CA · três abas (nome primeiro; tipo como fallback) ──
+                // Nas formas de heterorrelato mãe e pai, ou dois professores
+                // de disciplinas diferentes, podem responder no mesmo dia para
+                // a mesma criança e a comparação entre informantes é leitura
+                // clínica do instrumento; no autorrelato o tipo é constante e
+                // o NOME é o discriminante efectivo.
+                // ── EIR-14 (v141) ──
+                'EIR14':['NomeInformante','Informante'],
+                'AESED':['NomeInformante','Informante'],
+                'EDEQ':['NomeInformante','Informante'],
+                'EDEQ_PV':['NomeInformante','Informante'],
+                'BECI':['NomeInformante','Informante'],
+                'EDSIS':['NomeInformante','Informante'],
+                'CPQ':['NomeInformante','Informante'],
+                'CHEDE':['NomeInformante','Informante'],
+                // ── PHQ-15 · três abas (nome primeiro; tipo como fallback) ──
+                'PHQ15_P':['NomeInformante','Informante','Relacao'],
+                'PHQ15_J':['NomeInformante','Informante'],
+                'PHQ15_A':['NomeInformante','Informante'],
+                // ── MDQ-A · duas abas (nome primeiro; tipo como fallback) ──
+                'MDQA_P':['NomeInformante','Informante','Relacao'],
+                'MDQA_A':['NomeInformante','Informante'],
+                'EAFECA_P':['NomeInformante','Informante','Relacao'],
+                'EAFECA_A':['NomeInformante','Informante'],
+                'EAFECA_T':['NomeInformante','Informante','Disciplina'],
+                // ── EAIR · quatro abas (nome primeiro; tipo como fallback) ──
+                // Na EAIR_H mãe, pai e professor podem responder no mesmo dia
+                // para a mesma criança e a concordância entre informantes é uma
+                // saída clínica do instrumento; nas formas de autorrelato o tipo
+                // é constante e o NOME é o discriminante efectivo.
+                'EAIR_I':['NomeInformante','NomeAvaliado','Informante'],
+                'EAIR_JA':['NomeInformante','NomeAvaliado','Informante'],
+                'EAIR_A':['NomeInformante','NomeAvaliado','Informante'],
+                'EAIR_H':['NomeInformante','Informante','Relacao'],
+                // ── QAF-CA Forma P · heterorrelato (nome primeiro; tipo depois) ──
+                // O protocolo prevê a aplicação a um segundo informante (outro
+                // cuidador ou diretor de turma) e a divergência entre
+                // observadores é informação clínica, pelo que o NOME é o
+                // discriminante primário e a relação o desempate.
+                'QAFCA_P':['NomeInformante','Relação'],
+                // ── COIS-R · duas abas (nome primeiro; tipo como fallback) ──
+                // ── EBIP-7 · duas abas (nome primeiro; tipo como fallback) ──
+                // Na EBIP7_C mãe e pai podem responder no mesmo dia para a mesma
+                // criança e a divergência entre informantes é informação clínica;
+                // na EBIP7_J o tipo é constante ('Jovem (autorrelato)') e o NOME
+                // é o discriminante efectivo.
+                'EBIP7_C':['NomeInformante','Informante'],
+                'EBIP7_J':['NomeInformante','NomeCriança','Informante'],
+                // ── LOI-CV · autorrelato (nome primeiro; tipo como fallback) ──
+                // Sendo autorrelato, o tipo distingue apenas autoadministração
+                // de leitura assistida e repete-se entre aplicações legítimas,
+                // pelo que o NOME é o discriminante primário.
+                'LOI_CV':['NomeInformante','NomeCriança','Informante'],
+                // Na COIS_RP mãe e pai podem responder no mesmo dia para a
+                // mesma criança — a divergência entre progenitores é informação
+                // clínica — pelo que o NOME é o discriminante primário e a
+                // relação o desempate. Na COIS_RC o tipo distingue apenas
+                // autoadministração de leitura assistida e repete-se entre
+                // aplicações legítimas.
+                'COIS_RC':['NomeInformante','NomeCriança','Informante'],
+                'COIS_RP':['NomeInformante','Informante'],
+                // ── CGI · heteroavaliação clínica (nome primeiro; tipo depois) ──
+                // O mesmo caso pode ser cotado no mesmo dia pela psicóloga e pelo
+                // médico assistente — é o contraste entre cotadores que a escala
+                // admite — pelo que o NOME é o discriminante primário e a função
+                // o desempate quando ambos se identificam da mesma maneira.
+                'CGI':['NomeInformante','Informante'],
+                // ── QPTMV · heterorrelato parental (nome primeiro; tipo depois) ──
+                // Mãe e pai podem responder no mesmo dia para a mesma criança —
+                // é a comparação entre cuidadores que o livro admite — pelo que
+                // o NOME é o discriminante primário e a relação o desempate.
+                'QPTMV':['NomeInformante','Informante'],
+                // ── EQVA-41 · autorrelato (nome primeiro; tipo como fallback) ──
+                // Instrumento exclusivamente de autorrelato: o tipo distingue
+                // apenas autoadministração de leitura assistida e repete-se
+                // entre aplicações legítimas, pelo que o discriminante efectivo
+                // é o NOME.
+                'EQVA41':['NomeInformante','NomeJovem','Informante'],
+                // ── QUP-T · três abas (nome primeiro; tipo como fallback) ──
+                // No QUP-T/P mãe e pai podem responder no mesmo dia — é o
+                // contraste entre informadores que o protocolo admite — e no
+                // QUP-T/I o tipo ('Psicóloga', 'Mãe') repete-se entre aplicações
+                // legítimas: o discriminante efectivo é o NOME.
+                'QUPT_J':['NomeInformante','NomeCriança','Relação'],
+                'QUPT_I':['NomeInformante','NomeCriança','Relação'],
+                'QUPT_P':['NomeInformante','NomeCriança','Relação'],
+                // ── YGTSS e CY-BOCS · v129 (nome primeiro; tipo como fallback) ──
+                // No YGTSS mãe e pai podem responder no mesmo dia — é o contraste entre
+                // informadores que o protocolo admite. No CY-BOCS o tipo é sempre 'Clínico',
+                // pelo que o discriminante efectivo é o NOME.
+                'YGTSS':['NomeInformante','NomeCriança','Informante'],
+                'CYBOCS':['NomeInformante','NomeCriança','Informante'],
+                // ── USP-SPS · aplicação mediada (nome primeiro; tipo como fallback) ──
+                // O tipo de informante repete-se entre sessões legítimas
+                // ('Próprio + mãe' e equivalentes), pelo que o discriminante
+                // efectivo é o NOME de quem aplicou e registou.
+                'USP_SPS':['NomeInformante','NomeCriança','Informante'],
+                // ── RDP-RC · Registo Diário Prospetivo (autorrelato; nome primeiro) ──
+                // Registo DIÁRIO: uma linha por dia e por utente, todas do MESMO
+                // respondente. O discriminante efectivo entre linhas legítimas é a
+                // DATA, não o nome, mas a entrada é indispensável para o instrumento
+                // chegar a passar a «Preenchido ✓».
+                'RDP_RC':['NomeUtente','NomeInformante'],
+                // ── AASP · autorrelato (nome primeiro; tipo como fallback) ──
+                // O tipo é quase sempre 'O próprio' e repete-se entre linhas
+                // legítimas, pelo que o discriminante efectivo é o NOME.
+                'AASP':['NomeInformante','NomeUtente','Informante'],
+                // ── Família EIF · as duas formas partilham a aba (nome primeiro) ──
+                // O tipo de respondente repete-se entre linhas legítimas (dois
+                // cuidadores no mesmo dia), pelo que o discriminante efectivo é o NOME.
+                'EIFP':['NomeInformante','NomeCriança','Informante'],
+                'EIFA':['NomeInformante','NomeUtente','Informante'],
+                'EIFJ':['NomeInformante','NomeUtente','Informante'],
+                // ── CAARS · S:L e O:L (nome primeiro; tipo como fallback) ──
+                // Na forma O:L o campo de tipo guarda a RELAÇÃO com a pessoa avaliada e
+                // pode repetir-se em duas linhas legítimas (dois familiares a descrever
+                // a mesma pessoa no mesmo dia), pelo que o discriminante efectivo é o
+                // NOME e vem primeiro. Na S:L o tipo é sempre 'Auto-relato'.
+                'CAARS_SL':['NomeInformante','NomeAvaliado','Informante'],
+                'CAARS_OL':['NomeInformante','Informante'],
+                // ── EII-PT · autorrelato, Formas A e J na mesma aba (nome primeiro) ──
+                // Um progenitor (Forma A) e o jovem (Forma J) podem submeter no mesmo
+                // dia sob o MESMO código: o discriminante efectivo é o NOME e vem
+                // primeiro; 'NomeUtente' cobre os protocolos em que o respondente se
+                // identifica apenas no campo do avaliado.
+                'EII27':['NomeInformante','NomeUtente','Informante'],
+                'EII12':['NomeInformante','NomeUtente','Informante'],
+                // ── PSWQ · autorrelato (nome primeiro; tipo como fallback) ──
+                // O tipo de respondente pode repetir-se em duas linhas legítimas
+                // (jovem e mãe podem ambos registar-se como 'Próprio/a'), pelo que
+                // o discriminante efectivo é o NOME e vem primeiro.
+                'PSWQ':['NomeInformante','Informante'],
+                // ── STOP-BANG · ficha de cotação clínica (nome primeiro; tipo como fallback) ──
+                // O mesmo utente pode ser reavaliado no mesmo dia por profissionais
+                // diferentes: o discriminante efectivo é o NOME e vem primeiro.
+                'STOPBANG':['NomeInformante','Informante'],
+                // ── BAI e BDI-II · autorrelato (nome primeiro; tipo como fallback) ──
+                // O tipo de respondente pode ser o mesmo em duas linhas legítimas
+                // (jovem e mãe podem ambos registar-se como 'Outro'), pelo que o
+                // discriminante efectivo é o NOME e vem primeiro.
+                'BAI':['NomeInformante','Informante'],
+                'BDI2':['NomeInformante','Informante'],
+                // ── SIAS · SPS · Ansiedade Social (autorrelato; nome primeiro) ──
+                // O tipo de respondente é sempre o próprio, com ou sem apoio de um
+                // adulto: o discriminante efectivo é o nome, por isso vem primeiro.
+                'SIAS_SPS':['NomeInformante','NomeAvaliado','Informante'],
+                // ── DIVA-5 · entrevista com três informadores (v112.0) ──
+                // A coluna do NOME do respondente chama-se 'Respondente' (não
+                // 'NomeInformante'): sem esta entrada o instrumento nunca passa
+                // a «Preenchido ✓». O nome vem primeiro porque o próprio, o
+                // parceiro e os pais submetem com o MESMO código, muitas vezes
+                // no mesmo dia — só o nome os distingue.
+                'DIVA5':['Respondente','Relação'],
+                // ── GCSA · Seletividade Alimentar (nome primeiro; tipo como fallback) ──
+                // Cada progenitor preenche um protocolo independente: sem o nome como
+                // primeiro discriminante, a segunda submissão do casal não seria reconhecida.
+                'GCSA':['NomeInformante','Informante'],
+                'GCSA_Diario':['NomeInformante','Informante'],
+                // ── CAPS-22 · autorrelato (respondente = a própria criança; nome primeiro) ──
+                'CAPS22':['NomeInformante','NomeCriança','NomeCrianca','Informante'],
+                // ── CAPS-PR · heterorrelato parental (nome primeiro; tipo como fallback) ──
+                'CAPS_PR':['NomeInformante','Informante'],
+                // ── PDRA-9/C · autorrelato (respondente = a própria criança; nome primeiro) ──
+                // Sem esta entrada o questionário nunca passa a «Preenchido ✓» (Secção 8/v24).
+                'PDRA9_C':['NomeInformante','NomeCriança','NomeCrianca','Informante'],
+                // ── PDRA-9/P · heterorrelato parental (nome primeiro; tipo como fallback) ──
+                // Mãe e pai podem preencher no mesmo dia para a mesma criança: o nome é o
+                // discriminante que preserva as duas linhas e o índice de divergência.
+                'PDRA9_P':['NomeInformante','Informante'],
+                // ── QCF-P · Comportamento Fraterno, parental (nome primeiro; tipo como fallback) ──
+                'QCFP':['NomeInformante','Informante'],
+                // ── QRF-C · Relação Fraterna (autorrelato: respondente = a própria criança) ──
+                'QRFC':['NomeInformante','NomeCriança','NomeCrianca'],
+                // ── CBQ-SF · Temperamento (nome primeiro; tipo como fallback) ──
+                'CBQ_SF':['NomeInformante','Informante'],
+                // ── QCVE-P · Comportamento Verbal Escolar (nome primeiro; tipo como fallback) ──
+                'QCVEP_PROF':['NomeInformante','Informante'],
+                // ── SMQ · Mutismo Seletivo (nome primeiro; tipo/relação como fallback) ──
+                'SMQ_Pais':['NomeInformante','Relação','Informante'],
+                'SMQ_Prof':['NomeInformante','Relação','Informante'],
+                // ── GAD-7 · Escala de Ansiedade Generalizada (nome primeiro; tipo como fallback) ──
+                'GAD7':['NomeInformante','Informante'],
+                // ── AIS-8 · Escala de Insónia de Atenas (nome primeiro; tipo como fallback) ──
+                'AIS_8':['NomeInformante','Informante'],
+                // ── ESS · Escala de Sonolência de Epworth (autorrelato; nome primeiro, tipo como fallback) ──
+                'ESS_Epworth':['NomeInformante','Informante'],
+                // ── ACE-Q · Experiências Adversas (nome primeiro; tipo/relação como fallback) ──
+                'ACE_Q_ADOLESCENTE':['NomeInformante','Informante'],
+                'ACE_Q_CUIDADOR':['NomeInformante','Relação','Informante'],
+                // ── Diário de Episódios · Monitorização (nome primeiro, tipo como fallback) ──
+                'DIARIO_EPISODIOS':['NomeInformante','Informante'],
+                // ── Anamnese Parental Complementar · Anamnese (nome primeiro, tipo como fallback) ──
+                'ANAMNESE_PARENTAL_COMPLEMENTAR':['NomeInformante','Informante'],
+                // ── SNAP-IV · vários respondentes possíveis (Informante distingue Pais/Professores) ──
+                'SNAP_IV':['NomeInformante','Informante'],
+                'SWAN':['Informante'],'SRS2_IE_Pais':['Respondente'],'SRS2_IE_Prof':['Respondente'],
+                'TRF_618':['NomePreenche','PreenchidoPor'],'CBCL_618':['NomePreenche','PreenchidoPor'],'CBCL_15':['NomeInformante','Informante'],
+                'CTRF_15':['Informante'],'BRIEF_Pais':['NomeRespondente'],'BRIEF_Professores':['Professor'],
+                'SCARED_R_CRIANCA':['NomeInformante'],'SCARED_R_PAIS':['NomeInformante'],
+                'SPAS_Pais':['NomeInformante'],'SPAS_Prof':['NomeInformante'],
+                'ABAS3_PAIS':['NomeCrianca','NomeInformante'],'ABAS3_PROF':['NomeCrianca','NomeInformante'],'ABAS3_ADULT':['NomeCrianca','NomeInformante'],'ABAS3_05':['Informante'],'ABAS3_05P':['Informante'],
+                'QEDP':['Informante','NomeInformante'],'QC_Coparentalidade':['NomeRespondente','Respondente'],
+                'FAD_GF':['Relação','Nome Respondente'],'FAD_60':['Relação','Nome Respondente'],
+                'CONNERS3P_FULL':['Relação','NomeInformante'],'CONNERS3T_FULL':['Relação','NomeInformante'],
+                'CONNERS3PS':['Relação','NomeInformante'],'CONNERS3TS':['Relação','NomeInformante'],
+                'ERC_Pais':['NomeInformante','Relação'],'ERC_Professores':['NomeInformante','Relação'],
+                // ── DERS — auto-relato (≥14 anos): respondente é o próprio paciente ─
+                'DERS':['NomeInformante','NomeCriança','NomeCrianca'],
+                // ── BAS-3 — auto-avaliação (respondente é o próprio paciente) ─
+                'BAS3':['NomeCriança','NomeRespondente','NomeInformante'],
+                // ── FACES-IV adap — autorrelato familiar (dedupe por respondente + relação) ─
+                'FACES_IV_adap':['NomeRespondente','Relação'],
+                // ── CABS Auto/Hetero — Comportamento Assertivo (nome primeiro, tipo como fallback) ─
+                'CABS_Auto':['NomeInformante','Informante'],
+                'CABS_Hetero':['NomeInformante','Informante'],
+                // ── SPPA — bateria única (autorrelato do jovem) ─
+                'SPPA':['NomeInformante','NomeJovem'],
+                // ── SPPC (autorrelato da criança) e Escala do Professor ──
+                'SPPC':['NomeInformante','NomeCriança'],
+                'SPPC_Professor':['NomeInformante','Informante'],
+                // ── SPPLD (autorrelato do aluno) ──
+                'SPPLD':['NomeInformante','NomeAluno'],
+                // ── SPPCS (autorrelato do estudante universitario) ──
+                'SPPCS':['NomeInformante','NomeEstudante'],
+                // ── EPCAS-PE (administração pelo examinador) ──
+                'EPCAS_PE':['NomeInformante','Informante'],
+                // ── MABC-2 Lista de Verificação (heteroavaliação: professor/educador/pais) ──
+                'MABC2_Checklist':['NomeInformante','Relação','Informante'],
+                'PS2_Cuidador':['NomeInformante','Relacao'],'PS2_Professor':['NomeInformante'],
+                'MAP_Parental':['NomeProgenitor','Relação'],'MAP_PI':['NomeProgenitor','Relação'],
+                'MAP_Parental_PI':['NomeProgenitor','Relação'],
+                'MAP_1214':['NomeProgenitor','Relação'],'MAP_Parental_1214':['NomeProgenitor','Relação'],
+                'MAP_1518':['NomeProgenitor','Relação'],'MAP_Parental_1518':['NomeProgenitor','Relação'],
+                'QEDP':['Informante','NomeInformante'],
+                'Anamnese_Complementar':['NomeRespondente'],
+                'ANAMNESE_HP':['NomeRespondente','Relação'],
+                'PAIA':['NomeRespondente'],
+                'PAI':['NomeRespondente'],
+                'IPP_R':['NomeRespondente'],
+                'SDS_Holland':['NomeCriança'],
+                'JTCI_92':['NomeInformante'],
+                'NEOPIR':['NomeInformante'],
+                'CSSRS':[],
+                // ── BSI — respondente único, basta código ──
+                'BSI':['NomeRespondente'],
+                // EDE-Q — respondente único (o próprio paciente), basta o código
+                'EDEQ':[],
+                // SEQ-C — respondente único (aluno), NomeCriança identifica
+                'SEQ_C':['NomeCriança'],
+                // Collins Silhuetas — respondente único, basta o código
+                'Collins_Silhuetas':[],
+                // ── Checklist Obs. Comportamental Medicação PHDA ──────────
+                'OBS_PHDA_Casa':   ['NomeInformante'],
+                'OBS_PHDA_Escola': ['NomeInformante'],
+                // ── PPGR-J — Pressão Percebida em Guarda-Redes Jovens ─────
+                'PPGRJ':           ['NomeRespondente','NomeCriança','NomeCrianca'],
+                // ── CCBQ — respondente é o próprio paciente (auto-resposta) ─
+                'CCBQ':            ['NomeRespondente','NomeCriança','NomeCrianca'],
+                // ── Kidcope — auto-resposta (criança/adolescente) ─────────
+                'KIDCOPE_CR':      ['NomeInformante','NomeCriança','NomeCrianca'],
+                'KIDCOPE_AD':      ['NomeInformante','NomeCriança','NomeCrianca'],
+                // ── ISC-24 — múltiplos respondentes possíveis (próprio, pais, EE) ──
+                'ISC24':           ['NomeRespondente','Relação','NomeCriança','NomeCrianca'],
+                // ── QEA — auto-relato (adolescente) ───────────────────────
+                'QEA':             ['NomeInformante','NomeCrianca','NomeCriança'],
+                // ── EMP-H&F — auto-relato (adolescentes / adultos) ────────
+                'EMP_HF':          ['NomeRespondente','NomeCriança','NomeCrianca','NomeInformante'],
+                // ── EMP-F (Frost) — auto-relato (adolescentes / adultos) ──
+                'EMP_F':           ['NomeRespondente','NomeCriança','NomeCrianca','NomeInformante'],
+                // ── OCI-CV-R — auto-relato (criança/adolescente 7-17) ───────
+                'OCI_CV_R':        ['NomeInformante','NomeCriança','NomeCrianca','NomeRespondente'],
+                // ── OCI-R — auto-relato (adulto ≥18) ────────────────────────
+                'OCI_R':           ['NomePaciente','NomeRespondente','NomeInformante'],
+                // ── COMPA — Escala de Avaliação da Comunicação na Parentalidade (Portugal & Alberto, 2014) ──
+                'COMPA_P':         ['NomeInformante','Relacao'],
+                'COMPA_A_Pai':     ['NomeInformante','NomeCrianca'],
+                'COMPA_A_Mae':     ['NomeInformante','NomeCrianca'],
+                'COMPA_C_Pai':     ['NomeInformante','NomeCrianca'],
+                'COMPA_C_Mae':     ['NomeInformante','NomeCrianca'],
+                // ── CDI-2:SR — auto-relato (criança/adolescente 7–17) ─────
+                'CDI2_SR':         ['NomeInformante','NomeCriança','NomeCrianca'],
+                // ── STAIC C-2 — auto-relato (criança/adolescente 8–17) ─────
+                'STAIC_C2':        ['NomeInformante','NomeCriança','NomeCrianca'],
+                // ── CMAS-R — auto-relato (criança/adolescente 8–17) ─────
+                'CMAS_R':          ['NomeInformante','NomeCriança','NomeCrianca'],
+                // ── FSSC-R — auto-relato (criança/adolescente 8–17) ─────
+                'FSSC_R':          ['NomeInformante','NomeCriança','NomeCrianca'],
+                // ── Sociograma · Mapa Social — múltiplos respondentes (próprio/pais/professor) ──
+                'SOCIOGRAMA':      ['NomeInformante','NomeCriança','NomeCrianca','TipoRespondente'],
+                // ── PALS — Patterns of Adaptive Learning Scales (Midgley et al., 2000) ──
+                // Parent — informante adulto (mãe/pai/EE/familiar) sobre a criança
+                'PALS_Parent':       ['NomeInformante','Relacao','NomeCriança','NomeCrianca'],
+                // Teacher — informante docente sobre o/a aluno/a
+                'PALS_Teacher':      ['NomeInformante','Relacao','NomeCriança','NomeCrianca'],
+                // Student Sec — auto-relato adolescente (Secundário)
+                'PALS_Student_Sec':  ['NomeInformante','NomeCriança','NomeCrianca'],
+                // Student 2.º/3.º ciclo — auto-relato pré-adolescente
+                'PALS_Student_23c':  ['NomeInformante','NomeCriança','NomeCrianca'],
+                // ── PALS Versões REDUZIDAS — v55.0 ──
+                'PALS_Parent_Red':       ['NomeInformante','Relacao','NomeCriança','NomeCrianca'],
+                'PALS_Teacher_Red':      ['NomeInformante','Relacao','NomeCriança','NomeCrianca'],
+                'PALS_Student_Sec_Red':  ['NomeInformante','NomeCriança','NomeCrianca'],
+                'PALS_Student_23c_Red':  ['NomeInformante','NomeCriança','NomeCrianca'],
+                // ── Questionários Ecológicos Revistos — v56.0 ──
+                'QEE_Escola':            ['NomeInformante','funcao','NomeCriança','NomeCrianca'],
+                'QEP_Pais':              ['NomeInformante','parentesco','NomeCriança','NomeCrianca'],
+                // ── IIM — v57.0 ──
+                // Hetero: multi-informador (pais/professores); Crianças/Adultos: auto-relato
+                'IIM_Hetero':            ['NomeInformante','relacao','NomeCriança','NomeCrianca'],
+                'IIM_Criancas':          ['NomeInformante','NomeCriança','NomeCrianca'],
+                'IIM_AdolAdultos':       ['NomeInformante','NomeCriança','NomeCrianca'],
+                // ── CERQ — v58.0 — todos auto-relato (Garnefski et al.) ──
+                'CERQ_K':                ['NomeInformante','NomeCriança','NomeCrianca'],
+                'CERQ_18':               ['NomeInformante','NomeCriança','NomeCrianca'],
+                'CERQ_36':               ['NomeInformante','NomeCriança','NomeCrianca'],
+                // ── ERICA — v59.0 — auto-relato 9-16 anos ──
+                'ERICA':                 ['NomeInformante','NomeCriança','NomeCrianca'],
+                // ── ERQ-CA — v60.0 — auto-relato 10-18 anos ──
+                'ERQ_CA':                ['NomeInformante','NomeCriança','NomeCrianca'],
+                // ── STAXI-NA — v61.0 — auto-relato 9-18 anos ──
+                'STAXI_NA':              ['NomeInformante','NomeCriança','NomeCrianca'],
+                // ── AQ Buss-Perry — auto-relato adulto (≥16 anos) ──
+                'AQ_BussPerry':          ['NomeAvaliado','NomeInformante'],
+                // ── ChEAT — auto-relato criança 8-13 anos ──
+                'ChEAT':                 ['NomeInformante','NomeCriança','NomeCrianca','Informante'],
+                // ── ISS-I / ESI — auto-relato criança 6-14 anos ──
+                'ISS_ESI':               ['NomeInformante','NomeCriança','NomeCrianca','Informante'],
+                // ── C-SSRS-P · Risco Suicidário Pediátrica — Auto+Hetero (Tipo distingue) ──
+                'C_SSRS_P':              ['NomeInformante','Tipo'],
+                // ── C-SSRS-A · Risco Suicidário Adolescente — Só Auto ──
+                'C_SSRS_A':              ['NomeInformante'],
+                // ── C-SSRS-DC · Risco Suicidário Défice Cognitivo — Auto+Hetero (Tipo distingue) ──
+                'C_SSRS_DC':             ['NomeInformante','Tipo'],
+                // ── M-CHAT-R/F · Despiste Precoce de Autismo — sem campo Tipo (parente único informa) ──
+                'M_CHAT_R_F':            ['NomeInformante'],
+                // ── Família CARS2 (v70.0) ──
+                // CARS2-HP — cotação clínica por psicólogo (clinician-rated) ──
+                'CARS2_HP':              ['Psicologo'],
+                // CARS2-QPC — parent/cuidador-completed (pai+mãe podem submeter em separado) ──
+                'CARS2_QPC':             ['NomeInformante','Relacao'],
+                // CARS2-ST — cotação clínica por psicólogo (clinician-rated) ──
+                'CARS2_ST':              ['Psicologo'],
+                // ── MCP · Mapeamento de Configuração Parental (Ricardina Correia, 2026) ──
+                // Múltiplos respondentes (pai + mãe + outros adultos coabitantes podem submeter em separado)
+                // — dedupe por NomeInformante; Relacao serve como fallback
+                'MCP_Breve':             ['NomeInformante','Relacao','Relação'],
+                'MCP_Completo':          ['NomeInformante','Relacao','Relação'],
+                // ── UCLA-PTSD Adaptado · Rastreio PSPT Pediátrica (Ricardina Correia, 2026) ──
+                // Clinician-rated — cotação pelo psicólogo (NomeInformante = avaliador)
+                'UCLA_PTSD_Adaptado':    ['NomeInformante','Avaliador'],
+                // ── ISAS · Inventário de Afirmações sobre Autolesão (Klonsky & Glenn, 2009) ──
+                // Auto-resposta — adolescente/jovem adulto preenche o próprio (NomeInformante = paciente; Informante = "Auto-resposta")
+                'ISAS':                  ['NomeInformante','Informante'],
+                // ── FAMÍLIA FASA (Ansiedade · Lebowitz) ──
+                // FASA Parental — preenchido por pais (Relação distingue Mãe/Pai/etc.)
+                'FASA_Parental':         ['NomeInformante','Relação','Relacao'],
+                // FASA CR Infância — autorrelato (Acompanhamento distingue: sozinho/com ajuda Mãe/Pai/etc.)
+                'FASA_CR_Infancia':      ['NomeInformante','Acompanhamento'],
+                // FASA CR Adolescência — autorrelato (Contexto: sozinho/em consulta/com adulto)
+                'FASA_CR_Adolescencia':  ['NomeInformante','Contexto'],
+                // ── FAMÍLIA FAS (TOC pediátrico · Calvocoressi/Flessner) ──
+                // FAS Parental — preenchido por pais (Relação distingue Mãe/Pai/etc.)
+                'FAS_Parental':          ['NomeInformante','Relação','Relacao'],
+                // FAS CR Infância — autorrelato TOC (Acompanhamento)
+                'FAS_CR_Infancia':       ['NomeInformante','Acompanhamento'],
+                // FAS CR Adolescência — autorrelato TOC (Contexto)
+                'FAS_CR_Adolescencia':   ['NomeInformante','Contexto'],
+                // RSES — Auto-Estima de Rosenberg (autorrelato adolescentes) v28
+                'RSES':                  ['NomeRespondente'],
+                // RBS-R — Comportamentos Repetitivos (vários respondentes: Informante distingue Mãe/Pai/Professor/Clínico) v29
+                'RBS_R':                 ['NomeInformante','Informante'],
+                // PSI-4 adap — Stress Parental (vários respondentes: Informante distingue Mãe/Pai/Cuidador) v30
+                'PSI4_adap':             ['NomeInformante','Informante'],
+                // Entrevista adaptada CAARMS — aplicada pela psicóloga (NomeInformante = avaliador(a))
+                'CAARMS_ADAP':           ['NomeInformante','Informante'],
+                // Prova «O Cuidar e a Integridade do Corpo» — aplicada pela psicóloga (NomeInformante = avaliador(a))
+                'CUIDAR_CORPO':          ['NomeInformante','Informante'],
+                // CSAS / CSAS-P · Ansiedade de Separação (nome primeiro; tipo/relação como fallback)
+                'CSAS':                  ['NomeInformante','Informante'],
+                'CSAS_P':                ['NomeInformante','Relação','Informante'],
+                // SGRS · Sohn Grayson (multi-informante: pais, professor, clínico; nome primeiro, Relação como fallback)
+                'SGRS':                  ['NomeInformante','Relação']
+              };
+const RC_RC_G = {
+                'SWAN':['Relação'],'BRIEF_Pais':['Relação'],'SCARED_R_PAIS':['Relação'],
+                'SPAS_Pais':['Relação'],'SPAS_Prof':['Relação'],'QC_Coparentalidade':['Respondente'],
+                'CSAS_P':['Relação']
+              };
+function rcSm(a,b){ if(!a||!b) return false;
+  return a.includes(b)||b.includes(a)||
+    a.split(/[\s\/\(\)]+/).some(w=>w.length>3&&b.includes(w))||
+    b.split(/[\s\/\(\)]+/).some(w=>w.length>3&&a.includes(w)); }
+function rcMatchResp(row, aba, recip){
+  const nCols = RC_NC_G[aba]||[]; const rCols = RC_RC_G[aba]||[];
+  if(nCols.length===0 && rCols.length===0) return true;
+  const nVals = nCols.map(c=>String(row[c]||'').toLowerCase().trim()).filter(Boolean);
+  if(nVals.length>0) return nVals.some(v=>rcSm(v,recip));
+  const rVals = rCols.map(c=>String(row[c]||'').toLowerCase().trim()).filter(Boolean);
+  if(rVals.length>0) return rVals.some(v=>rcSm(v,recip));
+  return false;
+}
+function rcAbaDe(a){
+  let aba = QID_TO_ABA[a.qid];
+  if(!aba){ const q = store.get('q_' + a.qid); if(q && q.syncKey) aba = SYNC_KEY_TO_ABA[q.syncKey]; }
+  return aba || null;
+}
+function rcCodLinha(row){
+  return String(row['Código'] || row['Codigo'] || row['codigo'] || row['Código Paciente'] || row['patientCode'] || '').trim().toUpperCase();
+}
+function rcChaveLinha(row){
+  return ['Data','Código','Informante','NomeInformante','NomeCriança','NomeRespondente','Respondente','Relação','Relacao','PreenchidoPor'].map(c => String(row[c] == null ? '' : row[c]).trim()).join('|');
+}
+function rcFmtDia(d){ return d ? d.toLocaleDateString('pt-PT') : ''; }
+function rcDiaAtribuicao(a){
+  if(!a || !a.assignedAt) return null;
+  const d = new Date(a.assignedAt);
+  return isNaN(d.getTime()) ? null : new Date(d.getFullYear(), d.getMonth(), d.getDate());
+}
+function rcGrupoChave(a){ return a.qid + '|' + String(a.recipientLabel || a.recipient || '').toLowerCase().trim(); }
+function rcOrdemGrupo(assignments, a){
+  // posição cronológica (0 = primeira aplicação) do pedido `a` no seu grupo
+  const g = rcGrupoChave(a);
+  const lista = assignments.map((x, i) => ({x, i})).filter(o => rcGrupoChave(o.x) === g)
+    .sort((m, n) => (new Date(m.x.assignedAt || 0).getTime() - new Date(n.x.assignedAt || 0).getTime()) || (m.i - n.i));
+  return lista.findIndex(o => o.x === a);
+}
+function rcEhReaplicacao(assignments, a){ return rcOrdemGrupo(assignments, a) > 0; }
+function rcLinhasDoPaciente(sheetData, aba, code){
+  const rows = ((sheetData && sheetData[aba]) || []).filter(r => rcCodLinha(r) === code)
+    .map(r => ({r, key: rcChaveLinha(r), dia: _rcRowDay(r)}));
+  rows.sort((m, n) => (m.dia ? m.dia.getTime() : Infinity) - (n.dia ? n.dia.getTime() : Infinity));
+  return rows;
+}
+function rcMeioDia(d){ return new Date(d.getFullYear(), d.getMonth(), d.getDate(), 12, 0, 0).toISOString(); }
+// Reconcilia as atribuições de um paciente com o Sheet. Devolve true se algo mudou.
+function rcReconciliar(patientId, sheetData){
+  const patient = store.get('patient_' + patientId);
+  if(!patient || !patient.code || !sheetData) return false;
+  const code = String(patient.code).trim().toUpperCase();
+  if(code.length < 4) return false;
+  const assignments = store.get('assignments_' + patientId) || [];
+  let changed = false;
+  const agora = new Date().toISOString();
+  const porAba = {};
+  assignments.forEach((a, idx) => { const aba = rcAbaDe(a); if(aba && sheetData[aba]) (porAba[aba] = porAba[aba] || []).push(idx); });
+  Object.keys(porAba).forEach(aba => {
+    const rows = rcLinhasDoPaciente(sheetData, aba, code);
+    const usadas = {};
+    const idxs = porAba[aba].slice().sort((i, j) => (new Date(assignments[i].assignedAt || 0).getTime() - new Date(assignments[j].assignedAt || 0).getTime()) || (i - j));
+    idxs.forEach(i => { if(assignments[i].rowKey) usadas[assignments[i].rowKey] = true; });
+    idxs.forEach(i => {
+      const a = assignments[i];
+      const recip = String(a.recipient || '').toLowerCase().trim();
+      if(a.rowKey){
+        const lin = rows.find(r => r.key === a.rowKey);
+        if(lin && lin.dia && a.status === 'received'){
+          const iso = rcMeioDia(lin.dia);
+          if(a.receivedAt !== iso){ a.receivedAt = iso; changed = true; }
+        }
+        return;
+      }
+      const ad = rcDiaAtribuicao(a);
+      const cand = rows.find(r => !usadas[r.key] && rcMatchResp(r.r, aba, recip) && (!ad || !r.dia || r.dia.getTime() >= ad.getTime()));
+      if(cand){
+        usadas[cand.key] = true;
+        a.rowKey = cand.key;
+        if(a.status !== 'received') a.status = 'received';
+        if(!a.sentAt) a.sentAt = a.assignedAt || agora;
+        a.receivedAt = cand.dia ? rcMeioDia(cand.dia) : (a.receivedAt || agora);
+        changed = true;
+        return;
+      }
+      if(a.status === 'received' && !a.manual){
+        // Estado «Preenchido» sem resposta que o sustente (legado)
+        const primeira = rcOrdemGrupo(assignments, a) === 0;
+        const artefacto = a.assignedAt && a.receivedAt === a.assignedAt;   // criada já «recebida» ao atribuir
+        if(!primeira || artefacto || a.reaplicacao){
+          a.status = 'pending';
+          delete a.receivedAt; delete a.sentAt;
+          changed = true;
+        } else {
+          // primeira aplicação com resposta anterior ao pedido: usa a data dessa resposta
+          const antes = rows.find(r => !usadas[r.key] && rcMatchResp(r.r, aba, recip));
+          if(antes){
+            usadas[antes.key] = true; a.rowKey = antes.key;
+            if(antes.dia) a.receivedAt = rcMeioDia(antes.dia);
+            changed = true;
+          }
+        }
+      }
+    });
+  });
+  if(changed) store.set('assignments_' + patientId, assignments);
+  return changed;
+}
+// Resposta registada ANTES do pedido, ainda não atribuída a nenhuma aplicação (para confirmação manual)
+function rcRespostaAnterior(patientId, idx, sheetData){
+  const patient = store.get('patient_' + patientId);
+  const assignments = store.get('assignments_' + patientId) || [];
+  const a = assignments[idx];
+  if(!patient || !a) return null;
+  const aba = rcAbaDe(a);
+  if(!aba || !sheetData || !sheetData[aba]) return null;
+  const code = String(patient.code || '').trim().toUpperCase();
+  const recip = String(a.recipient || '').toLowerCase().trim();
+  const usadas = {};
+  assignments.forEach(x => { if(x.rowKey) usadas[x.rowKey] = true; });
+  const rows = rcLinhasDoPaciente(sheetData, aba, code).filter(r => !usadas[r.key] && r.dia && rcMatchResp(r.r, aba, recip));
+  return rows.length ? rows[rows.length - 1] : null;
+}
+
 // Verifica no Google Sheets se já existe resposta para um paciente
 async function checkSheetForResponse(qid, patientCode) {
   try {
@@ -7582,13 +8112,14 @@ function renderPatients(filter = '') {
     !q || p.name.toLowerCase().includes(q) || p.code.toLowerCase().includes(q)
   );
 
+  const bannerDup = filter ? '' : rcBannerDuplicados();
   if(!patients.length) {
     list.innerHTML = `<div class="empty-state"><div class="empty-icon">👤</div>
       <p>${filter ? 'Nenhum paciente encontrado.' : 'Ainda não há pacientes.<br>Clique em <strong>+ Novo Paciente</strong> para começar.'}</p></div>`;
     return;
   }
 
-  list.innerHTML = patients.map(p => {
+  list.innerHTML = bannerDup + patients.map(p => {
     const age = calcAge(p.dob);
     const meta = [formatDob(p.dob), age != null ? `${age} anos` : null, p.school].filter(Boolean).join(' · ');
     const initials = getInitials(p.firstName, p.lastName);
@@ -7625,6 +8156,76 @@ function renderPatients(filter = '') {
   }).join('');
 }
 
+// ═══════════════════════════════════════════════════════
+// FICHAS DUPLICADAS · PREVENÇÃO, DETECÇÃO E UNIÃO
+// ═══════════════════════════════════════════════════════
+function rcNorm(t) {
+  return String(t||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/\s+/g,' ').trim();
+}
+function rcChavesPaciente(p) {
+  const k = [];
+  const c = String(p.code||'').toUpperCase().replace(/\s+/g,'');
+  if(c) k.push('c:' + c);
+  const n = rcNorm((p.firstName||'') + ' ' + (p.lastName||'')) || rcNorm(p.name);
+  if(n && p.dob) k.push('n:' + n + '|' + p.dob);
+  return k;
+}
+function rcAcharDuplicado(cand, ignorarId) {
+  const ck = rcChavesPaciente(cand);
+  return getAllPatients().find(p => p.id !== ignorarId && rcChavesPaciente(p).some(k => ck.includes(k))) || null;
+}
+function rcGruposDuplicados() {
+  const pats = getAllPatients();
+  const pai = {};
+  const find = i => pai[i] === i ? i : (pai[i] = find(pai[i]));
+  pats.forEach(p => pai[p.id] = p.id);
+  const vistos = {};
+  pats.forEach(p => rcChavesPaciente(p).forEach(k => {
+    if(vistos[k]) pai[find(p.id)] = find(vistos[k]); else vistos[k] = p.id;
+  }));
+  const g = {};
+  pats.forEach(p => { (g[find(p.id)] = g[find(p.id)] || []).push(p); });
+  return Object.values(g).filter(a => a.length > 1)
+    .map(a => a.sort((x,y) => String(x.createdAt||'').localeCompare(String(y.createdAt||''))));
+}
+function rcRankEstado(a) { return a.status === 'received' ? 3 : a.status === 'sent' ? 2 : 1; }
+function rcUnirFichas(keepId, dropId) {
+  const keep = store.get('patient_' + keepId), drop = store.get('patient_' + dropId);
+  if(!keep || !drop || keepId === dropId) return false;
+  const lista = (store.get('assignments_' + keepId) || []).concat(store.get('assignments_' + dropId) || []);
+  const mapa = {};
+  lista.forEach(a => {
+    const k = [a.qid, a.recipient, a.assignedAt || '', a.reaplicacao ? 'r' : ''].join('|');
+    if(!mapa[k] || rcRankEstado(a) > rcRankEstado(mapa[k])) mapa[k] = a;
+  });
+  const unidas = Object.values(mapa).sort((x,y) => String(x.assignedAt||'').localeCompare(String(y.assignedAt||'')));
+  ['school','notes','sex','dob'].forEach(f => { if(!keep[f] && drop[f]) keep[f] = drop[f]; });
+  store.set('patient_' + keepId, keep);
+  store.set('assignments_' + keepId, unidas);
+  store.del('patient_' + dropId);
+  store.del('assignments_' + dropId);
+  store.set('patients', (store.get('patients') || []).filter(x => x !== dropId));
+  return true;
+}
+function rcUnirGrupo(idx) {
+  const g = rcGruposDuplicados()[idx];
+  if(!g) return;
+  const nomes = g.map(p => p.code + ' (criada em ' + (p.createdAt ? new Date(p.createdAt).toLocaleDateString('pt-PT') : '—') + ')').join('\n');
+  if(!confirm('Unir as fichas duplicadas de "' + g[0].name + '"?\n\n' + nomes + '\n\nSerá mantida a ficha mais antiga e os questionários de todas serão reunidos nela. Esta acção não pode ser desfeita.')) return;
+  for(let i = 1; i < g.length; i++) rcUnirFichas(g[0].id, g[i].id);
+  renderPatients();
+}
+function rcBannerDuplicados() {
+  const gs = rcGruposDuplicados();
+  if(!gs.length) return '';
+  return '<div style="background:#FFF4E0;border:1px solid #E8B04B;border-radius:10px;padding:12px 14px;margin-bottom:12px;font-size:13px;color:#6B4A00">' +
+    '<strong>⚠ Fichas duplicadas detectadas (' + gs.length + ')</strong><br>' +
+    gs.map((g,i) => '<div style="margin-top:6px;display:flex;gap:10px;align-items:center;justify-content:space-between"><span>' +
+      g[0].name + ' · ' + g[0].code + ' — ' + g.length + ' fichas</span>' +
+      '<button class="btn btn-secondary" style="padding:4px 10px;font-size:12px" onclick="rcUnirGrupo(' + i + ')">Unir fichas</button></div>').join('') +
+    '</div>';
+}
+
 function createPatient() {
   const first  = document.getElementById('np-first').value.trim();
   const last   = document.getElementById('np-last').value.trim();
@@ -7638,6 +8239,13 @@ function createPatient() {
   if(!sex)            { alert('Seleccione o sexo.'); return; }
 
   const code = generateCode(first, last, dob);
+  const dup = rcAcharDuplicado({ code, firstName:first, lastName:last, name:first+' '+last, dob });
+  if(dup) {
+    alert('Já existe uma ficha para este paciente:\n\n' + dup.name + ' · ' + dup.code + '\n\nNão é possível criar uma segunda ficha com os mesmos dados. Será aberta a ficha existente.');
+    closeModal('modal-new-patient');
+    openPatient(dup.id);
+    return;
+  }
   const id = 'pat_' + code + '_' + Date.now();
 
   const p = { id, code, firstName:first, lastName:last, name:first+' '+last, dob, sex, school, notes, createdAt:new Date().toISOString() };
@@ -7697,469 +8305,34 @@ function renderAssignments(patientId) {
     return;
   }
 
-  // Auto-verificar no Sheet para todos os não-recebidos
+  // Auto-verificar no Sheet: reconciliação 1 resposta ↔ 1 aplicação (v149)
   const patient = store.get('patient_' + patientId);
   if(patient && patient.code) {
-    const notReceived = assignments.filter(a => a.status !== 'received');
-    if(notReceived.length > 0) {
-      getSheetData(false).then(sheetData => {
-        let changed = false;
-        assignments.forEach((a, idx) => {
-          if(a.status === 'received') return;
-          let aba = QID_TO_ABA[a.qid];
-          if(!aba) {
-            const q = store.get('q_' + a.qid);
-            if(q && q.syncKey) aba = SYNC_KEY_TO_ABA[q.syncKey];
-          }
-          if(aba && sheetData[aba]) {
-            const patCode = String(patient.code || '').trim().toUpperCase();
-            // Colunas de respondente por aba (para verificar por destinatário)
-
-            // ── Verificação nome-primeiro, relação como fallback ──
-            function matchRespondent(row, aba, recip) {
-              const NC = {
-                // ── SDQ-Por · cinco abas (nome primeiro; tipo como fallback) ──
-                'SDQ_P24':['NomeInformante','Informante'],
-                'SDQ_P417':['NomeInformante','Informante'],
-                'SDQ_T24':['NomeInformante','Informante'],
-                'SDQ_T417':['NomeInformante','Informante'],
-                'SDQ_A':['NomeInformante','Informante'],
-                // ── Escala de Vanderbilt · duas abas (nome primeiro; tipo como fallback) ──
-                'Vanderbilt_Pais':['NomeInformante','Relacao'],
-                'Vanderbilt_Prof':['NomeInformante','Relacao'],
-                // ── EAFE-CA · três abas (nome primeiro; tipo como fallback) ──
-                // Nas formas de heterorrelato mãe e pai, ou dois professores
-                // de disciplinas diferentes, podem responder no mesmo dia para
-                // a mesma criança e a comparação entre informantes é leitura
-                // clínica do instrumento; no autorrelato o tipo é constante e
-                // o NOME é o discriminante efectivo.
-                // ── EIR-14 (v141) ──
-                'EIR14':['NomeInformante','Informante'],
-                'AESED':['NomeInformante','Informante'],
-                'EDEQ':['NomeInformante','Informante'],
-                'EDEQ_PV':['NomeInformante','Informante'],
-                'BECI':['NomeInformante','Informante'],
-                'EDSIS':['NomeInformante','Informante'],
-                'CPQ':['NomeInformante','Informante'],
-                'CHEDE':['NomeInformante','Informante'],
-                // ── PHQ-15 · três abas (nome primeiro; tipo como fallback) ──
-                'PHQ15_P':['NomeInformante','Informante','Relacao'],
-                'PHQ15_J':['NomeInformante','Informante'],
-                'PHQ15_A':['NomeInformante','Informante'],
-                // ── MDQ-A · duas abas (nome primeiro; tipo como fallback) ──
-                'MDQA_P':['NomeInformante','Informante','Relacao'],
-                'MDQA_A':['NomeInformante','Informante'],
-                'EAFECA_P':['NomeInformante','Informante','Relacao'],
-                'EAFECA_A':['NomeInformante','Informante'],
-                'EAFECA_T':['NomeInformante','Informante','Disciplina'],
-                // ── EAIR · quatro abas (nome primeiro; tipo como fallback) ──
-                // Na EAIR_H mãe, pai e professor podem responder no mesmo dia
-                // para a mesma criança e a concordância entre informantes é uma
-                // saída clínica do instrumento; nas formas de autorrelato o tipo
-                // é constante e o NOME é o discriminante efectivo.
-                'EAIR_I':['NomeInformante','NomeAvaliado','Informante'],
-                'EAIR_JA':['NomeInformante','NomeAvaliado','Informante'],
-                'EAIR_A':['NomeInformante','NomeAvaliado','Informante'],
-                'EAIR_H':['NomeInformante','Informante','Relacao'],
-                // ── QAF-CA Forma P · heterorrelato (nome primeiro; tipo depois) ──
-                // O protocolo prevê a aplicação a um segundo informante (outro
-                // cuidador ou diretor de turma) e a divergência entre
-                // observadores é informação clínica, pelo que o NOME é o
-                // discriminante primário e a relação o desempate.
-                'QAFCA_P':['NomeInformante','Relação'],
-                // ── COIS-R · duas abas (nome primeiro; tipo como fallback) ──
-                // ── EBIP-7 · duas abas (nome primeiro; tipo como fallback) ──
-                // Na EBIP7_C mãe e pai podem responder no mesmo dia para a mesma
-                // criança e a divergência entre informantes é informação clínica;
-                // na EBIP7_J o tipo é constante ('Jovem (autorrelato)') e o NOME
-                // é o discriminante efectivo.
-                'EBIP7_C':['NomeInformante','Informante'],
-                'EBIP7_J':['NomeInformante','NomeCriança','Informante'],
-                // ── LOI-CV · autorrelato (nome primeiro; tipo como fallback) ──
-                // Sendo autorrelato, o tipo distingue apenas autoadministração
-                // de leitura assistida e repete-se entre aplicações legítimas,
-                // pelo que o NOME é o discriminante primário.
-                'LOI_CV':['NomeInformante','NomeCriança','Informante'],
-                // Na COIS_RP mãe e pai podem responder no mesmo dia para a
-                // mesma criança — a divergência entre progenitores é informação
-                // clínica — pelo que o NOME é o discriminante primário e a
-                // relação o desempate. Na COIS_RC o tipo distingue apenas
-                // autoadministração de leitura assistida e repete-se entre
-                // aplicações legítimas.
-                'COIS_RC':['NomeInformante','NomeCriança','Informante'],
-                'COIS_RP':['NomeInformante','Informante'],
-                // ── CGI · heteroavaliação clínica (nome primeiro; tipo depois) ──
-                // O mesmo caso pode ser cotado no mesmo dia pela psicóloga e pelo
-                // médico assistente — é o contraste entre cotadores que a escala
-                // admite — pelo que o NOME é o discriminante primário e a função
-                // o desempate quando ambos se identificam da mesma maneira.
-                'CGI':['NomeInformante','Informante'],
-                // ── QPTMV · heterorrelato parental (nome primeiro; tipo depois) ──
-                // Mãe e pai podem responder no mesmo dia para a mesma criança —
-                // é a comparação entre cuidadores que o livro admite — pelo que
-                // o NOME é o discriminante primário e a relação o desempate.
-                'QPTMV':['NomeInformante','Informante'],
-                // ── EQVA-41 · autorrelato (nome primeiro; tipo como fallback) ──
-                // Instrumento exclusivamente de autorrelato: o tipo distingue
-                // apenas autoadministração de leitura assistida e repete-se
-                // entre aplicações legítimas, pelo que o discriminante efectivo
-                // é o NOME.
-                'EQVA41':['NomeInformante','NomeJovem','Informante'],
-                // ── QUP-T · três abas (nome primeiro; tipo como fallback) ──
-                // No QUP-T/P mãe e pai podem responder no mesmo dia — é o
-                // contraste entre informadores que o protocolo admite — e no
-                // QUP-T/I o tipo ('Psicóloga', 'Mãe') repete-se entre aplicações
-                // legítimas: o discriminante efectivo é o NOME.
-                'QUPT_J':['NomeInformante','NomeCriança','Relação'],
-                'QUPT_I':['NomeInformante','NomeCriança','Relação'],
-                'QUPT_P':['NomeInformante','NomeCriança','Relação'],
-                // ── YGTSS e CY-BOCS · v129 (nome primeiro; tipo como fallback) ──
-                // No YGTSS mãe e pai podem responder no mesmo dia — é o contraste entre
-                // informadores que o protocolo admite. No CY-BOCS o tipo é sempre 'Clínico',
-                // pelo que o discriminante efectivo é o NOME.
-                'YGTSS':['NomeInformante','NomeCriança','Informante'],
-                'CYBOCS':['NomeInformante','NomeCriança','Informante'],
-                // ── USP-SPS · aplicação mediada (nome primeiro; tipo como fallback) ──
-                // O tipo de informante repete-se entre sessões legítimas
-                // ('Próprio + mãe' e equivalentes), pelo que o discriminante
-                // efectivo é o NOME de quem aplicou e registou.
-                'USP_SPS':['NomeInformante','NomeCriança','Informante'],
-                // ── RDP-RC · Registo Diário Prospetivo (autorrelato; nome primeiro) ──
-                // Registo DIÁRIO: uma linha por dia e por utente, todas do MESMO
-                // respondente. O discriminante efectivo entre linhas legítimas é a
-                // DATA, não o nome, mas a entrada é indispensável para o instrumento
-                // chegar a passar a «Preenchido ✓».
-                'RDP_RC':['NomeUtente','NomeInformante'],
-                // ── AASP · autorrelato (nome primeiro; tipo como fallback) ──
-                // O tipo é quase sempre 'O próprio' e repete-se entre linhas
-                // legítimas, pelo que o discriminante efectivo é o NOME.
-                'AASP':['NomeInformante','NomeUtente','Informante'],
-                // ── Família EIF · as duas formas partilham a aba (nome primeiro) ──
-                // O tipo de respondente repete-se entre linhas legítimas (dois
-                // cuidadores no mesmo dia), pelo que o discriminante efectivo é o NOME.
-                'EIFP':['NomeInformante','NomeCriança','Informante'],
-                'EIFA':['NomeInformante','NomeUtente','Informante'],
-                'EIFJ':['NomeInformante','NomeUtente','Informante'],
-                // ── CAARS · S:L e O:L (nome primeiro; tipo como fallback) ──
-                // Na forma O:L o campo de tipo guarda a RELAÇÃO com a pessoa avaliada e
-                // pode repetir-se em duas linhas legítimas (dois familiares a descrever
-                // a mesma pessoa no mesmo dia), pelo que o discriminante efectivo é o
-                // NOME e vem primeiro. Na S:L o tipo é sempre 'Auto-relato'.
-                'CAARS_SL':['NomeInformante','NomeAvaliado','Informante'],
-                'CAARS_OL':['NomeInformante','Informante'],
-                // ── EII-PT · autorrelato, Formas A e J na mesma aba (nome primeiro) ──
-                // Um progenitor (Forma A) e o jovem (Forma J) podem submeter no mesmo
-                // dia sob o MESMO código: o discriminante efectivo é o NOME e vem
-                // primeiro; 'NomeUtente' cobre os protocolos em que o respondente se
-                // identifica apenas no campo do avaliado.
-                'EII27':['NomeInformante','NomeUtente','Informante'],
-                'EII12':['NomeInformante','NomeUtente','Informante'],
-                // ── PSWQ · autorrelato (nome primeiro; tipo como fallback) ──
-                // O tipo de respondente pode repetir-se em duas linhas legítimas
-                // (jovem e mãe podem ambos registar-se como 'Próprio/a'), pelo que
-                // o discriminante efectivo é o NOME e vem primeiro.
-                'PSWQ':['NomeInformante','Informante'],
-                // ── STOP-BANG · ficha de cotação clínica (nome primeiro; tipo como fallback) ──
-                // O mesmo utente pode ser reavaliado no mesmo dia por profissionais
-                // diferentes: o discriminante efectivo é o NOME e vem primeiro.
-                'STOPBANG':['NomeInformante','Informante'],
-                // ── BAI e BDI-II · autorrelato (nome primeiro; tipo como fallback) ──
-                // O tipo de respondente pode ser o mesmo em duas linhas legítimas
-                // (jovem e mãe podem ambos registar-se como 'Outro'), pelo que o
-                // discriminante efectivo é o NOME e vem primeiro.
-                'BAI':['NomeInformante','Informante'],
-                'BDI2':['NomeInformante','Informante'],
-                // ── SIAS · SPS · Ansiedade Social (autorrelato; nome primeiro) ──
-                // O tipo de respondente é sempre o próprio, com ou sem apoio de um
-                // adulto: o discriminante efectivo é o nome, por isso vem primeiro.
-                'SIAS_SPS':['NomeInformante','NomeAvaliado','Informante'],
-                // ── DIVA-5 · entrevista com três informadores (v112.0) ──
-                // A coluna do NOME do respondente chama-se 'Respondente' (não
-                // 'NomeInformante'): sem esta entrada o instrumento nunca passa
-                // a «Preenchido ✓». O nome vem primeiro porque o próprio, o
-                // parceiro e os pais submetem com o MESMO código, muitas vezes
-                // no mesmo dia — só o nome os distingue.
-                'DIVA5':['Respondente','Relação'],
-                // ── GCSA · Seletividade Alimentar (nome primeiro; tipo como fallback) ──
-                // Cada progenitor preenche um protocolo independente: sem o nome como
-                // primeiro discriminante, a segunda submissão do casal não seria reconhecida.
-                'GCSA':['NomeInformante','Informante'],
-                'GCSA_Diario':['NomeInformante','Informante'],
-                // ── CAPS-22 · autorrelato (respondente = a própria criança; nome primeiro) ──
-                'CAPS22':['NomeInformante','NomeCriança','NomeCrianca','Informante'],
-                // ── CAPS-PR · heterorrelato parental (nome primeiro; tipo como fallback) ──
-                'CAPS_PR':['NomeInformante','Informante'],
-                // ── PDRA-9/C · autorrelato (respondente = a própria criança; nome primeiro) ──
-                // Sem esta entrada o questionário nunca passa a «Preenchido ✓» (Secção 8/v24).
-                'PDRA9_C':['NomeInformante','NomeCriança','NomeCrianca','Informante'],
-                // ── PDRA-9/P · heterorrelato parental (nome primeiro; tipo como fallback) ──
-                // Mãe e pai podem preencher no mesmo dia para a mesma criança: o nome é o
-                // discriminante que preserva as duas linhas e o índice de divergência.
-                'PDRA9_P':['NomeInformante','Informante'],
-                // ── QCF-P · Comportamento Fraterno, parental (nome primeiro; tipo como fallback) ──
-                'QCFP':['NomeInformante','Informante'],
-                // ── QRF-C · Relação Fraterna (autorrelato: respondente = a própria criança) ──
-                'QRFC':['NomeInformante','NomeCriança','NomeCrianca'],
-                // ── CBQ-SF · Temperamento (nome primeiro; tipo como fallback) ──
-                'CBQ_SF':['NomeInformante','Informante'],
-                // ── QCVE-P · Comportamento Verbal Escolar (nome primeiro; tipo como fallback) ──
-                'QCVEP_PROF':['NomeInformante','Informante'],
-                // ── SMQ · Mutismo Seletivo (nome primeiro; tipo/relação como fallback) ──
-                'SMQ_Pais':['NomeInformante','Relação','Informante'],
-                'SMQ_Prof':['NomeInformante','Relação','Informante'],
-                // ── GAD-7 · Escala de Ansiedade Generalizada (nome primeiro; tipo como fallback) ──
-                'GAD7':['NomeInformante','Informante'],
-                // ── AIS-8 · Escala de Insónia de Atenas (nome primeiro; tipo como fallback) ──
-                'AIS_8':['NomeInformante','Informante'],
-                // ── ESS · Escala de Sonolência de Epworth (autorrelato; nome primeiro, tipo como fallback) ──
-                'ESS_Epworth':['NomeInformante','Informante'],
-                // ── ACE-Q · Experiências Adversas (nome primeiro; tipo/relação como fallback) ──
-                'ACE_Q_ADOLESCENTE':['NomeInformante','Informante'],
-                'ACE_Q_CUIDADOR':['NomeInformante','Relação','Informante'],
-                // ── Diário de Episódios · Monitorização (nome primeiro, tipo como fallback) ──
-                'DIARIO_EPISODIOS':['NomeInformante','Informante'],
-                // ── Anamnese Parental Complementar · Anamnese (nome primeiro, tipo como fallback) ──
-                'ANAMNESE_PARENTAL_COMPLEMENTAR':['NomeInformante','Informante'],
-                // ── SNAP-IV · vários respondentes possíveis (Informante distingue Pais/Professores) ──
-                'SNAP_IV':['NomeInformante','Informante'],
-                'SWAN':['Informante'],'SRS2_IE_Pais':['Respondente'],'SRS2_IE_Prof':['Respondente'],
-                'TRF_618':['NomePreenche','PreenchidoPor'],'CBCL_618':['NomePreenche','PreenchidoPor'],'CBCL_15':['NomeInformante','Informante'],
-                'CTRF_15':['Informante'],'BRIEF_Pais':['NomeRespondente'],'BRIEF_Professores':['Professor'],
-                'SCARED_R_CRIANCA':['NomeInformante'],'SCARED_R_PAIS':['NomeInformante'],
-                'SPAS_Pais':['NomeInformante'],'SPAS_Prof':['NomeInformante'],
-                'ABAS3_PAIS':['NomeCrianca','NomeInformante'],'ABAS3_PROF':['NomeCrianca','NomeInformante'],'ABAS3_ADULT':['NomeCrianca','NomeInformante'],'ABAS3_05':['Informante'],'ABAS3_05P':['Informante'],
-                'QEDP':['Informante','NomeInformante'],'QC_Coparentalidade':['NomeRespondente','Respondente'],
-                'FAD_GF':['Relação','Nome Respondente'],'FAD_60':['Relação','Nome Respondente'],
-                'CONNERS3P_FULL':['Relação','NomeInformante'],'CONNERS3T_FULL':['Relação','NomeInformante'],
-                'CONNERS3PS':['Relação','NomeInformante'],'CONNERS3TS':['Relação','NomeInformante'],
-                'ERC_Pais':['NomeInformante','Relação'],'ERC_Professores':['NomeInformante','Relação'],
-                // ── DERS — auto-relato (≥14 anos): respondente é o próprio paciente ─
-                'DERS':['NomeInformante','NomeCriança','NomeCrianca'],
-                // ── BAS-3 — auto-avaliação (respondente é o próprio paciente) ─
-                'BAS3':['NomeCriança','NomeRespondente','NomeInformante'],
-                // ── FACES-IV adap — autorrelato familiar (dedupe por respondente + relação) ─
-                'FACES_IV_adap':['NomeRespondente','Relação'],
-                // ── CABS Auto/Hetero — Comportamento Assertivo (nome primeiro, tipo como fallback) ─
-                'CABS_Auto':['NomeInformante','Informante'],
-                'CABS_Hetero':['NomeInformante','Informante'],
-                // ── SPPA — bateria única (autorrelato do jovem) ─
-                'SPPA':['NomeInformante','NomeJovem'],
-                // ── SPPC (autorrelato da criança) e Escala do Professor ──
-                'SPPC':['NomeInformante','NomeCriança'],
-                'SPPC_Professor':['NomeInformante','Informante'],
-                // ── SPPLD (autorrelato do aluno) ──
-                'SPPLD':['NomeInformante','NomeAluno'],
-                // ── SPPCS (autorrelato do estudante universitario) ──
-                'SPPCS':['NomeInformante','NomeEstudante'],
-                // ── EPCAS-PE (administração pelo examinador) ──
-                'EPCAS_PE':['NomeInformante','Informante'],
-                // ── MABC-2 Lista de Verificação (heteroavaliação: professor/educador/pais) ──
-                'MABC2_Checklist':['NomeInformante','Relação','Informante'],
-                'PS2_Cuidador':['NomeInformante','Relacao'],'PS2_Professor':['NomeInformante'],
-                'MAP_Parental':['NomeProgenitor','Relação'],'MAP_PI':['NomeProgenitor','Relação'],
-                'MAP_Parental_PI':['NomeProgenitor','Relação'],
-                'MAP_1214':['NomeProgenitor','Relação'],'MAP_Parental_1214':['NomeProgenitor','Relação'],
-                'MAP_1518':['NomeProgenitor','Relação'],'MAP_Parental_1518':['NomeProgenitor','Relação'],
-                'QEDP':['Informante','NomeInformante'],
-                'Anamnese_Complementar':['NomeRespondente'],
-                'ANAMNESE_HP':['NomeRespondente','Relação'],
-                'PAIA':['NomeRespondente'],
-                'PAI':['NomeRespondente'],
-                'IPP_R':['NomeRespondente'],
-                'SDS_Holland':['NomeCriança'],
-                'JTCI_92':['NomeInformante'],
-                'NEOPIR':['NomeInformante'],
-                'CSSRS':[],
-                // ── BSI — respondente único, basta código ──
-                'BSI':['NomeRespondente'],
-                // EDE-Q — respondente único (o próprio paciente), basta o código
-                'EDEQ':[],
-                // SEQ-C — respondente único (aluno), NomeCriança identifica
-                'SEQ_C':['NomeCriança'],
-                // Collins Silhuetas — respondente único, basta o código
-                'Collins_Silhuetas':[],
-                // ── Checklist Obs. Comportamental Medicação PHDA ──────────
-                'OBS_PHDA_Casa':   ['NomeInformante'],
-                'OBS_PHDA_Escola': ['NomeInformante'],
-                // ── PPGR-J — Pressão Percebida em Guarda-Redes Jovens ─────
-                'PPGRJ':           ['NomeRespondente','NomeCriança','NomeCrianca'],
-                // ── CCBQ — respondente é o próprio paciente (auto-resposta) ─
-                'CCBQ':            ['NomeRespondente','NomeCriança','NomeCrianca'],
-                // ── Kidcope — auto-resposta (criança/adolescente) ─────────
-                'KIDCOPE_CR':      ['NomeInformante','NomeCriança','NomeCrianca'],
-                'KIDCOPE_AD':      ['NomeInformante','NomeCriança','NomeCrianca'],
-                // ── ISC-24 — múltiplos respondentes possíveis (próprio, pais, EE) ──
-                'ISC24':           ['NomeRespondente','Relação','NomeCriança','NomeCrianca'],
-                // ── QEA — auto-relato (adolescente) ───────────────────────
-                'QEA':             ['NomeInformante','NomeCrianca','NomeCriança'],
-                // ── EMP-H&F — auto-relato (adolescentes / adultos) ────────
-                'EMP_HF':          ['NomeRespondente','NomeCriança','NomeCrianca','NomeInformante'],
-                // ── EMP-F (Frost) — auto-relato (adolescentes / adultos) ──
-                'EMP_F':           ['NomeRespondente','NomeCriança','NomeCrianca','NomeInformante'],
-                // ── OCI-CV-R — auto-relato (criança/adolescente 7-17) ───────
-                'OCI_CV_R':        ['NomeInformante','NomeCriança','NomeCrianca','NomeRespondente'],
-                // ── OCI-R — auto-relato (adulto ≥18) ────────────────────────
-                'OCI_R':           ['NomePaciente','NomeRespondente','NomeInformante'],
-                // ── COMPA — Escala de Avaliação da Comunicação na Parentalidade (Portugal & Alberto, 2014) ──
-                'COMPA_P':         ['NomeInformante','Relacao'],
-                'COMPA_A_Pai':     ['NomeInformante','NomeCrianca'],
-                'COMPA_A_Mae':     ['NomeInformante','NomeCrianca'],
-                'COMPA_C_Pai':     ['NomeInformante','NomeCrianca'],
-                'COMPA_C_Mae':     ['NomeInformante','NomeCrianca'],
-                // ── CDI-2:SR — auto-relato (criança/adolescente 7–17) ─────
-                'CDI2_SR':         ['NomeInformante','NomeCriança','NomeCrianca'],
-                // ── STAIC C-2 — auto-relato (criança/adolescente 8–17) ─────
-                'STAIC_C2':        ['NomeInformante','NomeCriança','NomeCrianca'],
-                // ── CMAS-R — auto-relato (criança/adolescente 8–17) ─────
-                'CMAS_R':          ['NomeInformante','NomeCriança','NomeCrianca'],
-                // ── FSSC-R — auto-relato (criança/adolescente 8–17) ─────
-                'FSSC_R':          ['NomeInformante','NomeCriança','NomeCrianca'],
-                // ── Sociograma · Mapa Social — múltiplos respondentes (próprio/pais/professor) ──
-                'SOCIOGRAMA':      ['NomeInformante','NomeCriança','NomeCrianca','TipoRespondente'],
-                // ── PALS — Patterns of Adaptive Learning Scales (Midgley et al., 2000) ──
-                // Parent — informante adulto (mãe/pai/EE/familiar) sobre a criança
-                'PALS_Parent':       ['NomeInformante','Relacao','NomeCriança','NomeCrianca'],
-                // Teacher — informante docente sobre o/a aluno/a
-                'PALS_Teacher':      ['NomeInformante','Relacao','NomeCriança','NomeCrianca'],
-                // Student Sec — auto-relato adolescente (Secundário)
-                'PALS_Student_Sec':  ['NomeInformante','NomeCriança','NomeCrianca'],
-                // Student 2.º/3.º ciclo — auto-relato pré-adolescente
-                'PALS_Student_23c':  ['NomeInformante','NomeCriança','NomeCrianca'],
-                // ── PALS Versões REDUZIDAS — v55.0 ──
-                'PALS_Parent_Red':       ['NomeInformante','Relacao','NomeCriança','NomeCrianca'],
-                'PALS_Teacher_Red':      ['NomeInformante','Relacao','NomeCriança','NomeCrianca'],
-                'PALS_Student_Sec_Red':  ['NomeInformante','NomeCriança','NomeCrianca'],
-                'PALS_Student_23c_Red':  ['NomeInformante','NomeCriança','NomeCrianca'],
-                // ── Questionários Ecológicos Revistos — v56.0 ──
-                'QEE_Escola':            ['NomeInformante','funcao','NomeCriança','NomeCrianca'],
-                'QEP_Pais':              ['NomeInformante','parentesco','NomeCriança','NomeCrianca'],
-                // ── IIM — v57.0 ──
-                // Hetero: multi-informador (pais/professores); Crianças/Adultos: auto-relato
-                'IIM_Hetero':            ['NomeInformante','relacao','NomeCriança','NomeCrianca'],
-                'IIM_Criancas':          ['NomeInformante','NomeCriança','NomeCrianca'],
-                'IIM_AdolAdultos':       ['NomeInformante','NomeCriança','NomeCrianca'],
-                // ── CERQ — v58.0 — todos auto-relato (Garnefski et al.) ──
-                'CERQ_K':                ['NomeInformante','NomeCriança','NomeCrianca'],
-                'CERQ_18':               ['NomeInformante','NomeCriança','NomeCrianca'],
-                'CERQ_36':               ['NomeInformante','NomeCriança','NomeCrianca'],
-                // ── ERICA — v59.0 — auto-relato 9-16 anos ──
-                'ERICA':                 ['NomeInformante','NomeCriança','NomeCrianca'],
-                // ── ERQ-CA — v60.0 — auto-relato 10-18 anos ──
-                'ERQ_CA':                ['NomeInformante','NomeCriança','NomeCrianca'],
-                // ── STAXI-NA — v61.0 — auto-relato 9-18 anos ──
-                'STAXI_NA':              ['NomeInformante','NomeCriança','NomeCrianca'],
-                // ── AQ Buss-Perry — auto-relato adulto (≥16 anos) ──
-                'AQ_BussPerry':          ['NomeAvaliado','NomeInformante'],
-                // ── ChEAT — auto-relato criança 8-13 anos ──
-                'ChEAT':                 ['NomeInformante','NomeCriança','NomeCrianca','Informante'],
-                // ── ISS-I / ESI — auto-relato criança 6-14 anos ──
-                'ISS_ESI':               ['NomeInformante','NomeCriança','NomeCrianca','Informante'],
-                // ── C-SSRS-P · Risco Suicidário Pediátrica — Auto+Hetero (Tipo distingue) ──
-                'C_SSRS_P':              ['NomeInformante','Tipo'],
-                // ── C-SSRS-A · Risco Suicidário Adolescente — Só Auto ──
-                'C_SSRS_A':              ['NomeInformante'],
-                // ── C-SSRS-DC · Risco Suicidário Défice Cognitivo — Auto+Hetero (Tipo distingue) ──
-                'C_SSRS_DC':             ['NomeInformante','Tipo'],
-                // ── M-CHAT-R/F · Despiste Precoce de Autismo — sem campo Tipo (parente único informa) ──
-                'M_CHAT_R_F':            ['NomeInformante'],
-                // ── Família CARS2 (v70.0) ──
-                // CARS2-HP — cotação clínica por psicólogo (clinician-rated) ──
-                'CARS2_HP':              ['Psicologo'],
-                // CARS2-QPC — parent/cuidador-completed (pai+mãe podem submeter em separado) ──
-                'CARS2_QPC':             ['NomeInformante','Relacao'],
-                // CARS2-ST — cotação clínica por psicólogo (clinician-rated) ──
-                'CARS2_ST':              ['Psicologo'],
-                // ── MCP · Mapeamento de Configuração Parental (Ricardina Correia, 2026) ──
-                // Múltiplos respondentes (pai + mãe + outros adultos coabitantes podem submeter em separado)
-                // — dedupe por NomeInformante; Relacao serve como fallback
-                'MCP_Breve':             ['NomeInformante','Relacao','Relação'],
-                'MCP_Completo':          ['NomeInformante','Relacao','Relação'],
-                // ── UCLA-PTSD Adaptado · Rastreio PSPT Pediátrica (Ricardina Correia, 2026) ──
-                // Clinician-rated — cotação pelo psicólogo (NomeInformante = avaliador)
-                'UCLA_PTSD_Adaptado':    ['NomeInformante','Avaliador'],
-                // ── ISAS · Inventário de Afirmações sobre Autolesão (Klonsky & Glenn, 2009) ──
-                // Auto-resposta — adolescente/jovem adulto preenche o próprio (NomeInformante = paciente; Informante = "Auto-resposta")
-                'ISAS':                  ['NomeInformante','Informante'],
-                // ── FAMÍLIA FASA (Ansiedade · Lebowitz) ──
-                // FASA Parental — preenchido por pais (Relação distingue Mãe/Pai/etc.)
-                'FASA_Parental':         ['NomeInformante','Relação','Relacao'],
-                // FASA CR Infância — autorrelato (Acompanhamento distingue: sozinho/com ajuda Mãe/Pai/etc.)
-                'FASA_CR_Infancia':      ['NomeInformante','Acompanhamento'],
-                // FASA CR Adolescência — autorrelato (Contexto: sozinho/em consulta/com adulto)
-                'FASA_CR_Adolescencia':  ['NomeInformante','Contexto'],
-                // ── FAMÍLIA FAS (TOC pediátrico · Calvocoressi/Flessner) ──
-                // FAS Parental — preenchido por pais (Relação distingue Mãe/Pai/etc.)
-                'FAS_Parental':          ['NomeInformante','Relação','Relacao'],
-                // FAS CR Infância — autorrelato TOC (Acompanhamento)
-                'FAS_CR_Infancia':       ['NomeInformante','Acompanhamento'],
-                // FAS CR Adolescência — autorrelato TOC (Contexto)
-                'FAS_CR_Adolescencia':   ['NomeInformante','Contexto'],
-                // RSES — Auto-Estima de Rosenberg (autorrelato adolescentes) v28
-                'RSES':                  ['NomeRespondente'],
-                // RBS-R — Comportamentos Repetitivos (vários respondentes: Informante distingue Mãe/Pai/Professor/Clínico) v29
-                'RBS_R':                 ['NomeInformante','Informante'],
-                // PSI-4 adap — Stress Parental (vários respondentes: Informante distingue Mãe/Pai/Cuidador) v30
-                'PSI4_adap':             ['NomeInformante','Informante'],
-                // Entrevista adaptada CAARMS — aplicada pela psicóloga (NomeInformante = avaliador(a))
-                'CAARMS_ADAP':           ['NomeInformante','Informante'],
-                // Prova «O Cuidar e a Integridade do Corpo» — aplicada pela psicóloga (NomeInformante = avaliador(a))
-                'CUIDAR_CORPO':          ['NomeInformante','Informante'],
-                // CSAS / CSAS-P · Ansiedade de Separação (nome primeiro; tipo/relação como fallback)
-                'CSAS':                  ['NomeInformante','Informante'],
-                'CSAS_P':                ['NomeInformante','Relação','Informante'],
-                // SGRS · Sohn Grayson (multi-informante: pais, professor, clínico; nome primeiro, Relação como fallback)
-                'SGRS':                  ['NomeInformante','Relação']
-              };
-              const RC = {
-                'SWAN':['Relação'],'BRIEF_Pais':['Relação'],'SCARED_R_PAIS':['Relação'],
-                'SPAS_Pais':['Relação'],'SPAS_Prof':['Relação'],'QC_Coparentalidade':['Respondente'],
-                'CSAS_P':['Relação']
-              };
-              function sm(a,b){if(!a||!b)return false;
-                return a.includes(b)||b.includes(a)||
-                  a.split(/[\s\/\(\)]+/).some(w=>w.length>3&&b.includes(w))||
-                  b.split(/[\s\/\(\)]+/).some(w=>w.length>3&&a.includes(w));}
-              const nCols=NC[aba]||[]; const rCols=RC[aba]||[];
-              if(nCols.length===0&&rCols.length===0) return true;
-              const nVals=nCols.map(c=>String(row[c]||'').toLowerCase().trim()).filter(Boolean);
-              if(nVals.length>0) return nVals.some(v=>sm(v,recip));
-              const rVals=rCols.map(c=>String(row[c]||'').toLowerCase().trim()).filter(Boolean);
-              if(rVals.length>0) return rVals.some(v=>sm(v,recip));
-              // Ambos vazios mas colunas existem → não confirmar (dados incompletos no Sheet)
-              return false;
-            }
-            const recipientRaw = (a.recipient || '').toLowerCase().trim();
-            const found = patCode.length >= 4 && (sheetData[aba]||[]).some(row => {
-              const rowCod = String(row['Código'] || row['Codigo'] || row['codigo'] || row['Código Paciente'] || row['patientCode'] || '').trim().toUpperCase();
-              if(rowCod.length < 4 || rowCod !== patCode) return false;
-              if(!rowNaoAnteriorAtribuicao(row, a)) return false; // reaplicação: ignora respostas anteriores à atribuição
-              return matchRespondent(row, aba, recipientRaw);
-            });
-            if(found) {
-              assignments[idx].status = 'received';
-              if(!assignments[idx].sentAt) assignments[idx].sentAt = new Date().toISOString();
-              assignments[idx].receivedAt = new Date().toISOString();
-              changed = true;
-            } else if(assignments[idx].status === 'received' && assignments[idx].fromSheet !== true) {
-              // Corrigir estado errado — Sheet não confirma este respondente
-              assignments[idx].status = 'sent';
-              delete assignments[idx].receivedAt;
-              changed = true;
-            }
-          }
-        });
-        if(changed) {
-          store.set('assignments_' + patientId, assignments);
-          renderAssignments(patientId);
-          renderPatients(document.getElementById('search-input')?.value || '');
-        }
-      }).catch(() => {});
-    }
+    getSheetData(false).then(sheetData => {
+      if(rcReconciliar(patientId, sheetData)) {
+        renderAssignments(patientId);
+        renderPatients(document.getElementById('search-input')?.value || '');
+      }
+    }).catch(() => {});
   }
 
+  // Grupos de aplicações (mesmo questionário + mesmo destinatário), por ordem cronológica
+  const _grupos = {};
+  assignments.forEach((x, i) => { (_grupos[rcGrupoChave(x)] = _grupos[rcGrupoChave(x)] || []).push({x, i}); });
+  Object.keys(_grupos).forEach(g => _grupos[g].sort((m, n) => (new Date(m.x.assignedAt || 0).getTime() - new Date(n.x.assignedAt || 0).getTime()) || (m.i - n.i)));
   el.innerHTML = assignments.map((a, idx) => {
     const q = store.get('q_' + a.qid);
     const name = q?.name || a.qid;
+    const _gr = _grupos[rcGrupoChave(a)] || [];
+    let histHtml = '';
+    if(_gr.length > 1) {
+      histHtml = '<div style="font-size:0.74rem;color:var(--text-light);margin-top:3px;line-height:1.5;">Aplicações: ' + _gr.map((o, n) => {
+        const dt = o.x.receivedAt ? new Date(o.x.receivedAt).toLocaleDateString('pt-PT') : '';
+        const est = o.x.status === 'received' ? ('✓ ' + dt) : (STATUS_LABELS[o.x.status] ? STATUS_LABELS[o.x.status].label : 'por preencher') + (o.x.assignedAt ? ' (pedida a ' + new Date(o.x.assignedAt).toLocaleDateString('pt-PT') + ')' : '');
+        return (o.i === idx ? '<strong>' : '') + (n + 1) + '.ª ' + est + (o.i === idx ? '</strong>' : '');
+      }).join(' · ') + '</div>';
+    }
+    const _ultimaRecebida = (function(){ const rec = _gr.filter(o => o.x.status === 'received'); return rec.length ? rec[rec.length - 1].i : -1; })();
     const s = STATUS_LABELS[a.status] || STATUS_LABELS['pending'];
 
     const isReceived = a.status === 'received';
@@ -8178,7 +8351,7 @@ function renderAssignments(patientId) {
     let resultZone = '';
     if(isReceived) {
       const patient = store.get('patient_' + patientId);
-      const scoreHtml = patient ? (getResultSummary(a.qid, patient.code, a.recipientLabel || a.recipient) || '') : '';
+      const scoreHtml = (patient && (_gr.length <= 1 || idx === _ultimaRecebida)) ? (getResultSummary(a.qid, patient.code, a.recipientLabel || a.recipient) || '') : '';
       const dataStr = a.receivedAt ? ' · ' + new Date(a.receivedAt).toLocaleDateString('pt-PT') : '';
       // DIVA-5: o resultado clinicamente legível é o do CASO (cruzamento dos
       // três informadores), não o da submissão isolada — o registo do parceiro
@@ -8198,7 +8371,7 @@ function renderAssignments(patientId) {
     return `<div class="assign-item ${a.status!=='pending'?'is-assigned':''}">
       <div class="assign-item-info">
         <div class="assign-item-name">${name} ${linkHtml}</div>
-        <div class="assign-item-dest">${a.recipientLabel || a.recipient}</div>
+        <div class="assign-item-dest">${a.recipientLabel || a.recipient}</div>${histHtml}
       </div>
       <div>${statusBadge(a.status)}</div>
       <div style="display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end;">
@@ -8342,26 +8515,12 @@ async function confirmAssign() {
   const recipientLabel = recipient === 'Outro' ? (outro || 'Outro') : recipient;
   const fullLabel = name ? `${recipientLabel} — ${name}` : recipientLabel;
 
-  // Verificar no Google Sheets se já existe resposta
-  const patient = store.get('patient_' + currentPatientId);
-  const patientCode = patient ? patient.code : null;
-  let status = 'pending';
-  try {
-    if (patientCode) {
-      const alreadyDone = await Promise.race([
-        checkSheetForResponse(pendingAssignQid, patientCode),
-        new Promise(resolve => setTimeout(() => resolve(false), 3000))
-      ]);
-      if (alreadyDone) status = 'received';
-    }
-  } catch(e) { /* falha silenciosa — continua com status pending */ }
-
-  // Reaplicação: se o mesmo questionário já foi atribuído ao mesmo destinatário, a resposta
-  // antiga do Sheet não pode dar a nova atribuição como recebida.
-  if(status === 'received' && (store.get('assignments_' + currentPatientId) || []).some(x => x.qid === pendingAssignQid && (x.recipientLabel || x.recipient) === fullLabel)) status = 'pending';
+  // v149: a atribuição nasce SEMPRE pendente. Respostas anteriores do Sheet não a dão como
+  // preenchida; só uma resposta com data igual ou posterior ao pedido (ou confirmação manual).
+  const status = 'pending';
   const assignments = store.get('assignments_' + currentPatientId) || [];
   const now = new Date().toISOString();
-  assignments.push({ qid: pendingAssignQid, recipient, recipientLabel: fullLabel, status, assignedAt: now, ...(status === 'received' ? { sentAt: now, receivedAt: now } : {}) });
+  assignments.push({ qid: pendingAssignQid, recipient, recipientLabel: fullLabel, status, assignedAt: now });
   store.set('assignments_' + currentPatientId, assignments);
 
   closeModal('modal-assign');
@@ -8376,262 +8535,27 @@ async function syncAndMark(patientId, idx) {
   const a = assignments[idx];
   if(!a || !patient) return;
 
-  // Verificar no Sheet primeiro
+  // Verificar no Sheet primeiro (v149: 1 resposta ↔ 1 aplicação; reaplicações só aceitam respostas posteriores ao pedido)
   try {
     const sheetData = await getSheetData(true);
-    let aba = QID_TO_ABA[a.qid];
-    if(!aba) {
-      const q = store.get('q_' + a.qid);
-      if(q && q.syncKey) aba = SYNC_KEY_TO_ABA[q.syncKey];
+    rcReconciliar(patientId, sheetData);
+    const apos = store.get('assignments_' + patientId) || [];
+    if(apos[idx] && apos[idx].status === 'received') {
+      renderAssignments(patientId);
+      renderPatients(document.getElementById('search-input')?.value || '');
+      return;
     }
-    if(aba && sheetData[aba]) {
-      const smRecip = (a.recipient || '').toLowerCase().trim();
-      const patUpper = String(patient.code).trim().toUpperCase();
-      function matchResp2(row, aba2, recip) {
-        const NC2 = {
-          // ── SDQ-Por · cinco abas (nome primeiro; tipo como fallback) ──
-          'SDQ_P24':['NomeInformante','Informante'],
-          'SDQ_P417':['NomeInformante','Informante'],
-          'SDQ_T24':['NomeInformante','Informante'],
-          'SDQ_T417':['NomeInformante','Informante'],
-          'SDQ_A':['NomeInformante','Informante'],
-          // ── Escala de Vanderbilt · duas abas (nome primeiro; tipo como fallback) ──
-          'Vanderbilt_Pais':['NomeInformante','Relacao'],
-          'Vanderbilt_Prof':['NomeInformante','Relacao'],
-          // ── EAFE-CA · três abas (nome primeiro; tipo como fallback) ──
-          // ── EIR-14 (v141) ──
-          'EIR14':['NomeInformante','Informante'],
-          'AESED':['NomeInformante','Informante'],
-          'EDEQ':['NomeInformante','Informante'],
-          'EDEQ_PV':['NomeInformante','Informante'],
-          'BECI':['NomeInformante','Informante'],
-          'EDSIS':['NomeInformante','Informante'],
-          'CPQ':['NomeInformante','Informante'],
-          'CHEDE':['NomeInformante','Informante'],
-          // ── PHQ-15 · três abas (nome primeiro; tipo como fallback) ──
-          'PHQ15_P':['NomeInformante','Informante','Relacao'],
-          'PHQ15_J':['NomeInformante','Informante'],
-          'PHQ15_A':['NomeInformante','Informante'],
-          // ── MDQ-A · duas abas (nome primeiro; tipo como fallback) ──
-          'MDQA_P':['NomeInformante','Informante','Relacao'],
-          'MDQA_A':['NomeInformante','Informante'],
-          'EAFECA_P':['NomeInformante','Informante','Relacao'],
-          'EAFECA_A':['NomeInformante','Informante'],
-          'EAFECA_T':['NomeInformante','Informante','Disciplina'],
-          // ── EAIR · quatro abas (nome primeiro; tipo como fallback) ──
-          'EAIR_I':['NomeInformante','NomeAvaliado','Informante'],
-          'EAIR_JA':['NomeInformante','NomeAvaliado','Informante'],
-          'EAIR_A':['NomeInformante','NomeAvaliado','Informante'],
-          'EAIR_H':['NomeInformante','Informante','Relacao'],
-          // ── QAF-CA Forma P · heterorrelato (nome primeiro; tipo depois) ──
-          'QAFCA_P':['NomeInformante','Relação'],
-          // ── COIS-R · duas abas (nome primeiro; tipo como fallback) ──
-          // ── EBIP-7 · duas abas (nome primeiro; tipo como fallback) ──
-          'EBIP7_C':['NomeInformante','Informante'],
-          'EBIP7_J':['NomeInformante','NomeCriança','Informante'],
-          // ── LOI-CV · autorrelato (nome primeiro; tipo como fallback) ──
-          'LOI_CV':['NomeInformante','NomeCriança','Informante'],
-          'COIS_RC':['NomeInformante','NomeCriança','Informante'],
-          'COIS_RP':['NomeInformante','Informante'],
-          // ── CGI · heteroavaliação clínica (nome primeiro; tipo depois) ──
-          'CGI':['NomeInformante','Informante'],
-          // ── QPTMV · heterorrelato parental (nome primeiro; tipo depois) ──
-          'QPTMV':['NomeInformante','Informante'],
-          // ── EQVA-41 · autorrelato (nome primeiro; tipo como fallback) ──
-          'EQVA41':['NomeInformante','NomeJovem','Informante'],
-          // ── QUP-T · três abas (nome primeiro; tipo como fallback) ──
-          'QUPT_J':['NomeInformante','NomeCriança','Relação'],
-          'QUPT_I':['NomeInformante','NomeCriança','Relação'],
-          'QUPT_P':['NomeInformante','NomeCriança','Relação'],
-          // ── YGTSS e CY-BOCS · v129 (nome primeiro; tipo como fallback) ──
-          'YGTSS':['NomeInformante','NomeCriança','Informante'],
-          'CYBOCS':['NomeInformante','NomeCriança','Informante'],
-          // ── USP-SPS · aplicação mediada (nome primeiro; tipo como fallback) ──
-          'USP_SPS':['NomeInformante','NomeCriança','Informante'],
-          // ── RDP-RC · Registo Diário Prospetivo (autorrelato; nome primeiro) ──
-          'RDP_RC':['NomeUtente','NomeInformante'],
-          // ── AASP · autorrelato (nome primeiro; tipo como fallback) ──
-          'AASP':['NomeInformante','NomeUtente','Informante'],
-          // ── Família EIF · as duas formas partilham a aba (nome primeiro) ──
-          'EIFP':['NomeInformante','NomeCriança','Informante'],
-          'EIFA':['NomeInformante','NomeUtente','Informante'],
-          'EIFJ':['NomeInformante','NomeUtente','Informante'],
-          // ── EII-PT · autorrelato, Formas A e J na mesma aba (nome primeiro) ──
-          'EII27':['NomeInformante','NomeUtente','Informante'],
-          'EII12':['NomeInformante','NomeUtente','Informante'],
-          // ── PSWQ · autorrelato (nome primeiro; tipo como fallback) ──
-          'PSWQ':['NomeInformante','Informante'],
-          // ── ESS · Escala de Sonolência de Epworth (autorrelato; nome primeiro, tipo como fallback) ──
-          'ESS_Epworth':['NomeInformante','Informante'],
-          // ── STOP-BANG · ficha de cotação clínica (nome primeiro; tipo como fallback) ──
-          'STOPBANG':['NomeInformante','Informante'],
-          // ── BAI e BDI-II · autorrelato (nome primeiro; tipo como fallback) ──
-          'BAI':['NomeInformante','Informante'],
-          'BDI2':['NomeInformante','Informante'],
-          // ── SIAS · SPS · Ansiedade Social (autorrelato; nome primeiro) ──
-          'SIAS_SPS':['NomeInformante','NomeAvaliado','Informante'],
-          // ── DIVA-5 · entrevista com três informadores (v112.0) ──
-          // A coluna do NOME do respondente chama-se 'Respondente' (não
-          // 'NomeInformante'): sem esta entrada o instrumento nunca passa
-          // a «Preenchido ✓». O nome vem primeiro porque o próprio, o
-          // parceiro e os pais submetem com o MESMO código, muitas vezes
-          // no mesmo dia — só o nome os distingue.
-          'DIVA5':['Respondente','Relação'],
-          // ── GCSA · Seletividade Alimentar (nome primeiro; tipo como fallback) ──
-          'GCSA':['NomeInformante','Informante'],
-          'GCSA_Diario':['NomeInformante','Informante'],
-          // ── CAPS-22 · autorrelato (respondente = a própria criança; nome primeiro) ──
-          'CAPS22':['NomeInformante','NomeCriança','NomeCrianca','Informante'],
-          // ── CAPS-PR · heterorrelato parental (nome primeiro; tipo como fallback) ──
-          'CAPS_PR':['NomeInformante','Informante'],
-          // ── PDRA-9/C · autorrelato (respondente = a própria criança; nome primeiro) ──
-          'PDRA9_C':['NomeInformante','NomeCriança','NomeCrianca','Informante'],
-          // ── PDRA-9/P · heterorrelato parental (nome primeiro; tipo como fallback) ──
-          'PDRA9_P':['NomeInformante','Informante'],
-          // ── QCF-P · Comportamento Fraterno, parental (nome primeiro; tipo como fallback) ──
-          'QCFP':['NomeInformante','Informante'],
-          // ── QRF-C · Relação Fraterna (autorrelato: respondente = a própria criança) ──
-          'QRFC':['NomeInformante','NomeCriança','NomeCrianca'],
-          // ── CBQ-SF · Temperamento (nome primeiro; tipo como fallback) ──
-          // Mãe e pai podem preencher no mesmo dia para a mesma criança: sem o nome
-          // como primeiro discriminante, a segunda submissão não é reconhecida.
-          'CBQ_SF':['NomeInformante','Informante'],
-          // ── QCVE-P · Comportamento Verbal Escolar (nome primeiro; tipo como fallback) ──
-          'QCVEP_PROF':['NomeInformante','Informante'],
-          // ── SMQ · Mutismo Seletivo (nome primeiro; tipo/relação como fallback) ──
-          'SMQ_Pais':['NomeInformante','Relação','Informante'],
-          'SMQ_Prof':['NomeInformante','Relação','Informante'],
-          // ── Diário de Episódios · Monitorização (nome primeiro, tipo como fallback) ──
-          'DIARIO_EPISODIOS':['NomeInformante','Informante'],
-          // ── Anamnese Parental Complementar · Anamnese (nome primeiro, tipo como fallback) ──
-          'ANAMNESE_PARENTAL_COMPLEMENTAR':['NomeInformante','Informante'],
-          'SWAN':['Informante'],'SRS2_IE_Pais':['Respondente'],'SRS2_IE_Prof':['Respondente'],
-          'TRF_618':['NomePreenche','PreenchidoPor'],'CBCL_618':['NomePreenche','PreenchidoPor'],'CBCL_15':['NomeInformante','Informante'],
-          'CTRF_15':['Informante'],'BRIEF_Pais':['NomeRespondente'],'BRIEF_Professores':['Professor'],
-          'SCARED_R_CRIANCA':['NomeInformante'],'SCARED_R_PAIS':['NomeInformante'],
-          'SPAS_Pais':['NomeInformante'],'SPAS_Prof':['NomeInformante'],
-          'ABAS3_PAIS':['NomeCrianca','NomeInformante'],'ABAS3_PROF':['NomeCrianca','NomeInformante'],'ABAS3_ADULT':['NomeCrianca','NomeInformante'],'ABAS3_05':['Informante'],'ABAS3_05P':['Informante'],'QEDP':['Informante','NomeInformante'],
-          'QC_Coparentalidade':['NomeRespondente','Respondente'],
-          // ── FACES-IV adap — autorrelato familiar (dedupe por respondente + relação) ──
-          'FACES_IV_adap':['NomeRespondente','Relação'],
-          // ── CABS Auto/Hetero — Comportamento Assertivo (nome primeiro, tipo como fallback) ──
-          'CABS_Auto':['NomeInformante','Informante'],
-          'CABS_Hetero':['NomeInformante','Informante'],
-          // ── SPPA — bateria única (autorrelato do jovem) ──
-          'SPPA':['NomeInformante','NomeJovem'],
-          // ── SPPC (autorrelato da criança) e Escala do Professor ──
-          'SPPC':['NomeInformante','NomeCriança'],
-          'SPPC_Professor':['NomeInformante','Informante'],
-          // ── SPPLD (autorrelato do aluno) ──
-          'SPPLD':['NomeInformante','NomeAluno'],
-          // ── SPPCS (autorrelato do estudante universitario) ──
-          'SPPCS':['NomeInformante','NomeEstudante'],
-          // ── EPCAS-PE (administração pelo examinador) ──
-          'EPCAS_PE':['NomeInformante','Informante'],
-          // ── MABC-2 Lista de Verificação (heteroavaliação: professor/educador/pais) ──
-          'MABC2_Checklist':['NomeInformante','Relação','Informante'],
-          'IPP_R':['NomeRespondente'],
-          'SDS_Holland':['NomeCriança'],
-          'NEOPIR':['NomeInformante'],
-          'PPGRJ':['NomeRespondente','NomeCriança','NomeCrianca'],
-          'CCBQ':['NomeRespondente','NomeCriança','NomeCrianca'],
-          // ── Kidcope — auto-resposta (criança/adolescente) ──────────
-          'KIDCOPE_CR':['NomeInformante','NomeCriança','NomeCrianca'],
-          'KIDCOPE_AD':['NomeInformante','NomeCriança','NomeCrianca'],
-          // ── Anamnese — História Prévia (Ricardina Correia, 2026) ──
-          'ANAMNESE_HP':['NomeRespondente','Relação'],
-          // ── ISC-24 — múltiplos respondentes possíveis (próprio, pais, EE) ──
-          'ISC24':['NomeRespondente','Relação','NomeCriança','NomeCrianca'],
-          // ── DERS — auto-relato (≥14 anos) ─────────────────────
-          'DERS':['NomeInformante','NomeCriança','NomeCrianca'],
-          // ── COMPA — Escala de Avaliação da Comunicação na Parentalidade (Portugal & Alberto, 2014) ──
-          'COMPA_P':         ['NomeInformante','Relacao'],
-          'COMPA_A_Pai':     ['NomeInformante','NomeCrianca'],
-          'COMPA_A_Mae':     ['NomeInformante','NomeCrianca'],
-          'COMPA_C_Pai':     ['NomeInformante','NomeCrianca'],
-          'COMPA_C_Mae':     ['NomeInformante','NomeCrianca'],
-          // ── CDI-2:SR — auto-relato (criança/adolescente 7–17) ─────
-          'CDI2_SR':         ['NomeInformante','NomeCriança','NomeCrianca'],
-          // ── STAIC C-2 — auto-relato (criança/adolescente 8–17) ─────
-          'STAIC_C2':        ['NomeInformante','NomeCriança','NomeCrianca'],
-          // ── CMAS-R — auto-relato (criança/adolescente 8–17) ─────
-          'CMAS_R':          ['NomeInformante','NomeCriança','NomeCrianca'],
-          // ── FSSC-R — auto-relato (criança/adolescente 8–17) ─────
-          'FSSC_R':          ['NomeInformante','NomeCriança','NomeCrianca'],
-          // ── ChEAT — auto-relato criança 8-13 anos ──
-          'ChEAT':           ['NomeInformante','NomeCriança','NomeCrianca','Informante'],
-          // ── ISS-I / ESI — auto-relato criança 6-14 anos ──
-          'ISS_ESI':         ['NomeInformante','NomeCriança','NomeCrianca','Informante'],
-          // ── C-SSRS-P · Risco Suicidário Pediátrica — Auto+Hetero (Tipo distingue) ──
-          'C_SSRS_P':        ['NomeInformante','Tipo'],
-          // ── C-SSRS-A · Risco Suicidário Adolescente — Só Auto ──
-          'C_SSRS_A':        ['NomeInformante'],
-          // ── C-SSRS-DC · Risco Suicidário Défice Cognitivo — Auto+Hetero (Tipo distingue) ──
-          'C_SSRS_DC':       ['NomeInformante','Tipo'],
-          // ── M-CHAT-R/F · Despiste Precoce de Autismo — sem campo Tipo (parente único informa) ──
-          'M_CHAT_R_F':      ['NomeInformante'],
-          // ── Família CARS2 (v70.0) ──
-          // CARS2-HP — cotação clínica por psicólogo (clinician-rated) ──
-          'CARS2_HP':        ['Psicologo'],
-          // CARS2-QPC — parent/cuidador-completed (pai+mãe podem submeter em separado) ──
-          'CARS2_QPC':       ['NomeInformante','Relacao'],
-          // CARS2-ST — cotação clínica por psicólogo (clinician-rated) ──
-          'CARS2_ST':        ['Psicologo'],
-          // ── UCLA-PTSD Adaptado · clinician-rated (NomeInformante = avaliador) ──
-          'UCLA_PTSD_Adaptado': ['NomeInformante','Avaliador'],
-          // ── ISAS · auto-resposta (adolescente/adulto preenche o próprio) ──
-          'ISAS':            ['NomeInformante','Informante'],
-          // ── FAMÍLIA FASA (Ansiedade · Lebowitz) ──
-          'FASA_Parental':         ['NomeInformante','Relação','Relacao'],
-          'FASA_CR_Infancia':      ['NomeInformante','Acompanhamento'],
-          'FASA_CR_Adolescencia':  ['NomeInformante','Contexto'],
-          // ── FAMÍLIA FAS (TOC pediátrico · Calvocoressi/Flessner) ──
-          'FAS_Parental':          ['NomeInformante','Relação','Relacao'],
-          'FAS_CR_Infancia':       ['NomeInformante','Acompanhamento'],
-          'FAS_CR_Adolescencia':   ['NomeInformante','Contexto'],
-          // RSES — Auto-Estima de Rosenberg (autorrelato adolescentes) v28
-          'RSES':                  ['NomeRespondente'],
-          // RBS-R — Comportamentos Repetitivos (vários respondentes: Informante distingue Mãe/Pai/Professor/Clínico) v29
-          'RBS_R':                 ['NomeInformante','Informante'],
-          // PSI-4 adap — Stress Parental (vários respondentes: Informante distingue Mãe/Pai/Cuidador) v30
-          'PSI4_adap':             ['NomeInformante','Informante'],
-          // SNAP-IV — vários respondentes possíveis (Informante distingue Pais/Professores) v81
-          'SNAP_IV':               ['NomeInformante','Informante'],
-          // Entrevista adaptada CAARMS — aplicada pela psicóloga (NomeInformante = avaliador(a))
-          'CAARMS_ADAP':           ['NomeInformante','Informante'],
-          // Prova «O Cuidar e a Integridade do Corpo» — aplicada pela psicóloga (NomeInformante = avaliador(a))
-          'CUIDAR_CORPO':          ['NomeInformante','Informante'],
-          // CSAS / CSAS-P · Ansiedade de Separação (nome primeiro; tipo/relação como fallback)
-          'CSAS':                  ['NomeInformante','Informante'],
-          'CSAS_P':                ['NomeInformante','Relação','Informante']
-        };
-        const RC2 = {
-          'SWAN':['Relação'],'BRIEF_Pais':['Relação'],'SCARED_R_PAIS':['Relação'],
-          'SPAS_Pais':['Relação'],'SPAS_Prof':['Relação'],'QC_Coparentalidade':['Respondente'],
-          'CSAS_P':['Relação']
-        };
-        function sm(a,b){if(!a||!b)return false;return a.includes(b)||b.includes(a)||
-          a.split(/[\s\/\(\)]+/).some(w=>w.length>3&&b.includes(w))||
-          b.split(/[\s\/\(\)]+/).some(w=>w.length>3&&a.includes(w));}
-        const nCols=NC2[aba2]||[]; const rCols=RC2[aba2]||[];
-        if(nCols.length===0&&rCols.length===0) return true;
-        const nVals=nCols.map(c=>String(row[c]||'').toLowerCase().trim()).filter(Boolean);
-        if(nVals.length>0) return nVals.some(v=>sm(v,recip));
-        const rVals=rCols.map(c=>String(row[c]||'').toLowerCase().trim()).filter(Boolean);
-        if(rVals.length>0) return rVals.some(v=>sm(v,recip));
-        return false;
-      }
-      const found = sheetData[aba].some(row => {
-        const rowCod = String(row['Código'] || row['Codigo'] || row['codigo'] || row['Código Paciente'] || row['patientCode'] || '').trim().toUpperCase();
-        if(rowCod !== patUpper) return false;
-        if(!rowNaoAnteriorAtribuicao(row, a)) return false; // reaplicação: ignora respostas anteriores à atribuição
-        return matchResp2(row, aba, smRecip);
-      });
-      if(found) {
-        assignments[idx].status = 'received';
-        if(!assignments[idx].sentAt) assignments[idx].sentAt = new Date().toISOString();
-        assignments[idx].receivedAt = new Date().toISOString();
-        store.set('assignments_' + patientId, assignments);
+    // Resposta anterior ao pedido, ainda não usada por nenhuma aplicação: confirmação manual
+    const cand = rcRespostaAnterior(patientId, idx, sheetData);
+    if(cand && confirm('Existe uma resposta registada em ' + rcFmtDia(cand.dia) + ', anterior a este pedido.\nConsiderá-la como resposta a esta aplicação?\n\n(Cancelar: a aplicação continua por preencher.)')) {
+      const lista = store.get('assignments_' + patientId) || [];
+      if(lista[idx]) {
+        lista[idx].rowKey = cand.key;
+        lista[idx].status = 'received';
+        lista[idx].manual = true;
+        if(!lista[idx].sentAt) lista[idx].sentAt = lista[idx].assignedAt || new Date().toISOString();
+        lista[idx].receivedAt = rcMeioDia(cand.dia);
+        store.set('assignments_' + patientId, lista);
         renderAssignments(patientId);
         renderPatients(document.getElementById('search-input')?.value || '');
         return;
@@ -8649,7 +8573,8 @@ function setStatus(patientId, idx, status) {
   if(assignments[idx]) {
     assignments[idx].status = status;
     if(status === 'sent')     assignments[idx].sentAt     = new Date().toISOString();
-    if(status === 'received') assignments[idx].receivedAt = new Date().toISOString();
+    if(status === 'received') { assignments[idx].receivedAt = new Date().toISOString(); assignments[idx].manual = true; }
+    if(status === 'pending') { delete assignments[idx].rowKey; delete assignments[idx].manual; }
   }
   store.set('assignments_' + patientId, assignments);
   renderAssignments(patientId);
@@ -9307,6 +9232,8 @@ async function checkReceivedQuestionnaires() {
 
   const patients = getAllPatients();
   patients.forEach(p => {
+    // v149: reconciliação 1 resposta ↔ 1 aplicação (Sheet) antes de qualquer fallback local
+    rcReconciliar(p.id, sheetData);
     const assignments = store.get('assignments_' + p.id) || [];
     let changed = false;
 
@@ -9323,11 +9250,10 @@ async function checkReceivedQuestionnaires() {
         const q = store.get('q_' + a.qid);
         if(q && q.syncKey) aba = SYNC_KEY_TO_ABA[q.syncKey];
       }
-      if(aba && sheetData[aba]) {
-        found = sheetData[aba].some(row =>
-          String(row['Código'] || row['Codigo'] || row['codigo'] || row['Código Paciente'] || row['patientCode'] || '') === String(p.code)
-        );
-      }
+      // v149: com dados do Sheet, só a reconciliação decide; sem Sheet, o fallback local não
+      // pode dar uma REAPLICAÇÃO como preenchida (a sessão local é da aplicação anterior).
+      if(aba && sheetData[aba]) return;
+      if(rcEhReaplicacao(assignments, a)) return;
 
       // ── 2. localStorage local (fallback / offline) ──
       if(!found && q.syncKey) {
