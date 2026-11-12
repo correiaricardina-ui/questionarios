@@ -4,6 +4,118 @@
 // Versão 72.0 — maio 2026
 //
 // ════════════════════════════════════════════════════════════════════════
+// ALTERAÇÕES v148.0 — ChEDE (Child Eating Disorder Examination; Bryant-Waugh,
+//   Cooper, Taylor & Lask, 1996) · entrevista semi-estruturada administrada pela
+//   psicóloga · 23 itens cotados (0–6) + 6 itens diagnósticos (E1–E6, Sim/Não).
+//   Subescalas (média dos itens): Restraint (itens 1–5), Eating Concern (6–10),
+//   Weight Concern (11–15), Shape Concern (16–23). Global = média das 4 médias.
+//   · HEADERS['CHEDE'] — 24 colunas: Data, Código, NomeCriança, Informante,
+//     NomeInformante, Sexo, Sessao, Peso, Altura, Restraint, EatingConcern,
+//     WeightConcern, ShapeConcern, Global, Nivel_Global, E1_OBE, E2_SBE,
+//     E3_Vomito, E4_Laxantes, E5_Exercicio, E6_Restricao, Diagnosticos (JSON),
+//     Notas (JSON) e Respostas (JSON). 'Informante' = «Paciente»; NomeInformante
+//     repete o nome do paciente (a entrevista é respondida pela criança).
+//   · ABA — aliases 'CHEDE', 'chede', 'ChEDE' e 'ChEDE_v1'.
+//   · DEDUPE_KEYS['CHEDE'] — chave de QUATRO elementos (Secção 33): Código +
+//     Data + Informante + NomeInformante (aliases já existentes).
+//   · buildRow['CHEDE'] — ramo próprio, guarda != null (o ZERO é resultado
+//     clínico: subescala 0,00).
+//   · doPost — garantirColunaTexto_ em Peso, Altura e nas cinco colunas de
+//     scores (vírgula decimal), SÓ na aba CHEDE.
+//   · Diff ESTRITAMENTE ADITIVO — nada do v147.0 foi removido ou alterado.
+// ⚠ Todos os outros instrumentos (HEADERS, ABA, buildRow, DEDUPE_KEYS) intactos.
+//
+// ════════════════════════════════════════════════════════════════════════
+// ALTERAÇÕES v147.0 — CPQ (Clinical Perfectionism Questionnaire; Fairburn,
+//   Cooper & Shafran, 2003) · autorrelato · 12 itens (1–4), últimas 4 semanas.
+//   Total 12–48 (soma dos 12 itens; itens 2 e 8 invertidos: 5 − resposta).
+//   F1 (esforço): itens 1, 3, 6, 7, 9, 10, 11 (7–28). F2 (preocupação): itens
+//   2, 4, 5, 8, 12 (5–20), segundo Egan et al. (2016).
+//   · HEADERS['CPQ'] — 11 colunas: Data, Código, NomeCriança, Informante,
+//     NomeInformante, Areas, F1, F2, Total, Nivel_Total, Respostas (JSON).
+//     'Areas' guarda as áreas de vida referidas pelo paciente (texto livre).
+//   · ABA — aliases 'CPQ', 'cpq' e 'CPQ_v1'.
+//   · DEDUPE_KEYS['CPQ'] — chave de QUATRO elementos (Secção 33): Código +
+//     Data + Informante + NomeInformante (aliases já existentes).
+//   · buildRow['CPQ'] — ramo próprio, guarda != null. Scores inteiros.
+//   · Diff ESTRITAMENTE ADITIVO — nada do v146.0 foi removido ou alterado.
+// ⚠ Todos os outros instrumentos (HEADERS, ABA, buildRow, DEDUPE_KEYS) intactos.
+//
+// ════════════════════════════════════════════════════════════════════════
+// ALTERAÇÕES v146.0 — EDSIS (Eating Disorders Symptom Impact Scale; Sepulveda,
+//   Whitney, Hankins & Treasure, 2008) · versão para cuidadores/pais · 24 itens
+//   (0–4), 4 subescalas, Total 0–96 (soma simples, sem itens invertidos).
+//   · HEADERS['EDSIS'] — 16 colunas: Isol_Social, Culpa, Comport_Desreg,
+//     Nutricao, Total, níveis e Respostas em JSON. 'Informante' guarda o grau de
+//     parentesco do cuidador. Todas as colunas de scores são inteiras.
+//   · ABA — aliases 'EDSIS', 'edsis' e 'EDSIS_v1'.
+//   · DEDUPE_KEYS['EDSIS'] — chave de QUATRO elementos (Secção 33): Código +
+//     Data + Informante + NomeInformante (aliases já existentes).
+//   · buildRow['EDSIS'] — ramo próprio, guarda != null (o ZERO é resultado
+//     clínico).
+//   · Subescalas: Isolamento Social 1–4; Culpa 5–9; Comportamento Desregulado
+//     10–13, 17, 19, 20; Nutrição 14–16, 18, 21–24.
+//   · Diff ESTRITAMENTE ADITIVO — nada do v145.0 foi removido ou alterado.
+// ⚠ Todos os outros instrumentos (HEADERS, ABA, buildRow, DEDUPE_KEYS) intactos.
+//
+// ════════════════════════════════════════════════════════════════════════
+// ALTERAÇÕES v145.0 — BECI (Brief Experience of Caregiving Inventory;
+//   O'Driscoll, Farrelly, Burgess, Szmukler & Shaikh, 2018) · questionário do
+//   cuidador · 19 itens (0–4), 4 subescalas, Total 0–76.
+//   · HEADERS['BECI'] — 16 colunas: F1, F2_Inv, F3, F4, Total, níveis e Respostas
+//     em JSON. 'Informante' guarda a relação do respondente (Mãe/Pai/.../Outro
+//     (qual)); 'Coabita' guarda Sim/Não. Todas as colunas de scores são inteiras.
+//   · ABA — aliases 'BECI', 'beci' e 'BECI_v1'.
+//   · DEDUPE_KEYS['BECI'] — chave de QUATRO elementos (Secção 33): Código +
+//     Data + Informante + NomeInformante (aliases já existentes).
+//   · buildRow['BECI'] — ramo próprio, guarda != null (o ZERO é resultado
+//     clínico).
+//   · Cotação: F2 (itens 7–10) é INVERTIDA (4→0) antes de entrar no Total:
+//     Total = F1 + F2_Inv + F3 + F4.
+//   · Diff ESTRITAMENTE ADITIVO — nada do v144.0 foi removido ou alterado.
+// ⚠ Todos os outros instrumentos (HEADERS, ABA, buildRow, DEDUPE_KEYS) intactos.
+//
+// ════════════════════════════════════════════════════════════════════════
+// ALTERAÇÕES v144.0 — EDE-Q 6.0 e EDE-Q-PV (Eating Disorder Examination
+//   Questionnaire; Fairburn & Beglin, 2008) · autorrelato do jovem (aba EDEQ) e
+//   versão para pais/cuidadores (aba EDEQ_PV; P-EDE-Q v2.0, Loeb, 2017).
+//   · HEADERS['EDEQ'] e HEADERS['EDEQ_PV'] — 21 colunas idênticas: Restricao,
+//     Preocup_Alim, Preocup_Figura, Preocup_Peso, Global, Nivel_Global, as
+//     frequências Q13–Q18 (não cotadas), Peso_kg, Altura_cm, Complementar
+//     (JSON; no PV inclui os itens 29–42) e Respostas (JSON).
+//   · ABA — aliases 'EDEQ', 'edeq', 'EDEQ_v1' e 'EDEQ_PV', 'edeq_pv',
+//     'EDEQ_PV_v1'.
+//   · DEDUPE_KEYS — chave de QUATRO elementos (Secção 33): Código + Data +
+//     Informante + NomeInformante (aliases já existentes), nas duas abas.
+//   · buildRow — ramo único para as duas abas, guarda != null (o ZERO é
+//     resultado clínico: subescala 0,00 e frequência 0).
+//   · doPost — garantirColunaTexto_ nas colunas de scores (vírgula decimal),
+//     SÓ nas abas EDEQ e EDEQ_PV.
+//   · Cotação pelo manual oficial (EDE 17.0D): Restrição 1–5; Preocupação com a
+//     Alimentação 7, 9, 19, 20, 21; Preocupação com a Figura 6, 8, 10, 11, 23,
+//     26, 27, 28; Preocupação com o Peso 8, 12, 22, 24, 25; Global = média das
+//     quatro subescalas.
+//   · Diff ESTRITAMENTE ADITIVO — nada do v143.0 foi removido ou alterado.
+// ⚠ Todos os outros instrumentos (HEADERS, ABA, buildRow, DEDUPE_KEYS) intactos.
+//
+// ════════════════════════════════════════════════════════════════════════
+// ALTERAÇÕES v143.0 — AESED (Accommodation and Enabling Scale for Eating
+//   Disorders; Sepulveda, Kyriacou & Treasure, 2009) · questionário do cuidador
+//   · 31 itens (0–4; o item 28 é uma escala 0–10 convertida para 0–4), 5 factores.
+//   · HEADERS['AESED'] — 19 colunas: F1–F5, Total (máx. 124), nível orientativo
+//     por factor, VAS28 e Respostas em JSON. 'Informante' guarda a relação do
+//     respondente (Mãe/Pai/Avó/...).
+//   · ABA — aliases 'AESED', 'aesed' e 'AESED_v1'.
+//   · DEDUPE_KEYS['AESED'] — chave de QUATRO elementos (Secção 33): Código +
+//     Data + Informante + NomeInformante (aliases já existentes).
+//   · buildRow['AESED'] — ramo próprio, guarda != null (o ZERO é resultado
+//     clínico).
+//   · doPost — garantirColunaTexto_ para 'F4' e 'Total' SÓ na aba AESED (chegam
+//     com vírgula decimal).
+//   · Diff ESTRITAMENTE ADITIVO — nada do v142.0 foi removido ou alterado.
+// ⚠ Todos os outros instrumentos (HEADERS, ABA, buildRow, DEDUPE_KEYS) intactos.
+//
+// ════════════════════════════════════════════════════════════════════════
 // ALTERAÇÕES v142.0 — SDQ-Por (Questionário de Capacidades e de Dificuldades)
 //   · 5 versões, 5 abas: SDQ_P24 (Pais 2-4), SDQ_P417 (Pais 4-17), SDQ_T24
 //     (Professores/Educadores 2-4), SDQ_T417 (Professores 4-17), SDQ_A
@@ -2580,6 +2692,62 @@ var HEADERS = {
   //     'Media_Item', 'T_Media', 'T_Desvio', 'F_Media', 'F_Desvio', 'R_Media',
   //     'R_Desvio', 'Media_Controlo', 'Divergencia', 'Carga', 'M_Ref',
   //     'DP_Ref', 'Z' e 'Percentil' (decimais com vírgula).
+  // ── AESED (v143.0) ─────────────────────────────────────────────────────
+  // ⚠ Formatar como TEXTO SIMPLES antes da primeira submissão: 'F4' e 'Total'
+  //   (decimais com vírgula, por causa da conversão do item 28).
+  AESED: [
+    'Data', 'Código', 'NomeCriança', 'Informante', 'NomeInformante',
+    'Diagnóstico', 'F1', 'F2', 'F3', 'F4', 'F5', 'Total',
+    'Nivel_F1', 'Nivel_F2', 'Nivel_F3', 'Nivel_F4', 'Nivel_F5',
+    'VAS28', 'Respostas'
+  ],
+  // ── EDE-Q 6.0 / EDE-Q-PV (v144.0) ──────────────────────────────────────
+  // ⚠ Formatar como TEXTO SIMPLES antes da primeira submissão: 'Restricao',
+  //   'Preocup_Alim', 'Preocup_Figura', 'Preocup_Peso' e 'Global' (decimais
+  //   com vírgula).
+  EDEQ: [
+    'Data', 'Código', 'NomeCriança', 'Informante', 'NomeInformante',
+    'Restricao', 'Preocup_Alim', 'Preocup_Figura', 'Preocup_Peso', 'Global',
+    'Nivel_Global', 'Q13_Episodios', 'Q14_PerdaControlo', 'Q15_Dias',
+    'Q16_Vomitos', 'Q17_Laxantes', 'Q18_Exercicio', 'Peso_kg', 'Altura_cm',
+    'Complementar', 'Respostas'
+  ],
+  EDEQ_PV: [
+    'Data', 'Código', 'NomeCriança', 'Informante', 'NomeInformante',
+    'Restricao', 'Preocup_Alim', 'Preocup_Figura', 'Preocup_Peso', 'Global',
+    'Nivel_Global', 'Q13_Episodios', 'Q14_PerdaControlo', 'Q15_Dias',
+    'Q16_Vomitos', 'Q17_Laxantes', 'Q18_Exercicio', 'Peso_kg', 'Altura_cm',
+    'Complementar', 'Respostas'
+  ],
+  // ── BECI · Brief Experience of Caregiving Inventory (v145.0) ───────────
+  BECI: [
+    'Data', 'Código', 'NomeCriança', 'Informante', 'NomeInformante', 'Coabita',
+    'F1', 'F2_Inv', 'F3', 'F4', 'Total',
+    'Nivel_Total', 'Nivel_F1', 'Nivel_F3', 'Nivel_F4', 'Respostas'
+  ],
+  // ── EDSIS · Eating Disorders Symptom Impact Scale (v146.0) ──────────────
+  EDSIS: [
+    'Data', 'Código', 'NomeCriança', 'Informante', 'NomeInformante',
+    'Isol_Social', 'Culpa', 'Comport_Desreg', 'Nutricao', 'Total',
+    'Nivel_Total', 'Nivel_Isol', 'Nivel_Culpa', 'Nivel_Desreg', 'Nivel_Nutricao',
+    'Respostas'
+  ],
+  // ── ChEDE · Child Eating Disorder Examination (v148.0) ──────────────────
+  // ⚠ Formatar como TEXTO SIMPLES antes da primeira submissão: 'Peso', 'Altura',
+  //   'Restraint', 'EatingConcern', 'WeightConcern', 'ShapeConcern', 'Global'
+  //   (vírgula decimal; ver garantirColunaTexto_ em doPost).
+  CHEDE: [
+    'Data', 'Código', 'NomeCriança', 'Informante', 'NomeInformante',
+    'Sexo', 'Sessao', 'Peso', 'Altura',
+    'Restraint', 'EatingConcern', 'WeightConcern', 'ShapeConcern', 'Global', 'Nivel_Global',
+    'E1_OBE', 'E2_SBE', 'E3_Vomito', 'E4_Laxantes', 'E5_Exercicio', 'E6_Restricao',
+    'Diagnosticos', 'Notas', 'Respostas'
+  ],
+  // ── CPQ · Clinical Perfectionism Questionnaire (v147.0) ─────────────────
+  CPQ: [
+    'Data', 'Código', 'NomeCriança', 'Informante', 'NomeInformante', 'Areas',
+    'F1', 'F2', 'Total', 'Nivel_Total', 'Respostas'
+  ],
   EIR14: [
     'Data', 'Código', 'NomeCriança', 'Idade', 'Sexo',
     'Informante', 'NomeInformante', 'Momento',
@@ -5415,6 +5583,40 @@ var ABA = {
   'EAFECA_T':    'EAFECA_T',
   'eafeca_t':    'EAFECA_T',
   'EAFECA_Prof': 'EAFECA_T',
+  // ── AESED · Accommodation and Enabling Scale for Eating Disorders (v143.0) ──
+  // Uma forma, uma aba. Nenhum alias existente foi tocado.
+  'AESED':       'AESED',
+  'aesed':       'AESED',
+  'AESED_v1':    'AESED',
+  // ── EDE-Q 6.0 / EDE-Q-PV (v144.0) ──────────────────────────────────────
+  // Duas formas, duas abas. Nenhum alias existente foi tocado.
+  'EDEQ':        'EDEQ',
+  'edeq':        'EDEQ',
+  'EDEQ_v1':     'EDEQ',
+  'EDEQ_PV':     'EDEQ_PV',
+  'edeq_pv':     'EDEQ_PV',
+  'EDEQ_PV_v1':  'EDEQ_PV',
+  // ── BECI · Brief Experience of Caregiving Inventory (v145.0) ───────────
+  // Uma forma, uma aba. Nenhum alias existente foi tocado.
+  'BECI':        'BECI',
+  'beci':        'BECI',
+  'BECI_v1':     'BECI',
+  // ── EDSIS · Eating Disorders Symptom Impact Scale (v146.0) ──────────────
+  // Uma forma, uma aba. Nenhum alias existente foi tocado.
+  'EDSIS':       'EDSIS',
+  'edsis':       'EDSIS',
+  'EDSIS_v1':    'EDSIS',
+  // ── ChEDE · Child Eating Disorder Examination (v148.0) ──────────────────
+  // Uma forma, uma aba. Nenhum alias existente foi tocado.
+  'CHEDE':       'CHEDE',
+  'chede':       'CHEDE',
+  'ChEDE':       'CHEDE',
+  'ChEDE_v1':    'CHEDE',
+  // ── CPQ · Clinical Perfectionism Questionnaire (v147.0) ─────────────────
+  // Uma forma, uma aba. Nenhum alias existente foi tocado.
+  'CPQ':         'CPQ',
+  'cpq':         'CPQ',
+  'CPQ_v1':      'CPQ',
   // ── EIR-14 · Escala de Irritabilidade (v137.0) ─────────────────────────
   // Uma forma, uma aba. Nenhum alias existente foi tocado.
   'EIR14':       'EIR14',
@@ -6589,6 +6791,25 @@ var DEDUPE_KEYS = {
   // a chave preserva reavaliações em datas distintas e é idempotente em
   // re-sincronizações.
   'EIR14':             ['Código', 'Data', 'PreenchidoPor', 'NomePreenche'],
+  // AESED (v143.0) — dedupe de 4 elementos (Secção 33): código + data + relação
+  // do respondente + nome (aliases 'Informante' / 'NomeInformante').
+  'AESED':             ['Código', 'Data', 'PreenchidoPor', 'NomePreenche'],
+  // EDE-Q / EDE-Q-PV (v144.0) — dedupe de 4 elementos (Secção 33): código + data
+  // + relação do respondente + nome (aliases 'Informante' / 'NomeInformante').
+  'EDEQ':              ['Código', 'Data', 'PreenchidoPor', 'NomePreenche'],
+  'EDEQ_PV':           ['Código', 'Data', 'PreenchidoPor', 'NomePreenche'],
+  // BECI (v145.0) — dedupe de 4 elementos (Secção 33): código + data + relação
+  // do respondente + nome (aliases 'Informante' / 'NomeInformante').
+  'BECI':              ['Código', 'Data', 'PreenchidoPor', 'NomePreenche'],
+  // EDSIS (v146.0) — dedupe de 4 elementos (Secção 33): código + data + grau de
+  // parentesco + nome (aliases 'Informante' / 'NomeInformante').
+  'EDSIS':             ['Código', 'Data', 'PreenchidoPor', 'NomePreenche'],
+  // CPQ (v147.0) — dedupe de 4 elementos (Secção 33): código + data + relação +
+  // nome (aliases 'Informante' / 'NomeInformante').
+  'CPQ':               ['Código', 'Data', 'PreenchidoPor', 'NomePreenche'],
+  // ChEDE (v148.0) — dedupe de 4 elementos (Secção 33): código + data + relação +
+  // nome (aliases 'Informante' / 'NomeInformante').
+  'CHEDE':             ['Código', 'Data', 'PreenchidoPor', 'NomePreenche'],
   // EAIR (v136.0) — dedupe de 4 elementos (Secção 33) nas quatro abas: código +
   // data + tipo de respondente + nome. As colunas chamam-se 'Informante' e
   // 'NomeInformante' e resolvem pelos DEDUPE_ALIASES já existentes
@@ -7120,6 +7341,9 @@ function doPost(e) {
     if (abaNome === 'DIVA5') garantirColunaTexto_(sh, 'Respostas');
     if (abaNome === 'PHQ15_P' || abaNome === 'PHQ15_J' || abaNome === 'PHQ15_A') garantirColunaTexto_(sh, 'Prop');
     if (abaNome === 'Vanderbilt_Pais' || abaNome === 'Vanderbilt_Prof') garantirColunaTexto_(sh, 'Func_Media');
+    if (abaNome === 'AESED') { garantirColunaTexto_(sh, 'F4'); garantirColunaTexto_(sh, 'Total'); }
+    if (abaNome === 'CHEDE') { ['Peso', 'Altura', 'Restraint', 'EatingConcern', 'WeightConcern', 'ShapeConcern', 'Global'].forEach(function (c) { garantirColunaTexto_(sh, c); }); }
+    if (abaNome === 'EDEQ' || abaNome === 'EDEQ_PV') { ['Restricao', 'Preocup_Alim', 'Preocup_Figura', 'Preocup_Peso', 'Global'].forEach(function (c) { garantirColunaTexto_(sh, c); }); }
 
     var updated = false;
     if (DEDUPE_KEYS[abaNome]) {
@@ -7452,6 +7676,224 @@ function buildRow(abaNome, d) {
       _e14V(d.s3, d.S3),
       _e14V(d.s4, d.S4),
       _e14Resp
+    ];
+  }
+
+  // ── AESED · Accommodation and Enabling Scale for Eating Disorders (v143.0) ─
+  // Ordem das colunas idêntica à de HEADERS['AESED'] (19) — validada por posição.
+  // ⚠ Guarda != null OBRIGATÓRIA (nunca ||): o ZERO é resultado clínico em todos
+  //   os factores e no Total (ausência declarada de acomodação/facilitação);
+  //   (x||'') tornaria indistinguível o protocolo negativo do protocolo por cotar.
+  // ⚠ 'F4' e 'Total' chegam como texto com vírgula decimal (item 28 convertido
+  //   de 0–10 para 0–4) — têm de estar formatadas como Texto simples.
+  if (abaNome === 'AESED') {
+    var _aeV = function (a, b) {
+      if (a !== undefined && a !== null) return a;
+      if (b !== undefined && b !== null) return b;
+      return '';
+    };
+    var _aeResp = (typeof d.Respostas === 'string') ? d.Respostas
+                : ((typeof d.respostas === 'string') ? d.respostas
+                : JSON.stringify(d.Respostas || d.respostas || d.answers || {}));
+    return [
+      hoje,
+      cod,
+      _aeV(d.nomeCrianca, d.NomeCriança !== undefined ? d.NomeCriança : nome),
+      _aeV(d.informante, d.Informante),
+      _aeV(d.nome_informante, d.NomeInformante),
+      _aeV(d.diagnostico, d.Diagnóstico),
+      _aeV(d.f1, d.F1),
+      _aeV(d.f2, d.F2),
+      _aeV(d.f3, d.F3),
+      _aeV(d.f4, d.F4),
+      _aeV(d.f5, d.F5),
+      _aeV(d.total, d.Total),
+      _aeV(d.nivel_f1, d.Nivel_F1),
+      _aeV(d.nivel_f2, d.Nivel_F2),
+      _aeV(d.nivel_f3, d.Nivel_F3),
+      _aeV(d.nivel_f4, d.Nivel_F4),
+      _aeV(d.nivel_f5, d.Nivel_F5),
+      _aeV(d.vas28, d.VAS28),
+      _aeResp
+    ];
+  }
+
+  // ── EDE-Q 6.0 / EDE-Q-PV (v144.0) ─────────────────────────────────────────
+  // Ordem das colunas idêntica à de HEADERS['EDEQ'] / HEADERS['EDEQ_PV'] (21).
+  // ⚠ Guarda != null OBRIGATÓRIA (nunca ||): o ZERO é resultado clínico (subescala
+  //   0,00; frequência 0 = comportamento ausente) e não pode ficar indistinguível
+  //   de um protocolo por cotar.
+  // ⚠ As cinco colunas de scores chegam como texto com vírgula decimal.
+  if (abaNome === 'EDEQ' || abaNome === 'EDEQ_PV') {
+    var _edV = function (a, b) {
+      if (a !== undefined && a !== null) return a;
+      if (b !== undefined && b !== null) return b;
+      return '';
+    };
+    var _edResp = (typeof d.Respostas === 'string') ? d.Respostas
+                : ((typeof d.respostas === 'string') ? d.respostas
+                : JSON.stringify(d.Respostas || d.respostas || d.answers || {}));
+    var _edComp = (typeof d.Complementar === 'string') ? d.Complementar
+                : ((typeof d.complementar === 'string') ? d.complementar
+                : JSON.stringify(d.Complementar || d.complementar || {}));
+    return [
+      hoje,
+      cod,
+      _edV(d.nomeCrianca, d.NomeCriança !== undefined ? d.NomeCriança : nome),
+      _edV(d.informante, d.Informante),
+      _edV(d.nome_informante, d.NomeInformante),
+      _edV(d.restricao, d.Restricao),
+      _edV(d.preocup_alim, d.Preocup_Alim),
+      _edV(d.preocup_figura, d.Preocup_Figura),
+      _edV(d.preocup_peso, d.Preocup_Peso),
+      _edV(d.global, d.Global),
+      _edV(d.nivel_global, d.Nivel_Global),
+      _edV(d.q13, d.Q13_Episodios),
+      _edV(d.q14, d.Q14_PerdaControlo),
+      _edV(d.q15, d.Q15_Dias),
+      _edV(d.q16, d.Q16_Vomitos),
+      _edV(d.q17, d.Q17_Laxantes),
+      _edV(d.q18, d.Q18_Exercicio),
+      _edV(d.peso_kg, d.Peso_kg),
+      _edV(d.altura_cm, d.Altura_cm),
+      _edComp,
+      _edResp
+    ];
+  }
+
+  // ── BECI · Brief Experience of Caregiving Inventory (v145.0) ──────────────
+  // Ordem das colunas idêntica à de HEADERS['BECI'] (16) — validada por posição.
+  // ⚠ Guarda != null OBRIGATÓRIA (nunca ||): o ZERO é resultado clínico (subescala
+  //   ou total a zero) e não pode ficar indistinguível de um protocolo por cotar.
+  if (abaNome === 'BECI') {
+    var _bcV = function (a, b) {
+      if (a !== undefined && a !== null) return a;
+      if (b !== undefined && b !== null) return b;
+      return '';
+    };
+    var _bcResp = (typeof d.Respostas === 'string') ? d.Respostas
+                : ((typeof d.respostas === 'string') ? d.respostas
+                : JSON.stringify(d.Respostas || d.respostas || d.answers || {}));
+    return [
+      hoje,
+      cod,
+      _bcV(d.nomeCrianca, d.NomeCriança !== undefined ? d.NomeCriança : nome),
+      _bcV(d.informante, d.Informante),
+      _bcV(d.nome_informante, d.NomeInformante),
+      _bcV(d.coabita, d.Coabita),
+      _bcV(d.f1, d.F1),
+      _bcV(d.f2_inv, d.F2_Inv),
+      _bcV(d.f3, d.F3),
+      _bcV(d.f4, d.F4),
+      _bcV(d.total, d.Total),
+      _bcV(d.nivel_total, d.Nivel_Total),
+      _bcV(d.nivel_f1, d.Nivel_F1),
+      _bcV(d.nivel_f3, d.Nivel_F3),
+      _bcV(d.nivel_f4, d.Nivel_F4),
+      _bcResp
+    ];
+  }
+
+  // ── EDSIS · Eating Disorders Symptom Impact Scale (v146.0) ────────────────
+  // Ordem das colunas idêntica à de HEADERS['EDSIS'] (16) — validada por posição.
+  // ⚠ Guarda != null OBRIGATÓRIA (nunca ||): o ZERO é resultado clínico (subescala
+  //   ou total a zero) e não pode ficar indistinguível de um protocolo por cotar.
+  if (abaNome === 'EDSIS') {
+    var _edsV = function (a, b) {
+      if (a !== undefined && a !== null) return a;
+      if (b !== undefined && b !== null) return b;
+      return '';
+    };
+    var _edsResp = (typeof d.Respostas === 'string') ? d.Respostas
+                 : ((typeof d.respostas === 'string') ? d.respostas
+                 : JSON.stringify(d.Respostas || d.respostas || d.answers || {}));
+    return [
+      hoje,
+      cod,
+      _edsV(d.nomeCrianca, d.NomeCriança !== undefined ? d.NomeCriança : nome),
+      _edsV(d.informante, d.Informante),
+      _edsV(d.nome_informante, d.NomeInformante),
+      _edsV(d.isol_social, d.Isol_Social),
+      _edsV(d.culpa, d.Culpa),
+      _edsV(d.comport_desreg, d.Comport_Desreg),
+      _edsV(d.nutricao, d.Nutricao),
+      _edsV(d.total, d.Total),
+      _edsV(d.nivel_total, d.Nivel_Total),
+      _edsV(d.nivel_isol, d.Nivel_Isol),
+      _edsV(d.nivel_culpa, d.Nivel_Culpa),
+      _edsV(d.nivel_desreg, d.Nivel_Desreg),
+      _edsV(d.nivel_nutricao, d.Nivel_Nutricao),
+      _edsResp
+    ];
+  }
+
+  // ── ChEDE · Child Eating Disorder Examination (v148.0) ────────────────────
+  // Ordem das colunas idêntica à de HEADERS['CHEDE'] (24) — validada por posição.
+  // ⚠ Guarda != null OBRIGATÓRIA (nunca ||): o ZERO é resultado clínico.
+  if (abaNome === 'CHEDE') {
+    var _chV = function (a, b) {
+      if (a !== undefined && a !== null) return a;
+      if (b !== undefined && b !== null) return b;
+      return '';
+    };
+    var _chJ = function (a, b) {
+      if (typeof a === 'string') return a;
+      if (typeof b === 'string') return b;
+      var o = (a !== undefined && a !== null) ? a : b;
+      return (o !== undefined && o !== null) ? JSON.stringify(o) : '';
+    };
+    return [
+      hoje,
+      cod,
+      _chV(d.nomeCrianca, d.NomeCriança !== undefined ? d.NomeCriança : nome),
+      _chV(d.informante, d.Informante),
+      _chV(d.nome_informante, d.NomeInformante),
+      _chV(d.sexo, d.Sexo),
+      _chV(d.sessao, d.Sessao),
+      _chV(d.peso, d.Peso),
+      _chV(d.altura, d.Altura),
+      _chV(d.restraint, d.Restraint),
+      _chV(d.eating_concern, d.EatingConcern),
+      _chV(d.weight_concern, d.WeightConcern),
+      _chV(d.shape_concern, d.ShapeConcern),
+      _chV(d.global, d.Global),
+      _chV(d.nivel_global, d.Nivel_Global),
+      _chV(d.e1, d.E1_OBE),
+      _chV(d.e2, d.E2_SBE),
+      _chV(d.e3, d.E3_Vomito),
+      _chV(d.e4, d.E4_Laxantes),
+      _chV(d.e5, d.E5_Exercicio),
+      _chV(d.e6, d.E6_Restricao),
+      _chJ(d.diagnosticos, d.Diagnosticos),
+      _chJ(d.notas, d.Notas),
+      _chJ(d.respostas, d.Respostas || d.answers)
+    ];
+  }
+
+  // ── CPQ · Clinical Perfectionism Questionnaire (v147.0) ───────────────────
+  // Ordem das colunas idêntica à de HEADERS['CPQ'] (11) — validada por posição.
+  // ⚠ Guarda != null OBRIGATÓRIA (nunca ||).
+  if (abaNome === 'CPQ') {
+    var _cpqV = function (a, b) {
+      if (a !== undefined && a !== null) return a;
+      if (b !== undefined && b !== null) return b;
+      return '';
+    };
+    var _cpqResp = (typeof d.Respostas === 'string') ? d.Respostas
+                 : ((typeof d.respostas === 'string') ? d.respostas
+                 : JSON.stringify(d.Respostas || d.respostas || d.answers || {}));
+    return [
+      hoje,
+      cod,
+      _cpqV(d.nomeCrianca, d.NomeCriança !== undefined ? d.NomeCriança : nome),
+      _cpqV(d.informante, d.Informante),
+      _cpqV(d.nome_informante, d.NomeInformante),
+      _cpqV(d.areas, d.Areas),
+      _cpqV(d.f1, d.F1),
+      _cpqV(d.f2, d.F2),
+      _cpqV(d.total, d.Total),
+      _cpqV(d.nivel_total, d.Nivel_Total),
+      _cpqResp
     ];
   }
 
