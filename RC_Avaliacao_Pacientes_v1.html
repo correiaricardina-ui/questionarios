@@ -2104,10 +2104,16 @@ function rcMatchResp(row, aba, recip){
   const nCols = RC_NC_G[aba]||[]; const rCols = RC_RC_G[aba]||[];
   if(nCols.length===0 && rCols.length===0) return true;
   const nVals = nCols.map(c=>String(row[c]||'').toLowerCase().trim()).filter(Boolean);
-  if(nVals.length>0) return nVals.some(v=>rcSm(v,recip));
+  if(nVals.length>0) return nVals.some(v=>rcSm(v,recip)) || rcPapelGenerico(aba, recip);
   const rVals = rCols.map(c=>String(row[c]||'').toLowerCase().trim()).filter(Boolean);
-  if(rVals.length>0) return rVals.some(v=>rcSm(v,recip));
-  return false;
+  if(rVals.length>0) return rVals.some(v=>rcSm(v,recip)) || rcPapelGenerico(aba, recip);
+  return rcPapelGenerico(aba, recip);
+}
+// v-fix 18/11/2026: abas de professores/escola gravam o NOME da docente, mas a atribuição é um papel
+// genérico («Professor(a)», «Diretor(a) de Turma»). Nesse caso basta o código do paciente.
+function rcPapelGenerico(aba, recip){
+  if(!/(PROF|ESCOLA|EDUCADOR)/i.test(String(aba||''))) return false;
+  return /^(professor|professora|professor\(a\)|educador|educadora|educador\(a\)|diretor|diretora|diretor\(a\)|dt\b)/i.test(String(recip||'').trim());
 }
 function rcAbaDe(a){
   let aba = QID_TO_ABA[a.qid];
