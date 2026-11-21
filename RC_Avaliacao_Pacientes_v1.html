@@ -678,6 +678,10 @@ const QID_TO_ABA = {
   'q_edsis': 'EDSIS',
   'q_cpq': 'CPQ',
   'q_chede': 'CHEDE',
+  // ── KFQ-PT · Levantamento de Medos (criança) (v150) ──
+  'q_kfq': 'KFQ',
+  // ── FSSIP-PT · Levantamento de Medos (pais) (v149) ──
+  'q_fssip': 'FSSIP',
   // ── PHQ-15 · Questionário de Sintomas Somáticos (v140) ──
   'q_phq15_p':   'PHQ15_P',
   'q_phq15_j':   'PHQ15_J',
@@ -993,6 +997,12 @@ const SYNC_KEY_TO_ABA = {
   'CPQ': 'CPQ',
   'chede': 'CHEDE',
   'CHEDE': 'CHEDE',
+  // ── KFQ-PT (v150) ──
+  'kfq': 'KFQ',
+  'KFQ': 'KFQ',
+  // ── FSSIP-PT (v149) ──
+  'fssip': 'FSSIP',
+  'FSSIP': 'FSSIP',
   // ── PHQ-15 · Questionário de Sintomas Somáticos (v140) ──
   'phq15_p':      'PHQ15_P',
   'PHQ15_P':      'PHQ15_P',
@@ -1723,6 +1733,8 @@ const RC_NC_G = {
                 'EDSIS':['NomeInformante','Informante'],
                 'CPQ':['NomeInformante','Informante'],
                 'CHEDE':['NomeInformante','Informante'],
+                'KFQ':['NomeInformante','Informante'],
+                'FSSIP':['NomeInformante','Informante'],
                 // ── PHQ-15 · três abas (nome primeiro; tipo como fallback) ──
                 'PHQ15_P':['NomeInformante','Informante','Relacao'],
                 'PHQ15_J':['NomeInformante','Informante'],
@@ -2279,6 +2291,8 @@ function initCatalog() {
     { id:'q_edsis', name:'EDSIS — Escala de Impacto dos Sintomas de Perturbações Alimentares (Eating Disorders Symptom Impact Scale; pais/cuidadores)', dest:['Mãe','Pai','Enc. Educação','Cuidador'], link:'https://correiaricardina-ui.github.io/questionarios/EDSIS_v1.html', syncKey:'edsis', area:'Alimentação & Imagem Corporal', ageRange:'Cuidadores (pais/familiares) de pessoas com perturbação do comportamento alimentar', objective:'Questionário de 24 itens (0–4, último mês) respondido pelo cuidador, sobre o impacto dos sintomas da perturbação alimentar na vida do cuidador. Quatro subescalas: Isolamento Social (0–16), Culpa (0–20), Comportamento Desregulado (0–28) e Nutrição (0–32); Total 0–96 (soma simples; sem itens invertidos); valores mais elevados indicam maior sobrecarga. Sepulveda, Whitney, Hankins & Treasure (2008), validado em cuidadores adultos de pessoas com anorexia e bulimia nervosa. O artigo não publica pontos de corte: as faixas (terços da amplitude) são orientativas. Sensível à mudança (medida de resultado em intervenções com cuidadores). Tradução de trabalho PT, sem validação em pais de crianças e jovens.', domains:['Isolamento Social (0–16)','Culpa (0–20)','Comportamento Desregulado (0–28)','Nutrição (0–32)','Total (0–96)'], ageMin:0, ageMax:1188 },
     { id:'q_cpq', name:'CPQ — Questionário de Perfeccionismo Clínico (Clinical Perfectionism Questionnaire; autorrelato)', dest:['Paciente','Jovem avaliado'], link:'https://correiaricardina-ui.github.io/questionarios/CPQ_v1.html', syncKey:'cpq', area:'Personalidade & Esquemas', ageRange:'A partir dos 13–14 anos (autorrelato)', objective:'Questionário de 12 itens (1–4, últimas 4 semanas) de autorrelato sobre o perfeccionismo clínico (padrões muito exigentes, autocrítica, autoavaliação dependente do desempenho, evitamento), na(s) área(s) da vida que o paciente considera mais importante(s), excluindo alimentação, peso e aparência. Total 12–48 (soma dos 12 itens; itens 2 e 8 invertidos); valores mais elevados indicam maior perfeccionismo. Estrutura de dois factores segundo Egan et al. (2016): F1 Esforço para padrões elevados (itens 1, 3, 6, 7, 9, 10, 11; 7–28) e F2 Preocupação com falhas (itens 2, 4, 5, 8, 12; 5–20). Fairburn, Cooper & Shafran (2003); validado em adultos com perturbação alimentar e da comunidade. O artigo não publica pontos de corte: as faixas do total (Baixo 12–23, Moderado 24–35, Elevado 36–48) são orientativas. Versão portuguesa de trabalho, não coincidente item a item com o original.', domains:['F1 · Esforço para padrões elevados (7–28)','F2 · Preocupação com falhas (5–20)','Total (12–48)'], ageMin:156, ageMax:1188 },
     { id:'q_chede', name:'ChEDE — Entrevista de Perturbações Alimentares para Crianças (Child Eating Disorder Examination; entrevista semi-estruturada)', dest:['Paciente','Jovem avaliado'], link:'https://correiaricardina-ui.github.io/questionarios/ChEDE_v1.html', syncKey:'chede', area:'Alimentação & Imagem Corporal', ageRange:'7–14 anos (entrevista administrada pela psicóloga)', objective:'Entrevista semi-estruturada administrada pela psicóloga e cotada por ela (0–6 por item) sobre a psicopatologia alimentar em crianças, nos últimos 28 dias: 23 itens em quatro subescalas — Restrição alimentar (itens 1–5), Preocupação com a alimentação (6–10), Preocupação com o peso (11–15) e Preocupação com a forma corporal (16–23) — e Score Global (média das quatro médias). Inclui seis itens diagnósticos (E1–E6, últimos 3 meses: comer em excesso objectivo e subjectivo, vómito auto-induzido, laxantes/diuréticos, exercício compulsivo e restrição significativa), que não entram nos scores e são apenas orientadores dos critérios DSM-5. Bryant-Waugh, Cooper, Taylor & Lask (1996), adaptado da EDE. O limiar global de 2,5 e as faixas das subescalas são orientadores (folha de cotação), sem pontos de corte publicados identificados. Guião de trabalho PT.', domains:['Restrição alimentar (0–6)','Preocupação com a alimentação (0–6)','Preocupação com o peso (0–6)','Preocupação com a forma corporal (0–6)','Score Global (0–6)','Itens diagnósticos E1–E6 (Sim/Não)'], ageMin:84, ageMax:179 },
+    { id:'q_kfq', name:'KFQ-PT — Levantamento de Medos para a Criança (Koala Fear Questionnaire; versão adaptada em português europeu, aplicada pela psicóloga)', dest:['Paciente','Criança avaliada'], link:'https://correiaricardina-ui.github.io/questionarios/KFQ_PT_v1.html', syncKey:'kfq', area:'Ansiedade, Depressão & Internalização', ageRange:'4–6 anos (aplicação individual pela psicóloga, com cartões e escala de três rostos)', objective:'Levantamento dos medos da criança, aplicado individualmente pela psicóloga com cartões ilustrados e uma escala de três rostos: 31 situações cotadas 1 (sem medo), 2 (algum medo) ou 3 (muito medo), com registo de omissões pela clínica (O) e de recusas ou ausência de resposta (R). Total KFQ (31 a 93, só com os 31 itens respondidos), média por item, número de itens com «muito medo», padrão de resposta uniforme, leitura global por bandas descritivas (a partir de 21 itens), oito domínios descritivos (não validados fatorialmente) e alerta de perfil focal. Comparação exploratória do total com as médias de crianças holandesas de 4 a 6 anos (Muris et al., 2003), sem normas portuguesas e sem valor classificatório. Inclui módulo do caso (M1–M5 editáveis e X1–X10 com os medos escritos pelos pais), fora do total e dos domínios, e cruzamento descritivo pais–criança com o FSSIP-PT. A interpretação clínica é da psicóloga.', domains:['Total KFQ (31–93)','Média por item','Itens com «muito medo»','Padrão de resposta uniforme','A. Perigo, violência e morte','B. Imaginário e escuro','C. Animais (selvagens e pequenos)','D. Alturas e movimento','E. Família e separação','F. Saúde e procedimentos','G. Avaliação social','H. Cães e aves','Módulo do caso (M1–M5 e X1–X10)','Cruzamento pais–criança (FSSIP × KFQ)'], ageMin:48, ageMax:83 },
+    { id:'q_fssip', name:'FSSIP-PT — Levantamento de Medos para Pais (Fear Survey Schedule for Infants-Preschoolers; versão dos pais em português europeu)', dest:['Mãe','Pai','Enc. Educação','Cuidador'], link:'https://correiaricardina-ui.github.io/questionarios/FSSIP_PT_v1.html', syncKey:'fssip', area:'Ansiedade, Depressão & Internalização', ageRange:'2–6 anos (respondido pelos pais ou cuidadores)', objective:'Levantamento dos medos da criança pequena, respondido pelos pais ou cuidadores: 92 situações cotadas 0 (nenhum), 1 (algum) ou 2 (muito). Fear Score (FS = soma, 0–184), HIFS (número de itens com intensidade «muito»), número e percentagem de medos assinalados, intensidade média nos medos presentes e leitura global por bandas descritivas, com onze domínios descritivos (não validados fatorialmente) e alerta de medo focal. Inclui módulo do caso (cinco situações editáveis), pergunta sobre outros medos e até dez medos escritos pelos pais, fora do FS, do HIFS e dos domínios. Comparação exploratória com amostras de referência dos EUA (Warren et al.) e do Brasil (controlo e clínica), sem normas portuguesas e sem valor classificatório. A interpretação clínica é da psicóloga.', domains:['Fear Score FS (0–184)','HIFS — itens «muito»','Medos assinalados (n e %)','Intensidade média nos medos presentes','A. Sons e fenómenos intensos','B. Água e banho','C. Animais','D. Escuro, noite e imaginário','E. Separação e segurança','F. Lesão, saúde e procedimentos','G. Perigo físico, violência e catástrofe','H. Altura, espaços fechados e transportes','I. Avaliação social e autoridade','J. Desconhecidos e situações sociais','K. Novidade, rotina e sujidade','Módulo do caso e outros medos'], ageMin:24, ageMax:83 },
     // ── PHQ-15 · Questionário de Sintomas Somáticos (v140) — 3 versões; ageMin/ageMax em MESES ──
     { id:'q_phq15_p', name:'PHQ-15 — Questionário de Sintomas Somáticos (Parental · Pais/Cuidadores)', dest:['Mãe','Pai','Enc. Educação'], link:'https://correiaricardina-ui.github.io/questionarios/PHQ15_Pais_v1.html', syncKey:'phq15_p', area:'Ansiedade, Depressão & Internalização', ageRange:'6–17 anos', objective:'Rastreio e caracterização de sintomas somáticos (PHQ-15; Kroenke, Spitzer & Williams, 2002): 15 sintomas físicos (14 na versão masculina/pediátrica conforme aplicável) avaliados nos últimos 7 dias em três níveis (0 = nada, 1 = pouco, 2 = muito incomodado). Pontuação bruta 0–30 (proporcional 0–30 quando há itens em falta, válida com no máximo 25% de itens em falta); níveis 0–4 mínima, 5–9 baixa, 10–14 média, 15–30 elevada. É RASTREIO e NÃO diagnóstico. Em adultos, ≥ 3 itens «muito incomodado(a)» é indicador associado a perturbação somatoforme (sensibilidade 78%, especificidade 71%); em idade pediátrica é meramente descritivo e a sua validade não foi verificada. Agrupamentos de sintomas (dor, gastrointestinal, cardiorrespiratório/autonómico, fadiga e sono, ginecológico/sexual) são descritivos. Paleta azul; o vermelho aparece apenas na sinalização binária do indicador de 3 ou mais itens no adulto.', domains:['Pontuação bruta (0–30)','Proporcional (0–30)','Nível de gravidade','Itens «muito incomodado(a)»','Indicador ≥ 3 itens','Agrupamentos de sintomas'], ageMin:72, ageMax:215 },
     { id:'q_phq15_j', name:'PHQ-15 — Questionário de Sintomas Somáticos (Autorrelato · Jovem (11–17 anos))', dest:['Paciente','Jovem avaliado'], link:'https://correiaricardina-ui.github.io/questionarios/PHQ15_Jovem_v1.html', syncKey:'phq15_j', area:'Ansiedade, Depressão & Internalização', ageRange:'11–17 anos', objective:'Rastreio e caracterização de sintomas somáticos (PHQ-15; Kroenke, Spitzer & Williams, 2002): 15 sintomas físicos (14 na versão masculina/pediátrica conforme aplicável) avaliados nos últimos 7 dias em três níveis (0 = nada, 1 = pouco, 2 = muito incomodado). Pontuação bruta 0–30 (proporcional 0–30 quando há itens em falta, válida com no máximo 25% de itens em falta); níveis 0–4 mínima, 5–9 baixa, 10–14 média, 15–30 elevada. É RASTREIO e NÃO diagnóstico. Em adultos, ≥ 3 itens «muito incomodado(a)» é indicador associado a perturbação somatoforme (sensibilidade 78%, especificidade 71%); em idade pediátrica é meramente descritivo e a sua validade não foi verificada. Agrupamentos de sintomas (dor, gastrointestinal, cardiorrespiratório/autonómico, fadiga e sono, ginecológico/sexual) são descritivos. Paleta azul; o vermelho aparece apenas na sinalização binária do indicador de 3 ou mais itens no adulto.', domains:['Pontuação bruta (0–30)','Proporcional (0–30)','Nível de gravidade','Itens «muito incomodado(a)»','Indicador ≥ 3 itens','Agrupamentos de sintomas'], ageMin:132, ageMax:215 },
@@ -3737,6 +3751,8 @@ function initCatalog() {
       'q_edsis': { link:'https://correiaricardina-ui.github.io/questionarios/EDSIS_v1.html', syncKey:'edsis' },
       'q_cpq': { link:'https://correiaricardina-ui.github.io/questionarios/CPQ_v1.html', syncKey:'cpq' },
       'q_chede': { link:'https://correiaricardina-ui.github.io/questionarios/ChEDE_v1.html', syncKey:'chede' },
+      'q_kfq': { link:'https://correiaricardina-ui.github.io/questionarios/KFQ_PT_v1.html', syncKey:'kfq' },
+      'q_fssip': { link:'https://correiaricardina-ui.github.io/questionarios/FSSIP_PT_v1.html', syncKey:'fssip' },
       // ── PHQ-15 (v140) ──
       'q_phq15_p':   { link:'https://correiaricardina-ui.github.io/questionarios/PHQ15_Pais_v1.html', syncKey:'phq15_p' },
       'q_phq15_j':   { link:'https://correiaricardina-ui.github.io/questionarios/PHQ15_Jovem_v1.html', syncKey:'phq15_j' },
@@ -4177,6 +4193,26 @@ function initCatalog() {
         store.set('q_chede', _chedeDefault);
         store.set('q_' + 'q_chede', _chedeDefault);
         catalog.push('q_chede');
+        store.set('catalog', catalog);
+      }
+    }
+    // ── KFQ-PT · Levantamento de Medos (criança) (v150) ──
+    if(!catalog.includes('q_kfq')) {
+      const _kfqDefault = defaults.find(d => d.id === 'q_kfq');
+      if(_kfqDefault) {
+        store.set('q_kfq', _kfqDefault);
+        store.set('q_' + 'q_kfq', _kfqDefault);
+        catalog.push('q_kfq');
+        store.set('catalog', catalog);
+      }
+    }
+    // ── FSSIP-PT · Levantamento de Medos (pais) (v149) ──
+    if(!catalog.includes('q_fssip')) {
+      const _fssipDefault = defaults.find(d => d.id === 'q_fssip');
+      if(_fssipDefault) {
+        store.set('q_fssip', _fssipDefault);
+        store.set('q_' + 'q_fssip', _fssipDefault);
+        catalog.push('q_fssip');
         store.set('catalog', catalog);
       }
     }
@@ -5467,6 +5503,37 @@ function formatScoreSummary(scores, syncKey) {
       _chP.push('<span style="font-size:0.75rem;color:var(--text-light);">' + _chN + '</span>');
     }
     if(_chP.length) return _chP.join(' &middot; ');
+  }
+  // ── KFQ-PT · Levantamento de Medos (criança) (v150) ───────────────────
+  // Guardas `!= null` (nunca `||`): o ZERO é resultado clínico. Paleta azul;
+  // vermelho SÓ no alerta de perfil focal.
+  if(syncKey === 'kfq') {
+    const _kfG = function(k){ const v = scores[k] != null ? scores[k] : scores[k.toLowerCase()]; return (v != null && v !== '') ? v : null; };
+    const _kfE = _kfG('Estado'), _kfT = _kfG('Total_KFQ'), _kfM = _kfG('N_Muito'), _kfB = _kfG('Banda_Global'), _kfA = _kfG('Alerta_Focal');
+    const _kfP = [];
+    if(_kfE != null){
+      if(_kfT != null) _kfP.push('<span style="font-size:0.78rem;color:var(--blue);font-weight:700;">KFQ = ' + _kfT + '/93</span>');
+      else _kfP.push('<span style="font-size:0.78rem;color:var(--blue);font-weight:700;">KFQ ' + String(_kfE).toLowerCase() + '</span>');
+      if(_kfM != null) _kfP.push('<span style="font-size:0.75rem;color:var(--text-light);">«muito» = ' + _kfM + '</span>');
+      if(_kfB != null) _kfP.push('<span style="font-size:0.75rem;color:var(--text-light);">' + _kfB + '</span>');
+      if(_kfA != null && String(_kfA).toLowerCase() === 'sim') _kfP.push('<span style="font-size:0.75rem;color:#C0392B;font-weight:700;">perfil focal</span>');
+    }
+    if(_kfP.length) return _kfP.join(' &middot; ');
+  }
+  // ── FSSIP-PT · Levantamento de Medos (pais) (v149) ───────────────────────
+  // Guardas `!= null` (nunca `||`): o ZERO é resultado clínico. Paleta azul;
+  // vermelho SÓ no alerta de medo focal.
+  if(syncKey === 'fssip') {
+    const _fsG = function(k){ const v = scores[k] != null ? scores[k] : scores[k.toLowerCase()]; return (v != null && v !== '') ? v : null; };
+    const _fsFS = _fsG('FS'), _fsH = _fsG('HIFS'), _fsB = _fsG('Banda_Global'), _fsA = _fsG('Alerta_Focal');
+    const _fsP = [];
+    if(_fsFS != null){
+      _fsP.push('<span style="font-size:0.78rem;color:var(--blue);font-weight:700;">FS = ' + _fsFS + '/184</span>');
+      if(_fsH != null) _fsP.push('<span style="font-size:0.75rem;color:var(--text-light);">HIFS = ' + _fsH + '</span>');
+      if(_fsB != null) _fsP.push('<span style="font-size:0.75rem;color:var(--text-light);">' + _fsB + '</span>');
+      if(_fsA != null && String(_fsA).toLowerCase() === 'sim') _fsP.push('<span style="font-size:0.75rem;color:#C0392B;font-weight:700;">medo focal</span>');
+    }
+    if(_fsP.length) return _fsP.join(' &middot; ');
   }
   // ── PHQ-15 · Questionário de Sintomas Somáticos (v140) ─────────────────
   // Inserido ANTES de «// Genérico». Guardas `!= null` (nunca `||`): o ZERO é
