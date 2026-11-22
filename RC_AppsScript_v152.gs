@@ -4,6 +4,82 @@
 // Versão 72.0 — maio 2026
 //
 // ════════════════════════════════════════════════════════════════════════
+// ALTERAÇÕES v152.0 — EMAR (Escala de Mitos do Amor Romântico; Grané-Morcillo, Costa-Ramalho,
+//   Pérez-Testor & Vall, 2025, CC BY 4.0; escala original Bonilla-Algovia & Rivas-Rivero, 2020)
+//   · 11 itens, escala 1-5, 2 fatores (Amor Idealizado 1-7; Amor Distorcido 8-11); descritiva,
+//     sem normas nem pontos de corte; módulo opcional, independente do ICCN.
+//   · HEADERS['EMAR'] — 25 colunas; Respostas em JSON {"EMAR1":n,...}.
+//   · ABA — aliases 'EMAR', 'emar', 'EMAR_v1'.
+//   · DEDUPE_KEYS['EMAR'] — chave de QUATRO elementos (Secção 33): Código + Data +
+//     Informante ('Paciente') + NomeInformante.
+//   · buildRow['EMAR'] — ramo próprio derivado de HEADERS['EMAR'] (ordem validada por construção);
+//     guarda != null (o ZERO é resultado clínico).
+//   · doPost — garantirColunaTexto_ em Media_AI, Media_AD, Media_Total, SÓ na aba EMAR.
+//   · Diff ESTRITAMENTE ADITIVO face ao v150.0 (só duas linhas de COMENTÁRIO do bloco ICCN v151
+//     foram corrigidas: o informante é 'Paciente', não 'Adolescente').
+// ⚠ Criar a aba EMAR e formatar como TEXTO SIMPLES Media_AI, Media_AD e Media_Total ANTES da primeira submissão.
+//
+// ════════════════════════════════════════════════════════════════════════
+// ALTERAÇÕES v151.0 — ICCN (Inventário Clínico de Conflitos no Namoro; modelo CADRI,
+//   Wolfe et al., 2001; CADRI-P, Lucas, Pinheiro & Simões, 2017; itens de redação
+//   original, sem normas nem pontos de corte) · 36 itens negativos em 5 subescalas
+//   (VF, VVE, VRP, CYV, VSX) × 2 direções (eu fiz / o(a) parceiro(a) fez; N/A/F = 0/1/2)
+//   + 10 estratégias positivas (fora do total). Níveis de alerta por regras de item.
+//   · HEADERS['ICCN'] — 40 colunas (ver lista no código), Respostas em JSON {P,V,PP,PV}.
+//   · ABA — aliases 'ICCN', 'iccn', 'ICCN_v1'.
+//   · DEDUPE_KEYS['ICCN'] — chave de QUATRO elementos (Secção 33): Código + Data +
+//     Informante ('Paciente') + NomeInformante.
+//   · buildRow['ICCN'] — ramo próprio; ordem das colunas derivada de HEADERS['ICCN']
+//     (validada por construção); guarda != null (o ZERO é resultado clínico).
+//   · doPost — garantirColunaTexto_ em Perc_P, Perc_V, Dif_pp, SÓ na aba ICCN.
+//   · Diff ESTRITAMENTE ADITIVO — nada do v150.0 foi removido ou alterado.
+// ⚠ Criar a aba ICCN e formatar como TEXTO SIMPLES Perc_P, Perc_V e Dif_pp ANTES da primeira submissão.
+// ⚠ Todos os outros instrumentos (HEADERS, ABA, buildRow, DEDUPE_KEYS) intactos.
+//
+// ════════════════════════════════════════════════════════════════════════
+// ALTERAÇÕES v150.0 — KFQ-PT (Koala Fear Questionnaire; Muris et al., 2003;
+//   versão adaptada para a criança em português europeu, aplicada pela clínica com
+//   cartões ilustrados e escala de três rostos) · 31 itens (1/2/3 = sem/algum/muito
+//   medo; O = omitido pela clínica; R = sem resposta/recusa) + módulo do caso
+//   (M1–M5 + X1–X10, fora do total) · 8 domínios descritivos (A–H).
+//   Total KFQ (31–93) só com os 31 itens respondidos; estado INCOMPLETO / PARCIAL / COMPLETO.
+//   · HEADERS['KFQ'] — 57 colunas: Data, Código, NomeCriança, Idade_Meses, Informante,
+//     NomeInformante, Aplicador, Estado, N_Resp, N_Omit, N_Recus, Soma, Media_Item,
+//     Media_Rec, Total_KFQ, Total_Rec, N_Muito, N_Ge2, Padrao_Uniforme, Banda_Global,
+//     Dif_DP_E4/E5/E6, Dom_Intensos, Alerta_Focal, A_Soma/A_Media … H_Soma/H_Media,
+//     Mod_N_Uso, Mod_Resp, Mod_Soma, Mod_Media, Mod_Muito, Mod_OR, Cruz_* (pais–criança,
+//     FSSIP × KFQ), Compreensao, Observacoes e Respostas (JSON).
+//   · ABA — aliases 'KFQ', 'kfq', 'KFQ_PT' e 'KFQ_PT_v1'.
+//   · DEDUPE_KEYS['KFQ'] — chave de QUATRO elementos (Secção 33): Código + Data +
+//     Informante + NomeInformante (instrumento aplicado pela clínica: Informante
+//     'Paciente', NomeInformante = nome da criança, como no ChEDE).
+//   · buildRow['KFQ'] — ramo próprio, guarda != null (o ZERO é resultado clínico).
+//   · doPost — garantirColunaTexto_ nas colunas com vírgula decimal, SÓ na aba KFQ.
+//   · Diff ESTRITAMENTE ADITIVO — nada do v149.0 foi removido ou alterado.
+// ⚠ Criar a aba KFQ e formatar como TEXTO SIMPLES as colunas decimais ANTES da primeira submissão.
+// ⚠ Todos os outros instrumentos (HEADERS, ABA, buildRow, DEDUPE_KEYS) intactos.
+//
+// ═══════════════════════════════════════
+// ALTERAÇÕES v149.0 — FSSIP-PT (Fear Survey Schedule for Infants-Preschoolers;
+//   Warren et al.; versão para os pais em português europeu) · 92 itens (0/1/2:
+//   Nenhum/Algum/Muito) + módulo do caso (M1–M5 editáveis) + outros medos (P1–P10).
+//   FS = soma (0–184) · HIFS = n.º de itens «muito» · 11 domínios descritivos (A–K).
+//   · HEADERS['FSSIP'] — 45 colunas: Data, Código, NomeCriança, Idade_Meses,
+//     Informante, NomeInformante, N_Resp, FS, HIFS, N_Medos, Pct_Medos, N_Zero,
+//     Media_Item, Intens_Media, Banda_Global, Dom_Intensos, Alerta_Focal,
+//     A_Soma/A_Media … K_Soma/K_Media, Mod_N_Uso, Mod_Soma, Mod_Media, Mod_Muito,
+//     Outros_Medos e Respostas (JSON).
+//   · ABA — aliases 'FSSIP', 'fssip', 'FSSIP_PT' e 'FSSIP_PT_v1'.
+//   · DEDUPE_KEYS['FSSIP'] — chave de QUATRO elementos (Secção 33): Código +
+//     Data + Informante + NomeInformante.
+//   · buildRow['FSSIP'] — ramo próprio, guarda != null (o ZERO é resultado clínico).
+//   · doPost — garantirColunaTexto_ nas colunas com vírgula decimal (Pct_Medos,
+//     Media_Item, Intens_Media, A–K_Media, Mod_Media), SÓ na aba FSSIP.
+//   · Diff ESTRITAMENTE ADITIVO — nada do v148.0 foi removido ou alterado.
+// ⚠ Formatar como TEXTO SIMPLES as colunas decimais acima ANTES da primeira submissão.
+// ⚠ Todos os outros instrumentos (HEADERS, ABA, buildRow, DEDUPE_KEYS) intactos.
+//
+// ════════════════════════════════════════════════════════════════════════
 // ALTERAÇÕES v148.0 — ChEDE (Child Eating Disorder Examination; Bryant-Waugh,
 //   Cooper, Taylor & Lask, 1996) · entrevista semi-estruturada administrada pela
 //   psicóloga · 23 itens cotados (0–6) + 6 itens diagnósticos (E1–E6, Sim/Não).
@@ -2742,6 +2818,54 @@ var HEADERS = {
     'Restraint', 'EatingConcern', 'WeightConcern', 'ShapeConcern', 'Global', 'Nivel_Global',
     'E1_OBE', 'E2_SBE', 'E3_Vomito', 'E4_Laxantes', 'E5_Exercicio', 'E6_Restricao',
     'Diagnosticos', 'Notas', 'Respostas'
+  ],
+  // ── EMAR · Escala de Mitos do Amor Romântico (v152.0) ───────────────────
+  // ⚠ Formatar como TEXTO SIMPLES: Media_AI, Media_AD, Media_Total (vírgula decimal; ver garantirColunaTexto_ em doPost).
+  EMAR: [
+    'Data', 'Código', 'NomeCriança', 'Idade', 'Genero', 'Informante',
+    'NomeInformante', 'Estado', 'Soma_AI', 'Soma_AD', 'Soma_Total', 'N_Valid_AI',
+    'N_Valid_AD', 'Media_AI', 'Media_AD', 'Media_Total', 'Conc_AI', 'Conc_AD',
+    'Itens_Conc', 'Topicos', 'Pos_AI', 'Pos_AD', 'Avisos', 'Observacoes',
+    'Respostas'
+  ],
+  // ── ICCN · Inventário Clínico de Conflitos no Namoro (v151.0) ───────────
+  // ⚠ Formatar como TEXTO SIMPLES: Perc_P, Perc_V, Dif_pp (vírgula decimal; ver garantirColunaTexto_ em doPost).
+  ICCN: [
+    'Data', 'Código', 'NomeCriança', 'Idade', 'Informante', 'NomeInformante',
+    'Versao', 'Relacao', 'Duracao', 'Estado', 'Nivel_P', 'Nivel_V',
+    'Tot_P', 'Tot_V', 'N_Valid_P', 'N_Valid_V', 'Perc_P', 'Perc_V',
+    'Dif_pp', 'P_VF', 'P_VVE', 'P_VRP', 'P_CYV', 'P_VSX',
+    'V_VF', 'V_VVE', 'V_VRP', 'V_CYV', 'V_VSX', 'Verm_P',
+    'Verm_V', 'Amar_P', 'Amar_V', 'VRP8_P', 'VRP8_V', 'Pos_P',
+    'Pos_V', 'Avisos', 'Observacoes', 'Respostas'
+  ],
+  // ── KFQ-PT · Koala Fear Questionnaire, versão criança (v150.0) ───────────
+  // ⚠ Formatar como TEXTO SIMPLES: Media_Item, Media_Rec, Dif_DP_E4, Dif_DP_E5, Dif_DP_E6, A_Media, B_Media, C_Media, D_Media, E_Media, F_Media, G_Media, H_Media, Mod_Media, Cruz_DifMedia
+  //   (vírgula decimal; ver garantirColunaTexto_ em doPost).
+  KFQ: [
+    'Data', 'Código', 'NomeCriança', 'Idade_Meses', 'Informante', 'NomeInformante',
+    'Aplicador', 'Estado', 'N_Resp', 'N_Omit', 'N_Recus', 'Soma',
+    'Media_Item', 'Media_Rec', 'Total_KFQ', 'Total_Rec', 'N_Muito', 'N_Ge2',
+    'Padrao_Uniforme', 'Banda_Global', 'Dif_DP_E4', 'Dif_DP_E5', 'Dif_DP_E6', 'Dom_Intensos',
+    'Alerta_Focal', 'A_Soma', 'A_Media', 'B_Soma', 'B_Media', 'C_Soma',
+    'C_Media', 'D_Soma', 'D_Media', 'E_Soma', 'E_Media', 'F_Soma',
+    'F_Media', 'G_Soma', 'G_Media', 'H_Soma', 'H_Media', 'Mod_N_Uso',
+    'Mod_Resp', 'Mod_Soma', 'Mod_Media', 'Mod_Muito', 'Mod_OR', 'Cruz_Pares',
+    'Cruz_Conc', 'Cruz_D1', 'Cruz_D2', 'Cruz_CriMais', 'Cruz_PaisMais', 'Cruz_DifMedia',
+    'Compreensao', 'Observacoes', 'Respostas'
+  ],
+  // ── FSSIP-PT · Fear Survey Schedule for Infants-Preschoolers (v149.0) ───
+  // ⚠ Formatar como TEXTO SIMPLES: Pct_Medos, Media_Item, Intens_Media, A_Media…K_Media, Mod_Media
+  //   (vírgula decimal; ver garantirColunaTexto_ em doPost).
+  FSSIP: [
+    'Data', 'Código', 'NomeCriança', 'Idade_Meses', 'Informante', 'NomeInformante',
+    'N_Resp', 'FS', 'HIFS', 'N_Medos', 'Pct_Medos', 'N_Zero',
+    'Media_Item', 'Intens_Media', 'Banda_Global', 'Dom_Intensos', 'Alerta_Focal', 'A_Soma',
+    'A_Media', 'B_Soma', 'B_Media', 'C_Soma', 'C_Media', 'D_Soma',
+    'D_Media', 'E_Soma', 'E_Media', 'F_Soma', 'F_Media', 'G_Soma',
+    'G_Media', 'H_Soma', 'H_Media', 'I_Soma', 'I_Media', 'J_Soma',
+    'J_Media', 'K_Soma', 'K_Media', 'Mod_N_Uso', 'Mod_Soma', 'Mod_Media',
+    'Mod_Muito', 'Outros_Medos', 'Respostas'
   ],
   // ── CPQ · Clinical Perfectionism Questionnaire (v147.0) ─────────────────
   CPQ: [
@@ -5612,6 +5736,26 @@ var ABA = {
   'chede':       'CHEDE',
   'ChEDE':       'CHEDE',
   'ChEDE_v1':    'CHEDE',
+  // ── EMAR · Escala de Mitos do Amor Romântico (v152.0) ────────────────────
+  'EMAR':        'EMAR',
+  'emar':        'EMAR',
+  'EMAR_v1':     'EMAR',
+  // ── ICCN · Inventário Clínico de Conflitos no Namoro (v151.0) ────────────
+  'ICCN':        'ICCN',
+  'iccn':        'ICCN',
+  'ICCN_v1':     'ICCN',
+  // ── KFQ-PT · Koala Fear Questionnaire, versão criança (v150.0) ───────────
+  // Uma forma, uma aba. Nenhum alias existente foi tocado.
+  'KFQ':         'KFQ',
+  'kfq':         'KFQ',
+  'KFQ_PT':      'KFQ',
+  'KFQ_PT_v1':   'KFQ',
+  // ── FSSIP-PT · Fear Survey Schedule for Infants-Preschoolers (v149.0) ───
+  // Uma forma, uma aba. Nenhum alias existente foi tocado.
+  'FSSIP':       'FSSIP',
+  'fssip':       'FSSIP',
+  'FSSIP_PT':    'FSSIP',
+  'FSSIP_PT_v1': 'FSSIP',
   // ── CPQ · Clinical Perfectionism Questionnaire (v147.0) ─────────────────
   // Uma forma, uma aba. Nenhum alias existente foi tocado.
   'CPQ':         'CPQ',
@@ -6807,6 +6951,18 @@ var DEDUPE_KEYS = {
   // CPQ (v147.0) — dedupe de 4 elementos (Secção 33): código + data + relação +
   // nome (aliases 'Informante' / 'NomeInformante').
   'CPQ':               ['Código', 'Data', 'PreenchidoPor', 'NomePreenche'],
+  // EMAR (v152.0) — dedupe de 4 elementos (Secção 33): código + data + informante
+  // ('Paciente') + nome do respondente (aliases 'Informante' / 'NomeInformante').
+  'EMAR':              ['Código', 'Data', 'PreenchidoPor', 'NomePreenche'],
+  // ICCN (v151.0) — dedupe de 4 elementos (Secção 33): código + data + informante
+  // ('Paciente') + nome do respondente (aliases 'Informante' / 'NomeInformante').
+  'ICCN':              ['Código', 'Data', 'PreenchidoPor', 'NomePreenche'],
+  // KFQ-PT (v150.0) — dedupe de 4 elementos (Secção 33): código + data + informante
+  // ('Paciente') + nome da criança (aliases 'Informante' / 'NomeInformante').
+  'KFQ':               ['Código', 'Data', 'PreenchidoPor', 'NomePreenche'],
+  // FSSIP-PT (v149.0) — dedupe de 4 elementos (Secção 33): código + data + relação +
+  // nome (aliases 'Informante' / 'NomeInformante').
+  'FSSIP':             ['Código', 'Data', 'PreenchidoPor', 'NomePreenche'],
   // ChEDE (v148.0) — dedupe de 4 elementos (Secção 33): código + data + relação +
   // nome (aliases 'Informante' / 'NomeInformante').
   'CHEDE':             ['Código', 'Data', 'PreenchidoPor', 'NomePreenche'],
@@ -7343,6 +7499,10 @@ function doPost(e) {
     if (abaNome === 'Vanderbilt_Pais' || abaNome === 'Vanderbilt_Prof') garantirColunaTexto_(sh, 'Func_Media');
     if (abaNome === 'AESED') { garantirColunaTexto_(sh, 'F4'); garantirColunaTexto_(sh, 'Total'); }
     if (abaNome === 'CHEDE') { ['Peso', 'Altura', 'Restraint', 'EatingConcern', 'WeightConcern', 'ShapeConcern', 'Global'].forEach(function (c) { garantirColunaTexto_(sh, c); }); }
+    if (abaNome === 'EMAR') { ['Media_AI', 'Media_AD', 'Media_Total'].forEach(function (c) { garantirColunaTexto_(sh, c); }); }
+    if (abaNome === 'ICCN') { ['Perc_P', 'Perc_V', 'Dif_pp'].forEach(function (c) { garantirColunaTexto_(sh, c); }); }
+    if (abaNome === 'KFQ') { ['Media_Item', 'Media_Rec', 'Dif_DP_E4', 'Dif_DP_E5', 'Dif_DP_E6', 'A_Media', 'B_Media', 'C_Media', 'D_Media', 'E_Media', 'F_Media', 'G_Media', 'H_Media', 'Mod_Media', 'Cruz_DifMedia'].forEach(function (c) { garantirColunaTexto_(sh, c); }); }
+    if (abaNome === 'FSSIP') { ['Pct_Medos', 'Media_Item', 'Intens_Media', 'A_Media', 'B_Media', 'C_Media', 'D_Media', 'E_Media', 'F_Media', 'G_Media', 'H_Media', 'I_Media', 'J_Media', 'K_Media', 'Mod_Media'].forEach(function (c) { garantirColunaTexto_(sh, c); }); }
     if (abaNome === 'EDEQ' || abaNome === 'EDEQ_PV') { ['Restricao', 'Preocup_Alim', 'Preocup_Figura', 'Preocup_Peso', 'Global'].forEach(function (c) { garantirColunaTexto_(sh, c); }); }
 
     var updated = false;
@@ -7867,6 +8027,184 @@ function buildRow(abaNome, d) {
       _chJ(d.diagnosticos, d.Diagnosticos),
       _chJ(d.notas, d.Notas),
       _chJ(d.respostas, d.Respostas || d.answers)
+    ];
+  }
+
+  // ── EMAR · Escala de Mitos do Amor Romântico (v152.0) ───────────────────────
+  // Ordem das colunas = HEADERS['EMAR'] (25), derivada por construção.
+  // ⚠ Guarda != null OBRIGATÓRIA (nunca ||): o ZERO é resultado clínico.
+  if (abaNome === 'EMAR') {
+    var _emV = function (a) { return (a !== undefined && a !== null) ? a : ''; };
+    return HEADERS['EMAR'].map(function (c) {
+      if (c === 'Data') return hoje;
+      if (c === 'Código') return cod;
+      if (c === 'NomeCriança') return _emV(d.nomeCrianca !== undefined && d.nomeCrianca !== null ? d.nomeCrianca : (d['NomeCriança'] !== undefined ? d['NomeCriança'] : nome));
+      if (c === 'Informante') return _emV(d.informante !== undefined && d.informante !== null ? d.informante : d.Informante);
+      if (c === 'NomeInformante') return _emV(d.nome_informante !== undefined && d.nome_informante !== null ? d.nome_informante : d.NomeInformante);
+      if (c === 'Respostas') {
+        var _o = (d.respostas !== undefined && d.respostas !== null) ? d.respostas : d.Respostas;
+        return (typeof _o === 'string') ? _o : ((_o !== undefined && _o !== null) ? JSON.stringify(_o) : '');
+      }
+      return _emV(d[c]);
+    });
+  }
+
+  // ── ICCN · Inventário Clínico de Conflitos no Namoro (v151.0) ──────────────
+  // Ordem das colunas = HEADERS['ICCN'] (40), derivada por construção.
+  // ⚠ Guarda != null OBRIGATÓRIA (nunca ||): o ZERO é resultado clínico.
+  if (abaNome === 'ICCN') {
+    var _icV = function (a) { return (a !== undefined && a !== null) ? a : ''; };
+    return HEADERS['ICCN'].map(function (c) {
+      if (c === 'Data') return hoje;
+      if (c === 'Código') return cod;
+      if (c === 'NomeCriança') return _icV(d.nomeCrianca !== undefined && d.nomeCrianca !== null ? d.nomeCrianca : (d['NomeCriança'] !== undefined ? d['NomeCriança'] : nome));
+      if (c === 'Informante') return _icV(d.informante !== undefined && d.informante !== null ? d.informante : d.Informante);
+      if (c === 'NomeInformante') return _icV(d.nome_informante !== undefined && d.nome_informante !== null ? d.nome_informante : d.NomeInformante);
+      if (c === 'Respostas') {
+        var _o = (d.respostas !== undefined && d.respostas !== null) ? d.respostas : d.Respostas;
+        return (typeof _o === 'string') ? _o : ((_o !== undefined && _o !== null) ? JSON.stringify(_o) : '');
+      }
+      return _icV(d[c]);
+    });
+  }
+
+  // ── KFQ-PT · Koala Fear Questionnaire, versão criança (v150.0) ─────────────
+  // Ordem das colunas idêntica à de HEADERS['KFQ'] (57) — validada por posição.
+  // ⚠ Guarda != null OBRIGATÓRIA (nunca ||): o ZERO é resultado clínico.
+  if (abaNome === 'KFQ') {
+    var _kfV = function (a, b) {
+      if (a !== undefined && a !== null) return a;
+      if (b !== undefined && b !== null) return b;
+      return '';
+    };
+    var _kfJ = function (a, b) {
+      if (typeof a === 'string') return a;
+      if (typeof b === 'string') return b;
+      var o = (a !== undefined && a !== null) ? a : b;
+      return (o !== undefined && o !== null) ? JSON.stringify(o) : '';
+    };
+    return [
+      hoje,
+      cod,
+      _kfV(d.nomeCrianca, d.NomeCriança !== undefined ? d.NomeCriança : nome),
+      _kfV(d.idade_meses, d.Idade_Meses),
+      _kfV(d.informante, d.Informante),
+      _kfV(d.nome_informante, d.NomeInformante),
+      _kfV(d.aplicador, d.Aplicador),
+      _kfV(d.estado, d.Estado),
+      _kfV(d.n_resp, d.N_Resp),
+      _kfV(d.n_omit, d.N_Omit),
+      _kfV(d.n_recus, d.N_Recus),
+      _kfV(d.soma, d.Soma),
+      _kfV(d.media_item, d.Media_Item),
+      _kfV(d.media_rec, d.Media_Rec),
+      _kfV(d.total_kfq, d.Total_KFQ),
+      _kfV(d.total_rec, d.Total_Rec),
+      _kfV(d.n_muito, d.N_Muito),
+      _kfV(d.n_ge2, d.N_Ge2),
+      _kfV(d.padrao_uniforme, d.Padrao_Uniforme),
+      _kfV(d.banda_global, d.Banda_Global),
+      _kfV(d.dp_e4, d.Dif_DP_E4),
+      _kfV(d.dp_e5, d.Dif_DP_E5),
+      _kfV(d.dp_e6, d.Dif_DP_E6),
+      _kfV(d.dom_intensos, d.Dom_Intensos),
+      _kfV(d.alerta_focal, d.Alerta_Focal),
+      _kfV(d.a_soma, d.A_Soma),
+      _kfV(d.a_media, d.A_Media),
+      _kfV(d.b_soma, d.B_Soma),
+      _kfV(d.b_media, d.B_Media),
+      _kfV(d.c_soma, d.C_Soma),
+      _kfV(d.c_media, d.C_Media),
+      _kfV(d.d_soma, d.D_Soma),
+      _kfV(d.d_media, d.D_Media),
+      _kfV(d.e_soma, d.E_Soma),
+      _kfV(d.e_media, d.E_Media),
+      _kfV(d.f_soma, d.F_Soma),
+      _kfV(d.f_media, d.F_Media),
+      _kfV(d.g_soma, d.G_Soma),
+      _kfV(d.g_media, d.G_Media),
+      _kfV(d.h_soma, d.H_Soma),
+      _kfV(d.h_media, d.H_Media),
+      _kfV(d.mod_n_uso, d.Mod_N_Uso),
+      _kfV(d.mod_resp, d.Mod_Resp),
+      _kfV(d.mod_soma, d.Mod_Soma),
+      _kfV(d.mod_media, d.Mod_Media),
+      _kfV(d.mod_muito, d.Mod_Muito),
+      _kfV(d.mod_or, d.Mod_OR),
+      _kfV(d.cruz_pares, d.Cruz_Pares),
+      _kfV(d.cruz_conc, d.Cruz_Conc),
+      _kfV(d.cruz_d1, d.Cruz_D1),
+      _kfV(d.cruz_d2, d.Cruz_D2),
+      _kfV(d.cruz_crimais, d.Cruz_CriMais),
+      _kfV(d.cruz_paismais, d.Cruz_PaisMais),
+      _kfV(d.cruz_difmedia, d.Cruz_DifMedia),
+      _kfV(d.compreensao, d.Compreensao),
+      _kfV(d.observacoes, d.Observacoes),
+      _kfJ(d.respostas, d.Respostas || d.answers)
+    ];
+  }
+
+  // ── FSSIP-PT · Fear Survey Schedule for Infants-Preschoolers (v149.0) ─────
+  // Ordem das colunas idêntica à de HEADERS['FSSIP'] (45) — validada por posição.
+  // ⚠ Guarda != null OBRIGATÓRIA (nunca ||): o ZERO é resultado clínico.
+  if (abaNome === 'FSSIP') {
+    var _fsV = function (a, b) {
+      if (a !== undefined && a !== null) return a;
+      if (b !== undefined && b !== null) return b;
+      return '';
+    };
+    var _fsJ = function (a, b) {
+      if (typeof a === 'string') return a;
+      if (typeof b === 'string') return b;
+      var o = (a !== undefined && a !== null) ? a : b;
+      return (o !== undefined && o !== null) ? JSON.stringify(o) : '';
+    };
+    return [
+      hoje,
+      cod,
+      _fsV(d.nomeCrianca, d.NomeCriança !== undefined ? d.NomeCriança : nome),
+      _fsV(d.idade_meses, d.Idade_Meses),
+      _fsV(d.informante, d.Informante),
+      _fsV(d.nome_informante, d.NomeInformante),
+      _fsV(d.n_resp, d.N_Resp),
+      _fsV(d.fs, d.FS),
+      _fsV(d.hifs, d.HIFS),
+      _fsV(d.n_medos, d.N_Medos),
+      _fsV(d.pct_medos, d.Pct_Medos),
+      _fsV(d.n_zero, d.N_Zero),
+      _fsV(d.media_item, d.Media_Item),
+      _fsV(d.intens_media, d.Intens_Media),
+      _fsV(d.banda_global, d.Banda_Global),
+      _fsV(d.dom_intensos, d.Dom_Intensos),
+      _fsV(d.alerta_focal, d.Alerta_Focal),
+      _fsV(d.a_soma, d.A_Soma),
+      _fsV(d.a_media, d.A_Media),
+      _fsV(d.b_soma, d.B_Soma),
+      _fsV(d.b_media, d.B_Media),
+      _fsV(d.c_soma, d.C_Soma),
+      _fsV(d.c_media, d.C_Media),
+      _fsV(d.d_soma, d.D_Soma),
+      _fsV(d.d_media, d.D_Media),
+      _fsV(d.e_soma, d.E_Soma),
+      _fsV(d.e_media, d.E_Media),
+      _fsV(d.f_soma, d.F_Soma),
+      _fsV(d.f_media, d.F_Media),
+      _fsV(d.g_soma, d.G_Soma),
+      _fsV(d.g_media, d.G_Media),
+      _fsV(d.h_soma, d.H_Soma),
+      _fsV(d.h_media, d.H_Media),
+      _fsV(d.i_soma, d.I_Soma),
+      _fsV(d.i_media, d.I_Media),
+      _fsV(d.j_soma, d.J_Soma),
+      _fsV(d.j_media, d.J_Media),
+      _fsV(d.k_soma, d.K_Soma),
+      _fsV(d.k_media, d.K_Media),
+      _fsV(d.mod_n_uso, d.Mod_N_Uso),
+      _fsV(d.mod_soma, d.Mod_Soma),
+      _fsV(d.mod_media, d.Mod_Media),
+      _fsV(d.mod_muito, d.Mod_Muito),
+      _fsV(d.outros_medos, d.Outros_Medos),
+      _fsJ(d.respostas, d.Respostas || d.answers)
     ];
   }
 

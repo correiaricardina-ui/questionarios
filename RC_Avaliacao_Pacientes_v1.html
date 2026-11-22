@@ -680,6 +680,10 @@ const QID_TO_ABA = {
   'q_chede': 'CHEDE',
   // ── KFQ-PT · Levantamento de Medos (criança) (v150) ──
   'q_kfq': 'KFQ',
+  // ── EMAR · Escala de Mitos do Amor Romântico (v152) ──
+  'q_emar': 'EMAR',
+  // ── ICCN · Inventário Clínico de Conflitos no Namoro (v151) ──
+  'q_iccn': 'ICCN',
   // ── FSSIP-PT · Levantamento de Medos (pais) (v149) ──
   'q_fssip': 'FSSIP',
   // ── PHQ-15 · Questionário de Sintomas Somáticos (v140) ──
@@ -1000,6 +1004,12 @@ const SYNC_KEY_TO_ABA = {
   // ── KFQ-PT (v150) ──
   'kfq': 'KFQ',
   'KFQ': 'KFQ',
+  // ── EMAR (v152) ──
+  'emar': 'EMAR',
+  'EMAR': 'EMAR',
+  // ── ICCN (v151) ──
+  'iccn': 'ICCN',
+  'ICCN': 'ICCN',
   // ── FSSIP-PT (v149) ──
   'fssip': 'FSSIP',
   'FSSIP': 'FSSIP',
@@ -1734,6 +1744,8 @@ const RC_NC_G = {
                 'CPQ':['NomeInformante','Informante'],
                 'CHEDE':['NomeInformante','Informante'],
                 'KFQ':['NomeInformante','Informante'],
+                'EMAR':['NomeInformante','Informante'],
+                'ICCN':['NomeInformante','Informante'],
                 'FSSIP':['NomeInformante','Informante'],
                 // ── PHQ-15 · três abas (nome primeiro; tipo como fallback) ──
                 'PHQ15_P':['NomeInformante','Informante','Relacao'],
@@ -2293,6 +2305,8 @@ function initCatalog() {
     { id:'q_chede', name:'ChEDE — Entrevista de Perturbações Alimentares para Crianças (Child Eating Disorder Examination; entrevista semi-estruturada)', dest:['Paciente','Jovem avaliado'], link:'https://correiaricardina-ui.github.io/questionarios/ChEDE_v1.html', syncKey:'chede', area:'Alimentação & Imagem Corporal', ageRange:'7–14 anos (entrevista administrada pela psicóloga)', objective:'Entrevista semi-estruturada administrada pela psicóloga e cotada por ela (0–6 por item) sobre a psicopatologia alimentar em crianças, nos últimos 28 dias: 23 itens em quatro subescalas — Restrição alimentar (itens 1–5), Preocupação com a alimentação (6–10), Preocupação com o peso (11–15) e Preocupação com a forma corporal (16–23) — e Score Global (média das quatro médias). Inclui seis itens diagnósticos (E1–E6, últimos 3 meses: comer em excesso objectivo e subjectivo, vómito auto-induzido, laxantes/diuréticos, exercício compulsivo e restrição significativa), que não entram nos scores e são apenas orientadores dos critérios DSM-5. Bryant-Waugh, Cooper, Taylor & Lask (1996), adaptado da EDE. O limiar global de 2,5 e as faixas das subescalas são orientadores (folha de cotação), sem pontos de corte publicados identificados. Guião de trabalho PT.', domains:['Restrição alimentar (0–6)','Preocupação com a alimentação (0–6)','Preocupação com o peso (0–6)','Preocupação com a forma corporal (0–6)','Score Global (0–6)','Itens diagnósticos E1–E6 (Sim/Não)'], ageMin:84, ageMax:179 },
     { id:'q_kfq', name:'KFQ-PT — Levantamento de Medos para a Criança (Koala Fear Questionnaire; versão adaptada em português europeu, aplicada pela psicóloga)', dest:['Paciente','Criança avaliada'], link:'https://correiaricardina-ui.github.io/questionarios/KFQ_PT_v1.html', syncKey:'kfq', area:'Ansiedade, Depressão & Internalização', ageRange:'4–6 anos (aplicação individual pela psicóloga, com cartões e escala de três rostos)', objective:'Levantamento dos medos da criança, aplicado individualmente pela psicóloga com cartões ilustrados e uma escala de três rostos: 31 situações cotadas 1 (sem medo), 2 (algum medo) ou 3 (muito medo), com registo de omissões pela clínica (O) e de recusas ou ausência de resposta (R). Total KFQ (31 a 93, só com os 31 itens respondidos), média por item, número de itens com «muito medo», padrão de resposta uniforme, leitura global por bandas descritivas (a partir de 21 itens), oito domínios descritivos (não validados fatorialmente) e alerta de perfil focal. Comparação exploratória do total com as médias de crianças holandesas de 4 a 6 anos (Muris et al., 2003), sem normas portuguesas e sem valor classificatório. Inclui módulo do caso (M1–M5 editáveis e X1–X10 com os medos escritos pelos pais), fora do total e dos domínios, e cruzamento descritivo pais–criança com o FSSIP-PT. A interpretação clínica é da psicóloga.', domains:['Total KFQ (31–93)','Média por item','Itens com «muito medo»','Padrão de resposta uniforme','A. Perigo, violência e morte','B. Imaginário e escuro','C. Animais (selvagens e pequenos)','D. Alturas e movimento','E. Família e separação','F. Saúde e procedimentos','G. Avaliação social','H. Cães e aves','Módulo do caso (M1–M5 e X1–X10)','Cruzamento pais–criança (FSSIP × KFQ)'], ageMin:48, ageMax:83 },
     { id:'q_fssip', name:'FSSIP-PT — Levantamento de Medos para Pais (Fear Survey Schedule for Infants-Preschoolers; versão dos pais em português europeu)', dest:['Mãe','Pai','Enc. Educação','Cuidador'], link:'https://correiaricardina-ui.github.io/questionarios/FSSIP_PT_v1.html', syncKey:'fssip', area:'Ansiedade, Depressão & Internalização', ageRange:'2–6 anos (respondido pelos pais ou cuidadores)', objective:'Levantamento dos medos da criança pequena, respondido pelos pais ou cuidadores: 92 situações cotadas 0 (nenhum), 1 (algum) ou 2 (muito). Fear Score (FS = soma, 0–184), HIFS (número de itens com intensidade «muito»), número e percentagem de medos assinalados, intensidade média nos medos presentes e leitura global por bandas descritivas, com onze domínios descritivos (não validados fatorialmente) e alerta de medo focal. Inclui módulo do caso (cinco situações editáveis), pergunta sobre outros medos e até dez medos escritos pelos pais, fora do FS, do HIFS e dos domínios. Comparação exploratória com amostras de referência dos EUA (Warren et al.) e do Brasil (controlo e clínica), sem normas portuguesas e sem valor classificatório. A interpretação clínica é da psicóloga.', domains:['Fear Score FS (0–184)','HIFS — itens «muito»','Medos assinalados (n e %)','Intensidade média nos medos presentes','A. Sons e fenómenos intensos','B. Água e banho','C. Animais','D. Escuro, noite e imaginário','E. Separação e segurança','F. Lesão, saúde e procedimentos','G. Perigo físico, violência e catástrofe','H. Altura, espaços fechados e transportes','I. Avaliação social e autoridade','J. Desconhecidos e situações sociais','K. Novidade, rotina e sujidade','Módulo do caso e outros medos'], ageMin:24, ageMax:83 },
+    { id:'q_emar', name:'EMAR — Escala de Mitos do Amor Romântico (autorrelato, aplicado em sessão; módulo opcional, independente do ICCN)', dest:['Paciente','Jovem avaliado'], link:'https://correiaricardina-ui.github.io/questionarios/EMAR_v1.html', syncKey:'emar', area:'Risco, Autolesão & Psicopatologia Geral', ageRange:'13–19 anos (autorrelato, aplicação em sessão; validada em 18–30 anos, extensão sem evidência)', objective:'Escala de crenças em autorrelato, aplicada em sessão, sobre mitos do amor romântico (Scale of Myths of Romantic Love, Bonilla-Algovia & Rivas-Rivero, 2020; versão portuguesa EMAR, Grané-Morcillo, Costa-Ramalho, Pérez-Testor & Vall, 2025). 11 afirmações na escala de 1 a 5 (discordo totalmente a concordo plenamente), em dois fatores: Amor Idealizado (itens 1–7) e Amor Distorcido (itens 8–11). Descritiva, validada em adultos de 18 a 30 anos, sem normas nem pontos de corte e sem validação em adolescentes: a média de cada fator é lida face ao ponto médio (3) e, a título contextual e não vinculativo, face à amostra publicada. Os itens 9, 10 e 11 com concordância (resposta 4 ou 5) são tópicos de entrevista, não alertas de risco. Módulo opcional, independente do ICCN. Não diagnostica nem avalia comportamentos ou risco; a interpretação clínica é da psicóloga.', domains:['Amor Idealizado (itens 1–7; soma 7–35)','Amor Distorcido (itens 8–11; soma 4–20)','Total (11–55; descritivo)','Concordância por item (resposta 4–5)','Tópicos de entrevista (itens 9, 10 e 11)','Referência publicada por fator e género (contextual)'], ageMin:156, ageMax:239 },
+    { id:'q_iccn', name:'ICCN — Inventário Clínico de Conflitos no Namoro (modelo CADRI; autorrelato do adolescente, aplicado em sessão)', dest:['Paciente','Jovem avaliado'], link:'https://correiaricardina-ui.github.io/questionarios/ICCN_v1.html', syncKey:'iccn', area:'Risco, Autolesão & Psicopatologia Geral', ageRange:'13–19 anos (autorrelato, aplicação em sessão)', objective:'Inventário clínico de rastreio, em autorrelato do adolescente e aplicado em sessão, sobre conflitos e comportamentos abusivos no namoro, segundo o modelo CADRI (Wolfe et al., 2001; CADRI-P, Lucas, Pinheiro & Simões, 2017), com itens de redação original. 36 situações em cinco subescalas (violência física, verbal-emocional, relacional e de poder, no ciberespaço e sexual), cada uma respondida em duas direções (eu fiz / o(a) parceiro(a) fez) na escala N/A/F (nunca, às vezes, frequentemente = 0/1/2). Total 0–72 por direção. Inclui 10 estratégias positivas de resolução de conflitos, fora do total. Sem normas nem pontos de corte: o nível de alerta (vermelho, amarelo, sem alertas de item, sem comportamentos) deriva de regras de item e de sinais de validade, e orienta a entrevista e o protocolo de risco, não substitui a avaliação clínica. Comparação indicativa, não normativa, com a Tabela 5 do CADRI-P para violência física, verbal-emocional e sexual. A interpretação clínica é da psicóloga.', domains:['Violência física (0–14)','Violência verbal-emocional (0–18)','Violência relacional e de poder (0–16)','Violência no ciberespaço (0–14)','Violência sexual (0–10)','Total por direção (0–72)','Estratégias positivas (0–20, fora do total)','Nível de alerta por direção'], ageMin:156, ageMax:239 },
     // ── PHQ-15 · Questionário de Sintomas Somáticos (v140) — 3 versões; ageMin/ageMax em MESES ──
     { id:'q_phq15_p', name:'PHQ-15 — Questionário de Sintomas Somáticos (Parental · Pais/Cuidadores)', dest:['Mãe','Pai','Enc. Educação'], link:'https://correiaricardina-ui.github.io/questionarios/PHQ15_Pais_v1.html', syncKey:'phq15_p', area:'Ansiedade, Depressão & Internalização', ageRange:'6–17 anos', objective:'Rastreio e caracterização de sintomas somáticos (PHQ-15; Kroenke, Spitzer & Williams, 2002): 15 sintomas físicos (14 na versão masculina/pediátrica conforme aplicável) avaliados nos últimos 7 dias em três níveis (0 = nada, 1 = pouco, 2 = muito incomodado). Pontuação bruta 0–30 (proporcional 0–30 quando há itens em falta, válida com no máximo 25% de itens em falta); níveis 0–4 mínima, 5–9 baixa, 10–14 média, 15–30 elevada. É RASTREIO e NÃO diagnóstico. Em adultos, ≥ 3 itens «muito incomodado(a)» é indicador associado a perturbação somatoforme (sensibilidade 78%, especificidade 71%); em idade pediátrica é meramente descritivo e a sua validade não foi verificada. Agrupamentos de sintomas (dor, gastrointestinal, cardiorrespiratório/autonómico, fadiga e sono, ginecológico/sexual) são descritivos. Paleta azul; o vermelho aparece apenas na sinalização binária do indicador de 3 ou mais itens no adulto.', domains:['Pontuação bruta (0–30)','Proporcional (0–30)','Nível de gravidade','Itens «muito incomodado(a)»','Indicador ≥ 3 itens','Agrupamentos de sintomas'], ageMin:72, ageMax:215 },
     { id:'q_phq15_j', name:'PHQ-15 — Questionário de Sintomas Somáticos (Autorrelato · Jovem (11–17 anos))', dest:['Paciente','Jovem avaliado'], link:'https://correiaricardina-ui.github.io/questionarios/PHQ15_Jovem_v1.html', syncKey:'phq15_j', area:'Ansiedade, Depressão & Internalização', ageRange:'11–17 anos', objective:'Rastreio e caracterização de sintomas somáticos (PHQ-15; Kroenke, Spitzer & Williams, 2002): 15 sintomas físicos (14 na versão masculina/pediátrica conforme aplicável) avaliados nos últimos 7 dias em três níveis (0 = nada, 1 = pouco, 2 = muito incomodado). Pontuação bruta 0–30 (proporcional 0–30 quando há itens em falta, válida com no máximo 25% de itens em falta); níveis 0–4 mínima, 5–9 baixa, 10–14 média, 15–30 elevada. É RASTREIO e NÃO diagnóstico. Em adultos, ≥ 3 itens «muito incomodado(a)» é indicador associado a perturbação somatoforme (sensibilidade 78%, especificidade 71%); em idade pediátrica é meramente descritivo e a sua validade não foi verificada. Agrupamentos de sintomas (dor, gastrointestinal, cardiorrespiratório/autonómico, fadiga e sono, ginecológico/sexual) são descritivos. Paleta azul; o vermelho aparece apenas na sinalização binária do indicador de 3 ou mais itens no adulto.', domains:['Pontuação bruta (0–30)','Proporcional (0–30)','Nível de gravidade','Itens «muito incomodado(a)»','Indicador ≥ 3 itens','Agrupamentos de sintomas'], ageMin:132, ageMax:215 },
@@ -3752,6 +3766,8 @@ function initCatalog() {
       'q_cpq': { link:'https://correiaricardina-ui.github.io/questionarios/CPQ_v1.html', syncKey:'cpq' },
       'q_chede': { link:'https://correiaricardina-ui.github.io/questionarios/ChEDE_v1.html', syncKey:'chede' },
       'q_kfq': { link:'https://correiaricardina-ui.github.io/questionarios/KFQ_PT_v1.html', syncKey:'kfq' },
+      'q_emar': { link:'https://correiaricardina-ui.github.io/questionarios/EMAR_v1.html', syncKey:'emar' },
+      'q_iccn': { link:'https://correiaricardina-ui.github.io/questionarios/ICCN_v1.html', syncKey:'iccn' },
       'q_fssip': { link:'https://correiaricardina-ui.github.io/questionarios/FSSIP_PT_v1.html', syncKey:'fssip' },
       // ── PHQ-15 (v140) ──
       'q_phq15_p':   { link:'https://correiaricardina-ui.github.io/questionarios/PHQ15_Pais_v1.html', syncKey:'phq15_p' },
@@ -4203,6 +4219,26 @@ function initCatalog() {
         store.set('q_kfq', _kfqDefault);
         store.set('q_' + 'q_kfq', _kfqDefault);
         catalog.push('q_kfq');
+        store.set('catalog', catalog);
+      }
+    }
+    // ── EMAR · Escala de Mitos do Amor Romântico (v152) ──
+    if(!catalog.includes('q_emar')) {
+      const _emarDefault = defaults.find(d => d.id === 'q_emar');
+      if(_emarDefault) {
+        store.set('q_emar', _emarDefault);
+        store.set('q_' + 'q_emar', _emarDefault);
+        catalog.push('q_emar');
+        store.set('catalog', catalog);
+      }
+    }
+    // ── ICCN · Inventário Clínico de Conflitos no Namoro (v151) ──
+    if(!catalog.includes('q_iccn')) {
+      const _iccnDefault = defaults.find(d => d.id === 'q_iccn');
+      if(_iccnDefault) {
+        store.set('q_iccn', _iccnDefault);
+        store.set('q_' + 'q_iccn', _iccnDefault);
+        catalog.push('q_iccn');
         store.set('catalog', catalog);
       }
     }
@@ -7349,6 +7385,36 @@ function formatScoreSummary(scores, syncKey) {
       if(_vbL != null && String(_vbL).toUpperCase() === 'SIM') _vbPartes.push('<span style="font-size:0.75rem;color:#C0392B;font-weight:700;">dif. aprendizagem: positivo</span>');
     }
     if(_vbPartes.length) return _vbPartes.join(' &middot; ');
+  }
+  // ── EMAR · Escala de Mitos do Amor Romântico (v152) ────────────────────────
+  // Guardas `!= null` (nunca `||`). Escala descritiva: tudo em azul, sem semáforo;
+  // os tópicos (itens 9, 10, 11) NÃO são alertas de risco.
+  if(syncKey === 'emar') {
+    const _emG = function(k){ const v = scores[k] != null ? scores[k] : scores[k.toLowerCase()]; return (v != null && v !== '') ? v : null; };
+    const _emAI = _emG('Media_AI'), _emAD = _emG('Media_AD'), _emT = _emG('Soma_Total'), _emTp = _emG('Topicos'), _emE = _emG('Estado');
+    const _emP = [];
+    if(_emAI != null || _emAD != null || _emT != null){
+      _emP.push('<span style="font-size:0.78rem;color:var(--blue);font-weight:700;">EMAR AI ' + (_emAI != null ? _emAI : '–') + ' &middot; AD ' + (_emAD != null ? _emAD : '–') + (_emT != null ? ' &middot; total ' + _emT + '/55' : '') + '</span>');
+      if(_emTp != null && String(_emTp).toLowerCase() !== 'nenhum') _emP.push('<span style="font-size:0.75rem;color:var(--blue-mid);font-weight:600;">t&oacute;picos: ' + _emTp + '</span>');
+      if(_emE != null && String(_emE).toUpperCase().indexOf('PARCIAL') === 0) _emP.push('<span style="font-size:0.75rem;color:var(--text-light);">' + String(_emE).toLowerCase() + '</span>');
+    }
+    if(_emP.length) return _emP.join(' &middot; ');
+  }
+  // ── ICCN · Inventário Clínico de Conflitos no Namoro (v151) ───────────────
+  // Guardas `!= null` (nunca `||`): o ZERO é resultado clínico. Vermelho SÓ nos
+  // alertas de item; amarelo nos alertas intermédios; azul no restante.
+  if(syncKey === 'iccn') {
+    const _icG = function(k){ const v = scores[k] != null ? scores[k] : scores[k.toLowerCase()]; return (v != null && v !== '') ? v : null; };
+    const _icNP = _icG('Nivel_P'), _icNV = _icG('Nivel_V'), _icTP = _icG('Tot_P'), _icTV = _icG('Tot_V'), _icE = _icG('Estado');
+    const _icCor = function(n){ const u = String(n).toUpperCase(); return u === 'VERMELHO' ? '#C0392B' : (u === 'AMARELO' ? '#B9650F' : 'var(--blue)'); };
+    const _icP = [];
+    if(_icNP != null || _icNV != null){
+      if(_icTP != null || _icTV != null) _icP.push('<span style="font-size:0.78rem;color:var(--blue);font-weight:700;">ICCN eu fiz ' + (_icTP != null ? _icTP : '–') + '/72 &middot; parceiro(a) fez ' + (_icTV != null ? _icTV : '–') + '/72</span>');
+      if(_icNP != null) _icP.push('<span style="font-size:0.75rem;color:' + _icCor(_icNP) + ';font-weight:700;">eu fiz: ' + String(_icNP).toLowerCase() + '</span>');
+      if(_icNV != null) _icP.push('<span style="font-size:0.75rem;color:' + _icCor(_icNV) + ';font-weight:700;">parceiro(a) fez: ' + String(_icNV).toLowerCase() + '</span>');
+      if(_icE != null && String(_icE).toUpperCase().indexOf('PARCIAL') === 0) _icP.push('<span style="font-size:0.75rem;color:var(--text-light);">' + String(_icE).toLowerCase() + '</span>');
+    }
+    if(_icP.length) return _icP.join(' &middot; ');
   }
   // Genérico
   const entries = Object.entries(scores).filter(([,v]) => v != null).slice(0,3);
